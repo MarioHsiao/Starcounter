@@ -850,6 +850,10 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_AGGREGATED;
     }
 
+	db_index_type get_dest_db_index() {
+		return dest_db_index_;
+	}
+
 	bool get_streaming_response_body_flag()
 	{
 		return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_STREAMING_RESPONSE_BODY) != 0;
@@ -1016,9 +1020,6 @@ public:
     {
         return db_name_;
     }
-
-    // Closes all tracked sockets.
-    void CloseSocketData();
 
     // Makes this database slot empty.
     void StartDeletion();
@@ -2090,6 +2091,9 @@ public:
 
     // Waking up all workers if they are sleeping.
     void WakeUpAllWorkersToCollectInactiveSockets();
+
+	// Disconnect sockets when codehost dies.
+	void DisconnectSocketsWhenCodehostDies(db_index_type db_index);
 
     // Opens active databases events with monitor.
     uint32_t OpenActiveDatabasesUpdatedEvent();
