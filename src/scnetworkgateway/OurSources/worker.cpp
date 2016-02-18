@@ -267,6 +267,9 @@ uint32_t GatewayWorker::DisonnectCodehostSockets(db_index_type db_index)
 		}
 	}
 
+	// Releasing database index.
+	g_gateway.GetDatabase(db_index)->ReleaseHoldingWorker();
+
 	return 0;
 }
 

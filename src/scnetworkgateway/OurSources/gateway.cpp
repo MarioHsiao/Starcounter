@@ -1967,7 +1967,8 @@ void ActiveDatabase::Init(
     is_empty_ = false;
     is_ready_for_cleanup_ = false;
 
-    num_holding_workers_ = g_gateway.setting_num_workers();
+	// NOTE: We release holding workers in two places: db interface and sockets, thats why multiplied by 2.
+    num_holding_workers_ = g_gateway.setting_num_workers() * 2;
 
     // Construct the database_shared_memory_parameters_name. The format is
     // <DATABASE_NAME_PREFIX>_<SERVER_TYPE>_<DATABASE_NAME>_0
