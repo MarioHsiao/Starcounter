@@ -19,6 +19,7 @@
 - Added a possibility to stream data over TCP, WebSockets and HTTP responses: [#9](https://github.com/Starcounter/Starcounter/issues/9)
 - Added `Session.ToAsciiString()` to convert an existing session into an ASCII string. Later this session ASCII string can be used as parameter to `Session.ScheduleTask`.
 - Added simpler task scheduling interface using static method `Scheduling.ScheduleTask()`.
+- Added excecptions with information about failed table to upgrade. Related to [#3383](https://github.com/Starcounter/Starcounter/issues/3383) and [#3368](https://github.com/Starcounter/Starcounter/issues/3368).
 - Extended the basic admin REST API to support creating databases with custom settings [#3362](https://github.com/Starcounter/Starcounter/issues/3362)
 - Made `staradmin new db` support the name to be given as a first parameter, like `staradmin new db`
 - Extended `staradmin new db` to support custom settings as specified in [#3360](https://github.com/Starcounter/Starcounter/issues/3360)
