@@ -74,33 +74,36 @@ namespace Starcounter.Binding
         /// Evals this instance.
         /// </summary>
         /// <returns>TableDef.</returns>
-        public TableDef Eval()
-        {
-            CreateNewTable();
+        public TableDef Eval() {
+            try {
+                CreateNewTable();
 
-            // We do the inheriting tables first so that only the records of
-            // current table remains when we scan the,
+                // We do the inheriting tables first so that only the records of
+                // current table remains when we scan the,
 
-            TableDef[] directlyInheritedTableDefs = GetDirectlyInheritedTableDefs(oldTableDef_.TableId);
-            for (int i = 0; i < directlyInheritedTableDefs.Length; i++)
-            {
-                UpgradeInheritingTable(directlyInheritedTableDefs[i]);
+                TableDef[] directlyInheritedTableDefs = GetDirectlyInheritedTableDefs(oldTableDef_.TableId);
+                for (int i = 0; i < directlyInheritedTableDefs.Length; i++) {
+                    UpgradeInheritingTable(directlyInheritedTableDefs[i]);
+                }
+
+                BuildColumnValueTransferSet();
+
+                MoveIndexesToNewTable();
+
+                MoveRecordsToNewTable();
+
+                DropOldTable();
+
+                RenameNewTable();
+
+                Db.Transact(() => {
+                    newTableDef_ = Db.LookupTable(tableName_);
+                });
+            } catch (Exception e) {
+                throw ErrorCode.ToException(Error.SCERRUPDATEFAILED, e,
+    "Update failed due to an error for the table "
+    + oldTableDef_.Name);
             }
-
-            BuildColumnValueTransferSet();
-
-            MoveIndexesToNewTable();
-
-            MoveRecordsToNewTable();
-
-            DropOldTable();
-
-            RenameNewTable();
-
-            Db.Transact(() =>
-            {
-                newTableDef_ = Db.LookupTable(tableName_);
-            });
 
             return newTableDef_;
         }
