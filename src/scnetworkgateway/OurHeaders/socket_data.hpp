@@ -95,6 +95,10 @@ class SocketDataChunk
 
 public:
 
+	ScSocketInfoStruct* get_socket_info() {
+		return socket_info_;
+	}
+
     void SetWebSocketUpgradeResponsePartLength(uint32_t len_bytes) {
         num_available_network_bytes_ = len_bytes;
     }
