@@ -762,7 +762,8 @@ enum SOCKET_FLAGS
     SOCKET_FLAGS_PROXY_CONNECT = 2,
     SOCKET_FLAGS_DISCONNECT_AFTER_SEND = 2 << 1,
     SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT = 2 << 2,
-	SOCKET_FLAGS_STREAMING_RESPONSE_BODY = 2 << 3
+	SOCKET_FLAGS_STREAMING_RESPONSE_BODY = 2 << 3,
+	SOCKET_FLAGS_DISCONNECT_PUSHED_TO_CODEHOST = 2 << 4
 };
 
 // Structure that facilitates the socket.
@@ -888,6 +889,16 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     {
         flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_AFTER_SEND;
     }
+
+	bool get_disconnect_pushed_to_codehost_flag()
+	{
+		return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_PUSHED_TO_CODEHOST) != 0;
+	}
+
+	void set_disconnect_pushed_to_codehost_flag()
+	{
+		flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_PUSHED_TO_CODEHOST;
+	}
 
     bool get_ws_close_already_sent_flag()
     {

@@ -1016,7 +1016,14 @@ uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
 }
 
 // Pushes disconnect message to host if needed.
-void GatewayWorker::PushDisconnectIfNeeded(SocketDataChunkRef sd) {
+void GatewayWorker::PushDisconnectToCodehost(SocketDataChunkRef sd) {
+
+	// Checking if we already pushed the disconnect to codehost.
+	if (sd->get_socket_info()->get_disconnect_pushed_to_codehost_flag())
+		return;
+
+	// Setting flag to send disconnect to codehost.
+	sd->get_socket_info()->set_disconnect_pushed_to_codehost_flag();
 
 	// Checking if we have streaming response.
 	if (sd->GetStreamingResponseBodyFlag()) {
@@ -1083,9 +1090,6 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         if (!sd->CompareUniqueSocketId())
             goto RELEASE_CHUNK_TO_POOL;
 
-        // Pushing disconnect message to host if needed.
-        PushDisconnectIfNeeded(sd);
-
         // Setting unique socket id.
         GenerateUniqueSocketInfoIds(sd->get_socket_info_index());
 
@@ -1103,9 +1107,6 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
 
     // Checking correct unique socket.
     if (sd->CompareUniqueSocketId()) {
-
-        // Pushing disconnect message to host if needed.
-        PushDisconnectIfNeeded(sd);
 
         // Setting unique socket id.
         GenerateUniqueSocketInfoIds(sd->get_socket_info_index());
@@ -1153,8 +1154,10 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
 
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(sd->get_socket_representer_flag());
-
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
+
+	// Pushing disconnect message to host if needed.
+	PushDisconnectToCodehost(sd);
 
     // Deleting session.
     sd->ResetGlobalSession();
