@@ -80,6 +80,7 @@ typedef uint32_t ws_group_id_type;
 //#define WORKER_NO_SLEEP
 //#define LEAST_USED_SCHEDULING
 #define CASE_INSENSITIVE_URI_MATCHER
+#define DISCONNECT_SOCKETS_WHEN_CODEHOST_DIES
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC

@@ -1967,8 +1967,14 @@ void ActiveDatabase::Init(
     is_empty_ = false;
     is_ready_for_cleanup_ = false;
 
+    num_holding_workers_ = g_gateway.setting_num_workers();
+
+#ifdef DISCONNECT_SOCKETS_WHEN_CODEHOST_DIES
+
 	// NOTE: We release holding workers in two places: db interface and sockets, thats why multiplied by 2.
-    num_holding_workers_ = g_gateway.setting_num_workers() * 2;
+	num_holding_workers_ *= 2;
+
+#endif
 
     // Construct the database_shared_memory_parameters_name. The format is
     // <DATABASE_NAME_PREFIX>_<SERVER_TYPE>_<DATABASE_NAME>_0
@@ -2693,8 +2699,12 @@ uint32_t Gateway::EraseDatabaseFromPorts(db_index_type db_index)
     // Removing empty server ports.
     CleanUpEmptyPorts();
 
+#ifdef DISCONNECT_SOCKETS_WHEN_CODEHOST_DIES
+
 	// Waking up all workers to perform the collection of inactive sockets.
 	g_gateway.DisconnectSocketsWhenCodehostDies(db_index);
+
+#endif
 
     return 0;
 }
