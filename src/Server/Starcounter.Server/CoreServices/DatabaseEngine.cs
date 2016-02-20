@@ -501,7 +501,7 @@ namespace Starcounter.Server {
             var arguments = new StringBuilder();
 
             // The syntax
-            // scdata.exe <installationId> <hostName> <eventLogDirPath> <databaseName> <logDirPath> <tempDirPath> [<logBufferSize>]
+            // scdata.exe <installationId> <hostName> <eventLogDirPath> <databaseName> <logDirPath> [<logBufferSize>]
 
             arguments.Append(database.InstanceID.ToString());
             arguments.Append(' ');
@@ -528,10 +528,6 @@ namespace Starcounter.Server {
             arguments.Append(runtimeConfig.TransactionLogDirectory.TrimEnd('\\'));
             arguments.Append('\"');
             arguments.Append(' ');
-
-            arguments.Append('\"');
-            arguments.Append(runtimeConfig.TempDirectory.TrimEnd('\\'));
-            arguments.Append('\"');
 
             // Support optional log buffer size in configuration too
             // TODO:
