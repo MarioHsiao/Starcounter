@@ -4795,6 +4795,11 @@
         Internal metalayer buffer is too small.
       </message>
     </code>
+    <code hex="0008" severity="Error" name="ScErrColumnsArentUnique">
+      <message>
+        Column definitions aren't unique.
+      </message>
+    </code>
   </facility>
 
 <!--
