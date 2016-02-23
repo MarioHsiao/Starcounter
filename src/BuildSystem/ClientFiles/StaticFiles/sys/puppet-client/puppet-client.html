@@ -1,4 +1,4 @@
-<!-- puppet-client version: 1.0.4 | MIT License -->
+<!-- puppet-client version: 1.0.5 | MIT License -->
 
 <!-- include PuppetJs with dependencies -->
 <script src="../fast-json-patch/src/json-patch-duplex.js"></script>
@@ -100,12 +100,13 @@
             localVersionPath:  this.hasAttribute("localversionpath") ? this.getAttribute("localversionpath") : defaultLocalVersionPath,
             remoteVersionPath: this.hasAttribute("remoteversionpath") ? this.getAttribute("remoteversionpath") : defaultRemoteVersionPath,
             ot:                parseBoolAttribute(this.getAttribute("ot"), this.ot),
-            purity:            parseBoolAttribute(this.getAttribute("purity"), this.purity)
+            purity:            parseBoolAttribute(this.getAttribute("purity"), this.purity),
+            callback: function () {
+                if (whereToBind) {
+                    this.bindTo(whereToBind);
+                }
+            }.bind(this)
         });
-
-        if(whereToBind){
-            this.bindTo(whereToBind);
-        }
     };
 
     function parseBoolAttribute(value, defVal){

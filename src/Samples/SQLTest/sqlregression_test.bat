@@ -28,7 +28,7 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: start servers
 START scipcmonitor.exe PERSONAL .db.output
-START scdata.exe 1 SQLTEST .db.output SqlTest .db .db.output
+START scdata.exe 1 SQLTEST .db.output SqlTest .db
 START 32bitComponents\scsqlparser.exe 8066
 
 :: Sleeping some time using ping.

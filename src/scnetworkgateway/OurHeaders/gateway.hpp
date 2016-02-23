@@ -80,6 +80,7 @@ typedef uint32_t ws_group_id_type;
 //#define WORKER_NO_SLEEP
 //#define LEAST_USED_SCHEDULING
 #define CASE_INSENSITIVE_URI_MATCHER
+#define DISCONNECT_SOCKETS_WHEN_CODEHOST_DIES
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -762,7 +763,8 @@ enum SOCKET_FLAGS
     SOCKET_FLAGS_PROXY_CONNECT = 2,
     SOCKET_FLAGS_DISCONNECT_AFTER_SEND = 2 << 1,
     SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT = 2 << 2,
-	SOCKET_FLAGS_STREAMING_RESPONSE_BODY = 2 << 3
+	SOCKET_FLAGS_STREAMING_RESPONSE_BODY = 2 << 3,
+	SOCKET_FLAGS_DISCONNECT_PUSHED_TO_CODEHOST = 2 << 4
 };
 
 // Structure that facilitates the socket.
@@ -850,6 +852,10 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_AGGREGATED;
     }
 
+	db_index_type get_dest_db_index() {
+		return dest_db_index_;
+	}
+
 	bool get_streaming_response_body_flag()
 	{
 		return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_STREAMING_RESPONSE_BODY) != 0;
@@ -884,6 +890,16 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     {
         flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_AFTER_SEND;
     }
+
+	bool get_disconnect_pushed_to_codehost_flag()
+	{
+		return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_PUSHED_TO_CODEHOST) != 0;
+	}
+
+	void set_disconnect_pushed_to_codehost_flag()
+	{
+		flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_PUSHED_TO_CODEHOST;
+	}
 
     bool get_ws_close_already_sent_flag()
     {
@@ -1016,9 +1032,6 @@ public:
     {
         return db_name_;
     }
-
-    // Closes all tracked sockets.
-    void CloseSocketData();
 
     // Makes this database slot empty.
     void StartDeletion();
@@ -2090,6 +2103,9 @@ public:
 
     // Waking up all workers if they are sleeping.
     void WakeUpAllWorkersToCollectInactiveSockets();
+
+	// Disconnect sockets when codehost dies.
+	void DisconnectSocketsWhenCodehostDies(db_index_type db_index);
 
     // Opens active databases events with monitor.
     uint32_t OpenActiveDatabasesUpdatedEvent();

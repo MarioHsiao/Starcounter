@@ -23,7 +23,7 @@ START CMD /C "%~dp0\..\..\scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
 SET TEST_WEAVED_ASSEMBLY=%~dp0\.starcounter\%TEST_NAME%.exe
 
 :: Starting database memory management process.
-START CMD /C "%~dp0\..\..\scdata.exe 1 %DB_NAME% %DB_OUT_DIR% %DB_NAME% %DB_DIR% %DB_OUT_DIR%"
+START CMD /C "%~dp0\..\..\scdata.exe 1 %DB_NAME% %DB_OUT_DIR% %DB_NAME% %DB_DIR%"
 
 :: Starting Prolog process.
 START CMD /C "%~dp0\..\..\32bitComponents\scsqlparser.exe 8066"

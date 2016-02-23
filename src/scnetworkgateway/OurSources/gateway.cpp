@@ -1293,6 +1293,17 @@ void __stdcall EmptyApcFunction(ULONG_PTR arg) {
 }
 
 // APC function that does collect inactive sockets.
+void __stdcall DisconnectCodehostSocketsApcFunction(ULONG_PTR arg) {
+
+	worker_id_type worker_id = (worker_id_type) arg;
+
+	db_index_type db_index = (db_index_type) (arg >> 8);
+
+    // Going through all active connections and disconnecting sockets.
+    g_gateway.get_worker(worker_id)->DisonnectCodehostSockets(db_index);
+}
+
+// APC function that does collect inactive sockets.
 void __stdcall CollectInactiveSocketsApcFunction(ULONG_PTR arg) {
 
     worker_id_type worker_id = (worker_id_type) arg;
@@ -1958,6 +1969,13 @@ void ActiveDatabase::Init(
 
     num_holding_workers_ = g_gateway.setting_num_workers();
 
+#ifdef DISCONNECT_SOCKETS_WHEN_CODEHOST_DIES
+
+	// NOTE: We release holding workers in two places: db interface and sockets, thats why multiplied by 2.
+	num_holding_workers_ *= 2;
+
+#endif
+
     // Construct the database_shared_memory_parameters_name. The format is
     // <DATABASE_NAME_PREFIX>_<SERVER_TYPE>_<DATABASE_NAME>_0
     std::string shm_params_name = (std::string)DATABASE_NAME_PREFIX + "_" +
@@ -1982,8 +2000,7 @@ void ActiveDatabase::Reset(bool hard_reset)
     unique_num_unsafe_ = INVALID_UNIQUE_DB_NUMBER;
     db_name_ = "";
 
-    if (hard_reset)
-    {
+    if (hard_reset) {
         is_empty_ = true;
     }
 }
@@ -2682,6 +2699,13 @@ uint32_t Gateway::EraseDatabaseFromPorts(db_index_type db_index)
     // Removing empty server ports.
     CleanUpEmptyPorts();
 
+#ifdef DISCONNECT_SOCKETS_WHEN_CODEHOST_DIES
+
+	// Waking up all workers to perform the collection of inactive sockets.
+	g_gateway.DisconnectSocketsWhenCodehostDies(db_index);
+
+#endif
+
     return 0;
 }
 
@@ -2751,6 +2775,23 @@ void Gateway::WakeUpAllWorkers()
         // Waking up the worker with APC.
         WakeUpThreadUsingAPC(worker_thread_handle);
     }
+}
+
+// Disconnect sockets when codehost dies.
+void Gateway::DisconnectSocketsWhenCodehostDies(db_index_type db_index) {
+
+	// Waking up all the workers if needed.
+	for (worker_id_type w = 0; w < g_gateway.setting_num_workers(); w++)
+	{
+		// Obtaining worker thread handle to call an APC event.
+		HANDLE worker_thread_handle = g_gateway.get_worker_thread_handle(w);
+
+		// Embedding worker id and codehost id into argument.
+		uint16_t arg = (uint16_t)w | (0xFF00 & (((uint16_t) db_index) << 8));
+
+		// Waking up the worker thread with APC.
+		QueueUserAPC(DisconnectCodehostSocketsApcFunction, worker_thread_handle, arg);
+	}
 }
 
 // Waking up all workers if they are sleeping.

@@ -502,7 +502,7 @@ public:
     void DisconnectAndReleaseChunk(SocketDataChunkRef sd);
 
     // Pushes disconnect message to host if needed.
-    void PushDisconnectIfNeeded(SocketDataChunkRef sd);
+    void PushDisconnectToCodehost(SocketDataChunkRef sd);
 
     // Send disconnect to database.
     uint32_t SendTcpSocketDisconnectToDb(SocketDataChunk* sd);
@@ -703,6 +703,9 @@ public:
 
     // Collects outdated sockets if any.
     uint32_t CollectInactiveSockets();
+
+	// Collects outdated sockets if any.
+	uint32_t DisonnectCodehostSockets(db_index_type db_index);
 
     // Releases socket info index.
     void ReleaseSocketIndex(socket_index_type socket_index);
