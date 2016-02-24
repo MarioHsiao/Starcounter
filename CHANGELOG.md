@@ -20,6 +20,7 @@
 - Added `Session.ToAsciiString()` to convert an existing session into an ASCII string. Later this session ASCII string can be used as parameter to `Session.ScheduleTask`.
 - Added simpler task scheduling interface using static method `Scheduling.ScheduleTask()`.
 - Added excecptions with information about failed table to upgrade. Related to [#3383](https://github.com/Starcounter/Starcounter/issues/3383) and [#3368](https://github.com/Starcounter/Starcounter/issues/3368).
+- Introduced new IMiddleware class and the new consolidated middleware Application.Use() API's, as described in See [#3296](https://github.com/Starcounter/Starcounter/issues/3296)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
@@ -54,6 +55,7 @@
 - Session API has been refactored. New `Session.ScheduleTask` is added. `Session.ForAll` has been refactored.
 - `Session.Destroyed` is now replaced by `Session.AddDestroyDelegate` because of apps separation issues.
 - `Session.CargoId` is removed because of no use.
+- Made Handle.AddRequestFilter and Handle.AddResponseFilter obsolete in favor new Application.Use() API. See [#3296](https://github.com/Starcounter/Starcounter/issues/3296)
 
 ## [2.1.177] - 2015-10-14
 ### Changed
