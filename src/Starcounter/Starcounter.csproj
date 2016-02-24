@@ -153,6 +153,7 @@
     <Compile Include="Metadata\RuntimeIndex.cs" />
     <Compile Include="Metadata\RuntimeMember.cs" />
     <Compile Include="Metadata\RuntimeView.cs" />
+    <Compile Include="Middleware\IMiddleware.cs" />
     <Compile Include="Mock\Db.cs" />
     <Compile Include="Mock\DbHelper.cs" />
     <Compile Include="Mock\Enumerator.cs" />
