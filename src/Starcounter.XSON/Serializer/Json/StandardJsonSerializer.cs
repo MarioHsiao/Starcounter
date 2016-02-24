@@ -297,7 +297,7 @@ namespace Starcounter.Advanced.XSON {
                         string setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM Starcounter.Layout p WHERE p.Key = ?", partialConfigId).First;
 
                         if (setupStr != null) {
-                            sizeBytes += setupStr.Length + 12; // "layout":"",
+                            sizeBytes += setupStr.Length * 2 + 12; // "layout":"",
                         }
                     }
                 }
@@ -637,7 +637,7 @@ namespace Starcounter.Advanced.XSON {
                             *pfrag++ = (byte)':';
                             used++;
 
-                            valueSize = JsonHelper.WriteStringNoQuotations(pfrag, destSize - used, setupStr);
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, setupStr);
                             used += valueSize;
                             pfrag += valueSize;
                         }
