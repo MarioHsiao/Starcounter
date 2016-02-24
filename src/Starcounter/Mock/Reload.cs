@@ -243,16 +243,13 @@ namespace Starcounter
 
                 BlockingCollection<IEnumerable<ExportItem>> items = new BlockingCollection<IEnumerable<ExportItem>>(Environment.ProcessorCount);
                 System.Threading.Tasks.Task<int> export = System.Threading.Tasks.Task.Run(() => UnloadItemsInParallel(items, insertHeader, shiftId, fileName));
-
-                try
-                {
-                    foreach (IEnumerable<ExportItem> e in GetExportItems(selectObjs).Where(e => e.GetTypeName() == tbl.FullName).Partition(100))
-                    {
-                        items.Add(e);
-                    }
-                }
-                finally
-                {
+                try {
+                    StarcounterEnvironment.RunWithinApplication(null, () => {
+                        foreach (IEnumerable<ExportItem> e in GetExportItems(selectObjs).Where(e => e.GetTypeName() == tbl.FullName).Partition(100)) {
+                            items.Add(e);
+                        }
+                    });
+                } finally {
                     items.CompleteAdding();
                 }
 
