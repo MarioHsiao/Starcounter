@@ -152,6 +152,37 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Register a request filter middleware, affecting the request
+        /// pipeline, possibly filtering requests as they arrive.
+        /// </summary>
+        /// <param name="requestFilter">The request filter middleware the
+        /// current application want to enable.</param>
+        public void Use(Func<Request, Response> requestFilter) {
+            Handle.InternalAddRequestFilter(requestFilter);
+        }
+
+        /// <summary>
+        /// Register a response filter middleware, affecting the request
+        /// pipeline, possibly customizing responses before they are sent
+        /// back to the client.
+        /// </summary>
+        /// <param name="responseFilter">The response filter middleware the
+        /// current application want to enable.</param>
+        public void Use(Func<Request, Response, Response> responseFilter) {
+            Handle.InternalAddResponseFilter(responseFilter);
+        }
+
+        /// <summary>
+        /// Register a custom middleware exposed via <see cref="IMiddleware"/>.
+        /// </summary>
+        /// <param name="middleware">The middleware component the current
+        /// application want to enable.
+        /// </param>
+        public void Use(IMiddleware middleware) {
+            middleware.Register(this);
+        }
+
+        /// <summary>
         /// Gets the <see cref="Application"/> the given <paramref name="assembly"/>
         /// represent or is part of.
         /// </summary>
