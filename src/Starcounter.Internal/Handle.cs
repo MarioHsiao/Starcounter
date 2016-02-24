@@ -450,10 +450,14 @@ namespace Starcounter {
         /// <summary>
         /// Adding new request filter.
         /// </summary>
+        [Obsolete("Please use Application.Use(requestFilter) instead.")]
         public static void AddRequestFilter(Func<Request, Response> filter) {
+            InternalAddRequestFilter(filter);
+        }
 
+
+        internal static void InternalAddRequestFilter(Func<Request, Response> filter) {
             RequestFilter rf = new RequestFilter(filter);
-
             requestFilters_.Add(rf);
         }
 
@@ -517,7 +521,12 @@ namespace Starcounter {
         /// <summary>
         /// Adding new response filter.
         /// </summary>
+        [Obsolete("Please use Application.Use(responseFilter) instead.")]
         public static void AddResponseFilter(Func<Request, Response, Response> filter) {
+            InternalAddResponseFilter(filter);
+        }
+
+        internal static void InternalAddResponseFilter(Func<Request, Response, Response> filter) {
 
             OutgoingFilter mf = new OutgoingFilter(filter);
 
