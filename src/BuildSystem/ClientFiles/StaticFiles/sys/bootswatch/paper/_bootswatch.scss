@@ -3,7 +3,6 @@
 // -----------------------------------------------------
 
 $web-font-path: "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" !default;
-
 @import url($web-font-path);
 
 // Navbar =====================================================================
@@ -503,7 +502,7 @@ input[type="checkbox"],
 }
 
 .badge {
-  padding: 3px 6px 5px;
+  padding: 4px 6px 4px;
 }
 
 .progress {
