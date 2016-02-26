@@ -1,4 +1,4 @@
-/*! puppet.js version: 1.3.4
+/*! puppet.js version: 1.3.5
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -100,7 +100,7 @@
     } else {
         this.remoteUrl = new URL(window.location.href);
     }
-    
+
     // define wsURL if needed
     if(useWebSocket){
       defineWebSocketURL(this, remoteUrl);
@@ -140,8 +140,8 @@
     var network = this;
     return this.xhr(
         this.remoteUrl.href,
-        'application/json', 
-        null,  
+        'application/json',
+        null,
         function (res) {
           bootstrap( res.responseText );
 
@@ -322,7 +322,7 @@
   };
   /** Apply given JSON Patch sequence immediately */
   NoQueue.prototype.receive = function(obj, sequence){
-      this.apply(obj, sequence);    
+      this.apply(obj, sequence);
   };
 
   /**
@@ -341,12 +341,24 @@
    * @param {Boolean}            [options.purity=false]       true to enable purist mode of OT
    * @param {Function}           [options.onPatchReceived]
    * @param {Function}           [options.onPatchSent]
+   * @param {Function}           [options.jsonpatch=jsonpatch] jsonpatch provider
    * @param {HTMLElement | window} [options.listenTo]         HTMLElement or window to listen to clicks
    */
   function Puppet(options) {
     options || (options={});
+    this.jsonpatch = options.jsonpatch || this.jsonpatch;
     this.debug = options.debug != undefined ? options.debug : true;
-    this.obj = options.obj || {};
+
+    if ("obj" in options) {
+        if (typeof options.obj != "object") {
+            throw new Error("'options.obj' is not an object");
+        }
+        this.obj = options.obj;
+    }
+    else {
+        this.obj = {};
+    }
+
     this.observer = null;
     this.onRemoteChange = options.onRemoteChange;
     this.onPatchReceived = options.onPatchReceived || function () { };
@@ -363,7 +375,7 @@
         this.handleRemoteError.bind(this), //onError,
         this.onSocketStateChanged.bind(this) //onStateChange
       );
-    
+
     Object.defineProperty(this, "useWebSocket", {
       get: function () {
         return this.network.useWebSocket;
@@ -403,7 +415,8 @@
     var puppet = this;
     this.network.establish(function bootstrap(responseText){
       var json = JSON.parse(responseText);
-      recursiveExtend(puppet.obj, json);
+      var bigPatch = [{ op: "replace", path: "", value: json }];
+      puppet.validateAndApplySequence(puppet.obj, bigPatch);
 
       if (puppet.debug) {
         puppet.remoteObj = responseText; // JSON.parse(JSON.stringify(puppet.obj));
@@ -454,20 +467,9 @@
   }
   }
 
-  function recursiveExtend(par, obj) {
-    for (var i in obj) {
-      if (obj.hasOwnProperty(i)) {
-        if (typeof obj[i] === 'object' && par.hasOwnProperty(i)) {
-          recursiveExtend(par[i], obj[i]);
-        }
-        else {
-          par[i] = obj[i];
-        }
-      }
-    }
-  }
-
   Puppet.prototype = Object.create(EventDispatcher.prototype); //inherit EventTarget API from EventDispatcher
+
+  Puppet.prototype.jsonpatch = global.jsonpatch;
 
   Puppet.prototype.ping = function () {
       if (!this.pingInterval) {
@@ -486,12 +488,12 @@
   };
 
   Puppet.prototype.observe = function () {
-    this.observer = jsonpatch.observe(this.obj, this.filterChangedCallback.bind(this));
+    this.observer = this.jsonpatch.observe(this.obj, this.filterChangedCallback.bind(this));
   };
 
   Puppet.prototype.unobserve = function () {
     if (this.observer) { //there is a bug in JSON-Patch when trying to unobserve something that is already unobserved
-      jsonpatch.unobserve(this.obj, this.observer);
+      this.jsonpatch.unobserve(this.obj, this.observer);
       this.observer = null;
     }
   };
@@ -555,7 +557,7 @@
   Puppet.prototype.validateAndApplySequence = function (tree, sequence) {
     if (this.debug) {
       try {
-        jsonpatch.apply(tree, sequence, true);
+        this.jsonpatch.apply(tree, sequence, true);
       }
       catch (error) {
         error.message = "Incoming patch validation error: " + error.message;
@@ -572,12 +574,13 @@
       }
     }
     else {
-      jsonpatch.apply(tree, sequence);
+      this.jsonpatch.apply(tree, sequence);
     }
+    this.dispatchEvent(new CustomEvent("patch-applied", {bubbles: true, cancelable: true, detail: sequence}));
   };
 
   Puppet.prototype.validateSequence = function (tree, sequence) {
-    var error = jsonpatch.validate(sequence, tree);
+    var error = this.jsonpatch.validate(sequence, tree);
     if (error) {
       error.message = "Outgoing patch validation error: " + error.message;
       var ev;
@@ -628,6 +631,7 @@
     this.queue.receive(this.obj, patches);
 
     patches.forEach(function (patch) {
+	  //this should be moved to validateAndApplySequence
       if (patch.path === "") {
         var desc = JSON.stringify(patches);
         if (desc.length > 103) {
@@ -640,10 +644,10 @@
         markObjPropertyByPath(that.obj, patch.path);
       }
     });
-    this.observe();
     if (this.onRemoteChange) {
       this.onRemoteChange(patches);
     }
+    this.observe();
 
     if(this.debug) {
       this.remoteObj = JSON.parse(JSON.stringify(this.obj));
