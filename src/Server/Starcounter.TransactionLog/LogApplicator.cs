@@ -5,17 +5,35 @@ using System.Text;
 using System.Threading.Tasks;
 using Starcounter.Binding;
 using Starcounter.Internal;
+using System.Collections.Concurrent;
 
 
 namespace Starcounter.TransactionLog
 {
     public class LogApplicator : ILogApplicator
     {
+        private TableDef LookupTableInBindings(string name)
+        {
+            return Starcounter.Binding.Bindings.GetTypeDef(name)?.TableDef;
+        }
+
+        private ConcurrentDictionary<string, TableDef> m_meta_cache = new ConcurrentDictionary<string, TableDef>();
+
+        private TableDef LookupTableInMetadata(string name)
+        {
+            return m_meta_cache.GetOrAdd(name, (n) => Db.LookupTable(n));
+        }
+
+        private TableDef LookupTable(string name)
+        {
+            return LookupTableInBindings(name) ?? LookupTableInMetadata(name);
+        }
+
         public void Apply(TransactionData transaction_data)
         {
             foreach (var c in transaction_data.creates)
             {
-                var table_def = Db.LookupTable(c.table);
+                var table_def = LookupTable(c.table);
                 if (table_def==null)
                     throw ErrorCode.ToException(Error.SCERRTABLENOTFOUND);
 
@@ -27,7 +45,7 @@ namespace Starcounter.TransactionLog
 
             foreach (var u in transaction_data.updates)
             {
-                var table_def = Db.LookupTable(u.table);
+                var table_def = LookupTable(u.table);
 
                 ObjectRef? o = DbState.Lookup(u.key.object_id);
                 if (!o.HasValue)
