@@ -56,6 +56,8 @@
 - `Session.Destroyed` is now replaced by `Session.AddDestroyDelegate` because of apps separation issues.
 - `Session.CargoId` is removed because of no use.
 - Made Handle.AddRequestFilter and Handle.AddResponseFilter obsolete in favor new Application.Use() API. See [#3296](https://github.com/Starcounter/Starcounter/issues/3296)
+- Syntax for getting headers in request and response changed from `r["Headername"]` to `r.Headers["Headername"]`.
+- Changed API for getting all headers string to `r.GetAllHeaders()` for both request and response.
 
 ## [2.1.177] - 2015-10-14
 ### Changed
