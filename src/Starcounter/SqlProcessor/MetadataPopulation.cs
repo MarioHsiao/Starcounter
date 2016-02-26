@@ -107,8 +107,8 @@ namespace Starcounter.SqlProcessor {
                 string selectDbPrimType =
                 "select t from Starcounter.Metadata.DbPrimitiveType t where PrimitiveType = ?";
                 foreach (DbTypeCode dbTypeCode in Enum.GetValues(typeof(DbTypeCode))) {
-                    // Ignore non-primitive
-                    if (dbTypeCode == DbTypeCode.Object)
+                    // Ignore non-primitive and reserved type
+                    if (dbTypeCode == DbTypeCode.Object || dbTypeCode == DbTypeCode.Key)
                         continue;
                     string dbTypeCodeName = Enum.GetName(typeof(DbTypeCode), dbTypeCode);
                     ClrPrimitiveType clrType = new ClrPrimitiveType {
@@ -137,10 +137,10 @@ namespace Starcounter.SqlProcessor {
                         case DbTypeCode.UInt16:
                         case DbTypeCode.UInt32:
                         case DbTypeCode.UInt64:
-                            clrType.WriteLoss = 0;
+                            clrType.WriteLoss = false;
                             break;
                         case DbTypeCode.Decimal:
-                            clrType.WriteLoss = 1;
+                            clrType.WriteLoss = true;
                             break;
                         default:
                             throw ErrorCode.ToException(Error.SCERRUNEXPECTEDINTERNALERROR,
@@ -157,7 +157,7 @@ namespace Starcounter.SqlProcessor {
                         case DbTypeCode.Single:
                         case DbTypeCode.String:
                         case DbTypeCode.UInt64:
-                            clrType.ReadLoss = 0;
+                            clrType.ReadLoss = false;
                             break;
                         case DbTypeCode.Boolean:
                         case DbTypeCode.Byte:
@@ -167,7 +167,7 @@ namespace Starcounter.SqlProcessor {
                         case DbTypeCode.SByte:
                         case DbTypeCode.UInt16:
                         case DbTypeCode.UInt32:
-                            clrType.ReadLoss = 1;
+                            clrType.ReadLoss = true;
                             break;
                         default:
                             throw ErrorCode.ToException(Error.SCERRUNEXPECTEDINTERNALERROR,
