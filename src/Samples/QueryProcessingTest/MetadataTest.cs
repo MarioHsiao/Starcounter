@@ -69,7 +69,7 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.Inherits.Inherits.Name == "Table");
             Trace.Assert(rv.Inherits.Inherits.Inherits != null);
             Trace.Assert(rv.Inherits.Inherits.Inherits.FullName == "Starcounter.Metadata.DataType");
-            Trace.Assert(rv.Inherits.Inherits.Inherits.Name == "Type");
+            Trace.Assert(rv.Inherits.Inherits.Inherits.Name == "DataType");
             //Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits == null);
             count = 0;
             foreach (Starcounter.Metadata.MapPrimitiveType mt in 
