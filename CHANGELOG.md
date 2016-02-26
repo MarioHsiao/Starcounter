@@ -23,6 +23,7 @@
 - Extended the basic admin REST API to support creating databases with custom settings [#3362](https://github.com/Starcounter/Starcounter/issues/3362)
 - Made `staradmin new db` support the name to be given as a first parameter, like `staradmin new db`
 - Extended `staradmin new db` to support custom settings as specified in [#3360](https://github.com/Starcounter/Starcounter/issues/3360)
+- Introduced new IMiddleware class and the new consolidated middleware Application.Use() API's, as described in See [#3296](https://github.com/Starcounter/Starcounter/issues/3296)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
@@ -57,6 +58,7 @@
 - Session API has been refactored. New `Session.ScheduleTask` is added. `Session.ForAll` has been refactored.
 - `Session.Destroyed` is now replaced by `Session.AddDestroyDelegate` because of apps separation issues.
 - `Session.CargoId` is removed because of no use.
+- Made Handle.AddRequestFilter and Handle.AddResponseFilter obsolete in favor new Application.Use() API. See [#3296](https://github.com/Starcounter/Starcounter/issues/3296)
 
 ## [2.1.177] - 2015-10-14
 ### Changed

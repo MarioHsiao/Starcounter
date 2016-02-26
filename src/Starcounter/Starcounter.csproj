@@ -149,6 +149,7 @@
     <Compile Include="Metadata\MetaBinder.cs" />
     <Compile Include="Metadata\MetadataEntity.cs" />
     <Compile Include="Metadata\GeneratedMetadataClasses.cs" />
+    <Compile Include="Middleware\IMiddleware.cs" />
     <Compile Include="Mock\Db.cs" />
     <Compile Include="Mock\DbHelper.cs" />
     <Compile Include="Mock\Enumerator.cs" />
