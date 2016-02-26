@@ -41,7 +41,9 @@ namespace Starcounter.Binding
             case DbTypeCode.UInt16: return sccoredb.STAR_TYPE_ULONG;
             case DbTypeCode.Binary: return sccoredb.STAR_TYPE_BINARY;
             case DbTypeCode.Key: return sccoredb.STAR_TYPE_KEY;
-            default: throw new ArgumentException();
+            default: throw ErrorCode.ToException(Error.SCERRUNEXPECTEDINTERNALERROR,
+                       "Unknown DbTypeCode is defined in CLR code host: " +
+                       Enum.GetName(typeof(DbTypeCode), t));
             };
         }
 

@@ -386,6 +386,10 @@ namespace Starcounter.Hosting {
                 InitTypeSpecifications();
                 OnTypeSpecificationsInitialized();
 
+                if(systemTypeDefinitions_ == typeDefinitions) {
+                    MetadataPopulation.PopulateClrPrimitives();
+                }
+
                 MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
 
                 OnPopulateClrMetadata();

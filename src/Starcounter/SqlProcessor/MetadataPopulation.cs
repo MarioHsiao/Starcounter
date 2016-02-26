@@ -97,6 +97,87 @@ namespace Starcounter.SqlProcessor {
             });
         }
 
+        /// <summary>
+        /// Populates CLR primitives meta-table if it is empty
+        /// </summary>
+        internal static void PopulateClrPrimitives() {
+            Db.SystemTransact(() => {
+                if (Db.SQL("SELECT p FROM Starcounter.Metadata.ClrPrimitiveType p").First != null)
+                    return;
+                string selectDbPrimType =
+                "select t from Starcounter.Metadata.DbPrimitiveType t where PrimitiveType = ?";
+                foreach (DbTypeCode dbTypeCode in Enum.GetValues(typeof(DbTypeCode))) {
+                    // Ignore non-primitive
+                    if (dbTypeCode == DbTypeCode.Object)
+                        continue;
+                    string dbTypeCodeName = Enum.GetName(typeof(DbTypeCode), dbTypeCode);
+                    ClrPrimitiveType clrType = new ClrPrimitiveType {
+                        Name = dbTypeCodeName,
+                        DbTypeCode = (ushort)dbTypeCode
+                    };
+                    // Set the link to DB type
+                    clrType.DbPrimitiveType =
+                    Db.SQL<DbPrimitiveType>(selectDbPrimType,
+                    BindingHelper.ConvertDbTypeCodeToScTypeCode(dbTypeCode)).First;
+                    Debug.Assert(clrType.DbPrimitiveType != null);
+                    // Set WriteLoss
+                    switch (dbTypeCode) {
+                        case DbTypeCode.Binary:
+                        case DbTypeCode.Boolean:
+                        case DbTypeCode.Byte:
+                        case DbTypeCode.DateTime:
+                        case DbTypeCode.Double:
+                        case DbTypeCode.Int16:
+                        case DbTypeCode.Int32:
+                        case DbTypeCode.Int64:
+                        case DbTypeCode.Key:
+                        case DbTypeCode.SByte:
+                        case DbTypeCode.Single:
+                        case DbTypeCode.String:
+                        case DbTypeCode.UInt16:
+                        case DbTypeCode.UInt32:
+                        case DbTypeCode.UInt64:
+                            clrType.WriteLoss = 0;
+                            break;
+                        case DbTypeCode.Decimal:
+                            clrType.WriteLoss = 1;
+                            break;
+                        default:
+                            throw ErrorCode.ToException(Error.SCERRUNEXPECTEDINTERNALERROR,
+                       "Unknown DbTypeCode is defined in CLR code host: " +
+                       Enum.GetName(typeof(DbTypeCode), dbTypeCode));
+                    }
+                    // Set ReadLoss
+                    switch (dbTypeCode) {
+                        case DbTypeCode.Decimal:
+                        case DbTypeCode.Binary:
+                        case DbTypeCode.Double:
+                        case DbTypeCode.Int64:
+                        case DbTypeCode.Key:
+                        case DbTypeCode.Single:
+                        case DbTypeCode.String:
+                        case DbTypeCode.UInt64:
+                            clrType.ReadLoss = 0;
+                            break;
+                        case DbTypeCode.Boolean:
+                        case DbTypeCode.Byte:
+                        case DbTypeCode.DateTime:
+                        case DbTypeCode.Int16:
+                        case DbTypeCode.Int32:
+                        case DbTypeCode.SByte:
+                        case DbTypeCode.UInt16:
+                        case DbTypeCode.UInt32:
+                            clrType.ReadLoss = 1;
+                            break;
+                        default:
+                            throw ErrorCode.ToException(Error.SCERRUNEXPECTEDINTERNALERROR,
+                       "Unknown DbTypeCode is defined in CLR code host: " +
+                       Enum.GetName(typeof(DbTypeCode), dbTypeCode));
+                    }
+                }
+            });
+        }
+
         internal static string GetUniqueIdentifier(string tableName) {
             return "Starcounter.Raw." + tableName;
         }
