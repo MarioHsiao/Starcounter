@@ -35,7 +35,7 @@ namespace Starcounter.TransactionLog
             {
                 var table_def = LookupTable(c.table);
                 if (table_def==null)
-                    throw ErrorCode.ToException(Error.SCERRTABLENOTFOUND);
+                    throw ErrorCode.ToException(Error.SCERRTABLENOTFOUND, string.Format("Table: {0}", c.table));
 
                 ulong object_ref;
                 DbState.InsertWithId(table_def.TableId, c.key.object_id, out object_ref);
@@ -46,10 +46,12 @@ namespace Starcounter.TransactionLog
             foreach (var u in transaction_data.updates)
             {
                 var table_def = LookupTable(u.table);
+                if (table_def == null)
+                    throw ErrorCode.ToException(Error.SCERRTABLENOTFOUND, string.Format("Table: {0}", u.table));
 
                 ObjectRef? o = DbState.Lookup(u.key.object_id);
                 if (!o.HasValue)
-                    throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND);
+                    throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND, string.Format("ObjectID: {0}", u.key.object_id));
 
                 fill_record(u.key.object_id, o.Value.ETI, table_def, u.columns);
             }
@@ -58,7 +60,7 @@ namespace Starcounter.TransactionLog
             {
                 ObjectRef? o = DbState.Lookup(d.key.object_id);
                 if (!o.HasValue)
-                    throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND);
+                    throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND, string.Format("ObjectID: {0}", d.key.object_id));
 
                 Db.Delete(o.Value);
             }
@@ -71,7 +73,7 @@ namespace Starcounter.TransactionLog
             {
                 var column_def = table_def.ColumnDefs.Select((cd, i) => new { cd = cd, i = i }).Where(d => d.cd.Name == c.name).SingleOrDefault();
                 if (column_def == null)
-                    throw ErrorCode.ToException(Error.SCERRSQLUNKNOWNCOLUMN);
+                    throw ErrorCode.ToException(Error.SCERRCOLUMNNOTFOUND, string.Format("Table.Column: {0}.{1}", table_def.Name, c.name));
 
                 put_value(object_id, object_ref, column_def.cd.Type, column_def.i, c.value);
             }

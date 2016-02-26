@@ -330,6 +330,48 @@ namespace TransactionLogTest
 
         }
 
+        static void check_apply_create_of_nonexistent_column()
+        {
+            //arrange
+            ulong last_key = 0;
+            Db.Transact(() =>
+            {
+                var t = new TestClass();
+                last_key = t.GetObjectNo();
+            });
+
+            ulong new_record_key = last_key + 1;
+
+            TransactionData td = new TransactionData
+            {
+                creates = new List<create_record_entry>(){
+                                    new create_record_entry {
+                                        table = typeof(TestClass).FullName,
+                                        key = new reference {object_id=new_record_key},
+                                        columns = new column_update[] {
+                                            new column_update { name="NoSuchColumn768C17AE_65F1_4E6B_97BD_B6A98E427848", value="Str" }
+                                        }
+                                    } },
+                deletes = new List<delete_record_entry>(),
+                updates = new List<update_record_entry>()
+            };
+
+            //act
+
+            try
+            {
+                Db.Transact(() =>
+                {
+                    new LogApplicator().Apply(td);
+                    Trace.Assert(false, "Shouldn't be here");
+                });
+            }
+            catch (Starcounter.DbException e)
+            {
+                Trace.Assert(e.ErrorCode == Error.SCERRCOLUMNNOTFOUND);
+            }
+        }
+
         static void check_apply_update()
         {
             //arrange
@@ -492,6 +534,7 @@ namespace TransactionLogTest
             check_positioning();
             check_apply_create();
             check_apply_create_in_nonexistent_table();
+            check_apply_create_of_nonexistent_column();
             check_apply_update();
             check_apply_update_to_nonexistent_record();
             check_apply_delete();
