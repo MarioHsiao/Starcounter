@@ -198,7 +198,7 @@ All the changes from server are also received and propagated to your HTML.
                 useWebSocket: this.useWebSocket,
                 ignoreAdd: this.ignoreAdd,
                 debug: this.debug,
-                onRemoteChange: this._objChanged,
+                onRemoteChange: this._objChanged.bind(this),
                 onPatchReceived: this.onPatchReceived.bind(this),
                 onPatchSent: this.onPatchSent.bind(this),
                 onSocketStateChanged: this.onSocketStateChanged.bind(this),
@@ -221,13 +221,15 @@ All the changes from server are also received and propagated to your HTML.
                 }.bind(this)
             });
             // this.puppet.addEventListener('patch-applied', this.notifyChange);
+
+            this.network = this.puppet.network;
         },
         bindTo: function(element){
             // use node id or node itself;
             element = typeof element == "string" ? document.getElementById( element ) : element;
             element.model = this.obj;
         },
-        _objChanged: function(obj, changes){
+        _objChanged: function(changes){
             var templates = document.querySelectorAll("template[is=dom-bind], template[is=dom-repeat], template[is=dom-if]");
             for (var i in templates) {
                 if (templates.hasOwnProperty(i)) {
@@ -343,7 +345,7 @@ All the changes from server are also received and propagated to your HTML.
                                 //     object: parent,
                                 //     type: 'splice'
                                 // }]);
-                                console.info('Add /splice in array is fergile, as Polymer requires something they call normalization, so splices to appear in index order, what is not guaranteed by this element.')
+                                console.info('Add /splice in array is fragile, as Polymer requires something they call normalization, so splices to appear in index order, what is not guaranteed by this element.')
 
                                 break;
                             case 'replace':
@@ -362,7 +364,7 @@ All the changes from server are also received and propagated to your HTML.
                                 //     object: parent,
                                 //     type: 'splice'
                                 // }]);
-                                console.info('Remove is fergile, as Polymer requires something they call normalization, so splices to appear in index order, what is not guaranteed by this element.')
+                                console.info('Remove is fragile, as Polymer requires something they call normalization, so splices to appear in index order, what is not guaranteed by this element.')
                                 break;
                         }
                     } else {
