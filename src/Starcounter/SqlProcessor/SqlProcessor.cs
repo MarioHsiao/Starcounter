@@ -12,14 +12,12 @@ namespace Starcounter.SqlProcessor {
         [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
             CharSet = CharSet.Unicode)]
         public static unsafe extern uint scsql_process_query(ulong context,
-            string query, out byte query_type, out ulong iter);
+            string query, out byte query_type, out ulong iter, ScError* error);
         /*void* caller, void* executor, */
         [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
             CharSet = CharSet.Unicode)]
         internal static unsafe extern uint scsql_process_modifyquery(ulong context,
-            string query, out int nrObjectsUpdated);
-        [DllImport("scsqlprocessor.dll")]
-        public static unsafe extern ScError* scsql_get_error();
+            string query, out int nrObjectsUpdated, ScError* error);
         [DllImport("scsqlprocessor.dll")]
         public static extern uint scsql_free_memory();
         [DllImport("scsqlprocessor.dll")]
@@ -133,10 +131,11 @@ namespace Starcounter.SqlProcessor {
         
 
         public static unsafe Exception CallSqlProcessor(String query, out byte queryType, out ulong iterator) {
-            uint err = scsql_process_query(ThreadData.ContextHandle, query, out queryType, out iterator);
+            ScError scerror;
+            uint err = scsql_process_query(ThreadData.ContextHandle, query, out queryType, out iterator, &scerror);
             if (err == 0)
                 return null;
-            Exception ex = GetSqlException(err, query);
+            Exception ex = GetSqlException(err, query, &scerror);
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
             Debug.Assert(err < 10000);
             // create the exception
@@ -149,10 +148,11 @@ namespace Starcounter.SqlProcessor {
         internal static unsafe int ExecuteQuerySqlProcessor(String query) {
             int nrObjs = 0;
 
-            uint err = scsql_process_modifyquery(ThreadData.ContextHandle, query, out nrObjs);
+            ScError scerror;
+            uint err = scsql_process_modifyquery(ThreadData.ContextHandle, query, out nrObjs, &scerror);
             if (err == 0)
                 return nrObjs;
-            Exception ex = GetSqlException(err, query);
+            Exception ex = GetSqlException(err, query, &scerror);
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
             Debug.Assert(err < 10000);
             // create the exception
@@ -303,9 +303,8 @@ namespace Starcounter.SqlProcessor {
         /// <param name="location">Start of the error token in the query</param>
         /// <param name="token">The error token</param>
         /// <returns></returns>
-        internal static Exception GetSqlException(uint scErrorCode, String query) {
+        internal unsafe static Exception GetSqlException(uint scErrorCode, String query, ScError* scerror) {
             unsafe {
-                ScError* scerror = scsql_get_error();
                 if (scerror == null)
                     throw ErrorCode.ToException(Error.SCERRUNEXPERRUNAVAILABLE);
                 String message = new String(scerror->scerrmessage);
