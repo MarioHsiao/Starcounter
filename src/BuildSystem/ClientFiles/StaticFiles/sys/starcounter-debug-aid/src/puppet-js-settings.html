@@ -88,7 +88,7 @@
 
             if (!value || value == "false") {
                 return false;
-            } 
+            }
 
             return true;
         }
@@ -100,19 +100,22 @@
         }
 
         function applyWebSocketValue(value) {
-            var puppet = listener.getPuppetClient();
+            var puppetClient = listener.getPuppetClient();
 
-            if (puppet) {
-                puppet.useWebSocket = value;
+            if (puppetClient) {
+                puppetClient.useWebSocket = value;
             }
 
             window.localStorage.setItem(settingName.ws, value);
         }
 
         function applyMorphUrlValue(value) {
-            var puppet = listener.getPuppetClient();
+            var puppetClient = listener.getPuppetClient();
 
-            if (puppet) {
+            if (puppetClient) {
+                //puppet-polymer-client exposes PuppetJS as a property
+                //original puppet-client extends PuppetJS directly
+                var puppet = puppetClient.puppet || puppetClient;
                 if (value) {
                     puppet.listen();
                 } else {
@@ -136,7 +139,7 @@
             chbIsWebSocket.addEventListener('change', function (ev) {
                 applyWebSocketValue(ev.target.checked);
             });
-            
+
             chbIsMorphUrl.addEventListener("change", function (ev) {
                 applyMorphUrlValue(ev.target.checked);
             });
@@ -167,7 +170,7 @@
                 applyWebSocketValue(true);
             }
         });
-        
+
         document.registerElement('puppet-js-settings', {
             prototype: element
         });

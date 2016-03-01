@@ -35,8 +35,7 @@
     "tag": "0.0.9",
     "commit": "24023f6313adcdcc031fc380ed897074ca923ce8"
   },
-  "_source": "git://github.com/Starcounter/starcounter-include.git",
-  "_target": "~0.0.9",
-  "_originalSource": "Starcounter/starcounter-include",
-  "_direct": true
+  "_source": "git://github.com/StarcounterSamples/starcounter-include.git",
+  "_target": "~0.0.7",
+  "_originalSource": "StarcounterSamples/starcounter-include"
 }

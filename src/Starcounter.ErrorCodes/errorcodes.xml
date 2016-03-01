@@ -3324,6 +3324,9 @@
         be inserted in the database.
       </remarks>
     </code>
+    <code hex="012C" severity="Error" name="ScErrColumnNotFound">
+      <message>Column with specified name not found.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

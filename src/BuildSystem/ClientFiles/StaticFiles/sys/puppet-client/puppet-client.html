@@ -1,4 +1,7 @@
-<!-- puppet-client version: 1.0.5 | MIT License -->
+<!-- puppet-polymer-client version: 1.0.1 | MIT License -->
+
+<link rel="import" href="../polymer/polymer.html">
+<!-- <link rel="import" href="iron-request.html"> -->
 
 <!-- include PuppetJs with dependencies -->
 <script src="../fast-json-patch/src/json-patch-duplex.js"></script>
@@ -8,184 +11,423 @@
 <script src="../PuppetJs/src/puppet.js"></script>
 <script src="../PuppetJs/src/puppet-dom.js"></script>
 
+<!--
+The Polymer version of `puppet-client` element binds [PuppetJs](https://github.com/PuppetJs/PuppetJs) with [Polymer's template binding](https://www.polymer-project.org/1.0/docs/devguide/templates.html).
+That keeps your Polymer app, or just `dom-bind` template in sync with any server-side
+data-model using Puppet & [JSON Patch](https://tools.ietf.org/html/rfc6902) flow.
+
+You get three-way data binding server - JS - HTML, kept in flawless sync.
+
+    <puppet-client
+        obj="{{model}}"></puppet-client>
+
+
+It establishes the PuppetJs connection when attached. All the changes made
+in browser are sent to the server via WebSocket or HTTP, as
+[JSON Patch](https://tools.ietf.org/html/rfc6902)es.
+All the changes from server are also received and propagated to your HTML.
+
+@demo demo/index.html
+-->
+
 <script>
-(function(window, Puppet) {
-    // Creates an object based in the HTML Element prototype and Puppet
-    var PuppetClientPrototype = extend(Object.create(HTMLElement.prototype), PuppetDOM.prototype);
+(function(){
+    'use strict';
 
-    // defaults
-    PuppetClientPrototype.debug = false;
-    PuppetClientPrototype.useWebSocket = true;
-    PuppetClientPrototype.ignoreAdd = /.*/;
-    var defaultLocalVersionPath = "/_ver#c$";
-    var defaultRemoteVersionPath = "/_ver#s";
-    PuppetClientPrototype.ot = true;
-    PuppetClientPrototype.purity = false;
 
-    // Fires when an instance of the element is created
-    PuppetClientPrototype.createdCallback = function() {
-        var whereToBind = this.getAttribute("ref");
-        var listenTo = this.getAttribute("listen-to");
-        var pingInterval = this.hasAttribute("ping-interval") ? (this.getAttribute("ping-interval") / 1) : 60;
-        var me = this;
+    Polymer({
 
-        if( listenTo ){
-           listenTo = typeof listenTo == "string" ? document.getElementById( listenTo ) : listenTo;
-        }
-        PuppetDOM.call( this, {
-            // use server URL or window.location.href;
-            remoteUrl:         this.getAttribute("remoteurl"),
-            pingInterval:      pingInterval,
-            listenTo:          listenTo,
-            // obj:            obj,
-            useWebSocket:      parseBoolAttribute(this.getAttribute("usewebsocket"), this.useWebSocket),
-            ignoreAdd:         this.hasAttribute("ignoreadd") &&
-                                    new RegExp( this.getAttribute("ignoreadd") ) ||
-                                this.ignoreAdd,
-            debug:             parseBoolAttribute(this.hasAttribute("debug"), this.debug),
-            // onRemoteChange: ?,
-            onPatchReceived: function (data, url, method) {
-                me.dispatchEvent(
-                    new CustomEvent("patchreceived", {
-                        detail: {
-                            data: data,
-                            url: url,
-                            method: method
-                        }
-                    })
-                );
+        is: 'puppet-client',
+
+        /**
+         * Fired when patch gets applied
+         *
+         * @event patch-applied
+         */
+        /**
+         * Fired when patch gets applied
+         *
+         * @event patchreceived
+         */
+        /**
+         * Fired when patch gets applied
+         *
+         * @event patchsent
+         */
+        /**
+         * Fired when patch gets applied
+         *
+         * @event socketstatechanged
+         */
+        /**
+         * Fired when patch gets applied
+         *
+         * @event connectionerror
+         */
+
+
+        hostAttributes: {
+            hidden: true
+        },
+
+        properties: {
+            /**
+             * The remote's URL
+             */
+            remoteUrl: {
+                type: String
             },
-            onPatchSent: function (data, url, method) {
-                me.dispatchEvent(
-                    new CustomEvent("patchsent", {
-                        detail: {
-                            data: data,
-                            url: url,
-                            method: method
-                        }
-                    })
-                );
+            /**
+             * Regular expression with local properties to ignore
+             * @see [PuppetJS.ignoreAdd](https://github.com/PuppetJs/PuppetJs#ignoring-local-changes-ignoreadd).
+             * Should be given in string format, like `"_.+"`.
+             */
+            ignoreAdd: {
+                type: RegExp,
+                value: /.*/
             },
-            onSocketStateChanged: function (state, url, data, code, reason) {
-                me.dispatchEvent(
-                    new CustomEvent("socketstatechanged", {
-                        detail: {
-                            state: state,
-                            url: url,
-                            data: data,
-                            statusCode: code,
-                            reason: reason
-                        }
-                    })
-                );
+            /**
+             * Set to `false` to disable WebSocket (use HTTP)
+             */
+            useWebSocket: {
+                type: Boolean,
+                value: true
             },
-            onConnectionError: function (data, url, method) {
-                var d = {
-                    data: data,
-                    url: url,
-                    method: method,
-                    handled: false
-                };
+            /**
+             * Set to true to enable debugging mode
+             */
+            debug: {
+                type: Boolean,
+                value: false
+            },
+            /**
+             * {JSONPointer} local version path, set to falsy do disable Versioned JSON Patch communication
+             */
+            localVersionPath: {
+                type: String,
+                value: '/_ver#c$'
+            },
+            /**
+             * {JSONPointer} remote version path, set it to falsy to disable Double Versioned JSON Patch communication
+             */
+            remoteVersionPath: {
+                type: String,
+                value: '/_ver#s'
+            },
+            /**
+             * `false` to disable OT
+             */
+            ot: {
+                type: Boolean,
+                value: true
+            },
+            /**
+             * `true` to enable purist mode of OT
+             */
+            purity: {
+                type: Boolean,
+                value: false
+            },
+            /**
+             *  DOM node to listen to (see [PuppetDOM listenTo attribute](https://github.com/PuppetJs/PuppetJs#puppetdom))
+             */
+            listenTo: {
+                type: String
+            },
+            /**
+             *  Interval in seconds between ping patches, `0` - disable ping patches
+             */
+            pingInterval: {
+                type: Number,
+                value: '60'
+            },
 
-                var e = new CustomEvent("connectionerror", {
-                    detail: d
-                });
-
-                me.dispatchEvent(e);
-
-                if (!d.handled) {
-                    alert("Connection error, please reload page!");
+            /**
+             * Object that will be synced
+             */
+            obj: {
+                type: Object,
+                notify: true,
+				value: function() {
+                     return {};
                 }
             },
-            localVersionPath:  this.hasAttribute("localversionpath") ? this.getAttribute("localversionpath") : defaultLocalVersionPath,
-            remoteVersionPath: this.hasAttribute("remoteversionpath") ? this.getAttribute("remoteversionpath") : defaultRemoteVersionPath,
-            ot:                parseBoolAttribute(this.getAttribute("ot"), this.ot),
-            purity:            parseBoolAttribute(this.getAttribute("purity"), this.purity),
-            callback: function () {
-                if (whereToBind) {
-                    this.bindTo(whereToBind);
+
+            /**
+             * Path to given obj
+             */
+            path: {
+                type: String,
+                value: '/'
+            },
+
+
+            // /**
+            //  * If true, automatically performs an Ajax request when either `url` or
+            //  * `params` changes.
+            //  */
+            // auto: {
+            //     type: Boolean,
+            //     value: false
+            // },
+
+        },
+
+        /**
+         * Creates an instance of Puppet according to given params, attaches it to .pupet property
+         *
+         */
+        attached: function() {
+
+            var whereToBind = this.getAttribute("ref");
+            var listenTo = this.listenTo;
+            var pingInterval = this.pingInterval / 1;
+            var me = this;
+
+            if (listenTo) {
+                listenTo = typeof listenTo == "string" ? document.getElementById(listenTo) : listenTo;
+            }
+
+            this.puppet = new PuppetDOM({
+            // PuppetDOM.call(this,{
+                // use server URL or window.location.href;
+                remoteUrl: this.remoteUrl,
+                pingInterval: pingInterval,
+                listenTo: listenTo,
+                obj:            this.obj,
+                useWebSocket: this.useWebSocket,
+                ignoreAdd: this.ignoreAdd,
+                debug: this.debug,
+                onRemoteChange: this._objChanged,
+                onPatchReceived: this.onPatchReceived.bind(this),
+                onPatchSent: this.onPatchSent.bind(this),
+                onSocketStateChanged: this.onSocketStateChanged.bind(this),
+                onConnectionError: this.onConnectionError.bind(this),
+
+                localVersionPath: this.localVersionPath,
+                remoteVersionPath: this.remoteVersionPath,
+                ot: this.ot,
+                purity: this.purity,
+                jsonpatch: {
+                    apply: this.applyJSONPatch.bind(this),
+                    observe: jsonpatch.observe.bind(this),
+                    unobserve: jsonpatch.unobserve.bind(this),
+                    validate: this.validateJSONPatch.bind(this)
+                },
+                callback: function () {
+                    if (whereToBind) {
+                        this.bindTo(whereToBind);
+                    }
+                }.bind(this)
+            });
+            // this.puppet.addEventListener('patch-applied', this.notifyChange);
+        },
+        bindTo: function(element){
+            // use node id or node itself;
+            element = typeof element == "string" ? document.getElementById( element ) : element;
+            element.model = this.obj;
+        },
+        _objChanged: function(obj, changes){
+            var templates = document.querySelectorAll("template[is=dom-bind], template[is=dom-repeat], template[is=dom-if]");
+            for (var i in templates) {
+                if (templates.hasOwnProperty(i)) {
+                    if (templates[i].model) {
+                        //this is a template[is=dom-bind]
+                        templates[i]._pathEffector.call(templates[i], "model", templates[i].model);
+                    }
+                    if (templates[i].items) {
+                        //this is a template[is=dom-repeat]
+                        templates[i]._pathEffector.call(templates[i], "items", templates[i].items);
+                        for (var j in templates[i]._instances) {
+                            if (templates[i]._instances.hasOwnProperty(j)) {
+                                if (templates[i]._instances[j].model) {
+                                    templates[i]._instances[j]._pathEffector.call(templates[i]._instances[j], "model", templates[i]._instances[j].model);
+                                }
+                            }
+                        };
+                    }
+                    if (templates[i].if !== undefined && templates[i]._instance) {
+                        //this is a template[is=dom-if]
+                        if (templates[i]._instance.model) {
+                            templates[i]._instance._pathEffector.call(templates[i]._instance, "model", templates[i]._instance.model);
+                        }
+                        if (templates[i]._instance.item) {
+                            templates[i]._instance._pathEffector.call(templates[i]._instance, "item", templates[i]._instance.item);
+                        }
+                    }
                 }
-            }.bind(this)
-        });
-    };
+            }
+        },
+        onPatchReceived: function(data, url, method) {
+            this.fire("patchreceived", {
+                data: data,
+                url: url,
+                method: method
+            });
+        },
+        onPatchSent: function(data, url, method) {
+            this.fire("patchsent", {
+                data: data,
+                url: url,
+                method: method
+            });
+        },
+        onSocketStateChanged: function(state, url, data, code, reason) {
+            this.fire("socketstatechanged", {
+                state: state,
+                url: url,
+                data: data,
+                statusCode: code,
+                reason: reason
+            });
+        },
+        onConnectionError: function(data, url, method) {
+            var eventDetail = {
+                data: data,
+                url: url,
+                method: method,
+                handled: false
+            };
 
-    function parseBoolAttribute(value, defVal){
-        if( value === "false" ){
-            return false;
-        } else {
-            return (value || value==="") || defVal;
+            this.fire("connectionerror", eventDetail);
+
+            if (!eventDetail.handled) {
+                alert("Connection error, please reload page!");
+            }
+        },
+        applyJSONPatch: function(tree, sequence){
+            this._beingSet = true;
+            var operation, polymerPath;
+            for(var operationNo = 0, len = sequence.length; operationNo < len; operationNo++){
+			    operation = sequence[operationNo];
+
+			    if (operation.path == "") {
+			        //in case of root path, Polymer replaces the original obj, which detaches it from Puppet
+			        var newSequence = [];
+			        for (var prop in operation.value) {
+				        if (operation.value.hasOwnProperty(prop)) {
+					        newSequence.push({op: "add", path: "/" + prop, value: operation.value[prop]});
+						}
+					}
+					this.applyJSONPatch(tree, newSequence);
+					continue;
+				}
+
+                polymerPath = 'obj' + translateJSONPointerToPolymerPath(operation.path);
+
+                if( operation.op === 'test'){
+                    // we assume that jsonpatch covered it already
+                } else if( operation.op === 'move' ||  operation.op === 'copy'){
+                    console.warn("move, and copy operations are not supported yet.")
+                } else {
+                    // for add and remove we need to check whether it's an array or not
+                    var lastSeparator = operation.path.lastIndexOf('/');
+                    var name = operation.path.substr(lastSeparator + 1);
+                    var parentsPolymerPath = 'obj' + translateJSONPointerToPolymerPath(operation.path.substr(0,lastSeparator));
+
+                    var parent = this.get(parentsPolymerPath);
+                    if(Array.isArray(parent) && (name === '-' || isNormalInteger(name))){
+                        var addedCount = 0;
+                        var removed = [];
+                        switch(operation.op){
+                            case 'add':
+                                // JSONPatch push
+                                if(name === '-'){
+                                    name = parent.length;
+                                }
+                                this.splice(parentsPolymerPath, name, 0, operation.value);
+                                // this.notifySplices(parentsPolymerPath, [{
+                                //     index: name,
+                                //     removed: [],
+                                //     addedCount: 1,
+                                //     object: parent,
+                                //     type: 'splice'
+                                // }]);
+                                console.info('Add /splice in array is fergile, as Polymer requires something they call normalization, so splices to appear in index order, what is not guaranteed by this element.')
+
+                                break;
+                            case 'replace':
+
+                                this.splice(parentsPolymerPath, name, 1, operation.value);
+                                break;
+                                // addedCount = 1;
+                                // var col = Polymer.Collection.get(parent);
+                                // removed = col.getItem('#'+name);
+                            case 'remove':
+                                this.splice(parentsPolymerPath, name, 1);
+                                // this.notifySplices(parentsPolymerPath, [{
+                                //     index: name,
+                                //     removed: removed,
+                                //     addedCount: addedCount,
+                                //     object: parent,
+                                //     type: 'splice'
+                                // }]);
+                                console.info('Remove is fergile, as Polymer requires something they call normalization, so splices to appear in index order, what is not guaranteed by this element.')
+                                break;
+                        }
+                    } else {
+                        switch(operation.op){
+                            case 'add':
+                            case 'replace':
+                                this.set(polymerPath, operation.value);
+                                // this.notifyPath(polymerPath, operation.value);
+                                break;
+                            case 'remove':
+                                this.set(polymerPath, null);
+                                this.set(polymerPath, undefined);
+                                // this.notifyPath(polymerPath, undefined);
+                                console.warn('Polymer does not support unsetting properties https://github.com/Polymer/polymer/issues/2565');
+                                console.warn('remove is translated to JSON incompatible set to `undefined`, as there is no remove mathond in Polymer.')
+                                break;
+                        }
+                    }
+                }
+            }
+            this._beingSet = false;
+            //    this.dispatchEvent(event);
+            // FIXME tomalec: DRY, puppet does the same
+            this.dispatchEvent(new CustomEvent("patch-applied", {bubbles: true, cancelable: true, detail: sequence}));
+        },
+        validateJSONPatch: function(){
+            console.info('inherit  validateJSONPatch from fast-json-patch');
+        },
+        observeJSONPatch: function(obj, callback){
+            this.puppetObserver = callback;
+            return callback;
+        },
+        unobserveJSONPatch: function(){
+            // FIXME this is dummy as hell
+            this.puppetObserver = noop;
         }
-    }
-
-    // Fires when an instance was inserted into the document
-    // PuppetClientPrototype.attachedCallback = function() {};
-
-    // Fires when an instance was removed from the document
-    // PuppetClientPrototype.detachedCallback = function() {};
-
-    // Fires when an attribute was added, removed, or updated
-    PuppetClientPrototype.attributeChangedCallback = function(attr, oldVal, newVal) {
-        attr = attr.toLowerCase();
-        switch(attr){
-            case "ignoreadd":
-                this.ignoreAdd = newVal && new RegExp( newVal );
-                break;
-            case "usewebsocket":
-                this.useWebSocket = parseBoolAttribute(newVal, this.prototype.useWebSocket);
-                break;
-            case "debug":
-                this.debug = parseBoolAttribute(newVal, this.prototype.debug);
-                break;
-            case "ref":
-                this.bindTo(newVal); // XXX: Migh be called before ready! (tomalec)
-                break;
-            case "listenTo":
-                newVal = typeof newVal == "string" ? document.getElementById( newVal ) : newVal;
-                this.listenTo(newVal);
-                break;
-            case "ping-interval":
-                this.pingInterval = newVal;
-                this.ping();
-                break;
-        }
-    };
 
 
-
-    PuppetClientPrototype.bindTo = function(element){
-        // use node id or node itself;
-        element = typeof element == "string" ? document.getElementById( element ) : element;
-        element.model = this.obj;
-    };
-
-    window.PuppetClient = document.registerElement('puppet-client', {
-        prototype: PuppetClientPrototype
     });
-
-    // Lang helpers
-    // copy own properties from 'api' to 'prototype
-    // function extend(prototype, api) {
-    //     if (prototype && api) {
-    //       // use only own properties of 'api'
-    //       Object.getOwnPropertyNames(api).forEach(function(n) {
-    //         // acquire property descriptor
-    //         var pd = Object.getOwnPropertyDescriptor(api, n);
-    //         if (pd) {
-    //           // clone property via descriptor
-    //           Object.defineProperty(prototype, n, pd);
-    //         }
-    //       });
-    //     }
-    //     return prototype;
-    // }
-    // Rewrite entire prototype chain
-    function extend(destination, source) {
-      for (var k in source) {
-        // if (source.hasOwnProperty(k)) {
-          destination[k] = source[k];
-        // }
-      }
-      return destination;
+    function noop(){}
+    function translateJSONPointerToPolymerPath(pointer){
+        return pointer.replace(/\//g, '.');
     }
-}(window, Puppet));
+
+    function translatePolymerPathToJSONPointer(pointer){
+        return pointer.replace(/~/g, '~0')
+                        .replace(/\//g,'~1')
+                        .replace(/\./g, '/');
+    }
+
+    function isNormalInteger(str) {
+        var n = ~~Number(str);
+        return String(n) === str && n >= 0;
+    }
+
+
+    var _isArray;
+    if (Array.isArray) {
+        _isArray = Array.isArray;
+    } else {
+        _isArray = function (obj) {
+            return obj.push && typeof obj.length === 'number';
+        };
+    }
+
+
+  }());
 </script>
