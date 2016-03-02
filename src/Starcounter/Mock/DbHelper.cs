@@ -68,6 +68,10 @@ namespace Starcounter {
             }
         }
 
+        public static IObjectView FromID(string oid) {
+            return FromID(Base64DecodeObjectID(oid));
+        }
+
         /// <summary>
         /// Returns the object identifier of the specified object.
         /// </summary>
