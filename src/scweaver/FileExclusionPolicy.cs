@@ -12,6 +12,7 @@ namespace Starcounter.Weaver {
     /// </summary>
     internal class FileExclusionPolicy {
         readonly List<Regex> excludes = new List<Regex>();
+        string[] configuredExcludes = null;
 
         public FileExclusionPolicy(string directory) {
             BuildExclusionList(directory);
@@ -58,7 +59,7 @@ namespace Starcounter.Weaver {
             var ignoreFile = Path.Combine(directory, "weaver.ignore");
 
             if (File.Exists(ignoreFile)) {
-                var configuredExcludes = File.ReadAllLines(ignoreFile);
+                configuredExcludes = File.ReadAllLines(ignoreFile);
                 foreach (var exclude in configuredExcludes) {
                     AddExcludeExpression(exclude, excludes);
                 }
