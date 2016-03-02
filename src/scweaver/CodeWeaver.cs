@@ -237,6 +237,29 @@ namespace Starcounter.Weaver {
             }
         }
 
+        void BootDiagnose() {
+            Program.WriteDebug("=== Bootstrap diagnostics ===");
+
+            Program.WriteDebug("Code weaver:");
+
+            var props = new Dictionary<string, string>();
+            props["Input directory"] = this.InputDirectory;
+            props["Output directory"] = this.OutputDirectory;
+            props["Application file"] = this.AssemblyFile;
+            props["Disable edition libraries"] = this.DisableEditionLibraries.ToString();
+            props["Disable cache"] = this.DisableWeaverCache.ToString();
+            props["Weave only to cache"] = this.WeaveToCacheOnly.ToString();
+
+            foreach (var pair in props) {
+                Program.WriteDebug("  {0}: {1}", pair.Key, pair.Value);
+            }
+
+            this.Cache.BootDiagnose();
+            this.FileManager.BootDiagnose();
+
+            Program.WriteDebug("======");
+        }
+
         bool Execute() {
             PostSharpObjectSettings postSharpSettings;
 
@@ -250,6 +273,12 @@ namespace Starcounter.Weaver {
             }
 
             var fm = FileManager = FileManager.Open(InputDirectory, OutputDirectory, Cache);
+
+            if (EmitBootDiagnostics) {
+                BootDiagnose();
+            }
+
+            fm.BuildState();
 
             if (fm.OutdatedAssemblies.Count == 0) {
                 Program.WriteInformation("No assemblies needed to be weaved.");

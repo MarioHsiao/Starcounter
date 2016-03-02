@@ -125,6 +125,41 @@ namespace Starcounter.Weaver {
             RemoveFilesAbandoned();
         }
 
+        public void BootDiagnose() {
+            exclusionPolicy.BootDiagnose();
+
+            Program.WriteDebug("File manager:");
+
+            var props = new Dictionary<string, string>();
+            props["Source directory"] = this.SourceDirectory;
+            props["Target directory"] = this.TargetDirectory;
+
+            foreach (var pair in props) {
+                Program.WriteDebug("  {0}: {1}", pair.Key, pair.Value);
+            }
+
+            // Group files by directory
+            var filesByDirectory = new Dictionary<string, List<string>>();
+            foreach (var file in sourceFiles) {
+                var dir = Path.GetDirectoryName(file);
+                if (!filesByDirectory.ContainsKey(dir)) {
+                    var files = new List<string>();
+                    filesByDirectory.Add(dir, files);
+                }
+
+                filesByDirectory[dir].Add(Path.GetFileName(file));
+            }
+
+            Program.WriteDebug("{0} input files considered.", sourceFiles.Count);
+
+            foreach (var hive in filesByDirectory) {
+                Program.WriteDebug("From: {0}:", hive.Key);
+                foreach (var file in hive.Value) {
+                    Program.WriteDebug("  {0}:", file);
+                }
+            }
+        }
+
         FileManager Open() {
             TypeConfiguration = DatabaseTypeConfiguration.Open(SourceDirectory);
 

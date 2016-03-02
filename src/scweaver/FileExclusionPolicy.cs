@@ -24,6 +24,23 @@ namespace Starcounter.Weaver {
             return match != null;
         }
 
+        public void BootDiagnose() {
+            Program.WriteDebug("File exclusion policy:");
+
+            var configCount = configuredExcludes == null ? 0 : configuredExcludes.Length;
+            if (configCount == 0) {
+                Program.WriteDebug(  "(No files configured with weaver.ignore)");
+            }
+            else {
+                Program.WriteDebug(  "{0} weaver.ignore files:", configCount);
+                foreach (var ignore in configuredExcludes) {
+                    Program.WriteDebug("  " + ignore);
+                }
+            }
+
+            // Emit all resolved expressions too?
+        }
+
         void BuildExclusionList(string directory) {
             foreach (var exclude in new string[] {
                 "scerrres.dll",
