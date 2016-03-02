@@ -197,6 +197,14 @@ namespace Starcounter.Weaver {
         /// </summary>
         List<AssemblyName> activelyReferencedAssemblies;
 
+        /// <summary>
+        /// Indicates if the weaver should emit a boot diagnostic message before
+        /// actual weaaving kicks in.
+        /// </summary>
+        bool EmitBootDiagnostics {
+            get { return Program.OutputVerbosity == Verbosity.Diagnostic; }
+        }
+
         public CodeWeaver(string directory, string file, string outputDirectory, string cacheDirectory) {
             this.InputDirectory = directory;
             this.OutputDirectory = outputDirectory;
