@@ -238,9 +238,9 @@ namespace Starcounter.Weaver {
         }
 
         void BootDiagnose() {
-            Program.WriteDebug("=== Bootstrap diagnostics ===");
+            Diagnose("=== Bootstrap diagnostics ===");
 
-            Program.WriteDebug("Code weaver:");
+            Diagnose("Code weaver:");
 
             var props = new Dictionary<string, string>();
             props["Input directory"] = this.InputDirectory;
@@ -251,13 +251,17 @@ namespace Starcounter.Weaver {
             props["Weave only to cache"] = this.WeaveToCacheOnly.ToString();
 
             foreach (var pair in props) {
-                Program.WriteDebug("  {0}: {1}", pair.Key, pair.Value);
+                Diagnose("  {0}: {1}", pair.Key, pair.Value);
             }
 
             this.Cache.BootDiagnose();
             this.FileManager.BootDiagnose();
 
-            Program.WriteDebug("======");
+            Diagnose("======");
+        }
+
+        void Diagnose(string message, params object[] parameters) {
+            Program.WriteDebug(message, parameters);
         }
 
         bool Execute() {
@@ -278,11 +282,15 @@ namespace Starcounter.Weaver {
                 BootDiagnose();
             }
 
+            Diagnose("Retieving files to weave.");
+
             fm.BuildState();
 
             if (fm.OutdatedAssemblies.Count == 0) {
                 Program.WriteInformation("No assemblies needed to be weaved.");
             } else {
+
+                Diagnose("Retreived {0} files to weave.", fm.OutdatedAssemblies.Count);
 
                 // Prepare the underlying weaver and the execution of PostSharp.
 
@@ -364,9 +372,16 @@ namespace Starcounter.Weaver {
                         Program.ReportProgramError(error.Code, error.ToString());
                         return false;
                     }
+                    finally {
+
+                        // If diagnostic mode:
+                        foreach (var file in activelyReferencedAssemblies) {
+                            Diagnose("Referenced assembly: {0}", file);
+                        }
+                    }
 
                     stopwatch.Stop();
-                    Program.WriteDebug("Time weaving: {0:00.00} s.", stopwatch.ElapsedMilliseconds / 1000d);
+                    Diagnose("Time weaving: {0:00.00} s.", stopwatch.ElapsedMilliseconds / 1000d);
                 }
             }
 

@@ -32,7 +32,7 @@ namespace Starcounter.Weaver {
                 Program.WriteDebug(  "(No files configured with weaver.ignore)");
             }
             else {
-                Program.WriteDebug(  "{0} weaver.ignore files:", configCount);
+                Program.WriteDebug("  {0} weaver.ignore files:", configCount);
                 foreach (var ignore in configuredExcludes) {
                     Program.WriteDebug("  " + ignore);
                 }

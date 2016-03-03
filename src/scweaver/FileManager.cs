@@ -87,7 +87,7 @@ namespace Starcounter.Weaver {
                     continue;
                 }
 
-                WriteDebug("Unable to extract assembly \"{0}\" from the cache: {1}",
+                WriteDebug("Not reusing cached assembly \"{0}\": {1}",
                     Path.GetFileName(file),
                     WeaverUtilities.GetExtractionFailureReason(cached)
                     );
@@ -150,12 +150,12 @@ namespace Starcounter.Weaver {
                 filesByDirectory[dir].Add(Path.GetFileName(file));
             }
 
-            Program.WriteDebug("{0} input files considered.", sourceFiles.Count);
+            Program.WriteDebug("  {0} input files considered.", sourceFiles.Count);
 
             foreach (var hive in filesByDirectory) {
-                Program.WriteDebug("From: {0}:", hive.Key);
+                Program.WriteDebug("  {0}:", hive.Key);
                 foreach (var file in hive.Value) {
-                    Program.WriteDebug("  {0}:", file);
+                    Program.WriteDebug("    {0}:", file);
                 }
             }
         }
@@ -208,7 +208,7 @@ namespace Starcounter.Weaver {
         }
 
         void Exclude(string file) {
-            WriteInfo("Assembly {0} not processed, it's excluded by policy.", Path.GetFileName(file));
+            WriteInfo("Not processing assembly {0}: it's excluded by policy.", Path.GetFileName(file));
 
             filesToCopy.Add(file);
             var pdb = Path.ChangeExtension(file, ".pdb");
@@ -218,7 +218,7 @@ namespace Starcounter.Weaver {
         }
 
         void Reuse(string file, WeaverCache.CachedAssembly cachedAssembly) {
-            WriteDebug("Assembly {0} not processed, it's reused from the cache.", Path.GetFileName(file));
+            WriteDebug("Not processing assembly {0}: it's reused from the cache.", Path.GetFileName(file));
             if (!cachedAssembly.IsSchemaOnly) {
                 filesToCopy.AddRange(cachedAssembly.Files);
             }

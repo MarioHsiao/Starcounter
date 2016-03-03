@@ -312,7 +312,7 @@ namespace Starcounter.Internal.Weaver {
 
             Program.WriteDebug("  {0} search directories:", this.AssemblySearchDirectories.Count);
             foreach (var dir in this.AssemblySearchDirectories) {
-                Program.WriteDebug(dir);
+                Program.WriteDebug("  " + dir);
             }
         }
 
