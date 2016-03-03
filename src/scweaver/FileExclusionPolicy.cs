@@ -78,7 +78,12 @@ namespace Starcounter.Weaver {
             if (File.Exists(ignoreFile)) {
                 configuredExcludes = File.ReadAllLines(ignoreFile);
                 foreach (var exclude in configuredExcludes) {
-                    AddExcludeExpression(exclude, excludes);
+                    var expr = exclude.Trim();
+                    if (expr.Length != exclude.Length) {
+                        Program.WriteInformation("Trimmed weaver.ignore expression \"{0}\" from whitespaces.", exclude);
+                    }
+
+                    AddExcludeExpression(expr, excludes);
                 }
             }
         }
