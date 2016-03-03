@@ -641,7 +641,7 @@ namespace Starcounter.Weaver {
                 parameters.Properties["NoTransformation"] = bool.TrueString;
             }
 
-            Diagnose("{0} {1}.", runWeaver ? "Weaving" : "Analyzing", file);
+            Program.WriteInformation("{0} {1}.", runWeaver ? "Weaving" : "Analyzing", file);
 
             // Apply all general, shared parameters
 

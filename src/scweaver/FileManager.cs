@@ -275,8 +275,7 @@ namespace Starcounter.Weaver {
         void WriteInfo(string message, params object[] parameters) {
             Program.WriteInformation(message, parameters);
         }
-
-        [Conditional("DEBUG")]
+        
         void WriteDebug(string message, params object[] parameters) {
             Program.WriteDebug(message, parameters);
         }
