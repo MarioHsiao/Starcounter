@@ -12,6 +12,7 @@ namespace Starcounter.Weaver {
     /// </summary>
     internal class FileExclusionPolicy {
         readonly List<Regex> excludes = new List<Regex>();
+        string[] configuredExcludes = null;
 
         public FileExclusionPolicy(string directory) {
             BuildExclusionList(directory);
@@ -21,6 +22,23 @@ namespace Starcounter.Weaver {
             var fileName = Path.GetFileName(file);
             var match = excludes.FirstOrDefault((regex) => { return regex.IsMatch(fileName); });
             return match != null;
+        }
+
+        public void BootDiagnose() {
+            Program.WriteDebug("File exclusion policy:");
+
+            var configCount = configuredExcludes == null ? 0 : configuredExcludes.Length;
+            if (configCount == 0) {
+                Program.WriteDebug(  "(No files configured with weaver.ignore)");
+            }
+            else {
+                Program.WriteDebug("  {0} weaver.ignore files:", configCount);
+                foreach (var ignore in configuredExcludes) {
+                    Program.WriteDebug("  " + ignore);
+                }
+            }
+
+            // Emit all resolved expressions too?
         }
 
         void BuildExclusionList(string directory) {
@@ -58,9 +76,14 @@ namespace Starcounter.Weaver {
             var ignoreFile = Path.Combine(directory, "weaver.ignore");
 
             if (File.Exists(ignoreFile)) {
-                var configuredExcludes = File.ReadAllLines(ignoreFile);
+                configuredExcludes = File.ReadAllLines(ignoreFile);
                 foreach (var exclude in configuredExcludes) {
-                    AddExcludeExpression(exclude, excludes);
+                    var expr = exclude.Trim();
+                    if (expr.Length != exclude.Length) {
+                        Program.WriteInformation("Trimmed weaver.ignore expression \"{0}\" from whitespaces.", exclude);
+                    }
+
+                    AddExcludeExpression(expr, excludes);
                 }
             }
         }

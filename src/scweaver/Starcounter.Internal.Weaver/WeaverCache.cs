@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using Sc.Server.Weaver.Schema;
 using Starcounter;
+using Starcounter.Weaver;
 
 namespace Starcounter.Internal.Weaver {
     /// <summary>
@@ -296,6 +297,23 @@ namespace Starcounter.Internal.Weaver {
             schema.Assemblies.Add(candidate);
 
             return result;
+        }
+
+        internal void BootDiagnose() {
+            Program.WriteDebug("Weaver cache:");
+
+            var props = new Dictionary<string, string>();
+            props["Cache directory"] = this.CacheDirectory;
+            props["Disabled"] = this.Disabled.ToString();
+
+            foreach (var pair in props) {
+                Program.WriteDebug("  {0}: {1}", pair.Key, pair.Value);
+            }
+
+            Program.WriteDebug("  {0} search directories:", this.AssemblySearchDirectories.Count);
+            foreach (var dir in this.AssemblySearchDirectories) {
+                Program.WriteDebug("  " + dir);
+            }
         }
 
         /// <summary>

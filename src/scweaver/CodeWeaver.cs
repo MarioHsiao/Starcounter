@@ -197,6 +197,14 @@ namespace Starcounter.Weaver {
         /// </summary>
         List<AssemblyName> activelyReferencedAssemblies;
 
+        /// <summary>
+        /// Indicates if the weaver should emit a detailed boot diagnostic message
+        /// before actual weaaving kicks in, and a similar message when finalizing.
+        /// </summary>
+        bool EmitBootAndFinalizationDiagnostics {
+            get { return Program.OutputVerbosity == Verbosity.Diagnostic; }
+        }
+
         public CodeWeaver(string directory, string file, string outputDirectory, string cacheDirectory) {
             this.InputDirectory = directory;
             this.OutputDirectory = outputDirectory;
@@ -229,6 +237,61 @@ namespace Starcounter.Weaver {
             }
         }
 
+        void BootDiagnose() {
+            Diagnose("=== Bootstrap diagnostics ===");
+
+            Diagnose("Code weaver:");
+
+            var props = new Dictionary<string, string>();
+            props["Input directory"] = this.InputDirectory;
+            props["Output directory"] = this.OutputDirectory;
+            props["Application file"] = this.AssemblyFile;
+            props["Disable edition libraries"] = this.DisableEditionLibraries.ToString();
+            props["Disable cache"] = this.DisableWeaverCache.ToString();
+            props["Weave only to cache"] = this.WeaveToCacheOnly.ToString();
+
+            foreach (var pair in props) {
+                Diagnose("  {0}: {1}", pair.Key, pair.Value);
+            }
+
+            this.Cache.BootDiagnose();
+            this.FileManager.BootDiagnose();
+
+            Diagnose("======");
+        }
+
+        void FinalizationDiagnose(Domain domain) {
+            Diagnose("=== Finalization diagnostics ===");
+            Diagnose("Code weaver:");
+
+            Diagnose("  {0} assemblies actually referenced:", activelyReferencedAssemblies.Count);
+            foreach (var file in activelyReferencedAssemblies) {
+                Diagnose("  {0}", file);
+            }
+
+            if (domain != null) {
+                Diagnose("  {0} assemblies in weaver domain:", domain.Assemblies.Count);
+                var files = new List<string>(domain.Assemblies.Count);
+                foreach (var item in domain.Assemblies) {
+                    files.Add(item.Location);
+                }
+
+                var filesByDirectory = new FilesByDirectory(files).Files;
+                foreach (var hive in filesByDirectory) {
+                    Program.WriteDebug("  {0}:", hive.Key);
+                    foreach (var file in hive.Value) {
+                        Program.WriteDebug("    {0}:", file);
+                    }
+                }
+            }
+
+            Diagnose("======");
+        }
+
+        void Diagnose(string message, params object[] parameters) {
+            Program.WriteDebug(message, parameters);
+        }
+
         bool Execute() {
             PostSharpObjectSettings postSharpSettings;
 
@@ -243,9 +306,19 @@ namespace Starcounter.Weaver {
 
             var fm = FileManager = FileManager.Open(InputDirectory, OutputDirectory, Cache);
 
+            if (EmitBootAndFinalizationDiagnostics) {
+                BootDiagnose();
+            }
+
+            Diagnose("Retieving files to weave.");
+
+            fm.BuildState();
+
             if (fm.OutdatedAssemblies.Count == 0) {
                 Program.WriteInformation("No assemblies needed to be weaved.");
             } else {
+
+                Diagnose("Retreived {0} files to weave.", fm.OutdatedAssemblies.Count);
 
                 // Prepare the underlying weaver and the execution of PostSharp.
 
@@ -327,9 +400,15 @@ namespace Starcounter.Weaver {
                         Program.ReportProgramError(error.Code, error.ToString());
                         return false;
                     }
+                    finally {
+
+                        if (EmitBootAndFinalizationDiagnostics) {
+                            FinalizationDiagnose(((PostSharpObject)postSharpObject).Domain);
+                        }
+                    }
 
                     stopwatch.Stop();
-                    Program.WriteDebug("Time weaving: {0:00.00} s.", stopwatch.ElapsedMilliseconds / 1000d);
+                    Diagnose("Time weaving: {0:00.00} s.", stopwatch.ElapsedMilliseconds / 1000d);
                 }
             }
 
@@ -530,6 +609,7 @@ namespace Starcounter.Weaver {
             // no tasks instead (like "ScIgnore.psproj").
 
             if (!FileManager.Contains(file)) {
+                Diagnose("Not analyzing/weaving {0}: not part of inclusion set.", file);
                 return null;
             }
 
@@ -560,6 +640,8 @@ namespace Starcounter.Weaver {
                 parameters.PreventOverwriteAssemblyNames = true;
                 parameters.Properties["NoTransformation"] = bool.TrueString;
             }
+
+            Program.WriteInformation("{0} {1}.", runWeaver ? "Weaving" : "Analyzing", file);
 
             // Apply all general, shared parameters
 
@@ -631,6 +713,7 @@ namespace Starcounter.Weaver {
         /// <param name="assemblyName">Name of the assembly to load.</param>
         /// <returns>A <see cref="ModuleLoadStrategy"/>, or <b>null</b> to use the default mechanism.</returns>
         string IPostSharpHost.ResolveAssemblyReference(AssemblyName assemblyName) {
+            Diagnose("Detected reference: {0}.", assemblyName);
             activelyReferencedAssemblies.Add(assemblyName);
             return null;
         }
