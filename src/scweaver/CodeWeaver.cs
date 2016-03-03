@@ -198,10 +198,10 @@ namespace Starcounter.Weaver {
         List<AssemblyName> activelyReferencedAssemblies;
 
         /// <summary>
-        /// Indicates if the weaver should emit a boot diagnostic message before
-        /// actual weaaving kicks in.
+        /// Indicates if the weaver should emit a detailed boot diagnostic message
+        /// before actual weaaving kicks in, and a similar message when finalizing.
         /// </summary>
-        bool EmitBootDiagnostics {
+        bool EmitBootAndFinalizationDiagnostics {
             get { return Program.OutputVerbosity == Verbosity.Diagnostic; }
         }
 
@@ -260,6 +260,34 @@ namespace Starcounter.Weaver {
             Diagnose("======");
         }
 
+        void FinalizationDiagnose(Domain domain) {
+            Diagnose("=== Finalization diagnostics ===");
+            Diagnose("Code weaver:");
+
+            Diagnose("  {0} assemblies actually referenced:", activelyReferencedAssemblies.Count);
+            foreach (var file in activelyReferencedAssemblies) {
+                Diagnose("  {0}", file);
+            }
+
+            if (domain != null) {
+                Diagnose("  {0} assemblies in weaver domain:", domain.Assemblies.Count);
+                var files = new List<string>(domain.Assemblies.Count);
+                foreach (var item in domain.Assemblies) {
+                    files.Add(item.Location);
+                }
+
+                var filesByDirectory = new FilesByDirectory(files).Files;
+                foreach (var hive in filesByDirectory) {
+                    Program.WriteDebug("  {0}:", hive.Key);
+                    foreach (var file in hive.Value) {
+                        Program.WriteDebug("    {0}:", file);
+                    }
+                }
+            }
+
+            Diagnose("======");
+        }
+
         void Diagnose(string message, params object[] parameters) {
             Program.WriteDebug(message, parameters);
         }
@@ -278,7 +306,7 @@ namespace Starcounter.Weaver {
 
             var fm = FileManager = FileManager.Open(InputDirectory, OutputDirectory, Cache);
 
-            if (EmitBootDiagnostics) {
+            if (EmitBootAndFinalizationDiagnostics) {
                 BootDiagnose();
             }
 
@@ -374,9 +402,8 @@ namespace Starcounter.Weaver {
                     }
                     finally {
 
-                        // If diagnostic mode:
-                        foreach (var file in activelyReferencedAssemblies) {
-                            Diagnose("Referenced assembly: {0}", file);
+                        if (EmitBootAndFinalizationDiagnostics) {
+                            FinalizationDiagnose(((PostSharpObject)postSharpObject).Domain);
                         }
                     }
 
@@ -582,6 +609,7 @@ namespace Starcounter.Weaver {
             // no tasks instead (like "ScIgnore.psproj").
 
             if (!FileManager.Contains(file)) {
+                Diagnose("Not analyzing/weaving {0}: not part of inclusion set.", file);
                 return null;
             }
 
@@ -612,6 +640,8 @@ namespace Starcounter.Weaver {
                 parameters.PreventOverwriteAssemblyNames = true;
                 parameters.Properties["NoTransformation"] = bool.TrueString;
             }
+
+            Diagnose("{0} {1}.", runWeaver ? "Weaving" : "Analyzing", file);
 
             // Apply all general, shared parameters
 
@@ -683,6 +713,7 @@ namespace Starcounter.Weaver {
         /// <param name="assemblyName">Name of the assembly to load.</param>
         /// <returns>A <see cref="ModuleLoadStrategy"/>, or <b>null</b> to use the default mechanism.</returns>
         string IPostSharpHost.ResolveAssemblyReference(AssemblyName assemblyName) {
+            Diagnose("Detected reference: {0}.", assemblyName);
             activelyReferencedAssemblies.Add(assemblyName);
             return null;
         }
