@@ -99,11 +99,7 @@ namespace Starcounter {
         internal String _appName;
 
         internal Boolean _wrapInAppName;
-
-        // Hack for setting appname of the sibling that contains the information for layout.
-        // Should be removed when magic for layouts is removed from serializer.
-        internal String _appNameForLayout;
-
+        
         /// <summary>
         /// If set to true, additional features for keeping track of changes and getting a log of changes 
         /// are initialized. If not needed this should not be enabled since the performance will be much worse.
