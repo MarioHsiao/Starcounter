@@ -24,6 +24,7 @@
 - Made `staradmin new db` support the name to be given as a first parameter, like `staradmin new db`
 - Extended `staradmin new db` to support custom settings as specified in [#3360](https://github.com/Starcounter/Starcounter/issues/3360)
 - Introduced new IMiddleware class and the new consolidated middleware Application.Use() API's, as described in See [#3296](https://github.com/Starcounter/Starcounter/issues/3296)
+- Extended weaver diagnostics emitted by `scweaver --verbosity=diagnostic according to [#3420](https://github.com/Starcounter/Starcounter/issues/3420)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
@@ -47,6 +48,7 @@
 - Wrapping all generated classes for TypedJSON inside namespace to avoid clashing of names [#3316](https://github.com/Starcounter/Starcounter/issues/3316)
 - Added verification when generating code from JSON-by-example for TypedJSON to make sure all properties only contains valid characters [#3103](https://github.com/Starcounter/Starcounter/issues/3103)
 - Wrapped unhandled exception from a scheduled task inside a starcounter exception to preserve stacktrace [#3032](https://github.com/Starcounter/Starcounter/issues/3032), [#3122](https://github.com/Starcounter/Starcounter/issues/3122), [#3329](https://github.com/Starcounter/Starcounter/issues/3032)
+- Assured weaver.ignore expressions with leading/trailing whitespaces are trimmed, as defined in [#3414](https://github.com/Starcounter/Starcounter/issues/3414)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.

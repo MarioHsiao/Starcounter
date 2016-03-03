@@ -54,9 +54,10 @@ namespace Starcounter.Weaver {
 
         /// <summary>
         /// Opens a <see cref="FileManager"/> with the given directories, and the
-        /// specified cache. When opened, the returned manager can be used to query
-        /// the set of assemblies considered outdated and also to synchronized the
-        /// source and the target directores.
+        /// specified cache. When opened, and after <see cref="BuildState"/> has
+        /// been invoked, the returned manager can be used to query the set of 
+        /// assemblies considered outdated and also to synchronized the source and
+        /// the target directores.
         /// </summary>
         /// <param name="sourceDir">The source directory.</param>
         /// <param name="targetDir">The target directory.</param>
@@ -64,6 +65,34 @@ namespace Starcounter.Weaver {
         /// <returns>An open file manager instance.</returns>
         public static FileManager Open(string sourceDir, string targetDir, WeaverCache cache) {
             return new FileManager(sourceDir, targetDir, cache).Open();
+        }
+
+        /// <summary>
+        /// Builds up the state and prepare the manager for use, based on what was
+        /// was discovered when opened.
+        /// </summary>
+        public void BuildState() {
+            foreach (var file in sourceFiles) {
+                // If it's not excluded, and if it's not in the cache,
+                // embrace it.
+
+                if (exclusionPolicy.IsExcluded(file)) {
+                    Exclude(file);
+                    continue;
+                }
+
+                var cached = Cache.Get(Path.GetFileNameWithoutExtension(file));
+                if (cached.Assembly != null) {
+                    Reuse(file, cached);
+                    continue;
+                }
+
+                WriteDebug("Not reusing cached assembly \"{0}\": {1}",
+                    Path.GetFileName(file),
+                    WeaverUtilities.GetExtractionFailureReason(cached)
+                    );
+                Include(file);
+            }
         }
 
         /// <summary>
@@ -94,6 +123,32 @@ namespace Starcounter.Weaver {
         public void Synchronize() {
             MirrorFilesToCopy();
             RemoveFilesAbandoned();
+        }
+
+        public void BootDiagnose() {
+            exclusionPolicy.BootDiagnose();
+
+            Program.WriteDebug("File manager:");
+
+            var props = new Dictionary<string, string>();
+            props["Source directory"] = this.SourceDirectory;
+            props["Target directory"] = this.TargetDirectory;
+
+            foreach (var pair in props) {
+                Program.WriteDebug("  {0}: {1}", pair.Key, pair.Value);
+            }
+
+            // Group files by directory
+
+            Program.WriteDebug("  {0} input files considered.", sourceFiles.Count);
+
+            var filesByDirectory = new FilesByDirectory(sourceFiles).Files;
+            foreach (var hive in filesByDirectory) {
+                Program.WriteDebug("  {0}:", hive.Key);
+                foreach (var file in hive.Value) {
+                    Program.WriteDebug("    {0}:", file);
+                }
+            }
         }
 
         FileManager Open() {
@@ -140,33 +195,11 @@ namespace Starcounter.Weaver {
                 }
             }
 
-            foreach (var file in sourceFiles) {
-                // If it's not excluded, and if it's not in the cache,
-                // embrace it.
-
-                if (exclusionPolicy.IsExcluded(file)) {
-                    Exclude(file);
-                    continue;
-                }
-
-                var cached = Cache.Get(Path.GetFileNameWithoutExtension(file));
-                if (cached.Assembly != null) {
-                    Reuse(file, cached);
-                    continue;
-                }
-
-                WriteDebug("Unable to extract assembly \"{0}\" from the cache: {1}",
-                    Path.GetFileName(file),
-                    WeaverUtilities.GetExtractionFailureReason(cached)
-                    );
-                Include(file);
-            }
-
             return this;
         }
 
         void Exclude(string file) {
-            WriteInfo("Assembly {0} not processed, it's excluded by policy.", Path.GetFileName(file));
+            WriteInfo("Not processing assembly {0}: it's excluded by policy.", Path.GetFileName(file));
 
             filesToCopy.Add(file);
             var pdb = Path.ChangeExtension(file, ".pdb");
@@ -176,7 +209,7 @@ namespace Starcounter.Weaver {
         }
 
         void Reuse(string file, WeaverCache.CachedAssembly cachedAssembly) {
-            WriteDebug("Assembly {0} not processed, it's reused from the cache.", Path.GetFileName(file));
+            WriteDebug("Not processing assembly {0}: it's reused from the cache.", Path.GetFileName(file));
             if (!cachedAssembly.IsSchemaOnly) {
                 filesToCopy.AddRange(cachedAssembly.Files);
             }
@@ -242,8 +275,7 @@ namespace Starcounter.Weaver {
         void WriteInfo(string message, params object[] parameters) {
             Program.WriteInformation(message, parameters);
         }
-
-        [Conditional("DEBUG")]
+        
         void WriteDebug(string message, params object[] parameters) {
             Program.WriteDebug(message, parameters);
         }

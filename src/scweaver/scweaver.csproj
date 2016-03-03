@@ -122,6 +122,7 @@
     <Compile Include="Starcounter.Internal.Weaver\WeaverNamingConventions.cs" />
     <Compile Include="Starcounter.Internal.Weaver\WeaverSchemaExtensions.cs" />
     <Compile Include="Starcounter.Internal.Weaver\WeaverUtilities.cs" />
+    <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
