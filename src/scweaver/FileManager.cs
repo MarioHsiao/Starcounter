@@ -139,19 +139,10 @@ namespace Starcounter.Weaver {
             }
 
             // Group files by directory
-            var filesByDirectory = new Dictionary<string, List<string>>();
-            foreach (var file in sourceFiles) {
-                var dir = Path.GetDirectoryName(file);
-                if (!filesByDirectory.ContainsKey(dir)) {
-                    var files = new List<string>();
-                    filesByDirectory.Add(dir, files);
-                }
-
-                filesByDirectory[dir].Add(Path.GetFileName(file));
-            }
 
             Program.WriteDebug("  {0} input files considered.", sourceFiles.Count);
 
+            var filesByDirectory = new FilesByDirectory(sourceFiles).Files;
             foreach (var hive in filesByDirectory) {
                 Program.WriteDebug("  {0}:", hive.Key);
                 foreach (var file in hive.Value) {
