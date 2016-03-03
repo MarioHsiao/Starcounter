@@ -1,11 +1,8 @@
-﻿using Starcounter;
-using Starcounter.Internal;
-using Starcounter.Metadata;
+﻿using Starcounter.Internal;
 using Starcounter.Rest;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Starcounter.Advanced.XSON;
 using System.Text;
 
 namespace Starcounter {
@@ -871,120 +868,7 @@ namespace Starcounter {
                 alreadyCalledHandlers.Add(x.HandlerId);
             }*/
         }
-
-        /// <summary>
-        /// Default JSON merger function.
-        /// </summary>
-        public static Response DefaultJsonMerger(Request req, Response resp, List<Response> responses) {
-            Json siblingJson;
-            Json mainJson;
-            List<Json> stepSiblings;
-
-            // Checking if there is only one response, which becomes the main response.
-
-            if (resp != null) {
-
-                mainJson = resp.Resource as Json;
-
-                if (mainJson != null) {
-                    mainJson._appName = resp.AppName;
-                    mainJson._wrapInAppName = true;
-                }
-
-                return resp;
-            }
-
-            var mainResponse = responses[0];
-            Int32 mainResponseId = 0;
-
-            // Searching for the current application in responses.
-            for (Int32 i = 0; i < responses.Count; i++) {
-
-                if (responses[i].AppName == req.HandlerOpts.CallingAppName) {
-
-                    mainResponse = responses[i];
-                    mainResponseId = i;
-                    break;
-                }
-            }
-
-            // Checking if its a Json response.
-            mainJson = mainResponse.Resource as Json;
-
-            if (mainJson != null) {
-
-                mainJson._appName = mainResponse.AppName;
-                mainJson._wrapInAppName = true;
-
-                if (responses.Count == 1)
-                    return mainResponse;
-
-                var oldSiblings = mainJson.StepSiblings;
-
-                stepSiblings = new List<Json>();
-                mainJson.StepSiblings = stepSiblings;
-                stepSiblings.Add(mainJson);
-
-                for (Int32 i = 0; i < responses.Count; i++) {
-
-                    if (mainResponseId != i) {
-                        if (responses[i] == null)
-                            continue;
-
-                        siblingJson = (Json)responses[i].Resource;
-
-                        // TODO:
-                        // Do we need to check the response in case of error and handle it or
-                        // just ignore like we do now?
-
-                        // No json in partial response. Probably because a registered handler didn't want to
-                        // add anything for this uri and data.
-                        if (siblingJson == null)
-                            continue;
-
-                        siblingJson._appName = responses[i].AppName;
-                        siblingJson._wrapInAppName = true;
-
-                        if (siblingJson.StepSiblings != null) {
-                            // We have another set of step-siblings. Merge them into one list.
-                            foreach (var existingSibling in siblingJson.StepSiblings) {
-                                if (!stepSiblings.Contains(existingSibling)) {
-                                    stepSiblings.Add(existingSibling);
-                                    existingSibling.StepSiblings = stepSiblings;
-                                }
-                            }
-                        }
-                        siblingJson.StepSiblings = stepSiblings;
-
-                        if (!stepSiblings.Contains(siblingJson)) {
-                            stepSiblings.Add(siblingJson);
-                        }
-                    }
-                }
-
-                if (oldSiblings != null && mainJson.Parent != null) {
-                    bool refresh = false;
-
-                    if (oldSiblings.Count != stepSiblings.Count) {
-                        refresh = true;
-                    } else  {
-                        for (int i = 0; i < stepSiblings.Count; i++) {
-                            if (oldSiblings[i] != stepSiblings[i]) {
-                                refresh = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    // if the old siblings differ in any way from the new siblings, we refresh the whole mainjson.
-                    if (refresh)
-                        mainJson.Parent.MarkAsReplaced(mainJson.IndexInParent);
-                }
-            }
-
-            return mainResponse;
-        }
-
+        
         /// <summary>
         /// Map classes in different class hierarchies.
         /// </summary>
@@ -1089,7 +973,7 @@ namespace Starcounter {
         /// </summary>
         public static void Init() {
 
-            Response.ResponsesMergerRoutine_ = DefaultJsonMerger;
+            Response.ResponsesMergerRoutine_ = JsonResponseMerger.DefaultMerger;
 
             String savedAppName = StarcounterEnvironment.AppName;
             StarcounterEnvironment.AppName = null;
