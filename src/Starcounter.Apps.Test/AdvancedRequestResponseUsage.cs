@@ -304,7 +304,6 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue("POST" == resp.Headers["Allow"]);
             Assert.IsTrue("zzzip" == resp.Headers["Content-Encoding"]);
             Assert.IsTrue("Haha" == resp.Headers["NewHeader"]);
-            Assert.IsTrue("MyCookie=CookieValue" == resp.Headers["Set-Cookie"]);
 
             Handle.GET("/response11", (Request req) =>
             {
@@ -366,8 +365,6 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue("Haha" == resp.Headers["NewHeader"]);
             Assert.IsTrue("application/json" == resp.Headers["Content-Type"]);
             Assert.IsTrue("zzzip" == resp.Headers["Content-Encoding"]);
-            Assert.IsTrue("MyCookie=CookieValue" == resp.Headers["Set-Cookie"]);
-
 
             Handle.GET("/response12", (Request req) =>
             {
