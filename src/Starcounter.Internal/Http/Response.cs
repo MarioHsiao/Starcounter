@@ -1170,6 +1170,8 @@ namespace Starcounter
         /// </summary>
         public Response(Byte[] buf, Int32 offset, Int32 lenBytes, Boolean complete = true)
         {
+            Headers = new HeadersAccessor(this);
+
             UInt32 err_code = 0;
             unsafe
             {
