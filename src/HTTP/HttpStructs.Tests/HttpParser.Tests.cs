@@ -170,7 +170,7 @@ namespace HttpParser.Tests
                 Assert.That(http_request.Uri == http_request_uris[i], Is.True);
 
                 // Checking correct hosts.
-                Assert.That(http_request["Host"] == http_request_hosts[i], Is.True);
+                Assert.That(http_request.Headers["Host"] == http_request_hosts[i], Is.True);
 
                 // Checking correct bodies.
                 Assert.That(http_request.Body == http_request_bodies[i], Is.True);

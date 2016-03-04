@@ -122,8 +122,7 @@ namespace Starcounter.Internal.Test
 
                 Assert.IsTrue("/return_400" == req.Uri);
 
-                Assert.IsTrue("localhost:8080" == req["Host"]);
-                Assert.IsTrue("localhost:8080" == req.Header["Host"]);
+                Assert.IsTrue("localhost:8080" == req.Headers["Host"]);
                 Assert.IsTrue("localhost:8080" == req.Host);
 
                 return 400;
@@ -133,8 +132,7 @@ namespace Starcounter.Internal.Test
 
                 Assert.IsTrue("/return_200" == req.Uri);
 
-                Assert.IsTrue("localhost:8080" == req["Host"]);
-                Assert.IsTrue("localhost:8080" == req.Header["Host"]);
+                Assert.IsTrue("localhost:8080" == req.Headers["Host"]);
                 Assert.IsTrue("localhost:8080" == req.Host);
 
                 return 200;
@@ -242,8 +240,7 @@ namespace Starcounter.Internal.Test
             {
                 Assert.IsTrue("/response10" == req.Uri);
 
-                Assert.IsTrue("localhost:8080" == req["Host"]);
-                Assert.IsTrue("localhost:8080" == req.Header["Host"]);
+                Assert.IsTrue("localhost:8080" == req.Headers["Host"]);
                 Assert.IsTrue("localhost:8080" == req.Host);
 
                 Response r = new Response()
@@ -260,7 +257,7 @@ namespace Starcounter.Internal.Test
                     Body = "response10"
                 };
 
-                r["Allow"] = "GET, HEAD";
+                r.Headers["Allow"] = "GET, HEAD";
 
                 return r;
             });
@@ -279,11 +276,11 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(10 == resp.ContentLength);
             //Assert.IsTrue("SC" == resp["Server"]);
             Assert.IsTrue("response10" == resp.Body);
-            Assert.IsTrue(resp["Allow"] == "GET, HEAD");
+            Assert.IsTrue(resp.Headers["Allow"] == "GET, HEAD");
 
             // Modifying response.
-            resp["Allow"] = "POST";
-            resp["NewHeader"] = "Haha";
+            resp.Headers["Allow"] = "POST";
+            resp.Headers["NewHeader"] = "Haha";
             resp.StatusCode = 200;
             resp.StatusDescription = "Found";
             resp.ContentType = "application/json";
@@ -292,8 +289,8 @@ namespace Starcounter.Internal.Test
             resp.Cookies.Add("MyCookie=CookieValue");
             resp.Body = "Here is my body!";
 
-            Assert.IsTrue("POST" == resp["Allow"]);
-            Assert.IsTrue("Haha" == resp["NewHeader"]);
+            Assert.IsTrue("POST" == resp.Headers["Allow"]);
+            Assert.IsTrue("Haha" == resp.Headers["NewHeader"]);
             Assert.IsTrue(200 == resp.StatusCode);
             Assert.IsTrue("Found" == resp.StatusDescription);
             Assert.IsTrue("application/json" == resp.ContentType);
@@ -301,7 +298,12 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue("MyCookie=CookieValue" == resp.Cookies[0]);
             Assert.IsTrue("Here is my body!" == resp.Body);
             Assert.IsTrue("Here is my body!".Length == resp.ContentLength);
-            Assert.IsTrue("Content-Type: application/json\r\nContent-Encoding: zzzip\r\nAllow: POST\r\nNewHeader: Haha\r\nSet-Cookie: MyCookie=CookieValue\r\n" == resp.Headers);
+            Assert.IsTrue("Content-Type: application/json\r\nContent-Encoding: zzzip\r\nAllow: POST\r\nNewHeader: Haha\r\nSet-Cookie: MyCookie=CookieValue\r\n" == resp.GetAllHeaders());
+
+            Assert.IsTrue("application/json" == resp.Headers["Content-Type"]);
+            Assert.IsTrue("POST" == resp.Headers["Allow"]);
+            Assert.IsTrue("zzzip" == resp.Headers["Content-Encoding"]);
+            Assert.IsTrue("Haha" == resp.Headers["NewHeader"]);
 
             Handle.GET("/response11", (Request req) =>
             {
@@ -314,8 +316,8 @@ namespace Starcounter.Internal.Test
                     StatusDescription = "Non-Authoritative Information",
                 };
 
-                r["MySuperHeader"] = "Haha!";
-                r["MyAnotherSuperHeader"] = "Hahaha!";
+                r.Headers["MySuperHeader"] = "Haha!";
+                r.Headers["MyAnotherSuperHeader"] = "Hahaha!";
 
                 return r;
             });
@@ -330,14 +332,16 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(0 == resp.ContentLength);
             //Assert.IsTrue("SC" == resp["Server"]);
             Assert.IsTrue(null == resp.Body);
-            Assert.IsTrue(resp["MySuperHeader"] == "Haha!");
-            Assert.IsTrue(resp["MyAnotherSuperHeader"] == "Hahaha!");
-            Assert.IsTrue("MySuperHeader: Haha!\r\nMyAnotherSuperHeader: Hahaha!\r\n" == resp.Headers);
+            Assert.IsTrue(resp.Headers["MySuperHeader"] == "Haha!");
+            Assert.IsTrue(resp.Headers["MyAnotherSuperHeader"] == "Hahaha!");
+            Assert.IsTrue("MySuperHeader: Haha!\r\nMyAnotherSuperHeader: Hahaha!\r\n" == resp.GetAllHeaders());
+            Assert.IsTrue("Haha!" == resp.Headers["MySuperHeader"]);
+            Assert.IsTrue("Hahaha!" == resp.Headers["MyAnotherSuperHeader"]);
 
-            resp["Allow"] = "POST";
-            resp["NewHeader"] = "Haha";
-            resp["MySuperHeader"] = "Haha!";
-            resp["MyAnotherSuperHeader"] = "Hahaha!";
+            resp.Headers["Allow"] = "POST";
+            resp.Headers["NewHeader"] = "Haha";
+            resp.Headers["MySuperHeader"] = "Haha!";
+            resp.Headers["MyAnotherSuperHeader"] = "Hahaha!";
             resp.StatusCode = 200;
             resp.StatusDescription = "Found";
             resp.ContentType = "application/json";
@@ -345,8 +349,8 @@ namespace Starcounter.Internal.Test
             resp.Cookies.Add("MyCookie=CookieValue");
             resp.Body = "Here is my body!";
 
-            Assert.IsTrue("POST" == resp["Allow"]);
-            Assert.IsTrue("Haha" == resp["NewHeader"]);
+            Assert.IsTrue("POST" == resp.Headers["Allow"]);
+            Assert.IsTrue("Haha" == resp.Headers["NewHeader"]);
             Assert.IsTrue(200 == resp.StatusCode);
             Assert.IsTrue("Found" == resp.StatusDescription);
             Assert.IsTrue("application/json" == resp.ContentType);
@@ -354,7 +358,13 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue("MyCookie=CookieValue" == resp.Cookies[0]);
             Assert.IsTrue("Here is my body!" == resp.Body);
             Assert.IsTrue("Here is my body!".Length == resp.ContentLength);
-            Assert.IsTrue("MySuperHeader: Haha!\r\nMyAnotherSuperHeader: Hahaha!\r\nAllow: POST\r\nNewHeader: Haha\r\nContent-Type: application/json\r\nContent-Encoding: zzzip\r\nSet-Cookie: MyCookie=CookieValue\r\n" == resp.Headers);
+            Assert.IsTrue("MySuperHeader: Haha!\r\nMyAnotherSuperHeader: Hahaha!\r\nAllow: POST\r\nNewHeader: Haha\r\nContent-Type: application/json\r\nContent-Encoding: zzzip\r\nSet-Cookie: MyCookie=CookieValue\r\n" == resp.GetAllHeaders());
+            Assert.IsTrue("Haha!" == resp.Headers["MySuperHeader"]);
+            Assert.IsTrue("Hahaha!" == resp.Headers["MyAnotherSuperHeader"]);
+            Assert.IsTrue("POST" == resp.Headers["Allow"]);
+            Assert.IsTrue("Haha" == resp.Headers["NewHeader"]);
+            Assert.IsTrue("application/json" == resp.Headers["Content-Type"]);
+            Assert.IsTrue("zzzip" == resp.Headers["Content-Encoding"]);
 
             Handle.GET("/response12", (Request req) =>
             {
@@ -398,21 +408,20 @@ namespace Starcounter.Internal.Test
             {
                 Assert.IsTrue("/response1" == req.Uri);
                 Assert.IsTrue("Another body!" == req.Body);
-                Assert.IsTrue("MyHeader1: value1\r\nMyHeader2: value2\r\n" == req.Headers);
-                Assert.IsTrue("value1" == req["MyHeader1"]);
-                Assert.IsTrue("value2" == req["MyHeader2"]);
+                Assert.IsTrue("MyHeader1: value1\r\nMyHeader2: value2\r\n" == req.GetAllHeaders());
+                Assert.IsTrue("value2" == req.Headers["MyHeader2"]);
                 Assert.IsTrue("localhost:8080" == req.Host);
 
-                req["MyHeader3"] = "value3";
-                req["MyHeader4"] = "value4";
+                req.Headers["MyHeader3"] = "value3";
+                req.Headers["MyHeader4"] = "value4";
                 req.Method = "POST"; // TODO: Fix that GET is not default.
                 req.Uri = "/response2";
                 req.ConstructFromFields();
 
                 Response resp = Self.CustomRESTRequest(req);
 
-                Assert.IsTrue("Haha!" == resp["MySuperHeader"]);
-                Assert.IsTrue("Hahaha!" == resp["MyAnotherSuperHeader"]);
+                Assert.IsTrue("Haha!" == resp.Headers["MySuperHeader"]);
+                Assert.IsTrue("Hahaha!" == resp.Headers["MyAnotherSuperHeader"]);
                 Assert.IsTrue(203 == resp.StatusCode);
                 Assert.IsTrue("Non-Authoritative Information" == resp.StatusDescription);
                 Assert.IsTrue("Here is my body!" == resp.Body);
@@ -434,8 +443,8 @@ namespace Starcounter.Internal.Test
                     Body = "Here is my body!"
                 };
 
-                resp["MySuperHeader"] = "Haha!";
-                resp["MyAnotherSuperHeader"] = "Hahaha!";
+                resp.Headers["MySuperHeader"] = "Haha!";
+                resp.Headers["MyAnotherSuperHeader"] = "Hahaha!";
                 resp.Cookies.Add("SuperCookie=SuperValue!");
                 resp.ContentEncoding = "text/html";
 
@@ -449,8 +458,8 @@ namespace Starcounter.Internal.Test
 
             Response resp2 = Self.POST("/response1", "Another body!", null, headers);
 
-            Assert.IsTrue("Haha!" == resp2["MySuperHeader"]);
-            Assert.IsTrue("Hahaha!" == resp2["MyAnotherSuperHeader"]);
+            Assert.IsTrue("Haha!" == resp2.Headers["MySuperHeader"]);
+            Assert.IsTrue("Hahaha!" == resp2.Headers["MyAnotherSuperHeader"]);
             Assert.IsTrue(203 == resp2.StatusCode);
             Assert.IsTrue("Non-Authoritative Information" == resp2.StatusDescription);
        }

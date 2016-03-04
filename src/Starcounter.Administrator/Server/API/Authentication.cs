@@ -29,7 +29,7 @@ namespace Server.API {
                         return true;
                     }
 
-                    string authorizationHeader = request["Authorization"];
+                    string authorizationHeader = request.Headers["Authorization"];
 
                     if (!string.IsNullOrEmpty(authorizationHeader)) {
 
@@ -50,7 +50,7 @@ namespace Server.API {
                 response = new Response();
                 response.Body = "Unauthorized.";
                 response.StatusCode = (ushort)System.Net.HttpStatusCode.Unauthorized;
-                response["WWW-Authenticate"] = "Basic realm=\"" + StarcounterServerApiRealm + "\"";
+                response.Headers["WWW-Authenticate"] = "Basic realm=\"" + StarcounterServerApiRealm + "\"";
                 //                response["locacion"] = "/index.html#/login/";
                 return false;
             }

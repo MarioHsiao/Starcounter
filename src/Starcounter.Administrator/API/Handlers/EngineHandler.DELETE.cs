@@ -41,7 +41,7 @@ namespace Starcounter.Administrator.API.Handlers {
             // how they once were (i.e. the fingerprint we have) on entering.
             var conditionFailed = JSON.CreateConditionBasedResponse(request, applicationEngine, false);
             if (conditionFailed != null) return conditionFailed;
-            var etag = request["If-Match"];
+            var etag = request.Headers["If-Match"];
 
             var stop = new StopDatabaseCommand(serverEngine, name, true);
             stop.EnableWaiting = true;

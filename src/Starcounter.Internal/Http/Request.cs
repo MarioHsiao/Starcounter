@@ -37,7 +37,7 @@ namespace Starcounter {
         /// </summary>
         public Request() {
 
-            headersAccessor_ = new HeadersAccessor(this);
+            Headers = new HeadersAccessor(this);
             HandlerOpts = new HandlerOptions();
         }
 
@@ -173,20 +173,6 @@ namespace Starcounter {
         Boolean came_with_correct_session_ = false;
 
         /// <summary>
-        /// Headers accessor.
-        /// </summary>
-        HeadersAccessor headersAccessor_;
-
-        /// <summary>
-        /// Accessing individual headers.
-        /// </summary>
-        public HeadersAccessor Header {
-            get {
-                return headersAccessor_;
-            }
-        }
-
-        /// <summary>
         /// Handler options.
         /// </summary>
         internal HandlerOptions HandlerOpts {
@@ -210,7 +196,7 @@ namespace Starcounter {
         {
             get
             {
-                var a = this[HttpHeadersUtf8.GetAcceptHeader];
+                var a = Headers[HttpHeadersUtf8.GetAcceptHeader];
 
                 if (a != null)
                     return a.Split(new Char[] { ',' }, 2)[0];
@@ -243,7 +229,7 @@ namespace Starcounter {
         /// </remarks>
         public MimeType PreferredMimeType {
             get {
-                var a = this[HttpHeadersUtf8.GetAcceptHeader];
+                var a = Headers[HttpHeadersUtf8.GetAcceptHeader];
 
                 if (a != null)
                     return MimeTypeHelper.StringToMimeType(a);
@@ -311,7 +297,7 @@ namespace Starcounter {
         {
             unsafe {
 
-                headersAccessor_ = new HeadersAccessor(this);
+                Headers = new HeadersAccessor(this);
 
                 InternalInit(requestBytes, requestBytesLen);
             }
@@ -651,12 +637,12 @@ namespace Starcounter {
         /// </summary>
         public String ContentType {
             get {
-                return this[HttpHeadersUtf8.ContentTypeHeader];
+                return Headers[HttpHeadersUtf8.ContentTypeHeader];
             }
 
             set {
                 customFields_ = true;
-                this[HttpHeadersUtf8.ContentTypeHeader] = value;
+                Headers[HttpHeadersUtf8.ContentTypeHeader] = value;
             }
         }
 
@@ -665,12 +651,12 @@ namespace Starcounter {
         /// </summary>
         public String ContentEncoding {
             get {
-                return this[HttpHeadersUtf8.ContentEncodingHeader];
+                return Headers[HttpHeadersUtf8.ContentEncodingHeader];
             }
 
             set {
                 customFields_ = true;
-                this[HttpHeadersUtf8.ContentEncodingHeader] = value;
+                Headers[HttpHeadersUtf8.ContentEncodingHeader] = value;
             }
         }
 
@@ -757,38 +743,35 @@ namespace Starcounter {
         /// <summary>
         /// Headers string.
         /// </summary>
-        public String Headers
+        public String GetAllHeaders()
         {
-            get
+            unsafe
             {
-                unsafe
+                // Concatenating headers from dictionary.
+                if ((null != customHeaderFields_) || (null != cookies_))
                 {
-                    // Concatenating headers from dictionary.
-                    if ((null != customHeaderFields_) || (null != cookies_))
+                    headersString_ = "";
+
+                    foreach (KeyValuePair<string, string> h in customHeaderFields_)
                     {
-                        headersString_ = "";
-
-                        foreach (KeyValuePair<string, string> h in customHeaderFields_)
-                        {
-                            headersString_ += h.Key + ": " + h.Value + StarcounterConstants.NetworkConstants.CRLF;
-                        }
-
-                        if (null != cookies_)
-                        {
-                            foreach (String c in cookies_)
-                            {
-                                headersString_ += HttpHeadersUtf8.GetCookieStartString + c + StarcounterConstants.NetworkConstants.CRLF;
-                            }
-                        }
-
-                        return headersString_;
+                        headersString_ += h.Key + ": " + h.Value + StarcounterConstants.NetworkConstants.CRLF;
                     }
 
-                    if (null != http_request_struct_)
-                        headersString_ = http_request_struct_->GetHeadersStringUtf8_Slow();
+                    if (null != cookies_)
+                    {
+                        foreach (String c in cookies_)
+                        {
+                            headersString_ += HttpHeadersUtf8.GetCookieStartString + c + StarcounterConstants.NetworkConstants.CRLF;
+                        }
+                    }
 
                     return headersString_;
                 }
+
+                if (null != http_request_struct_)
+                    headersString_ = http_request_struct_->GetHeadersStringUtf8_Slow();
+
+                return headersString_;
             }
         }
 
@@ -810,7 +793,7 @@ namespace Starcounter {
                 {
                     if (http_request_struct_ != null)
                     {
-                        String allCookies = this[HttpHeadersUtf8.GetCookieHeader];
+                        String allCookies = Headers[HttpHeadersUtf8.GetCookieHeader];
                         if (allCookies != null)
                         {
                             String[] splittedCookies = allCookies.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -893,7 +876,7 @@ namespace Starcounter {
                 unsafe
                 {
                     if (http_request_struct_ != null) {
-                        hostNameString_ = this[HttpHeadersUtf8.HostHeader];
+                        hostNameString_ = Headers[HttpHeadersUtf8.HostHeader];
                     }
                 }
 
@@ -1207,63 +1190,56 @@ namespace Starcounter {
         {
             Response savedResp = resp;
 
-            try {
-
-                // Checking if there are any outgoing filters.
-                Response filteredResp = Handle.RunResponseFilters(this, resp);
-                if (null != filteredResp) {
-                    resp = filteredResp;
-                }
-
-                // Checking if global response status code is set.
-                if (Handle.OutgoingStatusCode > 0) {
-                    resp.StatusCode = Handle.OutgoingStatusCode;
-                }
-
-                // Checking if global response status description is set.
-                if (Handle.OutgoingStatusDescription != null) {
-                    resp.StatusDescription = Handle.OutgoingStatusDescription;
-                }
-
-                // Checking the global response headers list.
-                if (null != Handle.OutgoingHeaders) {
-                    foreach (KeyValuePair<String, String> h in Handle.OutgoingHeaders) {
-                        resp[h.Key] = h.Value;
-                    }
-                }
-
-                // Checking the global response cookies list.
-                if (null != Handle.OutgoingCookies) {
-                    foreach (KeyValuePair<String, String> c in Handle.OutgoingCookies) {
-                        resp.Cookies.Add(c.Key + "=" + c.Value);
-                    }
-                }
-
-                // Constructing response bytes.
-                resp.ConstructFromFields(this, serializationBuf);
-
-                // If we have a streamed response body - getting corresponding TCP socket to stream on.
-                TcpSocket tcpSocket = null;
-                if (resp.StreamedBody != null) {
-
-                    tcpSocket = new TcpSocket(dataStream_);
-
-                    // Setting the flag that this response body should be streamed.
-                    resp.ConnFlags |= Response.ConnectionFlags.StreamingResponseBody;
-
-                    StreamingInfo s = new StreamingInfo(resp.StreamedBody);
-
-                    // Adding to response streams dictionary.
-                    Response.ResponseStreams_[tcpSocket.ToUInt64()] = s;
-                }
-
-                // Sending the response.
-                SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
-
-            } finally {
-
-                savedResp.Destroy();
+            // Checking if there are any outgoing filters.
+            Response filteredResp = Handle.RunResponseFilters(this, resp);
+            if (null != filteredResp) {
+                resp = filteredResp;
             }
+
+            // Checking if global response status code is set.
+            if (Handle.OutgoingStatusCode > 0) {
+                resp.StatusCode = Handle.OutgoingStatusCode;
+            }
+
+            // Checking if global response status description is set.
+            if (Handle.OutgoingStatusDescription != null) {
+                resp.StatusDescription = Handle.OutgoingStatusDescription;
+            }
+
+            // Checking the global response headers list.
+            if (null != Handle.OutgoingHeaders) {
+                foreach (KeyValuePair<String, String> h in Handle.OutgoingHeaders) {
+                    resp.Headers[h.Key] = h.Value;
+                }
+            }
+
+            // Checking the global response cookies list.
+            if (null != Handle.OutgoingCookies) {
+                foreach (KeyValuePair<String, String> c in Handle.OutgoingCookies) {
+                    resp.Cookies.Add(c.Key + "=" + c.Value);
+                }
+            }
+
+            // Constructing response bytes.
+            resp.ConstructFromFields(this, serializationBuf);
+
+            // If we have a streamed response body - getting corresponding TCP socket to stream on.
+            TcpSocket tcpSocket = null;
+            if (resp.StreamedBody != null) {
+
+                tcpSocket = new TcpSocket(dataStream_);
+
+                // Setting the flag that this response body should be streamed.
+                resp.ConnFlags |= Response.ConnectionFlags.StreamingResponseBody;
+
+                StreamingInfo s = new StreamingInfo(resp.StreamedBody);
+
+                // Adding to response streams dictionary.
+                Response.responseStreams_[tcpSocket.ToUInt64()] = s;
+            }
+
+            // Sending the response.
+            SendResponse(resp.BufferContainingResponse, resp.ResponseOffsetInBuffer, resp.ResponseSizeBytes, resp.ConnFlags);
         }
 
         /// <summary>
@@ -1326,66 +1302,87 @@ namespace Starcounter {
 
             public String this[String name] {
                 get {
-                    return requestRef_[name];
+                    return requestRef_.GetHeader(name);
                 }
 
                 set {
-                    requestRef_[name] = value;
+                    requestRef_.SetHeader(name, value);
                 }
             }
         }
 
         /// <summary>
-        /// Gets the <see cref="String" /> with the specified name.
+        /// Accessor to response headers.
         /// </summary>
-        public String this[String name] 
-        {
-            get
+        public HeadersAccessor Headers;
+
+        /// <summary>
+        /// Get the value of specific header.
+        /// </summary>
+        /// <param name="name">Header name.</param>
+        /// <returns>Header value.</returns>
+        internal String GetHeader(String name) {
+
+            if (null != customHeaderFields_) {
+                if (customHeaderFields_.ContainsKey(name))
+                    return customHeaderFields_[name];
+
+                return null;
+            }
+
+            unsafe
             {
-                if (null != customHeaderFields_)
-                {
-                    if (customHeaderFields_.ContainsKey(name))
-                        return customHeaderFields_[name];
+                if (null == http_request_struct_) {
+
+                    // Checking specifically for the host header.
+                    if ("Host" == name) {
+                        return Host;
+                    }
 
                     return null;
                 }
 
-                unsafe
-                {
-                    if (null == http_request_struct_) {
+                return http_request_struct_->GetHeaderValue(name, ref headersString_);
+            }
+        }
 
-                        // Checking specifically for the host header.
-                        if ("Host" == name) {
-                            return Host;
-                        }
+        /// <summary>
+        /// Set the value of a specific header.
+        /// </summary>
+        /// <param name="name">Header name.</param>
+        /// <param name="value">Header value.</param>
+        internal void SetHeader(String name, String value) {
 
-                        return null;
+            customFields_ = true;
+
+            if (null == customHeaderFields_) {
+                String headers = headersString_;
+                if (headers == null) {
+                    unsafe
+                    {
+                        if (null != http_request_struct_)
+                            headers = http_request_struct_->GetHeadersStringUtf8_Slow();
                     }
-
-                    return http_request_struct_->GetHeaderValue(name, ref headersString_);
                 }
+
+                customHeaderFields_ = Response.CreateHeadersDictionaryFromHeadersString(headers);
             }
 
-            set
-            {
-                customFields_ = true;
+            customHeaderFields_[name] = value;
+        }
 
-                if (null == customHeaderFields_)
-                {
-                    String headers = headersString_;
-                    if (headers == null)
-                    {
-                        unsafe
-                        {
-                            if (null != http_request_struct_)
-                                headers = http_request_struct_->GetHeadersStringUtf8_Slow();
-                        }
-                    }
+        /// <summary>
+        /// Gets the <see cref="String" /> with the specified name.
+        /// </summary>
+        [System.Obsolete("Please use Headers[\"HeaderName\"] instead.")]
+        public String this[String name] 
+        {
+            get {
+                return GetHeader(name);
+            }
 
-                    customHeaderFields_ = Response.CreateHeadersDictionaryFromHeadersString(headers);
-                }
-
-                customHeaderFields_[name] = value;
+            set {
+                SetHeader(name, value);
             }
         }
 
@@ -1485,23 +1482,24 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Returns a string that represents the current object.
+        /// Returns a string that represents the request.
         /// </summary>
-        /// <returns>A string that represents the current object.</returns>
+        /// <returns>A string that represents the request.</returns>
         public override String ToString()
         {
             unsafe
             {
-                if (Body != null)
-                    return Body;
-
-                return null;
+                if (null != http_request_struct_) {
+                    return http_request_struct_->GetRequestStringUtf8_Slow();
+                }
             }
+
+            return null;
         }
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct HttpRequestInternal {
+    public unsafe struct HttpRequestInternal {
 
         internal UInt32 request_len_bytes_;
         internal UInt32 content_len_bytes_;
@@ -1549,6 +1547,14 @@ namespace Starcounter {
             Marshal.Copy(new IntPtr(socket_data_ + content_offset_), content_bytes, 0, (Int32)content_len_bytes_);
 
             return content_bytes;
+        }
+
+        /// <summary>
+        /// Gets body as UTF8 string.
+        /// </summary>
+        internal String GetRequestStringUtf8_Slow() {
+
+            return new String((SByte*)(socket_data_ + request_offset_), 0, (Int32)request_len_bytes_, Encoding.UTF8);
         }
 
         /// <summary>

@@ -203,7 +203,7 @@ namespace Starcounter.Internal.Web {
                         Response response = new Response();
                         response.StatusCode = (ushort)System.Net.HttpStatusCode.OK;
                         response.BodyBytes = workingFolders.ToJsonUtf8();
-                        response["Access-Control-Allow-Origin"] = "*"; 
+                        response.Headers["Access-Control-Allow-Origin"] = "*"; 
                         return response;
 
                         //return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = workingFolders.ToJsonUtf8() };

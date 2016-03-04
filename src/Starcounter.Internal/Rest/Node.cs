@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Collections.Concurrent;
 
 namespace Starcounter
 {
@@ -46,18 +47,18 @@ namespace Starcounter
         /// <summary>
         /// Maximum number of parallel sockets.
         /// </summary>
-        Int32 maxNumAsyncConnections_ = 128;
+        Int32 maxNumNodeTasks_ = 128;
 
         /// <summary>
         /// Maximum number of parallel connections in async node.
         /// </summary>
         public Int32 MaxNumAsyncConnections {
             get {
-                return maxNumAsyncConnections_;
+                return maxNumNodeTasks_;
             }
 
             set {
-                maxNumAsyncConnections_ = value;
+                maxNumNodeTasks_ = value;
             }
         }
 
@@ -78,11 +79,6 @@ namespace Starcounter
                 connectSynchronuously_ = value;
             }
         }
-
-        /// <summary>
-        /// Pending async tasks.
-        /// </summary>
-        LockFreeQueue<NodeTask> aggr_pending_async_tasks_ = new LockFreeQueue<NodeTask>();
 
         /// <summary>
         /// The Node log source for logging exceptions.
@@ -137,61 +133,34 @@ namespace Starcounter
         UInt16 portNumber_;
 
         /// <summary>
-        /// Receive timeout in milliseconds.
+        /// Receive timeout in seconds.
         /// </summary>
-        public Int32 DefaultReceiveTimeoutMs { get; set; }
-
-        /// <summary>
-        /// Aggregation port number, e.g.: 1234
-        /// </summary>
-        UInt16 aggrPortNumber_;
-
-        /// <summary>
-        /// Aggregation TCP socket.
-        /// </summary>
-        Socket aggrSocket_;
-
-        /// <summary>
-        /// Disconnecting aggregation socket.
-        /// </summary>
-        public void StopAggregation() {
-            if (UsesAggregation()) {
-                aggrSocket_.Disconnect(false);
-            }
-        }
-
-        /// <summary>
-        /// Returns True if this node uses aggregation.
-        /// </summary>
-        /// <returns></returns>
-        public Boolean UsesAggregation() {
-            return (null != aggrSocket_);
-        }
+        public Int32 DefaultReceiveTimeoutSeconds { get; set; }
 
         /// <summary>
         /// Finished async tasks.
         /// </summary>
-        LockFreeQueue<NodeTask> finished_async_tasks_ = new LockFreeQueue<NodeTask>();
+        ConcurrentQueue<NodeTask> finished_async_tasks_ = new ConcurrentQueue<NodeTask>();
+
+        /// <summary>
+        /// Timed out tasks.
+        /// </summary>
+        ConcurrentQueue<NodeTask> timed_out_tasks_ = new ConcurrentQueue<NodeTask>();
 
         /// <summary>
         /// Free task indexes.
         /// </summary>
-        LockFreeQueue<Int32> free_task_indexes_ = new LockFreeQueue<Int32>();
-
-        /// <summary>
-        /// Aggregation awaiting tasks array.
-        /// </summary>
-        NodeTask[] aggregation_awaiting_tasks_array_;
+        ConcurrentQueue<Int32> freeNodeTaskIndexes_ = new ConcurrentQueue<Int32>();
 
         /// <summary>
         /// Number of created tasks.
         /// </summary>
-        Int32 num_tasks_created_ = 0;
+        Int32 numTasksCreated_ = 0;
 
         /// <summary>
         /// Node synchronous task.
         /// </summary>
-        NodeTask sync_task_info_ = null;
+        NodeTask syncTaskInfo_ = null;
 
         /// <summary>
         /// Returns this node port number.
@@ -209,11 +178,6 @@ namespace Starcounter
         public String Endpoint { get { return endpoint_; } }
 
         /// <summary>
-        /// Returns this node port number.
-        /// </summary>
-        public UInt16 AggrPortNumber { get { return aggrPortNumber_; } }
-
-        /// <summary>
         /// Returns this node host name.
         /// </summary>
         public String HostName { get { return hostName_; } }
@@ -229,9 +193,7 @@ namespace Starcounter
         public Node(
             String hostName,
             UInt16 portNumber = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
-            Int32 defaultReceiveTimeoutMs = 0,
-            Boolean useAggregation = false,
-            UInt16 aggrPortNumber = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort)
+            Int32 defaultReceiveTimeoutMs = 0)
         {
             if (hostName == null) {
                 hostName = "localhost";
@@ -246,71 +208,14 @@ namespace Starcounter
                 }
             }
 
-            aggrPortNumber_ = aggrPortNumber;
-
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == aggrPortNumber_) {
-                aggrPortNumber_ = StarcounterEnvironment.Default.AggregationPort;
-            }
-
             hostName_ = hostName;
             portNumber_ = portNumber;
             endpoint_ = hostName + ":" + portNumber;
 
-            DefaultReceiveTimeoutMs = defaultReceiveTimeoutMs;
+            DefaultReceiveTimeoutSeconds = defaultReceiveTimeoutMs;
 
-            sync_task_info_ = new NodeTask(this);
-            num_tasks_created_ = 1;
-           
-            // Checking that code is not hosted in Starcounter.
-            if (StarcounterEnvironment.IsCodeHosted)
-                if (useAggregation)
-                    throw new Exception("Aggregation can't be used on hosted node.");
-
-            // Initializing aggregation struct.
-            if (useAggregation)
-            {
-                // When aggregating we need more NodeTasks for better network utilization.
-                maxNumAsyncConnections_ = 1024;
-
-                aggrSocket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-                // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
-                Node.SetLoopbackFastPathOnTcpSocket(aggrSocket_);
-
-                aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, 1 << 19);
-                aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 1 << 19);
-                
-                aggrSocket_.Connect(hostName_, aggrPortNumber_);
-
-                aggregate_send_blob_ = new Byte[AggregationBlobSizeBytes];
-                aggregate_receive_blob_ = new Byte[AggregationBlobSizeBytes];
-                aggregation_awaiting_tasks_array_ = new NodeTask[NodeTask.MaxNumPendingAggregatedTasks];
-                for (Int32 i = 0; i < NodeTask.MaxNumPendingAggregatedTasks; i++)
-                    free_task_indexes_.Enqueue(i);
-
-                this_node_aggr_struct_.port_number_ = portNumber_;
-
-                // Starting send and receive threads.
-                (new Thread(new ThreadStart(AggregateSendThread))).Start();
-                (new Thread(new ThreadStart(AggregateReceiveThread))).Start();
-
-                Boolean nodeAggrInitialized = false;
-
-                // Requesting socket creation.
-                DoAsyncTransfer(null, null, (AggregationStruct aggr_struct) => {
-                    unsafe { this_node_aggr_struct_ = aggr_struct; }
-                    nodeAggrInitialized = true;
-                }, null, 0);
-
-                // Waiting for socket creation result.
-                Int32 numRetries = 5000;
-                while (!nodeAggrInitialized) {
-                    Thread.Sleep(1);
-                    numRetries--;
-                    if (0 == numRetries)
-                        throw new Exception("Can't create aggregation socket!");
-                }
-            }
+            syncTaskInfo_ = new NodeTask(this);
+            numTasksCreated_ = 1;
         }
 
         /// <summary>
@@ -602,7 +507,7 @@ namespace Starcounter
                 }
                 else
                 {
-                    userDelegate.Invoke(resp, userObject);
+                    userDelegate(resp, userObject);
                 }
             }
             catch (Exception exc)
@@ -621,32 +526,32 @@ namespace Starcounter
         void DoAsyncTransfer(
             Request req,
             Action<Response, Object> userDelegate,
-            Action<AggregationStruct> aggrMsgDelegate = null,
             Object userObject = null,
-            Int32 receiveTimeoutMs = 0)
+            Int32 receiveTimeoutSeconds = 0)
         {
             // Setting the receive timeout.
-            if (0 == receiveTimeoutMs)
-                receiveTimeoutMs = DefaultReceiveTimeoutMs;
+            if (0 == receiveTimeoutSeconds) {
+                receiveTimeoutSeconds = DefaultReceiveTimeoutSeconds;
+            }
 
             NodeTask nt = null;
 
             // Checking if any tasks are finished.
-            if (!finished_async_tasks_.Dequeue(out nt)) {
+            if (!finished_async_tasks_.TryDequeue(out nt)) {
 
                 // Checking if we exceeded the maximum number of created tasks.
-                if (num_tasks_created_ >= maxNumAsyncConnections_) {
+                if (numTasksCreated_ >= maxNumNodeTasks_) {
 
                     // Looping until task is dequeued.
-                    while (!finished_async_tasks_.Dequeue(out nt)) {
-                        Thread.Sleep(1);
+                    while (!finished_async_tasks_.TryDequeue(out nt)) {
+                        //Thread.Sleep(1);
                     }
                 }
             }
 
             // Checking if any empty tasks was dequeued.
             if (null == nt) {
-                Interlocked.Increment(ref num_tasks_created_);
+                Interlocked.Increment(ref numTasksCreated_);
                 nt = new NodeTask(this);
             }
 
@@ -659,19 +564,12 @@ namespace Starcounter
             nt.ResetButKeepSocket(
                 req,
                 userDelegate,
-                aggrMsgDelegate,
                 userObject,
-                receiveTimeoutMs,
+                receiveTimeoutSeconds,
                 currentSchedulerId);
 
-            // Checking if we don't use aggregation.
-            if (!UsesAggregation()) {
-                // Starting async request on that node task.
-                nt.PerformAsyncRequest();
-            } else {
-                // Putting to aggregation queue.
-                aggr_pending_async_tasks_.Enqueue(nt);
-            }
+            // Starting async request on that node task.
+            nt.PerformAsyncRequest();
         }
 
         /// <summary>
@@ -684,7 +582,7 @@ namespace Starcounter
             Byte[] bodyBytes,
             Action<Response, Object> userDelegate,
             Object userObject,
-            Int32 receiveTimeoutMs,
+            Int32 receiveTimeoutSeconds,
             HandlerOptions handlerOptions,
             Request req = null)
         {
@@ -708,17 +606,17 @@ namespace Starcounter
                     Host = Endpoint
                 };
             }
-            
+
             // Setting the receive timeout.
-            if (0 == receiveTimeoutMs) {
-                receiveTimeoutMs = DefaultReceiveTimeoutMs;
+            if (0 == receiveTimeoutSeconds) {
+                receiveTimeoutSeconds = DefaultReceiveTimeoutSeconds;
             }
 
             // Checking if user has supplied a delegate to be called.
             if (null != userDelegate) {
 
                 // Trying to perform an async request.
-                DoAsyncTransfer(req, userDelegate, null, userObject, receiveTimeoutMs);
+                DoAsyncTransfer(req, userDelegate, userObject, receiveTimeoutSeconds);
 
                 return null;
             }
@@ -726,254 +624,10 @@ namespace Starcounter
             lock (finished_async_tasks_) {
 
                 // Initializing connection.
-                sync_task_info_.ResetButKeepSocket(req, null, null, userObject, receiveTimeoutMs, 0);
+                syncTaskInfo_.ResetButKeepSocket(req, null, userObject, receiveTimeoutSeconds, 0);
 
                 // Doing synchronous request and returning response.
-                return sync_task_info_.PerformSyncRequest();
-            }
-        }
-
-        /// <summary>
-        /// Size of aggregation blob.
-        /// </summary>
-        const Int32 AggregationBlobSizeBytes = 4 * 1024 * 1024;
-
-        /// <summary>
-        /// Bytes blob used for aggregated sends.
-        /// </summary>
-        Byte[] aggregate_send_blob_;
-
-        /// <summary>
-        /// Bytes blob used for aggregated receives.
-        /// </summary>
-        Byte[] aggregate_receive_blob_;
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct AggregationStruct
-        {
-            public UInt64 unique_socket_id_;
-            public Int32 size_bytes_;
-            public UInt32 socket_info_index_;
-            public Int32 unique_aggr_index_;
-            public UInt16 port_number_;
-            public Byte msg_type_;
-            public Byte msg_flags_;
-        }
-
-        /// <summary>
-        /// Size in bytes of aggregation structure.
-        /// </summary>
-        const Int32 AggregationStructSizeBytes = 24;
-
-        /// <summary>
-        /// Aggregation struct for this node.
-        /// </summary>
-        AggregationStruct this_node_aggr_struct_;
-
-        /// <summary>
-        /// Send/Received balance.
-        /// </summary>
-        Int64 sent_received_balance_ = 0;
-
-        public Int64 SentReceivedBalance
-        {
-            get { return sent_received_balance_; }
-        }
-
-        /// <summary>
-        /// Performs aggregation receive.
-        /// </summary>
-        void AggregateReceiveThread()
-        {
-            try
-            {
-                Int32 num_received_bytes = 0, receive_bytes_offset = 0;
-
-                unsafe
-                {
-                    fixed (Byte* rb = aggregate_receive_blob_)
-                    {
-                        while (true)
-                        {
-                            Thread.Sleep(1);
-
-                            // Checking if socket is not connected.
-                            if (!aggrSocket_.Connected) {
-                                return;
-                            }
-
-                            // Receiving from scratch.
-                            num_received_bytes = 0;
-
-START_RECEIVING:
-
-                            num_received_bytes += aggrSocket_.Receive(aggregate_receive_blob_, num_received_bytes, AggregationBlobSizeBytes - num_received_bytes, SocketFlags.None);
-
-                            // Checking if we have received the aggregation structure at least.
-                            if (num_received_bytes < AggregationStructSizeBytes)
-                                continue;
-
-                            // Unpacking received data.
-                            receive_bytes_offset = 0;
-
-                            while (receive_bytes_offset < num_received_bytes)
-                            {
-                                AggregationStruct* ags = (AggregationStruct*)(rb + receive_bytes_offset);
-
-                                // Checking if message is received completely.
-                                Int32 processing_bytes_left = num_received_bytes - receive_bytes_offset;
-
-                                if ((processing_bytes_left < AggregationStructSizeBytes) ||
-                                    (processing_bytes_left < AggregationStructSizeBytes + ags->size_bytes_))
-                                {
-                                    // Moving the tail up to the beginning.
-                                    Buffer.BlockCopy(aggregate_receive_blob_, receive_bytes_offset, aggregate_receive_blob_, 0, processing_bytes_left);
-
-                                    // Continuing receiving from the beginning.
-                                    num_received_bytes = processing_bytes_left;
-
-                                    goto START_RECEIVING;
-                                }
-
-                                // Getting from awaiting task.
-                                NodeTask nt = aggregation_awaiting_tasks_array_[ags->unique_aggr_index_];
-
-                                //Console.WriteLine("Dequeued from sent: " + nt.RequestBytes.Length);
-                                Interlocked.Decrement(ref sent_received_balance_);
-
-                                // Checking type of node task.
-                                switch ((MixedCodeConstants.AggregationMessageTypes) ags->msg_type_) {
-
-                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DATA: {
-
-                                        // Constructing the response from received bytes and calling user delegate.
-                                        nt.ConstructResponseAndCallDelegate(aggregate_receive_blob_, receive_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
-
-                                        break;
-                                    }
-
-                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET:
-                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DESTROY_SOCKET: {
-
-                                        nt.AggrMsgDelegate(*ags);
-
-                                        break;
-                                    }
-                                }
-
-                                // Releasing free task index.
-                                free_task_indexes_.Enqueue(ags->unique_aggr_index_);
-
-                                // Adding finished node task.
-                                finished_async_tasks_.Enqueue(nt);
-
-                                // Switching to next message.
-                                receive_bytes_offset += AggregationStructSizeBytes + ags->size_bytes_;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine(exc);
-                throw exc;
-            }
-        }
-
-        /// <summary>
-        /// Performs aggregation send. 
-        /// </summary>
-        void AggregateSendThread()
-        {
-            try
-            {
-                unsafe
-                {
-                    fixed (Byte* sb = aggregate_send_blob_)
-                    {
-                        while (true)
-                        {
-                            // Sleeping some time.
-                            Thread.Sleep(1);
-
-                            // Checking if socket is not connected.
-                            if (!aggrSocket_.Connected) {
-                                return;
-                            }
-
-                            // Checking if we have anything to send.
-                            Int32 send_bytes_offset = 0;
-
-                            NodeTask nt;
-
-                            // While we have pending tasks to send.
-                            while (aggr_pending_async_tasks_.Dequeue(out nt))
-                            {
-                                // Getting free task index.
-                                Int32 free_task_index;
-                                Boolean success = free_task_indexes_.Dequeue(out free_task_index);
-                                Debug.Assert(success);
-
-                                // Putting task to awaiting array.
-                                aggregation_awaiting_tasks_array_[free_task_index] = nt;
-
-                                //Console.WriteLine("Enqueued to send: " + nt.RequestBytes.Length);
-                                Interlocked.Increment(ref sent_received_balance_);
-
-                                // Checking if request fits.
-                                if (AggregationStructSizeBytes + nt.RequestBytesLength >= AggregationBlobSizeBytes - send_bytes_offset)
-                                {
-                                    if (0 == send_bytes_offset)
-                                        throw new Exception("Request size is bigger than: " + AggregationBlobSizeBytes);
-
-                                    aggrSocket_.Send(aggregate_send_blob_, send_bytes_offset, SocketFlags.None);
-                                    send_bytes_offset = 0;
-                                }
-
-                                // Checking if we have any request bytes.
-                                if (nt.RequestBytesLength > 0) {
-
-                                    // Creating the aggregation struct.
-                                    AggregationStruct* ags = (AggregationStruct*)(sb + send_bytes_offset);
-                                    *ags = this_node_aggr_struct_;
-                                    ags->size_bytes_ = nt.RequestBytesLength;
-                                    ags->unique_aggr_index_ = free_task_index;
-                                    ags->msg_type_ = (Byte) MixedCodeConstants.AggregationMessageTypes.AGGR_DATA;
-                                    ags->msg_flags_ = 0;
-
-                                    // Using fast memory copy here.
-                                    Buffer.BlockCopy(nt.RequestBytes, 0, aggregate_send_blob_, send_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
-
-                                    // Shifting offset in the array.
-                                    send_bytes_offset += AggregationStructSizeBytes + ags->size_bytes_;
-
-                                } else {
-
-                                    // Creating the aggregation struct.
-                                    AggregationStruct* ags = (AggregationStruct*)(sb + send_bytes_offset);
-                                    *ags = this_node_aggr_struct_;
-                                    ags->size_bytes_ = 0;
-                                    ags->unique_aggr_index_ = free_task_index;
-                                    ags->msg_type_ = (Byte) MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET;
-                                    ags->msg_flags_ = 0;
-
-                                    // Shifting offset in the array.
-                                    send_bytes_offset += AggregationStructSizeBytes;
-                                }
-                            }
-
-                            // Sending last processed requests.
-                            if (send_bytes_offset > 0)
-                                aggrSocket_.Send(aggregate_send_blob_, send_bytes_offset, SocketFlags.None);
-                        }
-                    }
-                }
-            }
-            catch(Exception exc)
-            {
-                Console.WriteLine(exc);
-                throw exc;
+                return syncTaskInfo_.PerformSyncRequest();
             }
         }
     }

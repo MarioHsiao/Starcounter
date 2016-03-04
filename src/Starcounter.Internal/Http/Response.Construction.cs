@@ -6,7 +6,7 @@ using Starcounter.Internal;
 
 namespace Starcounter {
 
-    public sealed partial class Response : Finalizing {
+    public sealed partial class Response {
 
         /// <summary>
         /// Creates a response from an HTTP status code
