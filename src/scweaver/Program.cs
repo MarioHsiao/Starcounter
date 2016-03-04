@@ -18,7 +18,7 @@ namespace Starcounter.Weaver {
 
     class Program {
 
-        static Verbosity OutputVerbosity = Verbosity.Default;
+        public static Verbosity OutputVerbosity = Verbosity.Default;
         static string ErrorParcelID = string.Empty;
         static int MaxErrors = 0;
         static int ErrorCount = 0;
