@@ -162,7 +162,7 @@ namespace Starcounter.Internal {
                         StreamingInfo s;
 
                         // Checking if stream exists.
-                        if (!Response.ResponseStreams_.TryGetValue(socketId, out s)) {
+                        if (!Response.responseStreams_.TryGetValue(socketId, out s)) {
                             return HandlerStatus.Handled;
 
                         } else {
@@ -189,7 +189,7 @@ namespace Starcounter.Internal {
                         StreamingInfo s;
 
                         // Checking if stream exists.
-                        if (!Response.ResponseStreams_.TryGetValue(socketId, out s)) {
+                        if (!Response.responseStreams_.TryGetValue(socketId, out s)) {
                             return HandlerStatus.Handled;
 
                         } else {
@@ -205,7 +205,7 @@ namespace Starcounter.Internal {
                                 s.StreamObject = null;
                             }
 
-                            Response.ResponseStreams_.TryRemove(socketId, out s);
+                            Response.responseStreams_.TryRemove(socketId, out s);
 
                             return HandlerStatus.Handled;
                         }
@@ -233,12 +233,10 @@ namespace Starcounter.Internal {
             sessionCleanupTimer_ = new Timer((state) => {
                 // Schedule a job to check once for inactive sessions on each scheduler.
                 for (Byte i = 0; i < numSchedulers; i++) {
-                    // Getting sessions for current scheduler.
-                    SchedulerSessions schedSessions = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(i);
-                    Scheduling.ScheduleTask(() => schedSessions.InactiveSessionsCleanupRoutine(), false, i);
+                    Byte s = i;
+                    Scheduling.ScheduleTask(() => GlobalSessions.AllGlobalSessions.GetSchedulerSessions(s).InactiveSessionsCleanupRoutine(), false, s);
                 }
-            },
-                null, interval, interval);
+            }, null, interval, interval);
 
             // Starting procedure to update current date header for every response.
             dateUpdateTimer_ = new Timer(Response.HttpDateUpdateProcedure, null, 1000, 1000);
@@ -345,7 +343,7 @@ namespace Starcounter.Internal {
                         StatusDescription = "Found"
                     };
 
-                    resp["Location"] = "http://" + req.Host + toUri;
+                    resp.Headers["Location"] = "http://" + req.Host + toUri;
 
                     return resp;
 
@@ -574,7 +572,7 @@ namespace Starcounter.Internal {
 
                 resp = Response.FromStatusCode(400);
                 resp.Body = "Incorrect session supplied!";
-                resp["Connection"] = "close";
+                resp.Headers["Connection"] = "close";
 
             }
             catch (Exception exc) {

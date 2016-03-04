@@ -169,7 +169,7 @@ namespace Starcounter.Administrator.API.Utilities {
             var body = string.Format("{{ \"Allow\": \"{0}\" }}", allows);
 			var response = Response.FromStatusCode(405);
 			response.Body = body;
-			response["Allow"] = allows;
+			response.Headers["Allow"] = allows;
 
             var methodsToRegisterFor = new List<string>();
             foreach (var verb in verbs) {
@@ -197,7 +197,7 @@ namespace Starcounter.Administrator.API.Utilities {
         }
 
         public static bool ExpectAsynchronous(Request request, out string expectations) {
-            var expect = request["Expect"];
+            var expect = request.Headers["Expect"];
             if (string.IsNullOrWhiteSpace(expect)) {
                 expectations = null;
                 return false;

@@ -70,7 +70,7 @@ namespace Starcounter.Internal {
                         Json obj = (Json)before;
                         var str = obj.AsMimeType(mimeType);
                         if (str == null && request != null) {
-                            str = obj.AsMimeType(request["Accept"]);
+                            str = obj.AsMimeType(request.Headers["Accept"]);
                         }
                         if (str != null) {
                             resultingMimeType = mimeType;

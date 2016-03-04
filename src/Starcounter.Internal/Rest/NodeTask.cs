@@ -58,11 +58,6 @@ namespace Starcounter {
         const Int32 PrivateBufferSize = 8192;
 
         /// <summary>
-        /// Maximum number of pending aggregated tasks.
-        /// </summary>
-        public const Int32 MaxNumPendingAggregatedTasks = 8192 * 2;
-
-        /// <summary>
         /// Socket wrapper around currently used socket.
         /// </summary>
         SocketWrapper socketWrapper_;
@@ -140,18 +135,13 @@ namespace Starcounter {
         Action<Response, Object> userDelegate_ = null;
 
         /// <summary>
-        /// Aggregation message delegate.
+        /// User delegate to call.
         /// </summary>
-        Action<Node.AggregationStruct> aggrMsgDelegate_ = null;
-
-        /// <summary>
-        /// Aggregation message delegate.
-        /// </summary>
-        public Action<Node.AggregationStruct> AggrMsgDelegate
+        public Action<Response, Object> UserDelegate
         {
             get
             {
-                return aggrMsgDelegate_;
+                return userDelegate_;
             }
         }
 
@@ -176,20 +166,31 @@ namespace Starcounter {
         Node nodeInst_ = null;
 
         /// <summary>
-        /// Receive timeout in milliseconds.
+        /// Receive timeout in seconds.
         /// </summary>
-        Int32 receiveTimeoutMs_;
+        Int32 receiveTimeoutSeconds_;
 
+        /// <summary>
+        /// Receive timeout in seconds.
+        /// </summary>
+        internal Int32 ReceiveTimeoutSeconds
+        {
+            get
+            {
+                return receiveTimeoutSeconds_;
+            }
+        }
+        
         /// <summary>
         /// Resets the connection details, but keeps the existing socket.
         /// </summary>
         public void ResetButKeepSocket(
             Request req,
             Action<Response, Object> userDelegate,
-            Action<Node.AggregationStruct> aggrMsgDelegate,
             Object userObject,
-            Int32 receiveTimeoutMs,
+            Int32 receiveTimeoutSeconds,
             Byte boundSchedulerId) {
+
             resp_ = null;
             totallyReceivedBytes_ = 0;
             receiveOffsetBytes_ = 0;
@@ -206,12 +207,11 @@ namespace Starcounter {
             userDelegate_ = userDelegate;
             userObject_ = userObject;
 
-            receiveTimeoutMs_ = receiveTimeoutMs;
+            receiveTimeoutSeconds_ = receiveTimeoutSeconds;
             connectionTimedOut_ = false;
 
             memStream_ = new MemoryStream();
             boundSchedulerId_ = boundSchedulerId;
-            aggrMsgDelegate_ = aggrMsgDelegate;
         }
 
         /// <summary>
@@ -221,9 +221,7 @@ namespace Starcounter {
         /// <param name="portNumber"></param>
         public NodeTask(Node nodeInst) {
             nodeInst_ = nodeInst;
-
-            if (!nodeInst_.UsesAggregation())
-                accumBuffer_ = new Byte[NodeTask.PrivateBufferSize];
+            accumBuffer_ = new Byte[NodeTask.PrivateBufferSize];
         }
 
         /// <summary>
@@ -278,8 +276,11 @@ namespace Starcounter {
 
                 // Checking if we have received everything.
                 if ((resp_ != null) && (totallyReceivedBytes_ == responseSizeBytes_)) {
+
                     // Setting the response buffer.
-                    resp_.SetResponseBuffer(memStream_.GetBuffer(), memStream_, totallyReceivedBytes_);
+                    resp_.SetResponseBuffer(memStream_.GetBuffer(), 0, totallyReceivedBytes_);
+                    memStream_.Close();
+                    memStream_ = null;
 
                     // Invoking user delegate.
                     nodeInst_.CallUserDelegate(resp_, userDelegate_, userObject_, boundSchedulerId_);
@@ -319,7 +320,7 @@ namespace Starcounter {
                 Int32 numBytesSent = socketWrapper_.SocketObj.EndSend(ar);
 
                 // Setting the receive timeout.
-                socketWrapper_.SocketObj.ReceiveTimeout = receiveTimeoutMs_;
+                socketWrapper_.SocketObj.ReceiveTimeout = receiveTimeoutSeconds_ * 1000;
 
                 // Checking for correct number of bytes sent.
                 if (numBytesSent != requestBytesLength_) {
@@ -332,10 +333,12 @@ namespace Starcounter {
 
                 // Checking if receive is not completed immediately.
                 if (!res.IsCompleted) {
+
                     // Checking if we have timeout on receive.
-                    if (receiveTimeoutMs_ != 0) {
+                    if (receiveTimeoutSeconds_ != 0) {
+
                         // Scheduling a timer timeout job.
-                        receiveTimer_ = new Timer(OnReceiveTimeout, null, receiveTimeoutMs_, Timeout.Infinite);
+                        receiveTimer_ = new Timer(OnReceiveTimeout, null, receiveTimeoutSeconds_ * 1000, Timeout.Infinite);
                     }
                 }
             } catch (Exception exc) {
@@ -429,6 +432,7 @@ namespace Starcounter {
         /// Constructs response from bytes.
         /// </summary>
         internal void ConstructResponseAndCallDelegate(Byte[] bytes, Int32 offset, Int32 resp_len_bytes) {
+
             try {
                 // Checking if server closed the connection.
                 if (resp_len_bytes <= 0) {
@@ -437,11 +441,13 @@ namespace Starcounter {
                 }
 
                 // Trying to parse the response.
-                resp_ = new Response(bytes, offset, resp_len_bytes, false);
+                resp_ = new Response(bytes, offset, resp_len_bytes, true);
 
                 // Getting the whole response size.
                 responseSizeBytes_ = resp_.ResponseSizeBytes;
+
             } catch (Exception exc) {
+
                 // Continue to receive when there is not enough data.
                 resp_ = null;
 
@@ -458,11 +464,6 @@ namespace Starcounter {
                     throw exc;
                 }
             }
-
-            // Setting the response buffer.
-            Byte[] resp_bytes = new Byte[resp_len_bytes];
-            Buffer.BlockCopy(bytes, offset, resp_bytes, 0, resp_len_bytes);
-            resp_.SetResponseBuffer(resp_bytes, null, resp_len_bytes);
 
             // Invoking user delegate.
             nodeInst_.CallUserDelegate(resp_, userDelegate_, userObject_, boundSchedulerId_);
@@ -505,7 +506,7 @@ namespace Starcounter {
                 Int32 recievedBytes = 0;
 
                 // Setting the receive timeout.
-                socketWrapper_.SocketObj.ReceiveTimeout = receiveTimeoutMs_;
+                socketWrapper_.SocketObj.ReceiveTimeout = receiveTimeoutSeconds_ * 1000;
 
                 // Looping until we get everything.
                 while (true) {
@@ -558,7 +559,9 @@ namespace Starcounter {
                 }
 
                 // Setting the response buffer.
-                resp_.SetResponseBuffer(memStream_.GetBuffer(), memStream_, totallyReceivedBytes_);
+                resp_.SetResponseBuffer(memStream_.GetBuffer(), 0, totallyReceivedBytes_);
+                memStream_.Close();
+                memStream_ = null;
 
                 // Freeing connection resources.
                 nodeInst_.FreeConnection(this, true);

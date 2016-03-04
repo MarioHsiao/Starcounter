@@ -171,7 +171,7 @@ namespace Starcounter {
             try {
                 UInt64 socketId = ToUInt64();
 
-                StreamingInfo streamInfo = Response.ResponseStreams_[socketId];
+                StreamingInfo streamInfo = Response.responseStreams_[socketId];
 
                 Int32 numBytesRead = await streamInfo.StreamObject.ReadAsync(streamInfo.SendBuffer, 0, streamInfo.SendBuffer.Length);
 
@@ -181,7 +181,7 @@ namespace Starcounter {
                 if (hasReadEverything) {
 
                     StreamingInfo s;
-                    Response.ResponseStreams_.TryRemove(socketId, out s);
+                    Response.responseStreams_.TryRemove(socketId, out s);
 
                     // Now we are done with streaming object and can close it.
                     streamInfo.StreamObject.Close();
