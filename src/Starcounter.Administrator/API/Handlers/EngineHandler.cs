@@ -79,10 +79,10 @@ namespace Starcounter.Administrator.API.Handlers {
                 // if the representation selected by the origin server [...] exists,
                 // and MUST NOT be performed if the representation does not exist".
 
-                if (request["If-Range"] != null)
+                if (request.Headers["If-Range"] != null)
                     return RESTUtility.JSON.CreateResponse(null, 501);
 
-                var etag = request["If-Match"];
+                var etag = request.Headers["If-Match"];
                 if (etag != null) {    
                     if (etag.Equals("*")) {
                         status = engineInfo == null ? 412 : 0;
@@ -92,7 +92,7 @@ namespace Starcounter.Administrator.API.Handlers {
                     }
                 }
 
-                etag = request["If-None-Match"];
+                etag = request.Headers["If-None-Match"];
                 if (etag != null) {
                     // From RFC2616:
                     // "If any of the entity tags match the entity tag of the entity that would

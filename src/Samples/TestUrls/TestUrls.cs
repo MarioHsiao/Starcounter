@@ -70,7 +70,7 @@ namespace NodeTest {
 
             Stopwatch sw = new Stopwatch();
 
-            Node node = new Node(ServerIp, ServerPort, 0, useAggregation);
+            Node node = new Node(ServerIp, ServerPort);
 
             try {
 
@@ -156,11 +156,6 @@ namespace NodeTest {
 
                 return 1;
 
-            } finally {
-
-                if (useAggregation) {
-                    node.StopAggregation();
-                }
             }
 
             return 0;

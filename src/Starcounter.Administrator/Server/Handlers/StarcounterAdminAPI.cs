@@ -88,7 +88,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                 }
 
                 Response response = new Response();
-                response["location"] = "/#/databases/" + database.ID + "/sql";
+                response.Headers["location"] = "/#/databases/" + database.ID + "/sql";
                 response.StatusCode = (ushort)System.Net.HttpStatusCode.TemporaryRedirect;
                 return response;
             });

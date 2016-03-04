@@ -245,9 +245,9 @@ namespace WebSocketsTestServer {
                     // Checking if its WebSocket upgrade.
                     if (req.WebSocketUpgrade) {
 
-                        Int32 numMessagesToSend = Int32.Parse(req["NumMessagesToSend"]);
-                        Int32 messageSize = Int32.Parse(req["MessageSize"]);
-                        Int32 messageLetter = (Int32)req["MessageLetter"][0];
+                        Int32 numMessagesToSend = Int32.Parse(req.Headers["NumMessagesToSend"]);
+                        Int32 messageSize = Int32.Parse(req.Headers["MessageSize"]);
+                        Int32 messageLetter = (Int32)req.Headers["MessageLetter"][0];
 
                         WebSocketState wss = null;
 
