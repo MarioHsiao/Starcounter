@@ -37,6 +37,17 @@ namespace Starcounter.Internal {
         /// Default JSON merger function.
         /// </summary>
         internal static Response DefaultMerger(Request req, Response resp, List<Response> responses) {
+            var mainResp = DoMerge(req, resp, responses);
+            if (mainResp != null)
+                TriggerAfterMergeCallback(req, mainResp.Resource as Json);
+            
+            return mainResp;
+        }
+
+        /// <summary>
+        /// Default JSON merger function.
+        /// </summary>
+        private static Response DoMerge(Request req, Response resp, List<Response> responses) {
             Json siblingJson;
             Json mainJson;
             List<Json> stepSiblings;
@@ -49,7 +60,6 @@ namespace Starcounter.Internal {
                 if (mainJson != null) {
                     mainJson._appName = resp.AppName;
                     mainJson._wrapInAppName = true;
-                    AfterMerge(req, mainJson);
                 }
 
                 return resp;
@@ -79,7 +89,7 @@ namespace Starcounter.Internal {
 
                 if (responses.Count == 1)
                     return mainResponse;
-
+                
                 var oldSiblings = mainJson.StepSiblings;
 
                 stepSiblings = new List<Json>();
@@ -141,18 +151,16 @@ namespace Starcounter.Internal {
                     if (refresh)
                         mainJson.Parent.MarkAsReplaced(mainJson.IndexInParent);
                 }
-
-                AfterMerge(req, mainJson);
             }
 
             return mainResponse;
         }
 
-        private static void AfterMerge(Request request, Json json) {
+        private static void TriggerAfterMergeCallback(Request request, Json json) {
             List<Json> list;
             Json newSibling = null;
 
-            if (afterMergeCallbacks_.Count == 0)
+            if (json == null || afterMergeCallbacks_.Count == 0)
                 return;
 
             list = json.StepSiblings;
