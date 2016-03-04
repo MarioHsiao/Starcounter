@@ -225,7 +225,7 @@ namespace Starcounter.VisualStudio.Projects {
                 engine.PopulateFromJson(response.Body);
             }
 
-            var engineETag = response["ETag"];
+            var engineETag = response.Headers["ETag"];
 
             // The engine is now started. Check if the executable we
             // are about to debug is part of it. If so, we must restart

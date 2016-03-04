@@ -391,7 +391,7 @@ namespace Starcounter.Internal.Test
                     Body = "response1"
                 };
 
-                r["Allow"] = "GET, HEAD";
+                r.Headers["Allow"] = "GET, HEAD";
 
                 return r;
             });
@@ -409,7 +409,7 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(9 == resp.ContentLength);
             //Assert.IsTrue("SC" == resp["Server"]);
             Assert.IsTrue("response1" == resp.Body);
-            Assert.IsTrue(resp["Allow"] == "GET, HEAD");
+            Assert.IsTrue(resp.Headers["Allow"] == "GET, HEAD");
 
             Handle.GET("/response2", () =>
             {
@@ -419,8 +419,8 @@ namespace Starcounter.Internal.Test
                     StatusDescription = "Non-Authoritative Information",
                 };
 
-                r["MySuperHeader"] = "Haha!";
-                r["MyAnotherSuperHeader"] = "Hahaha!";
+                r.Headers["MySuperHeader"] = "Haha!";
+                r.Headers["MyAnotherSuperHeader"] = "Hahaha!";
 
                 return r;
             });
@@ -435,8 +435,8 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue(0 == resp.ContentLength);
             //Assert.IsTrue("SC" == resp["Server"]);
             Assert.IsTrue(null == resp.Body);
-            Assert.IsTrue(resp["MySuperHeader"] == "Haha!");
-            Assert.IsTrue(resp["MyAnotherSuperHeader"] == "Hahaha!");
+            Assert.IsTrue(resp.Headers["MySuperHeader"] == "Haha!");
+            Assert.IsTrue(resp.Headers["MyAnotherSuperHeader"] == "Hahaha!");
 
             Handle.GET("/response3", () =>
             {

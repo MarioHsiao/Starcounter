@@ -599,7 +599,7 @@ namespace Starcounter
 
             if (!r.IsSuccessStatusCode) {
 
-                String errCodeStr = r[MixedCodeConstants.ScErrorCodeHttpHeader];
+                String errCodeStr = r.Headers[MixedCodeConstants.ScErrorCodeHttpHeader];
 
                 if (null != errCodeStr)
                     throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
@@ -626,7 +626,7 @@ namespace Starcounter
 
             if (!r.IsSuccessStatusCode) {
 
-                String errCodeStr = r[MixedCodeConstants.ScErrorCodeHttpHeader];
+                String errCodeStr = r.Headers[MixedCodeConstants.ScErrorCodeHttpHeader];
 
                 if (null != errCodeStr)
                     throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
@@ -852,7 +852,7 @@ namespace Starcounter
 
                 if (!r.IsSuccessStatusCode) {
 
-                    String errCodeStr = r[MixedCodeConstants.ScErrorCodeHttpHeader];
+                    String errCodeStr = r.Headers[MixedCodeConstants.ScErrorCodeHttpHeader];
 
                     if (null != errCodeStr)
                         throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
@@ -949,7 +949,7 @@ namespace Starcounter
 
                 if (!r.IsSuccessStatusCode) {
 
-                    String errCodeStr = r[MixedCodeConstants.ScErrorCodeHttpHeader];
+                    String errCodeStr = r.Headers[MixedCodeConstants.ScErrorCodeHttpHeader];
 
                     if (null != errCodeStr)
                         throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
@@ -983,7 +983,7 @@ namespace Starcounter
 
                 if (!r.IsSuccessStatusCode) {
 
-                    String errCodeStr = r[MixedCodeConstants.ScErrorCodeHttpHeader];
+                    String errCodeStr = r.Headers[MixedCodeConstants.ScErrorCodeHttpHeader];
 
                     if (null != errCodeStr)
                         throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);

@@ -82,6 +82,7 @@
     <Compile Include="Ioc\IServiceContainer.cs" />
     <Compile Include="Ioc\IServices.cs" />
     <Compile Include="Ioc\ServiceContainer.cs" />
+    <Compile Include="Rest\AggregationClient.cs" />
     <Compile Include="Rest\Http.cs" />
     <Compile Include="Http\Cookie.cs" />
     <Compile Include="Http\HttpHeadersUtf8.cs" />

@@ -65,10 +65,10 @@ namespace Administrator.Server.Managers {
 
             Response response = new Response();
 
-            response["Access-Control-Expose-Headers"] = "Location, X-Location";
-            response["Access-Control-Allow-Headers"] = "Accept, Content-Type, X-Location, Location";
-            response["Access-Control-Allow-Methods"] = "GET, POST, HEAD, OPTIONS, PUT, DELETE, PATCH";
-            response["Access-Control-Allow-Origin"] = "*";
+            response.Headers["Access-Control-Expose-Headers"] = "Location, X-Location";
+            response.Headers["Access-Control-Allow-Headers"] = "Accept, Content-Type, X-Location, Location";
+            response.Headers["Access-Control-Allow-Methods"] = "GET, POST, HEAD, OPTIONS, PUT, DELETE, PATCH";
+            response.Headers["Access-Control-Allow-Origin"] = "*";
             response.StatusCode = (UInt16)System.Net.HttpStatusCode.OK;
 
             return response;
@@ -122,8 +122,8 @@ namespace Administrator.Server.Managers {
                     // Create response
                     Response response = GetAllowAccessControlResponse();
                     response.Resource = serverModelJson;
-                    response["Set-Cookie"] = request.Uri + "/" + id;
-                    response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.ToAsciiString();
+                    response.Headers["Set-Cookie"] = request.Uri + "/" + id;
+                    response.Headers["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.ToAsciiString();
 
                     return response;
                 }
@@ -211,12 +211,12 @@ namespace Administrator.Server.Managers {
                     // Create response
                     Response response = new Response();
                     response.Resource = databaseJson;
-                    response["Set-Cookie"] = request.Uri + "/" + id;
-                    response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.ToAsciiString();
+                    response.Headers["Set-Cookie"] = request.Uri + "/" + id;
+                    response.Headers["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.ToAsciiString();
 
-                    response["Access-Control-Allow-Origin"] = "*"; // "http://localhost:8080";
-                    response["Access-Control-Expose-Headers"] = "Location, X-Location";
-                    //response["Access-Control-Allow-Headers"] = "X-Referer";
+                    response.Headers["Access-Control-Allow-Origin"] = "*"; // "http://localhost:8080";
+                    response.Headers["Access-Control-Expose-Headers"] = "Location, X-Location";
+                    //response.Headers["Access-Control-Allow-Headers"] = "X-Referer";
                     return response;
                 }
             });
