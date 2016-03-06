@@ -22,12 +22,12 @@ namespace Starcounter {
         /// <summary>
         /// User delegate.
         /// </summary>
-        Action<AggregationClient, Response> receiveProc_ = null;
+        Action<Response> receiveProc_ = null;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ResponseProcTask(Response resp, Action<AggregationClient, Response> receiveProc) {
+        public ResponseProcTask(Response resp, Action<Response> receiveProc) {
             resp_ = resp;
             receiveProc_ = receiveProc;
         }
@@ -35,8 +35,8 @@ namespace Starcounter {
         /// <summary>
         /// Calling the prosedure.
         /// </summary>
-        public void CallResponseProc(AggregationClient aggrClient) {
-            receiveProc_(aggrClient, resp_);
+        public void CallResponseProc() {
+            receiveProc_(resp_);
         }
     };
 
@@ -119,12 +119,12 @@ namespace Starcounter {
         /// <summary>
         /// User delegate.
         /// </summary>
-        Action<AggregationClient, Response> receiveProc_ = null;
+        Action<Response> receiveProc_ = null;
 
         /// <summary>
         /// Receive delegate to call.
         /// </summary>
-        public Action<AggregationClient, Response> ReceiveProc
+        public Action<Response> ReceiveProc
         {
             get
             {
@@ -174,7 +174,7 @@ namespace Starcounter {
             AggregationClient aggrClient,
             Byte[] requestBytes,
             Int32 requestBytesLength,
-            Action<AggregationClient, Response> receiveProc) {
+            Action<Response> receiveProc) {
 
             requestBytes_ = requestBytes;
             requestBytesLength_ = requestBytesLength;
@@ -288,6 +288,7 @@ namespace Starcounter {
         /// Updates the unique salt.
         /// </summary>
         internal UInt16 IncrementUniqueSalt() {
+
             curAggrClientSalt_++;
             if (0 == curAggrClientSalt_)
                 curAggrClientSalt_++;
@@ -512,6 +513,10 @@ namespace Starcounter {
                     {
                         while (true) {
 
+                            // Checking if aggregation client is shut down.
+                            if (shutdown_)
+                                break;
+
                             // Checking if socket is not connected.
                             if (!aggrSocket_.Connected) {
                                 throw new InvalidOperationException("Aggregation socket is not connected.");
@@ -676,6 +681,10 @@ namespace Starcounter {
                     {
                         while (true) {
 
+                            // Checking if aggregation client is shut down.
+                            if (shutdown_)
+                                break;
+
                             // Checking if socket is not connected.
                             if (!aggrSocket_.Connected) {
                                 throw new InvalidOperationException("Aggregation socket is not connected.");
@@ -756,7 +765,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="reqString">HTTP complete request.</param>
         /// <param name="receiveProc">Receive procedure delegate.</param>
-        public void Send(String reqString, Action<AggregationClient, Response> receiveProc) {
+        public void Send(String reqString, Action<Response> receiveProc) {
 
             Byte[] reqBytes = UTF8Encoding.UTF8.GetBytes(reqString);
             Send(reqBytes, reqBytes.Length, receiveProc);
@@ -768,7 +777,12 @@ namespace Starcounter {
         /// <param name="reqBytes">HTTP complete request.</param>
         /// <param name="reqSize">HTTP request length in bytes.</param>
         /// <param name="receiveProc">Receive procedure delegate.</param>
-        public void Send(Byte[] reqBytes, Int32 reqSize, Action<AggregationClient, Response> receiveProc) {
+        public void Send(Byte[] reqBytes, Int32 reqSize, Action<Response> receiveProc) {
+
+            // Checking if aggregation client is shut down.
+            if (shutdown_) {
+                throw new InvalidOperationException("Aggregation client is already shut down.");
+            }
 
             AggrTask freeTask;
 
@@ -816,7 +830,7 @@ namespace Starcounter {
             String uri, 
             String body, 
             Dictionary<String, String> headersDict, 
-            Action<AggregationClient, Response> receiveProc) {
+            Action<Response> receiveProc) {
 
             Request req = new Request() {
 
@@ -839,9 +853,16 @@ namespace Starcounter {
         public void SendStatistics(String testName, Int32 numOk, Int32 numFailed) {
 
             Send("GET", String.Format("/TestStats/AddStats?TestName={0}&NumOk={1}&NumFailed={2}",
-                testName, numOk, numFailed), null, null, (AggregationClient aggrClient, Response resp) => {
+                testName, numOk, numFailed), null, null, (Response resp) => {
                     // Do nothing.
             });
+        }
+
+        /// <summary>
+        /// Shutdown the aggregation client and corresponding threads.
+        /// </summary>
+        public void Shutdown() {
+            shutdown_ = true;
         }
 
         /// <summary>
@@ -853,14 +874,23 @@ namespace Starcounter {
 
             while (true) {
 
+                // Checking if aggregation client is shut down.
+                if (shutdown_)
+                    break;
+
                 // While we have pending tasks to send.
                 while (responseProcTasks_.TryDequeue(out task)) {
-                    task.CallResponseProc(this);
+                    task.CallResponseProc();
                 }
 
                 Thread.Sleep(1);
             }
         }
+
+        /// <summary>
+        /// Shutdown flag.
+        /// </summary>
+        Boolean shutdown_;
 
         /// <summary>
         /// Bytes blob used for aggregated sends.
