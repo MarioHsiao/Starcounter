@@ -78,6 +78,65 @@ namespace Starcounter.Extensions {
             StarcounterConstants.ProgramNames.ScDbLog
         };
 
+        static void CollectHardwareStats(Object state) {
+
+            lock (hardwareStatsTimer_) {
+
+                Stopwatch sw = Stopwatch.StartNew();
+
+                String curTime = DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+
+                // Iterating through each process we need to get hardware counters.
+                foreach (String procName in ScProcessNames) {
+
+                    using (PerformanceCounter procStats = new PerformanceCounter("Process", "% Processor Time", procName)) {
+
+                        using (PerformanceCounter memStats = new PerformanceCounter("Process", "Working Set - Private", procName)) {
+
+                            Scheduling.ScheduleTask(() => {
+                                Db.Transact(() => {
+
+                                    float mem = memStats.NextValue();
+                                    float procTime = procStats.NextValue();
+
+                                    ProcessHardwareStatsEntry e = new ProcessHardwareStatsEntry() {
+                                        ServerName = Environment.MachineName,
+                                        StatTime = curTime,
+                                        ProcessName = procName,
+                                        MemoryPrivateWorkingSetKiB = Convert.ToInt32(Convert.ToInt64(mem) / 1024),
+                                        CpuUsagePercent = Convert.ToInt32(procTime)
+                                    };
+
+                                });
+                            });
+                        }
+                    }
+                }
+
+                // Saving current network statistics.
+                PerformanceCounterCategory category = new PerformanceCounterCategory("Network Interface");
+                String[] networkInterfaceName = category.GetInstanceNames();
+                double totalNetworkUsage = 0;
+                foreach (String name in networkInterfaceName) {
+                    totalNetworkUsage += GetNetworkUtilization(name);
+                }
+
+                Scheduling.ScheduleTask(() => {
+                    Db.Transact(() => {
+                        SystemHardwareStatsEntry e = new SystemHardwareStatsEntry() {
+                            ServerName = Environment.MachineName,
+                            StatTime = curTime,
+                            NetworkUsageMbitSec = Convert.ToInt32(totalNetworkUsage * 8 / 1000000.0)
+                        };
+                    });
+
+                });
+
+                sw.Stop();
+            }
+
+        }
+
         /// <summary>
         /// Enables test statistics.
         /// </summary>
@@ -127,15 +186,17 @@ namespace Starcounter.Extensions {
             // Getting all clients statistics.
             Handle.GET("/HardwareStats", () => {
 
-                var hardwareStats = new HardwareStats();
+                List<Json> allHardwareStats = new List<Json>();
 
-                dynamic j = new DynamicJson();
+                dynamic hardwareStats = new DynamicJson();
 
                 foreach (SystemHardwareStatsEntry se in Db.SQL("SELECT s FROM SystemHardwareStatsEntry s")) {
-                    j.ServerName = se.ServerName;
-                    j.StatTime = se.StatTime;
-                    j.NetworkUsageMbitSec = se.NetworkUsageMbitSec;
 
+                    hardwareStats.ServerName = se.ServerName;
+                    hardwareStats.StatTime = se.StatTime;
+                    hardwareStats.NetworkUsageMbitSec = se.NetworkUsageMbitSec;
+
+                    List<Json> hhhh = new List<Json>();
                     foreach (ProcessHardwareStatsEntry e in Db.SQL("SELECT s FROM ProcessHardwareStatsEntry s WHERE s.StatTime = ?", se.StatTime)) {
 
                         dynamic procStat = new DynamicJson();
@@ -143,75 +204,21 @@ namespace Starcounter.Extensions {
                         procStat.MemoryPrivateWorkingSetKiB = e.MemoryPrivateWorkingSetKiB;
                         procStat.CpuUsagePercent = e.CpuUsagePercent;
 
-                        j.StatForProcess.Add();
+                        hhhh.Add(procStat);
                     }
-                    
-                    hardwareStats.Add(j);
+
+                    hardwareStats.StatsForScProcesses = hhhh;
                 }
 
+                dynamic all = new DynamicJson();
+                all.AllList = allHardwareStats;
+
                 return new Response() {
-                    BodyBytes = hardwareStats.ToJsonUtf8()
+                    BodyBytes = all.ToJsonUtf8()
                 };
             });
 
-            hardwareStatsTimer_ = new Timer((state) => {
-
-                lock (hardwareStatsTimer_) {
-
-                    Stopwatch sw = Stopwatch.StartNew();
-
-                    String curTime = DateTime.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-
-                    // Iterating through each process we need to get hardware counters.
-                    foreach (String procName in ScProcessNames) {
-
-                        using (PerformanceCounter procStats = new PerformanceCounter("Process", "% Processor Time", procName)) {
-
-                            using (PerformanceCounter memStats = new PerformanceCounter("Process", "Working Set - Private", procName)) {
-
-                                Scheduling.ScheduleTask(() => {
-                                    Db.Transact(() => {
-
-                                        float mem = memStats.NextValue();
-                                        float procTime = procStats.NextValue();
-
-                                        ProcessHardwareStatsEntry e = new ProcessHardwareStatsEntry() {
-                                            ServerName = Environment.MachineName,
-                                            StatTime = curTime,
-                                            ProcessName = procName,
-                                            MemoryPrivateWorkingSetKiB = Convert.ToInt32(Convert.ToInt64(mem) / 1024),
-                                            CpuUsagePercent = Convert.ToInt32(procTime)
-                                        };
-
-                                    });
-                                });
-                            }
-                        }
-                    }
-
-                    // Saving current network statistics.
-                    PerformanceCounterCategory category = new PerformanceCounterCategory("Network Interface");
-                    String[] networkInterfaceName = category.GetInstanceNames();
-                    double totalNetworkUsage = 0;
-                    foreach (String name in networkInterfaceName) {
-                        totalNetworkUsage += GetNetworkUtilization(name);
-                    }
-
-                    Scheduling.ScheduleTask(() => {
-                        Db.Transact(() => {
-                            SystemHardwareStatsEntry e = new SystemHardwareStatsEntry() {
-                                ServerName = Environment.MachineName,
-                                StatTime = curTime,
-                                NetworkUsageMbitSec = Convert.ToInt32(totalNetworkUsage)
-                            };
-                        });
-
-                    });
-
-                    sw.Stop();
-                }
-
-            }, null, 5000, 5000);
+            hardwareStatsTimer_ = new Timer(CollectHardwareStats, null, 5000, 5000);
         }
     }
 }

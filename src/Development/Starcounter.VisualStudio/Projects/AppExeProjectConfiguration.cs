@@ -34,7 +34,6 @@ namespace Starcounter.VisualStudio.Projects {
     [ComVisible(false)]
     internal class AppExeProjectConfiguration : StarcounterProjectConfiguration {
         static IApplicationSyntax commandLineSyntax;
-        readonly IVsOutputWindowPane outputWindowPane = null;
         bool debugFlagSpecified = false;
 
         internal static void Initialize() {
@@ -69,7 +68,6 @@ namespace Starcounter.VisualStudio.Projects {
 
         public AppExeProjectConfiguration(VsPackage package, IVsHierarchy project, IVsProjectCfg baseConfiguration, IVsProjectFlavorCfg innerConfiguration)
             : base(package, project, baseConfiguration, innerConfiguration) {
-                this.outputWindowPane = package.StarcounterOutputPane;
         }
 
         protected override bool CanBeginDebug(__VSDBGLAUNCHFLAGS flags) {
@@ -103,7 +101,7 @@ namespace Starcounter.VisualStudio.Projects {
             this.debugLaunchDescription = "Checking server";
             if (!ServerServiceProcess.IsOnline()) {
                 this.WriteDebugLaunchStatus("starting");
-                this.WriteLine("Starting personal server.");
+                Console.WriteLine("Starting server.");
                 var startServerTime = DateTime.Now;
                 try {
                     ServerServiceProcess.StartInteractiveOnDemand();
@@ -114,7 +112,7 @@ namespace Starcounter.VisualStudio.Projects {
                     throw;
                 }
             }
-            this.WriteDebugLaunchStatus("online");
+            this.WriteDebugLaunchStatus("started");
             
             // Pass it on:
             try {
@@ -141,7 +139,7 @@ namespace Starcounter.VisualStudio.Projects {
 
             if (result) {
                 var finish = DateTime.Now;
-                this.WriteLine("Successfully started {0} (time {1}s), using parameters {2}",
+                Console.WriteLine("Successfully started {0} (time {1}s), using parameters {2}",
                     Path.GetFileName(debugConfiguration.AssemblyPath),
                     finish.Subtract(start).ToString(@"ss\.fff"),
                     string.Join(" ", debugConfiguration.Arguments));
@@ -173,10 +171,10 @@ namespace Starcounter.VisualStudio.Projects {
             // a step back, and either create the database and/or start the engine.
            
             this.debugLaunchDescription = string.Format(
-                "Starting \"{0}\" in database {1}:{2}/{3}.",
+                "{0} -> {1}",
                 Path.GetFileName(debugConfig.AssemblyPath),
-                serverHost, serverPort, databaseName);
-            this.WriteDebugLaunchStatus("Verifying database engine");
+                databaseName);
+            this.WriteDebugLaunchStatus("checking database");
 
             // GET or START the engine
             var startEngine = false;
@@ -205,13 +203,13 @@ namespace Starcounter.VisualStudio.Projects {
                         throw ErrorCode.ToException(Error.SCERRDATABASENOTFOUND,
                             string.Format("Database: {0}. Remove {1} to create automatically.", databaseName, Option.NoAutoCreateDb));
                     }
-                    WriteDebugLaunchStatus("Creating database");
+                    WriteDebugLaunchStatus("creating database");
                     CreateDatabase(node, uris, databaseName);
                 }
             }
 
             if (startEngine) {
-                this.WriteDebugLaunchStatus("Starting engine");
+                this.WriteDebugLaunchStatus("starting database");
                 engineRef = new EngineReference();
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
@@ -237,7 +235,7 @@ namespace Starcounter.VisualStudio.Projects {
 
                 headers = new Dictionary<String, String> { { "ETag", engineETag } };
 
-                this.WriteDebugLaunchStatus("Stopping engine");
+                this.WriteDebugLaunchStatus("restarting database");
                 response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, headers);
                 response.FailIfNotSuccessOr(404, 412);
                 if (response.StatusCode == 412) {
@@ -256,7 +254,7 @@ namespace Starcounter.VisualStudio.Projects {
                             // if we get a better result the second or third, but lets
                             // just don't do that right now.
                             // TODO: Craft a proper error message.
-                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Engine was restarted/modified, and exe still in it. Aborting.");
+                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Database was restarted/modified, and exe still in it. Aborting.");
                         }
                     }
                 }
@@ -269,13 +267,13 @@ namespace Starcounter.VisualStudio.Projects {
 
             bool attachDebugger = (flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0;
             if (attachDebugger) {
-                this.WriteDebugLaunchStatus("Attaching debugger");
+                this.WriteDebugLaunchStatus("attaching debugger");
                 if (!AttachDebugger(engine)) {
                     return false;
                 }
             }
 
-            this.WriteDebugLaunchStatus("Starting executable");
+            this.WriteDebugLaunchStatus("starting application");
             var exe = new Executable();
             exe.Path = debugConfig.AssemblyPath;
             exe.ApplicationFilePath = exe.Path;
@@ -400,7 +398,7 @@ namespace Starcounter.VisualStudio.Projects {
 
         // See AppsEvents.OnDebuggerProcessChange
         void DebuggerStateChanged(int processId, string processName, bool debuggerWasDetached) {
-            WriteLine("Debugger was {0} process {1}, PID {2}.", 
+            Console.WriteLine("Debugger was {0} process {1}, PID {2}.", 
                 debuggerWasDetached ? "detached from" : "attached to",
                 processName,
                 processId
@@ -421,30 +419,8 @@ namespace Starcounter.VisualStudio.Projects {
         protected override void WriteDebugLaunchStatus(string status) {
             base.WriteDebugLaunchStatus(status);
             if (debugFlagSpecified) {
-                WriteLine(status);
+                Console.WriteLine(status);
             }
-        }
-
-        /// <summary>
-        /// Writes a message to the default underlying output pane (normally
-        /// the Starcounter output pane).
-        /// </summary>
-        /// <param name="format">The message to write.</param>
-        /// <param name="args">Message arguments</param>
-        public void WriteLine(string format, params object[] args) {
-            this.WriteLine(string.Format(format, args));
-        }
-
-        /// <summary>
-        /// Writes a message to the default underlying output pane (normally
-        /// the Starcounter output pane).
-        /// </summary>
-        /// <param name="message">The message to write.</param>
-        public void WriteLine(string message) {
-            if (this.outputWindowPane == null) {
-                return;
-            }
-            this.outputWindowPane.OutputStringThreadSafe(message + Environment.NewLine);
         }
 
 #if false

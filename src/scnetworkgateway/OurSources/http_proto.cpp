@@ -460,7 +460,7 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
         case SCHEDULER_ID_FIELD:
         {
             uint8_t sched_id = atoi(at);
-            g_ts_sd_->set_scheduler_id(sched_id);
+            g_ts_sd_->SetSchedulerId(sched_id);
 
             break;
         }
