@@ -58,6 +58,7 @@ namespace Starcounter.Internal {
                 mainJson = resp.Resource as Json;
 
                 if (mainJson != null) {
+                    mainJson.StepSiblings = null;
                     mainJson._appName = resp.AppName;
                     mainJson._wrapInAppName = true;
                 }
