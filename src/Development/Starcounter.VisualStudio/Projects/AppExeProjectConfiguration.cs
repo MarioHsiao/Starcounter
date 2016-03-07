@@ -34,7 +34,6 @@ namespace Starcounter.VisualStudio.Projects {
     [ComVisible(false)]
     internal class AppExeProjectConfiguration : StarcounterProjectConfiguration {
         static IApplicationSyntax commandLineSyntax;
-        readonly IVsOutputWindowPane outputWindowPane = null;
         bool debugFlagSpecified = false;
 
         internal static void Initialize() {
@@ -69,7 +68,6 @@ namespace Starcounter.VisualStudio.Projects {
 
         public AppExeProjectConfiguration(VsPackage package, IVsHierarchy project, IVsProjectCfg baseConfiguration, IVsProjectFlavorCfg innerConfiguration)
             : base(package, project, baseConfiguration, innerConfiguration) {
-                this.outputWindowPane = package.StarcounterOutputPane;
         }
 
         protected override bool CanBeginDebug(__VSDBGLAUNCHFLAGS flags) {
@@ -103,7 +101,7 @@ namespace Starcounter.VisualStudio.Projects {
             this.debugLaunchDescription = "Checking server";
             if (!ServerServiceProcess.IsOnline()) {
                 this.WriteDebugLaunchStatus("starting");
-                this.WriteLine("Starting personal server.");
+                Console.WriteLine("Starting server.");
                 var startServerTime = DateTime.Now;
                 try {
                     ServerServiceProcess.StartInteractiveOnDemand();
@@ -141,7 +139,7 @@ namespace Starcounter.VisualStudio.Projects {
 
             if (result) {
                 var finish = DateTime.Now;
-                this.WriteLine("Successfully started {0} (time {1}s), using parameters {2}",
+                Console.WriteLine("Successfully started {0} (time {1}s), using parameters {2}",
                     Path.GetFileName(debugConfiguration.AssemblyPath),
                     finish.Subtract(start).ToString(@"ss\.fff"),
                     string.Join(" ", debugConfiguration.Arguments));
@@ -400,7 +398,7 @@ namespace Starcounter.VisualStudio.Projects {
 
         // See AppsEvents.OnDebuggerProcessChange
         void DebuggerStateChanged(int processId, string processName, bool debuggerWasDetached) {
-            WriteLine("Debugger was {0} process {1}, PID {2}.", 
+            Console.WriteLine("Debugger was {0} process {1}, PID {2}.", 
                 debuggerWasDetached ? "detached from" : "attached to",
                 processName,
                 processId
@@ -421,30 +419,8 @@ namespace Starcounter.VisualStudio.Projects {
         protected override void WriteDebugLaunchStatus(string status) {
             base.WriteDebugLaunchStatus(status);
             if (debugFlagSpecified) {
-                WriteLine(status);
+                Console.WriteLine(status);
             }
-        }
-
-        /// <summary>
-        /// Writes a message to the default underlying output pane (normally
-        /// the Starcounter output pane).
-        /// </summary>
-        /// <param name="format">The message to write.</param>
-        /// <param name="args">Message arguments</param>
-        public void WriteLine(string format, params object[] args) {
-            this.WriteLine(string.Format(format, args));
-        }
-
-        /// <summary>
-        /// Writes a message to the default underlying output pane (normally
-        /// the Starcounter output pane).
-        /// </summary>
-        /// <param name="message">The message to write.</param>
-        public void WriteLine(string message) {
-            if (this.outputWindowPane == null) {
-                return;
-            }
-            this.outputWindowPane.OutputStringThreadSafe(message + Environment.NewLine);
         }
 
 #if false
