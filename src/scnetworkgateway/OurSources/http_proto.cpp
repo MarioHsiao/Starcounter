@@ -1187,19 +1187,11 @@ uint32_t GatewayUpdateConfiguration(HandlersList* hl, GatewayWorker *gw, SocketD
 // Profilers statistics for Gateway.
 uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-#ifdef GW_TRACK_ALLOCATIONS
-
-    std::stringstream str_stream;
-    str_stream << "Number of allocations: normal/arrays " << g_NumAllocationsCounter << " and aligned " << g_NumAlignedAllocationsCounter;
-    std::string tmp_str = str_stream.str();
-
-    const char* test_msg = tmp_str.c_str();
-
-#else
+	// char test_msg[256];
+	// sprintf(test_msg, "Number of allocations: normal/arrays %d and aligned %d",
+	// 	(int32_t)g_NumAllocationsCounter, (int32_t)g_NumAlignedAllocationsCounter);
 
     const char* test_msg = "Starcounter gateway test response :)";
-
-#endif
 
     *is_handled = true;
 

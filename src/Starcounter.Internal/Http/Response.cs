@@ -120,8 +120,37 @@ namespace Starcounter
     /// (compressed or uncompressed content) even if the consumer wants to embed the content
     /// in a new http response.
     /// </remarks>
-    public sealed partial class Response : Finalizing
+    public sealed partial class Response
     {
+        public class HeadersAccessor {
+
+            Response resp_ = null;
+
+            public HeadersAccessor(Response resp) {
+                resp_ = resp;
+            }
+
+            /// <summary>
+            /// Gets the response header with the specified name.
+            /// </summary>
+            /// <param name="name">The header name.</param>
+            public String this[String name]
+            {
+                get {
+                    return resp_.GetHeader(name);
+                }
+                set
+                {
+                    resp_.SetHeader(name, value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Accessor to response headers.
+        /// </summary>
+        public HeadersAccessor Headers;
+
         /// <summary>
         /// Pointer to the merging routine.
         /// </summary>
@@ -130,13 +159,13 @@ namespace Starcounter
         /// <summary>
         /// Current time bytes.
         /// </summary>
-        static Byte[] CurrentDateHeaderBytes = null;
+        static Byte[] currentDateHeaderBytes_ = null;
 
         /// <summary>
         /// Update current time.
         /// </summary>
         internal static void HttpDateUpdateProcedure(Object state) {
-            CurrentDateHeaderBytes = Encoding.ASCII.GetBytes("Date: " + DateTime.Now.ToUniversalTime().ToString("r") + StarcounterConstants.NetworkConstants.CRLF);
+            currentDateHeaderBytes_ = Encoding.ASCII.GetBytes("Date: " + DateTime.Now.ToUniversalTime().ToString("r") + StarcounterConstants.NetworkConstants.CRLF);
         }
 
         /// <summary>
@@ -154,24 +183,19 @@ namespace Starcounter
         String appName_;
 
         /// <summary>
-        /// The plain response bytes.
+        /// The buffer containing the response (could be within offset!).
         /// </summary>
-        byte[] responseBytes_;
+        byte[] bufferContainingResponse_;
+
+        /// <summary>
+        /// An offset in buffer containing the response.
+        /// </summary>
+        Int32 responseOffsetInBuffer_;
 
         /// <summary>
         /// The plain response size bytes.
         /// </summary>
         int responseSizeBytes_;
-
-        /// <summary>
-        /// Response body offset.
-        /// </summary>
-        int responseBodyOffset_;
-
-        /// <summary>
-        /// Response body size.
-        /// </summary>
-        int responseBodySizeBytes_;
 
         /// <summary>
         /// URIs related to this static resource.
@@ -259,34 +283,9 @@ namespace Starcounter
         Byte[] wsHandshakeResp_;
 
         /// <summary>
-        /// Socket data buffer pointer.
-        /// </summary>
-        IntPtr socketDataIntPtr_;
-
-        /// <summary>
-        /// Response buffer pointer.
-        /// </summary>
-        IntPtr responseStructIntPtr_;
-
-        /// <summary>
         /// Internal structure with HTTP response information.
         /// </summary>
-        unsafe HttpResponseInternal* httpResponseStruct_;
-
-        /// <summary>
-        /// Direct pointer to session data.
-        /// </summary>
-        unsafe ScSessionStruct* session_;
-
-        /// <summary>
-        /// Indicates if this Response is internally constructed from Apps.
-        /// </summary>
-        Boolean isInternalResponse_;
-
-        /// <summary>
-        /// Underlying memory stream.
-        /// </summary>
-        MemoryStream memStream_;
+        HttpResponseInternal httpResponseStruct_;
 
         /// <summary>
         /// Dictionary of simple user custom headers.
@@ -301,7 +300,7 @@ namespace Starcounter
         /// <summary>
         /// Dictionary with response streams.
         /// </summary>
-        internal static ConcurrentDictionary<UInt64, StreamingInfo> ResponseStreams_ = new ConcurrentDictionary<UInt64, StreamingInfo>();
+        internal static ConcurrentDictionary<UInt64, StreamingInfo> responseStreams_ = new ConcurrentDictionary<UInt64, StreamingInfo>();
 
         /// <summary>
         /// Clones existing static resource response object.
@@ -318,9 +317,8 @@ namespace Starcounter
                 fileName_ = fileName_,
                 fileExists_ = fileExists_,
                 fileModified_ = fileModified_,
-                responseBodySizeBytes_ = responseBodySizeBytes_,
-                responseBodyOffset_ = responseBodyOffset_,
-                responseBytes_ = responseBytes_,
+                bufferContainingResponse_ = bufferContainingResponse_,
+                responseOffsetInBuffer_ = responseOffsetInBuffer_,
                 responseSizeBytes_ = responseSizeBytes_,
                 customFields_ = customFields_,
                 bodyString_ = bodyString_,
@@ -329,12 +327,9 @@ namespace Starcounter
                 headersString_ = headersString_
             };
 
-            System.Diagnostics.Debug.Assert(null == memStream_);
-            System.Diagnostics.Debug.Assert(IntPtr.Zero == responseStructIntPtr_);
-            System.Diagnostics.Debug.Assert(IntPtr.Zero == socketDataIntPtr_);
-            System.Diagnostics.Debug.Assert(null == wsHandshakeResp_);
-            System.Diagnostics.Debug.Assert((null == cookies_) || (0 == cookies_.Count));
-            System.Diagnostics.Debug.Assert(null == resource_);
+            Trace.Assert(null == wsHandshakeResp_);
+            Trace.Assert((null == cookies_) || (0 == cookies_.Count));
+            Trace.Assert(null == resource_);
 
             return resp;
         }
@@ -421,13 +416,11 @@ namespace Starcounter
         /// </summary>
         internal ConnectionFlags ConnFlags
         {
-            get
-            {
+            get {
                 return connectionFlags_;
             }
 
-            set
-            {
+            set {
                 customFields_ = true;
                 connectionFlags_ = value;
             }
@@ -438,22 +431,16 @@ namespace Starcounter
         /// </summary>
         public UInt16 StatusCode
         {
-            get
-            {
+            get {
+
                 if (0 == statusCode_) {
-
-                    unsafe {
-
-                        if (null != httpResponseStruct_)
-                            statusCode_ = httpResponseStruct_->status_code_;
-                    }
+                    statusCode_ = httpResponseStruct_.status_code_;
                 }
 
                 return statusCode_;
             }
 
-            set
-            {
+            set {
                 customFields_ = true;
                 statusCode_ = value;
             }
@@ -464,22 +451,17 @@ namespace Starcounter
         /// </summary>
         public String StatusDescription
         {
-            get
-            {
+            get {
+
                 if (null == statusDescription_) {
-
-                    unsafe {
-
-                        if (null != httpResponseStruct_)
-                            statusDescription_ = httpResponseStruct_->GetStatusDescription();
-                    }
+                    statusDescription_ = GetStatusDescription();
                 }
 
                 return statusDescription_;
             }
 
-            set
-            {
+            set {
+
                 customFields_ = true;
                 statusDescription_ = value;
             }
@@ -490,15 +472,13 @@ namespace Starcounter
         /// </summary>
         public String ContentType
         {
-            get
-            {
-                return this[HttpHeadersUtf8.ContentTypeHeader];
+            get {
+                return Headers[HttpHeadersUtf8.ContentTypeHeader];
             }
 
-            set
-            {
+            set {
                 customFields_ = true;
-                this[HttpHeadersUtf8.ContentTypeHeader] = value;
+                Headers[HttpHeadersUtf8.ContentTypeHeader] = value;
             }
         }
 
@@ -507,15 +487,13 @@ namespace Starcounter
 		/// </summary>
 		public String CacheControl
         {
-			get
-            {
-                return this[HttpHeadersUtf8.CacheControlHeader];
+			get {
+                return Headers[HttpHeadersUtf8.CacheControlHeader];
             }
 
-			set
-            {
+			set {
 				customFields_ = true;
-                this[HttpHeadersUtf8.CacheControlHeader] = value;
+                Headers[HttpHeadersUtf8.CacheControlHeader] = value;
 			}
 		}
 
@@ -524,15 +502,13 @@ namespace Starcounter
         /// </summary>
         public String ContentEncoding
         {
-            get
-            {
-                return this[HttpHeadersUtf8.ContentEncodingHeader];
+            get {
+                return Headers[HttpHeadersUtf8.ContentEncodingHeader];
             }
 
-            set
-            {
+            set {
                 customFields_ = true;
-                this[HttpHeadersUtf8.ContentEncodingHeader] = value;
+                Headers[HttpHeadersUtf8.ContentEncodingHeader] = value;
             }
         }
 
@@ -541,12 +517,10 @@ namespace Starcounter
         /// </summary>
         public Stream StreamedBody {
 
-            get
-            {
+            get {
                 return bodyStream_;
             }
-            set
-            {
+            set {
                 customFields_ = true;
                 bodyStream_ = value;
             }
@@ -557,10 +531,10 @@ namespace Starcounter
         /// </summary>
         public String Body
         {
-            get
-            {
-                if (null == bodyString_)
-                {
+            get {
+
+                if (null == bodyString_) {
+
                     if (null != bodyBytes_) {
 
                         bodyString_ = Encoding.UTF8.GetString(bodyBytes_);
@@ -571,7 +545,7 @@ namespace Starcounter
 
                     } else {
 
-                        bodyString_ = GetBodyStringUtf8_Slow();
+                        bodyString_ = GetBodyStringUtf8();
                     }
                 }
 
@@ -619,7 +593,7 @@ namespace Starcounter
             if (null != bodyBytes_)
                 return Encoding.UTF8.GetString(bodyBytes_);
 
-            return GetBodyStringUtf8_Slow();
+            return GetBodyStringUtf8();
         }
 
         /// <summary>
@@ -639,26 +613,9 @@ namespace Starcounter
                 return resource_.AsMimeType(MimeType.Unspecified, out discard);
             }
 
-            if (responseBytes_ != null) {
-                return ExtractBodyFromByteHttpResponse();
-            }
-
-            unsafe {
-                if (null != httpResponseStruct_)
-                    bodyBytes_ = httpResponseStruct_->GetBodyByteArray_Slow();
-            }
+            bodyBytes_ = GetBodyBytes();
 
             return bodyBytes_;
-        }
-
-        /// <summary>
-        /// Should be made faster using pointers copying directly to the output buffer.
-        /// </summary>
-        /// <returns></returns>
-        private byte[] ExtractBodyFromByteHttpResponse() {
-            var bytes = new byte[this.responseBodySizeBytes_];
-            Array.Copy(responseBytes_, responseBodyOffset_, bytes, 0, responseBodySizeBytes_);
-            return bytes;
         }
 
         /// <summary>
@@ -677,7 +634,7 @@ namespace Starcounter
                 if (null != bodyString_)
                     return bodyString_;
 
-                return GetBodyStringUtf8_Slow();
+                return GetBodyStringUtf8();
             }
 
             set
@@ -715,11 +672,7 @@ namespace Starcounter
                         bodyBytes_ = resource_.AsMimeType(MimeType.Unspecified, out discard);
 
                     } else {
-
-                        unsafe {
-                            if (null != httpResponseStruct_)
-                                bodyBytes_ = httpResponseStruct_->GetBodyByteArray_Slow();
-                        }
+                        bodyBytes_ = GetBodyBytes();
                     }
                 }
 
@@ -784,14 +737,8 @@ namespace Starcounter
                 cookies_ = new List<String>();
 
                 // Adding new cookies list from response.
-                unsafe
-                {
-                    if (httpResponseStruct_ != null)
-                    {
-                        cookies_ = httpResponseStruct_->GetHeadersValues(HttpHeadersUtf8.SetCookieHeader, ref headersString_);
-                    }
-                }
-
+                cookies_ = GetHeadersValues(HttpHeadersUtf8.SetCookieHeader, ref headersString_);
+ 
                 return cookies_;
             }
 
@@ -978,7 +925,7 @@ namespace Starcounter
                         }
                     }
 
-                    Byte[] date = CurrentDateHeaderBytes;
+                    Byte[] date = currentDateHeaderBytes_;
                     if (date != null) {
                         writer.Write(date);
                     }
@@ -1059,7 +1006,8 @@ namespace Starcounter
             }
 
             // Finally setting the response bytes.
-            responseBytes_ = buf;
+            bufferContainingResponse_ = buf;
+            responseOffsetInBuffer_ = 0;
             responseSizeBytes_ = writer.Written;
 
             if (responseSizeBytes_ > estimatedNumBytes) {
@@ -1122,8 +1070,7 @@ namespace Starcounter
         /// </summary>
         public Boolean IsSuccessStatusCode
         {
-            get
-            {
+            get {
                 UInt16 statusCode = StatusCode;
 
                 return (0 == statusCode) || ((statusCode >= 200) && (statusCode <= 226));
@@ -1136,54 +1083,50 @@ namespace Starcounter
         /// <value>The length of the content.</value>
         public Int32 ContentLength
         {
-            get
-            {
-                if (responseBodySizeBytes_ > 0)
-                    return responseBodySizeBytes_;
-
+            get {
                 if (null != bodyBytes_)
                     return bodyBytes_.Length;
 
                 if (null != bodyString_)
                     return bodyString_.Length;
 
-                unsafe {
-
-                    if (null != httpResponseStruct_)
-                        return httpResponseStruct_->content_len_bytes_;
-                }
-
-                return 0;
+                return httpResponseStruct_.content_len_bytes_;
             }
-            set
-            {
-                responseBodySizeBytes_ = value;
+
+            set {
+                httpResponseStruct_.content_len_bytes_ = value;
             }
         }
 
         /// <summary>
-        /// Response plain bytes.
+        /// Response offset in bytes.
         /// </summary>
-        internal Byte[] ResponseBytes
+        internal Int32 ResponseOffsetInBuffer
         {
-            get
-            {
-                if (null == responseBytes_) {
+            get {
+                return responseOffsetInBuffer_;
+            }
 
-                    unsafe {
+            set {
+                responseOffsetInBuffer_ = value;
+            }
+        }
 
-                        if (null != httpResponseStruct_)
-                            responseBytes_ = httpResponseStruct_->GetResponseBytes_Slow();
-                    }
-                }
-
-                return responseBytes_;
+        /// <summary>
+        /// Buffer containing the response bytes.
+        /// </summary>
+        internal Byte[] BufferContainingResponse
+        {
+            get {
+                return bufferContainingResponse_;
             }
 
             set
             {
-                responseBytes_ = value;
-				if (value != null)
+                bufferContainingResponse_ = value;
+                responseOffsetInBuffer_ = 0;
+
+                if (value != null)
 					responseSizeBytes_ = value.Length;
 				else
 					responseSizeBytes_ = 0;
@@ -1198,13 +1141,7 @@ namespace Starcounter
             get
             {
                 if (responseSizeBytes_ <= 0) {
-
-                    unsafe {
-
-                        if (null != httpResponseStruct_) {
-                            responseSizeBytes_ = (Int32) httpResponseStruct_->response_len_bytes_;
-                        }
-                    }
+                    responseSizeBytes_ = httpResponseStruct_.response_len_bytes_;
                 }
 
                 return responseSizeBytes_;
@@ -1215,105 +1152,17 @@ namespace Starcounter
         /// Initializes a new instance of the <see cref="Response" /> class.
         /// </summary>
         public Response() {
-            
+            Headers = new HeadersAccessor(this);
         }
 
         /// <summary>
         /// Setting the response buffer.
         /// </summary>
-        internal void SetResponseBuffer(Byte[] response_buf, MemoryStream mem_stream, Int32 response_len_bytes)
+        internal void SetResponseBuffer(Byte[] response_buf, Int32 offset, Int32 response_len_bytes)
         {
-            // Creating finalizer if needed.
-            CreateFinalizer();
-
-            responseBytes_ = response_buf;
+            bufferContainingResponse_ = response_buf;
 			responseSizeBytes_ = response_len_bytes;
-
-            memStream_ = mem_stream;
-
-            unsafe
-            {
-                // Checking if have not allocated anything yet.
-                if (IntPtr.Zero != socketDataIntPtr_) {
-
-                    // Releasing internal resources here.
-                    BitsAndBytes.Free(socketDataIntPtr_);
-                    socketDataIntPtr_ = IntPtr.Zero;
-                }
-
-                // Setting the response data pointer.
-                socketDataIntPtr_ = BitsAndBytes.Alloc(responseSizeBytes_);
-                System.Diagnostics.Debug.Assert(null != httpResponseStruct_);
-                httpResponseStruct_->socket_data_ = (Byte*) socketDataIntPtr_.ToPointer();
-
-                // Copying HTTP response data.
-                fixed (Byte* fixed_response_buf = response_buf) {
-                    BitsAndBytes.MemCpy(httpResponseStruct_->socket_data_, fixed_response_buf, (UInt32)responseSizeBytes_);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Parses HTTP response from buffer.
-        /// </summary>
-        internal void TryParseResponseFromPlainBuffer(Byte[] buf, Int32 offsetBytes, Int32 bufLenBytes, Boolean complete)
-        {
-            UInt32 err_code;
-            unsafe
-            {
-                // First destroying.
-                Destroy();
-
-                // Creating finalizer if needed.
-                CreateFinalizer();
-
-                // Indicating that we internally constructing Response.
-                isInternalResponse_ = true;
-
-                if (IntPtr.Zero != responseStructIntPtr_) {
-                    BitsAndBytes.Free(responseStructIntPtr_);
-                    responseStructIntPtr_ = IntPtr.Zero;
-                }
-
-                // Allocating space just for response structure.
-                responseStructIntPtr_ = BitsAndBytes.Alloc(sizeof(HttpResponseInternal));
-                httpResponseStruct_ = (HttpResponseInternal*) responseStructIntPtr_.ToPointer();
-                httpResponseStruct_->socket_data_ = null;
-
-                // Checking if we have a complete response.
-                if (complete)
-                {
-                    // Setting the internal buffer.
-                    SetResponseBuffer(buf, null, bufLenBytes);
-
-                    // Executing HTTP response parser and getting Response structure as result.
-                    err_code = sc_parse_http_response(httpResponseStruct_->socket_data_, (UInt32)bufLenBytes, (Byte*)httpResponseStruct_);
-                }
-                else
-                {
-                    fixed (Byte* pbuf = buf)
-                    {
-                        // Executing HTTP response parser and getting Response structure as result.
-                        err_code = sc_parse_http_response(pbuf + offsetBytes, (UInt32)bufLenBytes, (Byte*)httpResponseStruct_);
-                    }
-                }
-
-                // Checking if any error occurred.
-                if (err_code != 0)
-                {
-                    // Freeing memory etc.
-                    Destroy();
-
-                    // Throwing the concrete error code exception.
-                    throw ErrorCode.ToException(err_code);
-                }
-
-                responseBodySizeBytes_ = httpResponseStruct_->content_len_bytes_;
-                responseBodyOffset_ = (int)httpResponseStruct_->content_offset_;
-
-                // NOTE: No internal sessions support.
-                session_ = null;
-            }
+            responseOffsetInBuffer_ = offset;
         }
 
         /// <summary>
@@ -1321,75 +1170,42 @@ namespace Starcounter
         /// </summary>
         public Response(Byte[] buf, Int32 offset, Int32 lenBytes, Boolean complete = true)
         {
-            unsafe {
+            Headers = new HeadersAccessor(this);
 
-                // Parsing given buffer.
-                TryParseResponseFromPlainBuffer(buf, offset, lenBytes, complete);
-            }
-        }
-
-        /// <summary>
-        /// Destroys the instance of Request.
-        /// </summary>
-        override internal void DestroyByFinalizer() {
-            Destroy();
-        }
-
-        /// <summary>
-        /// Destroys the instance of Response.
-        /// </summary>
-        internal void Destroy()
-        {
+            UInt32 err_code = 0;
             unsafe
             {
-                // NOTE: Removing reference for finalizer so it does not call destroy again.
-                UnLinkFinalizer();
+                bufferContainingResponse_ = buf;
+                responseOffsetInBuffer_ = offset;
+                
+                fixed (HttpResponseInternal* pinnedHttpResponseStruct = &httpResponseStruct_) {
 
-                // Checking if already destroyed.
-                if (httpResponseStruct_ == null)
-                    return;
+                    fixed (Byte* pinnedBuf = buf) {
+                        
+                        // Checking if we have a complete response.
+                        if (complete) {
 
-                // Closing the memory stream if any.
-                if (null != memStream_)
-                {
-                    memStream_.Close();
-                    memStream_ = null;
-                }
+                            // Setting the internal buffer.
+                            SetResponseBuffer(buf, offset, lenBytes);
 
-                // Checking if we have constructed this Response
-                // internally in Apps or externally in Gateway.
-                if (isInternalResponse_)
-                {
-                    // Checking if have not allocated anything yet.
-                    if (IntPtr.Zero != socketDataIntPtr_)
-                    {
-                        // Releasing response data.
-                        BitsAndBytes.Free(socketDataIntPtr_);
-                        socketDataIntPtr_ = IntPtr.Zero;
-                    }
+                            // Executing HTTP response parser and getting Response structure as result.
+                            err_code = sc_parse_http_response(pinnedBuf + offset, (UInt32)lenBytes, (Byte*)pinnedHttpResponseStruct);
 
-                    // Checking if response structure is allocated.
-                    if (IntPtr.Zero != responseStructIntPtr_) {
+                        } else {
 
-                        // Releasing internal resources here.
-                        BitsAndBytes.Free(responseStructIntPtr_);
-                        responseStructIntPtr_ = IntPtr.Zero;
+                            // Executing HTTP response parser and getting Response structure as result.
+                            err_code = sc_parse_http_response(pinnedBuf + offset, (UInt32)lenBytes, (Byte*)pinnedHttpResponseStruct);
+                        }
                     }
                 }
+                
+                // Checking if any error occurred.
+                if (err_code != 0) {
 
-                httpResponseStruct_ = null;
-                session_ = null;
+                    // Throwing the concrete error code exception.
+                    throw ErrorCode.ToException(err_code);
+                }
             }
-        }
-
-        /// <summary>
-        /// Debugs the specified message.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="ex">The ex.</param>
-        public void Debug(string message, Exception ex = null)
-        {
-            Console.WriteLine(message);
         }
 
         /// <summary>
@@ -1436,101 +1252,36 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Headers string.
+        /// Getting all headers string.
         /// </summary>
-        public String Headers
+        public String GetAllHeaders()
         {
-            get
+            // Concatenating headers from dictionary.
+            if ((null != customHeaderFields_) || (null != cookies_))
             {
-                unsafe
+                headersString_ = "";
+
+                // Adding each header.
+                foreach (KeyValuePair<string, string> h in customHeaderFields_)
                 {
-                    // Concatenating headers from dictionary.
-                    if ((null != customHeaderFields_) || (null != cookies_))
-                    {
-                        headersString_ = "";
-
-                        // Adding each header.
-                        foreach (KeyValuePair<string, string> h in customHeaderFields_)
-                        {
-                            headersString_ += h.Key + ": " + h.Value + StarcounterConstants.NetworkConstants.CRLF;
-                        }
-
-                        // Checking the cookies list.
-                        if (null != cookies_)
-                        {
-                            foreach (String c in cookies_)
-                            {
-                                headersString_ += HttpHeadersUtf8.SetCookieStartString + c + StarcounterConstants.NetworkConstants.CRLF;
-                            }
-                        }
-
-                        return headersString_;
-                    }
-
-                    if (null != httpResponseStruct_)
-                        headersString_ = httpResponseStruct_->GetHeadersStringUtf8_Slow();
-
-                    return headersString_;
+                    headersString_ += h.Key + ": " + h.Value + StarcounterConstants.NetworkConstants.CRLF;
                 }
+
+                // Checking the cookies list.
+                if (null != cookies_)
+                {
+                    foreach (String c in cookies_)
+                    {
+                        headersString_ += HttpHeadersUtf8.SetCookieStartString + c + StarcounterConstants.NetworkConstants.CRLF;
+                    }
+                }
+
+                return headersString_;
             }
-        }
 
-        /// <summary>
-        /// Gets the content raw pointer.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetBodyRaw(out IntPtr ptr, out Int32 sizeBytes)
-        {
-            unsafe
-            {
-                if (null == httpResponseStruct_)
-                    throw new ArgumentException("HTTP response not initialized.");
+            headersString_ = GetHeadersStringUtf8();
 
-                httpResponseStruct_->GetBodyRaw(out ptr, out sizeBytes);
-            }
-        }
-
-        /// <summary>
-        /// Gets body as UTF8 string.
-        /// </summary>
-        /// <returns>UTF8 string.</returns>
-        String GetBodyStringUtf8_Slow()
-        {
-            unsafe
-            {
-                if (null == httpResponseStruct_)
-                    return null;
-
-                return httpResponseStruct_->GetBodyStringUtf8_Slow();
-            }
-        }
-
-        /// <summary>
-        /// Gets the raw headers.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            unsafe
-            {
-                if (null == httpResponseStruct_)
-                    throw new ArgumentException("HTTP response not initialized.");
-
-                httpResponseStruct_->GetRawHeaders(out ptr, out sizeBytes);
-            }
-        }
-
-        /// <summary>
-        /// Gets the raw header.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawHeader(byte[] key, out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            throw new NotImplementedException();
+            return headersString_;
         }
 
         /// <summary>
@@ -1542,331 +1293,162 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Gets the <see cref="String" /> with the specified name.
+        /// Get the value of specific header.
         /// </summary>
-        /// <param name="name">The name.</param>
-        /// <returns>String.</returns>
-        public String this[String name]
-        {
-            get
-            {
-                if (null != customHeaderFields_)
-                {
-                    if (customHeaderFields_.ContainsKey(name))
-                        return customHeaderFields_[name];
+        /// <param name="name">Header name.</param>
+        /// <returns>Header value.</returns>
+        internal String GetHeader(String name) {
 
-                    return null;
-                }
-
-                unsafe
-                {
-                    if (null == httpResponseStruct_)
-                        return null;
-
-                    return httpResponseStruct_->GetHeaderValue(name, ref headersString_);
-                }
-            }
-
-            set
-            {
-                customFields_ = true;
-
-                if (null == customHeaderFields_)
-                {
-                    String headers = headersString_;
-                    if (headers == null)
-                    {
-                        unsafe
-                        {
-                            if (null != httpResponseStruct_)
-                                headers = httpResponseStruct_->GetHeadersStringUtf8_Slow();
-                        }
-                    }
-
-                    customHeaderFields_ = CreateHeadersDictionaryFromHeadersString(headers);
-                }
-
-                customHeaderFields_[name] = value;
-            }
-        }
-
-        /// <summary>
-        /// Checks if HTTP response already has session.
-        /// </summary>
-        public Boolean HasSession
-        {
-            get
-            {
-                unsafe
-                {
-                    return Request.INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linearIndex_);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns unique session number.
-        /// </summary>
-        public UInt64 UniqueSessionIndex
-        {
-            get
-            {
-                unsafe
-                {
-                    return session_->linearIndex_;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns session salt.
-        /// </summary>
-        public UInt64 SessionSalt
-        {
-            get
-            {
-                unsafe
-                {
-                    return session_->randomSalt_;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the session struct.
-        /// </summary>
-        /// <value>The session struct.</value>
-        public ScSessionStruct SessionStruct
-        {
-            get
-            {
-                unsafe { return *session_; }
-            }
-        }
-
-        /// <summary>
-        /// Returns a string that represents the current object.
-        /// </summary>
-        /// <returns>A string that represents the current object.</returns>
-        public override String ToString()
-        {
-            unsafe
-            {
-                if (Body != null)
-                    return Body;
+            if (null != customHeaderFields_) {
+                if (customHeaderFields_.ContainsKey(name))
+                    return customHeaderFields_[name];
 
                 return null;
             }
+
+            return GetHeaderValue(name, ref headersString_);
         }
-    }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct HttpResponseInternal
-    {
-        internal UInt32 response_len_bytes_;
-        internal Int32 content_len_bytes_;
+        /// <summary>
+        /// Set the value of a specific header.
+        /// </summary>
+        /// <param name="name">Header name.</param>
+        /// <param name="value">Header value.</param>
+        internal void SetHeader(String name, String value) {
 
-        internal UInt16 response_offset_;
-        internal UInt16 content_offset_;
-        internal UInt16 headers_offset_;
-        internal UInt16 headers_len_bytes_;
-        internal UInt16 session_string_offset_;
-        internal UInt16 status_code_;
+            customFields_ = true;
 
-        internal Byte session_string_len_bytes_;
+            if (null == customHeaderFields_) {
+                String headers = headersString_;
+                if (null == headers) {
+                    headers = GetHeadersStringUtf8();
+                }
 
-        // TODO: Should be changed!
-        // Socket data pointer.
-        public unsafe Byte* socket_data_;
+                if (null != headers) {
+                    customHeaderFields_ = CreateHeadersDictionaryFromHeadersString(headers);
+                } else {
+                    customHeaderFields_ = new Dictionary<String, String>();
+                }
+            }
+
+            customHeaderFields_[name] = value;
+        }
+
+        /// <summary>
+        /// Gets the response header with the specified name.
+        /// </summary>
+        /// <param name="name">The header name.</param>
+        /// <returns>String.</returns>
+        [System.Obsolete("Please use Headers[\"HeaderName\"] instead.")]
+        public String this[String name]
+        {
+            get {
+                return GetHeader(name);
+            }
+            set {
+                SetHeader(name, value);
+            }
+        }
+
+        /// <summary>
+        /// Returns a string that represents the response.
+        /// </summary>
+        public override String ToString() {
+            return GetResponseStringUtf8();
+        }
 
         /// <summary>
         /// Get status description.
         /// </summary>
-        public String GetStatusDescription()
-        {
-            SByte* cur = (SByte*) socket_data_ + response_offset_;
+        internal String GetStatusDescription() {
+
+            Int32 cur = responseOffsetInBuffer_ + httpResponseStruct_.response_offset_;
             cur += 12; // Skipping "HTTP/1.1 XXX"
 
             // Skipping until first space after StatusCode.
-            while (*cur != (Byte)' ') cur++;
+            while (bufferContainingResponse_[cur] != (Byte)' ')
+                cur++;
+
             cur++;
-            SByte* status_descr_start = cur;
+
+            Int32 status_descr_start = cur;
 
             // Skipping until first character return.
-            while (*cur != (Byte)'\r') cur++;
+            while (bufferContainingResponse_[cur] != (Byte)'\r')
+                cur++;
 
             // Calculating length of the status string.
             Int32 len = (Int32)(cur - status_descr_start);
 
-            return new String(status_descr_start, 0, len, Encoding.ASCII);
-        }
-
-        /// <summary>
-        /// Gets the raw response.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetResponseRaw(out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            ptr = new IntPtr(socket_data_ + response_offset_);
-
-            sizeBytes = response_len_bytes_;
+            return ASCIIEncoding.ASCII.GetString(bufferContainingResponse_, status_descr_start, len);
         }
 
         /// <summary>
         /// Gets the response as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        internal String GetResponseStringUtf8_Slow()
-        {
-            return new String((SByte*)(socket_data_ + response_offset_), 0, (Int32)response_len_bytes_, Encoding.UTF8);
-        }
+        internal String GetResponseStringUtf8() {
 
-        /// <summary>
-        /// Gets the response as bytes.
-        /// </summary>
-        /// <returns>Byte array.</returns>
-        internal Byte[] GetResponseBytes_Slow()
-        {
-            Byte[] respBytes = new Byte[response_len_bytes_];
-            Marshal.Copy(new IntPtr(socket_data_ + response_offset_), respBytes, 0, (int)response_len_bytes_);
-            return respBytes;
-        }
-
-        /// <summary>
-        /// Gets the raw parameters structure.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public IntPtr GetRawParametersInfo()
-        {
-            return new IntPtr(socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
-        }
-
-        /// <summary>
-        /// Gets the content raw pointer.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetBodyRaw(out IntPtr ptr, out Int32 sizeBytes)
-        {
-            if (content_len_bytes_ <= 0)
-                ptr = IntPtr.Zero;
-            else
-                ptr = new IntPtr(socket_data_ + content_offset_);
-
-            sizeBytes = content_len_bytes_;
-        }
-
-        /// <summary>
-        /// Gets the content as byte array.
-        /// </summary>
-        /// <returns>Content bytes.</returns>
-        internal Byte[] GetBodyByteArray_Slow()
-        {
-            // Checking if there is a content.
-            if (content_len_bytes_ <= 0)
+            if (bufferContainingResponse_ == null)
                 return null;
 
-            // TODO: Provide a more efficient interface with existing Byte[] and offset.
+            return ASCIIEncoding.ASCII.GetString(
+                bufferContainingResponse_,
+                responseOffsetInBuffer_ + httpResponseStruct_.response_offset_, 
+                httpResponseStruct_.response_len_bytes_);
+        }
 
-            Byte[] content_bytes = new Byte[content_len_bytes_];
-            Marshal.Copy(new IntPtr(socket_data_ + content_offset_), content_bytes, 0, content_len_bytes_);
+        /// <summary>
+        /// Gets body bytes.
+        /// </summary>
+        /// <returns>Content bytes.</returns>
+        internal Byte[] GetBodyBytes() {
 
-            return content_bytes;
+            // Checking if there is a content.
+            if (httpResponseStruct_.content_len_bytes_ <= 0)
+                return null;
+
+            Byte[] bodyBytes = new Byte[httpResponseStruct_.content_len_bytes_];
+
+            Buffer.BlockCopy(
+                bufferContainingResponse_,
+                responseOffsetInBuffer_ + httpResponseStruct_.content_offset_,
+                bodyBytes,
+                0, 
+                httpResponseStruct_.content_len_bytes_);
+
+            return bodyBytes;
         }
 
         /// <summary>
         /// Gets body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
-        internal String GetBodyStringUtf8_Slow()
-        {
+        internal String GetBodyStringUtf8() {
+
             // Checking if there is a content.
-            if (content_len_bytes_ <= 0)
+            if (httpResponseStruct_.content_len_bytes_ <= 0)
                 return null;
 
-            return new String((SByte*)(socket_data_ + content_offset_), 0, content_len_bytes_, Encoding.UTF8);
+            return UTF8Encoding.UTF8.GetString(
+                bufferContainingResponse_,
+                responseOffsetInBuffer_ + httpResponseStruct_.content_offset_,
+                httpResponseStruct_.content_len_bytes_);
         }
 
         /// <summary>
-        /// Gets the raw headers.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            if (headers_len_bytes_ <= 0)
-                ptr = IntPtr.Zero;
-            else
-                ptr = new IntPtr(socket_data_ + headers_offset_);
-
-            sizeBytes = headers_len_bytes_;
-        }
-
-        /// <summary>
-        /// Gets headers as ASCII string.
+        /// Gets headers as UTF8 string.
         /// </summary>
         /// <returns>ASCII string.</returns>
-        internal String GetHeadersStringUtf8_Slow()
-        {
-            if (headers_len_bytes_ <= 0)
+        internal String GetHeadersStringUtf8() {
+
+            if (httpResponseStruct_.headers_len_bytes_ <= 0)
                 return null;
 
-            return new String((SByte*)(socket_data_ + headers_offset_), 0, (Int32)headers_len_bytes_, Encoding.ASCII);
-        }
-
-        /// <summary>
-        /// Gets the raw headers length.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public UInt32 GetHeadersLength()
-        {
-            return headers_len_bytes_;
-        }
-
-        /// <summary>
-        /// Gets the raw session string.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            if (session_string_len_bytes_ <= 0)
-                ptr = IntPtr.Zero;
-            else
-                ptr = new IntPtr(socket_data_ + session_string_offset_);
-
-            sizeBytes = session_string_len_bytes_;
-        }
-
-        /// <summary>
-        /// Gets the session string.
-        /// </summary>
-        /// <returns>String.</returns>
-        public String GetSessionString()
-        {
-            // Checking if there is any session.
-            if (session_string_len_bytes_ <= 0)
-                return null;
-
-            IntPtr raw_session_string;
-            UInt32 len_bytes;
-            GetRawSessionString(out raw_session_string, out len_bytes);
-
-            return Marshal.PtrToStringAnsi(raw_session_string, (Int32)len_bytes);
-        }
-
-        /// <summary>
-        /// Gets the header value.
-        /// </summary>
-        /// <param name="headerName">Name of the header.</param>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetHeaderValue(byte[] headerName, out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            throw new NotImplementedException();
+            return UTF8Encoding.UTF8.GetString(
+                bufferContainingResponse_,
+                responseOffsetInBuffer_ + httpResponseStruct_.headers_offset_, 
+                httpResponseStruct_.headers_len_bytes_);
         }
 
         /// <summary>
@@ -1875,19 +1457,22 @@ namespace Starcounter
         /// <param name="headerName">Name of the header.</param>
         /// <param name="headersString">Reference of the header string.</param>
         /// <returns>String.</returns>
-        public List<String> GetHeadersValues(String headerName, ref String headersString)
-        {
+        public List<String> GetHeadersValues(String headerName, ref String headersString) {
+
             // Constructing the string if its the first time.
-            if (headersString == null)
-                headersString = Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
+            if (headersString == null) {
+                headersString = GetHeadersStringUtf8();
+
+                if (null == headersString)
+                    return new List<String>();
+            }
 
             List<String> headerValues = new List<String>();
             Int32 hend = 0;
 
-            while (true)
-            {
+            while (true) {
                 // Getting needed substring.
-                Int32 hstart = headersString.IndexOf(headerName, hend, StringComparison.InvariantCultureIgnoreCase); 
+                Int32 hstart = headersString.IndexOf(headerName, hend, StringComparison.InvariantCultureIgnoreCase);
                 if (hstart < 0)
                     break;
 
@@ -1917,11 +1502,15 @@ namespace Starcounter
         /// <param name="headerName">Name of the header.</param>
         /// <param name="headersString">Reference of the header string.</param>
         /// <returns>String.</returns>
-        public String GetHeaderValue(String headerName, ref String headersString)
-        {
+        public String GetHeaderValue(String headerName, ref String headersString) {
+
             // Constructing the string if its the first time.
-            if (headersString == null)
-                headersString = Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
+            if (headersString == null) {
+                headersString = GetHeadersStringUtf8();
+
+                if (null == headersString)
+                    return null;
+            }
 
             // Getting needed substring.
             Int32 hstart = headersString.IndexOf(headerName, StringComparison.InvariantCultureIgnoreCase);
@@ -1942,5 +1531,21 @@ namespace Starcounter
 
             return headersString.Substring(hstart, hend - hstart);
         }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct HttpResponseInternal
+    {
+        internal Int32 response_len_bytes_;
+        internal Int32 content_len_bytes_;
+
+        internal UInt16 response_offset_;
+        internal UInt16 content_offset_;
+        internal UInt16 headers_offset_;
+        internal UInt16 headers_len_bytes_;
+        internal UInt16 session_string_offset_;
+        internal UInt16 status_code_;
+
+        internal Byte session_string_len_bytes_;
     }
 }

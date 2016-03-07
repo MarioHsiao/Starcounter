@@ -50,7 +50,7 @@ namespace Starcounter.Internal.Tests {
 			for (int i = 0; i < repeats; i++) {
 				response = new Response() { BodyBytes = content, ContentLength = content.Length };
 				response.ConstructFromFields(null, null);
-				ret = response.ResponseBytes;
+				ret = response.BufferContainingResponse;
 				retSize = response.ResponseSizeBytes;
 			}
 			sw.Stop();
@@ -73,21 +73,21 @@ namespace Starcounter.Internal.Tests {
 			response.Body = json;
 			response.ContentType = "application/json";
 			response.ContentEncoding = "utf8";
-			response["somespecialheader"] = "myvalue";
+			response.Headers["somespecialheader"] = "myvalue";
 			response.StatusDescription = " My special status";
 
             Assert.IsTrue(response.StatusCode == 200);
             Assert.IsTrue(response.Body == json);
             Assert.IsTrue(response.ContentType == "application/json");
             Assert.IsTrue(response.ContentEncoding == "utf8");
-            Assert.IsTrue(response["somespecialheader"] == "myvalue");
+            Assert.IsTrue(response.Headers["somespecialheader"] == "myvalue");
             Assert.IsTrue(response.StatusDescription == " My special status");
 
 			response = Response.FromStatusCode(404);
 			response.BodyBytes = Encoding.UTF8.GetBytes(json);
 			response.ContentType = "application/json";
 			response.ContentEncoding = "utf8";
-			response["somespecialheader"] = "myvalue";
+			response.Headers["somespecialheader"] = "myvalue";
 			response.StatusDescription = " My special status";
 
             Assert.IsTrue(response.StatusCode == 404);
@@ -95,7 +95,7 @@ namespace Starcounter.Internal.Tests {
             Assert.IsTrue(eqa1.Equals(response.BodyBytes, StructuralComparisons.StructuralEqualityComparer));
             Assert.IsTrue(response.ContentType == "application/json");
             Assert.IsTrue(response.ContentEncoding == "utf8");
-            Assert.IsTrue(response["somespecialheader"] == "myvalue");
+            Assert.IsTrue(response.Headers["somespecialheader"] == "myvalue");
             Assert.IsTrue(response.StatusDescription == " My special status");
 		}
 
@@ -163,7 +163,7 @@ namespace Starcounter.Internal.Tests {
 			response.Body = json;
 			response.ContentType = "application/json";
 			response.ContentEncoding = "utf8";
-			response["somespecialheader"] = "myvalue";
+			response.Headers["somespecialheader"] = "myvalue";
 			response.StatusDescription = " My special status";
 			RunResponseBenchmark(response, repeats);
 
@@ -172,7 +172,7 @@ namespace Starcounter.Internal.Tests {
 			response.BodyBytes = Encoding.UTF8.GetBytes(json);
 			response.ContentType = "application/json";
 			response.ContentEncoding = "utf8";
-			response["somespecialheader"] = "myvalue";
+			response.Headers["somespecialheader"] = "myvalue";
 			response.StatusDescription = " My special status";
 			RunResponseBenchmark(response, repeats);
 		}

@@ -311,8 +311,8 @@ namespace NetworkIoTestApp {
                             ConnFlags = Response.ConnectionFlags.DisconnectAfterSend
                         };
 
-                        r["MyHeader1"] = "Haha!";
-                        r["MyHeader2"] = "Xaha!";
+                        r.Headers["MyHeader1"] = "Haha!";
+                        r.Headers["MyHeader2"] = "Xaha!";
 
                         return r;
                     });
@@ -523,7 +523,7 @@ namespace NetworkIoTestApp {
                         catch (ResponseException exc)
                         {
                             exc.ResponseObject.StatusDescription = "Modified!";
-                            exc.ResponseObject["MyHeader"] = "Super value!";
+                            exc.ResponseObject.Headers["MyHeader"] = "Super value!";
                             exc.UserObject = "My user object!";
                             throw exc;
                         }
@@ -544,8 +544,8 @@ namespace NetworkIoTestApp {
                     {
                         Http.POST("http://localhost:8080/echotest", "Here we go!", null, null, (Response resp, Object userObject) => {
                             // Modifying the response object by injecting some data.
-                            resp["MySuperHeader"] = "Here is my header value!";
-                            resp["Set-Cookie"] = "MySuperCookie=CookieValue;" + resp["Set-Cookie"];
+                            resp.Headers["MySuperHeader"] = "Here is my header value!";
+                            resp.Headers["Set-Cookie"] = "MySuperCookie=CookieValue;" + resp.Headers["Set-Cookie"];
                         }); // "resp" object will be automatically sent when delegate exits.
 
                         return HandlerStatus.Handled;
@@ -595,7 +595,7 @@ namespace NetworkIoTestApp {
 
                         FileStream fs = uploadedFiles[uploadId];
                         fs.Write(bodyBytes, 0, bodyBytes.Length);
-                        if (req["UploadSettings"] == "Final")
+                        if (req.Headers["UploadSettings"] == "Final")
                         {
                             fs.Close();
                             uploadedFiles.Remove(uploadId);
