@@ -112,7 +112,7 @@ namespace Starcounter.VisualStudio.Projects {
                     throw;
                 }
             }
-            this.WriteDebugLaunchStatus("online");
+            this.WriteDebugLaunchStatus("started");
             
             // Pass it on:
             try {
@@ -171,10 +171,10 @@ namespace Starcounter.VisualStudio.Projects {
             // a step back, and either create the database and/or start the engine.
            
             this.debugLaunchDescription = string.Format(
-                "Starting \"{0}\" in database {1}:{2}/{3}.",
+                "{0} -> {1}",
                 Path.GetFileName(debugConfig.AssemblyPath),
-                serverHost, serverPort, databaseName);
-            this.WriteDebugLaunchStatus("Verifying database engine");
+                databaseName);
+            this.WriteDebugLaunchStatus("checking database");
 
             // GET or START the engine
             var startEngine = false;
@@ -203,13 +203,13 @@ namespace Starcounter.VisualStudio.Projects {
                         throw ErrorCode.ToException(Error.SCERRDATABASENOTFOUND,
                             string.Format("Database: {0}. Remove {1} to create automatically.", databaseName, Option.NoAutoCreateDb));
                     }
-                    WriteDebugLaunchStatus("Creating database");
+                    WriteDebugLaunchStatus("creating database");
                     CreateDatabase(node, uris, databaseName);
                 }
             }
 
             if (startEngine) {
-                this.WriteDebugLaunchStatus("Starting engine");
+                this.WriteDebugLaunchStatus("starting database");
                 engineRef = new EngineReference();
                 engineRef.Name = databaseName;
                 engineRef.NoDb = args.ContainsFlag(Option.NoDb);
@@ -235,7 +235,7 @@ namespace Starcounter.VisualStudio.Projects {
 
                 headers = new Dictionary<String, String> { { "ETag", engineETag } };
 
-                this.WriteDebugLaunchStatus("Stopping engine");
+                this.WriteDebugLaunchStatus("restarting database");
                 response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, headers);
                 response.FailIfNotSuccessOr(404, 412);
                 if (response.StatusCode == 412) {
@@ -254,7 +254,7 @@ namespace Starcounter.VisualStudio.Projects {
                             // if we get a better result the second or third, but lets
                             // just don't do that right now.
                             // TODO: Craft a proper error message.
-                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Engine was restarted/modified, and exe still in it. Aborting.");
+                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Database was restarted/modified, and exe still in it. Aborting.");
                         }
                     }
                 }
@@ -267,13 +267,13 @@ namespace Starcounter.VisualStudio.Projects {
 
             bool attachDebugger = (flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0;
             if (attachDebugger) {
-                this.WriteDebugLaunchStatus("Attaching debugger");
+                this.WriteDebugLaunchStatus("attaching debugger");
                 if (!AttachDebugger(engine)) {
                     return false;
                 }
             }
 
-            this.WriteDebugLaunchStatus("Starting executable");
+            this.WriteDebugLaunchStatus("starting application");
             var exe = new Executable();
             exe.Path = debugConfig.AssemblyPath;
             exe.ApplicationFilePath = exe.Path;
