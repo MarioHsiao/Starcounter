@@ -46,6 +46,8 @@
 - Added verification when generating code from JSON-by-example for TypedJSON to make sure all properties only contains valid characters [#3103](https://github.com/Starcounter/Starcounter/issues/3103)
 - Wrapped unhandled exception from a scheduled task inside a starcounter exception to preserve stacktrace [#3032](https://github.com/Starcounter/Starcounter/issues/3032), [#3122](https://github.com/Starcounter/Starcounter/issues/3122), [#3329](https://github.com/Starcounter/Starcounter/issues/3032)
 - Assured weaver.ignore expressions with leading/trailing whitespaces are trimmed, as defined in [#3414](https://github.com/Starcounter/Starcounter/issues/3414)
+- Removed buggy dependency to custom VS output pane "Starcounter" as described in [#3423](https://github.com/Starcounter/Starcounter/issues/3423)
+- Shaped up obsolete status terminology used in VS as reported in [#532](https://github.com/Starcounter/Starcounter/issues/532)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
