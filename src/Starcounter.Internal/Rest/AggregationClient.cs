@@ -852,7 +852,7 @@ namespace Starcounter {
         /// <param name="numFailed">Number of failed responses.</param>
         public void SendStatistics(String testName, Int32 numOk, Int32 numFailed) {
 
-            Send("GET", String.Format("/TestStats/AddStats?TestName={0}&NumOk={1}&NumFailed={2}",
+            Send("GET", String.Format(StatisticsConstants.StatsUriWithParams,
                 testName, numOk, numFailed), null, null, (Response resp) => {
                     // Do nothing.
             });

@@ -128,9 +128,9 @@ namespace Starcounter {
         /// <summary>
         /// Performs HTTP GET.
         /// </summary>
-        public static T GET<T>(String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static T GET<T>(String uri, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
 
-            Response resp = GET(uri, null, receiveTimeoutMs, ho);
+            Response resp = GET(uri, null, receiveTimeoutSeconds, ho);
 
             if (null != resp)
                 return resp.GetContent<T>();
@@ -141,9 +141,9 @@ namespace Starcounter {
         /// <summary>
         /// Performs HTTP GET.
         /// </summary>
-        public static T GET<T>(UInt16 port, String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static T GET<T>(UInt16 port, String uri, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
 
-            Response resp = GET(port, uri, null, receiveTimeoutMs, ho);
+            Response resp = GET(port, uri, null, receiveTimeoutSeconds, ho);
 
             if (null != resp)
                 return resp.GetContent<T>();
@@ -227,7 +227,7 @@ namespace Starcounter {
         public static Response GET(
             String uri,
             Dictionary<String, String> headersDictionary = null,
-            Int32 receiveTimeoutMs = 0,
+            Int32 receiveTimeoutSeconds = 0,
             HandlerOptions ho = null) {
 
             Node node;
@@ -235,7 +235,7 @@ namespace Starcounter {
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            return node.GET(relativeUri, headersDictionary, receiveTimeoutMs, ho);
+            return node.GET(relativeUri, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -245,7 +245,7 @@ namespace Starcounter {
             UInt16 port,
             String uri,
             Dictionary<String, String> headersDictionary = null,
-            Int32 receiveTimeoutMs = 0,
+            Int32 receiveTimeoutSeconds = 0,
             HandlerOptions ho = null) {
 
             Node node;
@@ -253,7 +253,7 @@ namespace Starcounter {
 
             GetNodeFromUri(port, uri, out node, out relativeUri);
 
-            return node.GET(relativeUri, headersDictionary, receiveTimeoutMs, ho);
+            return node.GET(relativeUri, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -264,7 +264,7 @@ namespace Starcounter {
             Dictionary<String, String> headersDictionary,
             Object userObject,
             Action<Response, Object> userDelegate,
-            Int32 receiveTimeoutMs = 0,
+            Int32 receiveTimeoutSeconds = 0,
             HandlerOptions ho = null) {
 
             Node node;
@@ -272,7 +272,7 @@ namespace Starcounter {
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            node.GET(relativeUri, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.GET(relativeUri, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -284,7 +284,7 @@ namespace Starcounter {
             Dictionary<String, String> headersDictionary,
             Object userObject,
             Action<Response, Object> userDelegate,
-            Int32 receiveTimeoutMs = 0,
+            Int32 receiveTimeoutSeconds = 0,
             HandlerOptions ho = null) {
 
             Node node;
@@ -292,271 +292,271 @@ namespace Starcounter {
 
             GetNodeFromUri(port, uri, out node, out relativeUri);
 
-            node.GET(relativeUri, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.GET(relativeUri, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP POST.
         /// </summary>
-        public static void POST(String uri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static void POST(String uri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            node.POST(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.POST(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP POST.
         /// </summary>
-        public static void POST(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static void POST(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            node.POST(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.POST(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP POST.
         /// </summary>
-        public static Response POST(String uri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static Response POST(String uri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            return node.POST(relativeUri, body, headersDictionary, receiveTimeoutMs, ho);
+            return node.POST(relativeUri, body, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP POST.
         /// </summary>
-        public static Response POST(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static Response POST(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            return node.POST(relativeUri, bodyBytes, headersDictionary, receiveTimeoutMs, ho);
+            return node.POST(relativeUri, bodyBytes, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PUT.
         /// </summary>
-        public static void PUT(String uri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static void PUT(String uri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            node.PUT(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.PUT(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PUT.
         /// </summary>
-        public static void PUT(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static void PUT(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            node.PUT(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.PUT(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PUT.
         /// </summary>
-        public static Response PUT(String uri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static Response PUT(String uri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            return node.PUT(relativeUri, body, headersDictionary, receiveTimeoutMs, ho);
+            return node.PUT(relativeUri, body, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PUT.
         /// </summary>
-        public static Response PUT(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static Response PUT(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            return node.PUT(relativeUri, bodyBytes, headersDictionary, receiveTimeoutMs, ho);
+            return node.PUT(relativeUri, bodyBytes, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PATCH.
         /// </summary>
-        public static void PATCH(String uri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static void PATCH(String uri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            node.PATCH(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.PATCH(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PATCH.
         /// </summary>
-        public static void PATCH(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static void PATCH(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            node.PATCH(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.PATCH(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PATCH.
         /// </summary>
-        public static Response PATCH(String uri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static Response PATCH(String uri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            return node.PATCH(relativeUri, body, headersDictionary, receiveTimeoutMs, ho);
+            return node.PATCH(relativeUri, body, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PATCH.
         /// </summary>
-        public static Response PATCH(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static Response PATCH(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            return node.PATCH(relativeUri, bodyBytes, headersDictionary, receiveTimeoutMs, ho);
+            return node.PATCH(relativeUri, bodyBytes, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP DELETE.
         /// </summary>
-        public static void DELETE(String uri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static void DELETE(String uri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            node.DELETE(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.DELETE(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP DELETE.
         /// </summary>
-        public static void DELETE(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static void DELETE(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            node.DELETE(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.DELETE(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP DELETE.
         /// </summary>
-        public static Response DELETE(String uri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static Response DELETE(String uri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            return node.DELETE(relativeUri, body, headersDictionary, receiveTimeoutMs, ho);
+            return node.DELETE(relativeUri, body, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP DELETE.
         /// </summary>
-        public static Response DELETE(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static Response DELETE(String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            return node.DELETE(relativeUri, bodyBytes, headersDictionary, receiveTimeoutMs, ho);
+            return node.DELETE(relativeUri, bodyBytes, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        public static void CustomRESTRequest(String method, String uri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static void CustomRESTRequest(String method, String uri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            node.CustomRESTRequest(method, relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.CustomRESTRequest(method, relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        public static void CustomRESTRequest(String method, String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static void CustomRESTRequest(String method, String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            node.CustomRESTRequest(method, relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.CustomRESTRequest(method, relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP request with given HTTP method.
         /// </summary>
-        public static Response CustomRESTRequest(String method, String uri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static Response CustomRESTRequest(String method, String uri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            return node.CustomRESTRequest(method, relativeUri, body, headersDictionary, receiveTimeoutMs, ho);
+            return node.CustomRESTRequest(method, relativeUri, body, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP request with given HTTP method.
         /// </summary>
-        public static Response CustomRESTRequest(String method, String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static Response CustomRESTRequest(String method, String uri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            return node.CustomRESTRequest(method, relativeUri, bodyBytes, headersDictionary, receiveTimeoutMs, ho);
+            return node.CustomRESTRequest(method, relativeUri, bodyBytes, headersDictionary, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        public static void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, req.Uri, out node, out relativeUri);
 
-            node.CustomRESTRequest(req, userObject, userDelegate, receiveTimeoutMs, ho);
+            node.CustomRESTRequest(req, userObject, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP request with given HTTP method.
         /// </summary>
-        public static Response CustomRESTRequest(Request req, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+        public static Response CustomRESTRequest(Request req, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null) {
             Node node;
             String relativeUri;
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, req.Uri, out node, out relativeUri);
 
-            return node.CustomRESTRequest(req, receiveTimeoutMs, ho);
+            return node.CustomRESTRequest(req, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
