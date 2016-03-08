@@ -460,8 +460,8 @@ namespace QueryProcessingTest {
                 nrIndexes++;
                 nrIndColumns += Db.SQL<Int64>("select count(c) from indexedcolumn c where \"index\" = ?", i).First;
             }
-            Trace.Assert(nrIndexes == 39);
-            Trace.Assert(nrIndColumns == 42);
+            Trace.Assert(nrIndexes == 40);
+            Trace.Assert(nrIndColumns == 43);
             Trace.Assert(nrIndColumns == Db.SlowSQL<Int64>(
                 "select count(*) from indexedcolumn").First);
         }
