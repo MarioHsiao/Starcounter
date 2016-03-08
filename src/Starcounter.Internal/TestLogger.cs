@@ -59,6 +59,19 @@ namespace Starcounter.TestFramework
         }
 
         /// <summary>
+        /// Returns True if its a Release build.
+        /// </summary>
+        static Nullable<Boolean> _isReleaseBuild = null;
+        public static Boolean IsReleaseBuild() {
+            if (_isReleaseBuild != null)
+                return _isReleaseBuild.Value;
+
+            _isReleaseBuild = (String.Compare(Environment.GetEnvironmentVariable("Configuration"), "Release", true) == 0);
+
+            return _isReleaseBuild.Value;
+        }
+
+        /// <summary>
         /// Returns True if its a personal build.
         /// </summary>
         static Nullable<Boolean> _personalBuild = null;
@@ -78,7 +91,23 @@ namespace Starcounter.TestFramework
             _personalBuild = false;
             return false;
         }
-        
+
+        /// <summary>
+        /// Returns the build number.
+        /// </summary>
+        static String _buildNumber = null;
+        public static String GetBuildNumber() {
+            if (_buildNumber != null)
+                return _buildNumber;
+
+            String buildNumber = Environment.GetEnvironmentVariable("BUILD_IS_PERSONAL");
+            if (null == buildNumber) {
+                return "nobuildnum";
+            }
+
+            return _buildNumber;
+        }
+
         /// <summary>
         /// Returns True if the run is on the build server.
         /// </summary>

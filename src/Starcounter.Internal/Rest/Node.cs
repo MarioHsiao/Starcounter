@@ -193,7 +193,7 @@ namespace Starcounter
         public Node(
             String hostName,
             UInt16 portNumber = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
-            Int32 defaultReceiveTimeoutMs = 0)
+            Int32 defaultreceiveTimeoutSeconds = 0)
         {
             if (hostName == null) {
                 hostName = "localhost";
@@ -212,7 +212,7 @@ namespace Starcounter
             portNumber_ = portNumber;
             endpoint_ = hostName + ":" + portNumber;
 
-            DefaultReceiveTimeoutSeconds = defaultReceiveTimeoutMs;
+            DefaultReceiveTimeoutSeconds = defaultreceiveTimeoutSeconds;
 
             syncTaskInfo_ = new NodeTask(this);
             numTasksCreated_ = 1;
@@ -221,231 +221,231 @@ namespace Starcounter
         /// <summary>
         /// Performs asynchronous HTTP GET.
         /// </summary>
-        public void GET(String relativeUri, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void GET(String relativeUri, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("GET", relativeUri, headersDictionary, null, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("GET", relativeUri, headersDictionary, null, userDelegate, userObject, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP GET.
         /// </summary>
-        public Response GET(String relativeUri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response GET(String relativeUri, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("GET", relativeUri, null, null, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("GET", relativeUri, null, null, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP GET.
         /// </summary>
-        public Response GET(String relativeUri, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response GET(String relativeUri, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("GET", relativeUri, headersDictionary, null, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("GET", relativeUri, headersDictionary, null, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP POST.
         /// </summary>
-        public void POST(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void POST(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP POST.
         /// </summary>
-        public void POST(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void POST(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP POST.
         /// </summary>
-        public Response POST(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response POST(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP POST.
         /// </summary>
-        public Response POST(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response POST(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PUT.
         /// </summary>
-        public void PUT(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void PUT(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PUT.
         /// </summary>
-        public void PUT(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void PUT(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PUT.
         /// </summary>
-        public Response PUT(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response PUT(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PUT.
         /// </summary>
-        public Response PUT(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response PUT(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PATCH.
         /// </summary>
-        public void PATCH(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void PATCH(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PATCH.
         /// </summary>
-        public void PATCH(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void PATCH(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PATCH.
         /// </summary>
-        public Response PATCH(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response PATCH(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PATCH.
         /// </summary>
-        public Response PATCH(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response PATCH(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP DELETE.
         /// </summary>
-        public void DELETE(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void DELETE(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP DELETE.
         /// </summary>
-        public void DELETE(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void DELETE(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP DELETE.
         /// </summary>
-        public Response DELETE(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response DELETE(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP DELETE.
         /// </summary>
-        public Response DELETE(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response DELETE(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        public void CustomRESTRequest(String method, String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void CustomRESTRequest(String method, String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        public void CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP request with given HTTP method.
         /// </summary>
-        public Response CustomRESTRequest(String method, String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response CustomRESTRequest(String method, String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP request with given HTTP method.
         /// </summary>
-        public Response CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        public void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             DoRESTRequestAndGetResponse(
                 req.Method,
@@ -454,7 +454,7 @@ namespace Starcounter
                 null,
                 userDelegate,
                 userObject,
-                receiveTimeoutMs,
+                receiveTimeoutSeconds,
                 ho,
                 req);
         }
@@ -462,7 +462,7 @@ namespace Starcounter
         /// <summary>
         /// Performs synchronous HTTP request with given HTTP method.
         /// </summary>
-        public Response CustomRESTRequest(Request req, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response CustomRESTRequest(Request req, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             return DoRESTRequestAndGetResponse(
                 req.Method,
@@ -471,7 +471,7 @@ namespace Starcounter
                 null,
                 null,
                 null,
-                receiveTimeoutMs,
+                receiveTimeoutSeconds,
                 ho,
                 req);
         }

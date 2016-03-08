@@ -5,6 +5,17 @@ using System.Diagnostics;
 namespace Starcounter.Internal
 {
     /// <summary>
+    /// Related to test statistics.
+    /// </summary>
+    public static class StatisticsConstants {
+
+        /// <summary>
+        /// URI on which the statistics should be sent.
+        /// </summary>
+        public const String StatsUriWithParams = "/TestStats/AddStats?TestName={0}&NumOk={1}&NumFailed={2}";
+    }
+
+    /// <summary>
     /// StarcounterConstants
     /// </summary>
     public static class StarcounterConstants

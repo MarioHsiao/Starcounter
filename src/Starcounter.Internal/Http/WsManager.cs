@@ -213,8 +213,8 @@ namespace Starcounter.Internal
                 }
             }
 
-            if (groupName.Length > 32) {
-                throw new Exception("Registering too long group name: " + groupName);
+            if (groupName.Length > 64) {
+                throw new Exception("Registering too long group name: " + groupName + ". Maximum allowed length is 64 characters.");
             }
 
             WsGroupInfo group = FindGroup(port, groupName);
