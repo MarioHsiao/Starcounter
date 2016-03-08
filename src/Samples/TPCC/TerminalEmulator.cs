@@ -8,11 +8,11 @@ namespace tpcc
 {
   public class TerminalEmulator
   {
-    private DeckPerTerminal deck;
+    private IEnumerable<TransactionDefinition> transactions;
 
     public TerminalEmulator(TpccValuesGenerator gen, int w_id, int d_id, int sets_number)
     {
-      deck = new DeckPerTerminal(gen, w_id, d_id, sets_number);
+            transactions = LoadEmulation.CreateDeck(gen, w_id, d_id, sets_number);
     }
 
     public async Task Run(byte scheduler)
@@ -23,8 +23,8 @@ namespace tpcc
       Scheduling.ScheduleTask(() =>
       {
           Starcounter.Internal.StarcounterEnvironment.RunWithinApplication(app_name, () => {
-              foreach (var transaction in deck.trasactions) {
-                  transaction();
+              foreach (var transaction in transactions) {
+                  transaction.self_execute();
               }
           });
       }, true, scheduler);

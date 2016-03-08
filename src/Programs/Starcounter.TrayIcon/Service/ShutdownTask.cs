@@ -12,7 +12,7 @@ namespace Starcounter.Tools.Service.Task {
 
             string uri = string.Format("http://{0}:{1}{2}", service.IPAddress, service.Port, "/api/server");
 
-            Response resonse = Http.DELETE(uri, string.Empty, null, 10000);
+            Response resonse = Http.DELETE(uri, string.Empty, null, 10);
 
             if (!resonse.IsSuccessStatusCode) {
                 throw new Exception(resonse.StatusDescription);
