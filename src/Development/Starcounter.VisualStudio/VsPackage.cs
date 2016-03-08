@@ -87,25 +87,8 @@ namespace Starcounter.VisualStudio {
             this.statusBar = (IVsStatusbar)GetService(typeof(SVsStatusbar));
             this.ErrorList = new StarcounterErrorListProvider(this);
             HWndDispatcher.Initialize();
-            this.StarcounterOutputPane = this.CreateVsOutputPane("Starcounter");
             AppExeProjectConfiguration.Initialize();
             SharedCLI.InitCLIContext(KnownClientContexts.VisualStudio);
-        }
-
-        /// <summary>
-        /// Create or get existing new pane on output window with given title.
-        /// </summary>
-        private IVsOutputWindowPane CreateVsOutputPane(string title) {
-            IVsOutputWindow panes = GetService(typeof(SVsOutputWindow)) as IVsOutputWindow;
-            IVsOutputWindowPane pane;
-            Guid outputPaneGuid = new Guid("E9231567-4247-4B91-A67B-28060E574DC7");
-            // get existing pane:
-            if (panes.GetPane(ref outputPaneGuid, out pane) == VSConstants.S_OK) {
-                return pane;
-            }
-            ErrorHandler.ThrowOnFailure(panes.CreatePane(ref outputPaneGuid, title, 1, 0));
-            ErrorHandler.ThrowOnFailure(panes.GetPane(ref outputPaneGuid, out pane));
-            return pane;
         }
 
         public void Invoke(Action action) {
@@ -138,11 +121,6 @@ namespace Starcounter.VisualStudio {
         }
 
         public IVsTaskList TaskList {
-            get;
-            private set;
-        }
-
-        public IVsOutputWindowPane StarcounterOutputPane {
             get;
             private set;
         }
