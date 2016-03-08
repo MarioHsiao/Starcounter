@@ -98,7 +98,7 @@ namespace Administrator.Server.Managers {
 
             Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
 
-            Response response = Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, 10000);
+            Response response = Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, 10);
 
             if (!response.IsSuccessStatusCode) {
                 StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0002] GetApplications(): StatusCode:" + response.StatusCode);
@@ -195,7 +195,7 @@ namespace Administrator.Server.Managers {
 
             Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
 
-            Response response = Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, 10000);
+            Response response = Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, 10);
 
             if (!response.IsSuccessStatusCode) {
                 StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0004] GetStores(): StatusCode:" + response.StatusCode);
