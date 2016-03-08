@@ -13,11 +13,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Reflection;
 
-namespace Starcounter
-{
-
-    public static partial class Db
-    {
+namespace Starcounter {
+    public static partial class Db {
         /// <summary>
         /// </summary>
         public static DbEnvironment Environment { get; private set; }
@@ -144,7 +141,7 @@ namespace Starcounter
             if (e == 0) return;
             throw ErrorCode.ToException(e);
         }
-
+        
         /// <summary>
         /// Executes the given <paramref name="action"/> within a new transaction.
         /// </summary>
@@ -165,22 +162,360 @@ namespace Starcounter
             Transact(action, 0, forceSnapshot, maxRetries);
         }
 
+        /// <summary>
+        /// Executes the given <paramref name="action"/> within a new transaction.
+        /// </summary>
+        /// <typeparam name="T">The type of the parameter for the action.</typeparam>
+        /// <param name="action">The action to execute.</param>
+        /// <param name="arg">Parameter to use as input to the action.</param>
+        /// <param name="forceSnapshot">
+        /// If set, instructs Starcounter to raise an error if the transaction can't
+        /// be executed within a single snapshot (taken at the time of the transaction
+        /// start). The default is false, allowing the isolation to drop to "read
+        /// committed" in case the transaction for some reason should block or take a
+        /// long time.
+        /// </param>
+        /// <param name="maxRetries">Number of times to retry the execution of the
+        /// transaction if committing it fails because of a conflict with another
+        /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
+        /// to try until the transaction succeeds. Specify 0 to disable retrying.
+        /// </param>
+        public static void Transact<T>(Action<T> action, T arg, bool forceSnapshot = false, int maxRetries = 100) {
+            int retries = 0;
+            uint r;
+            ulong handle;
+            ulong verify;
+            
+            VerifyTransactOptions(forceSnapshot, maxRetries);
+            for (;;) {
+                r = sccoredb.sccoredb_create_transaction_and_set_current(0, 1, out handle, out verify);
+                if (r == 0) {
+                    var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+
+                    try {
+                        action(arg);
+                        TransactionManager.Commit(1, 1);
+                        return;
+                    } catch (Exception ex) {
+                        if (!HandleTransactException(ex, handle, verify, ++retries, maxRetries))
+                            throw;
+                        continue;
+                    } finally {
+                        TransactionManager.SetCurrentTransaction(currentTransaction);
+                    }
+                }
+
+                if (r == Error.SCERRTRANSACTIONLOCKEDONTHREAD) {
+                    try {
+                        action(arg);
+                    } catch {
+                        sccoredb.sccoredb_external_abort();
+                        throw;
+                    }
+                    return;
+                }
+                throw ErrorCode.ToException(r);
+            }
+        }
+        
+        /// <summary>
+        /// Executes the given <paramref name="action"/> within a new transaction.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first parameter of the action.</typeparam>
+        /// <typeparam name="T2">The type of the second parameter of the action.</typeparam>
+        /// <param name="action">The action to execute.</param>
+        /// <param name="arg1">First parameter to use as input to the action.</param>
+        /// <param name="arg2">Second parameter to use as input to the action.</param>
+        /// <param name="forceSnapshot">
+        /// If set, instructs Starcounter to raise an error if the transaction can't
+        /// be executed within a single snapshot (taken at the time of the transaction
+        /// start). The default is false, allowing the isolation to drop to "read
+        /// committed" in case the transaction for some reason should block or take a
+        /// long time.
+        /// </param>
+        /// <param name="maxRetries">Number of times to retry the execution of the
+        /// transaction if committing it fails because of a conflict with another
+        /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
+        /// to try until the transaction succeeds. Specify 0 to disable retrying.
+        /// </param>
+        public static void Transact<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2, bool forceSnapshot = false, int maxRetries = 100) {
+            int retries = 0;
+            uint r;
+            ulong handle;
+            ulong verify;
+
+            VerifyTransactOptions(forceSnapshot, maxRetries);
+            for (;;) {
+                r = sccoredb.sccoredb_create_transaction_and_set_current(0, 1, out handle, out verify);
+                if (r == 0) {
+                    var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+
+                    try {
+                        action(arg1, arg2);
+                        TransactionManager.Commit(1, 1);
+                        return;
+                    } catch (Exception ex) {
+                        if (!HandleTransactException(ex, handle, verify, ++retries, maxRetries))
+                            throw;
+                        continue;
+                    } finally {
+                        TransactionManager.SetCurrentTransaction(currentTransaction);
+                    }
+                }
+
+                if (r == Error.SCERRTRANSACTIONLOCKEDONTHREAD) {
+                    try {
+                        action(arg1, arg2);
+                    } catch {
+                        sccoredb.sccoredb_external_abort();
+                        throw;
+                    }
+                    return;
+                }
+                throw ErrorCode.ToException(r);
+            }
+        }
+
+        /// <summary>
+        /// Executes the given <paramref name="action"/> within a new transaction.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first parameter of the action.</typeparam>
+        /// <typeparam name="T2">The type of the second parameter of the action.</typeparam>
+        /// <typeparam name="T3">The type of the third parameter of the action.</typeparam>
+        /// <param name="action">The action to execute.</param>
+        /// <param name="arg1">First parameter to use as input to the action.</param>
+        /// <param name="arg2">Second parameter to use as input to the action.</param>
+        /// <param name="arg3">Third parameter to use as input to the action.</param>
+        /// <param name="forceSnapshot">
+        /// If set, instructs Starcounter to raise an error if the transaction can't
+        /// be executed within a single snapshot (taken at the time of the transaction
+        /// start). The default is false, allowing the isolation to drop to "read
+        /// committed" in case the transaction for some reason should block or take a
+        /// long time.
+        /// </param>
+        /// <param name="maxRetries">Number of times to retry the execution of the
+        /// transaction if committing it fails because of a conflict with another
+        /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
+        /// to try until the transaction succeeds. Specify 0 to disable retrying.
+        /// </param>
+        public static void Transact<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3, bool forceSnapshot = false, int maxRetries = 100) {
+            int retries = 0;
+            uint r;
+            ulong handle;
+            ulong verify;
+
+            VerifyTransactOptions(forceSnapshot, maxRetries);
+            for (;;) {
+                r = sccoredb.sccoredb_create_transaction_and_set_current(0, 1, out handle, out verify);
+                if (r == 0) {
+                    var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+
+                    try {
+                        action(arg1, arg2, arg3);
+                        TransactionManager.Commit(1, 1);
+                        return;
+                    } catch (Exception ex) {
+                        if (!HandleTransactException(ex, handle, verify, ++retries, maxRetries))
+                            throw;
+                        continue;
+                    } finally {
+                        TransactionManager.SetCurrentTransaction(currentTransaction);
+                    }
+                }
+
+                if (r == Error.SCERRTRANSACTIONLOCKEDONTHREAD) {
+                    try {
+                        action(arg1, arg2, arg3);
+                    } catch {
+                        sccoredb.sccoredb_external_abort();
+                        throw;
+                    }
+                    return;
+                }
+                throw ErrorCode.ToException(r);
+            }
+        }
+
+        /// <summary>
+        /// Executes the given <paramref name="func"/> within a new transaction.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the return value of the func.</typeparam>
+        /// <param name="func">The func to execute.</param>
+        /// <param name="forceSnapshot">
+        /// If set, instructs Starcounter to raise an error if the transaction can't
+        /// be executed within a single snapshot (taken at the time of the transaction
+        /// start). The default is false, allowing the isolation to drop to "read
+        /// committed" in case the transaction for some reason should block or take a
+        /// long time.
+        /// </param>
+        /// <param name="maxRetries">Number of times to retry the execution of the
+        /// transaction if committing it fails because of a conflict with another
+        /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
+        /// to try until the transaction succeeds. Specify 0 to disable retrying.
+        /// </param>
+        /// <returns>The return value of the func.</returns>
+        public static TResult Transact<TResult>(Func<TResult> func, bool forceSnapshot = false, int maxRetries = 100) {
+            int retries = 0;
+            uint r;
+            ulong handle;
+            ulong verify;
+            
+            VerifyTransactOptions(forceSnapshot, maxRetries);
+            for (;;) {
+                r = sccoredb.sccoredb_create_transaction_and_set_current(0, 1, out handle, out verify);
+                if (r == 0) {
+                    var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+
+                    try {
+                        TResult result = func();
+                        TransactionManager.Commit(1, 1);
+                        return result;
+                    } catch (Exception ex) {
+                        if (!HandleTransactException(ex, handle, verify, ++retries, maxRetries))
+                            throw;
+                        continue;
+                    } finally {
+                        TransactionManager.SetCurrentTransaction(currentTransaction);
+                    }
+                }
+
+                if (r == Error.SCERRTRANSACTIONLOCKEDONTHREAD) {
+                    try {
+                        return func();
+                    } catch {
+                        sccoredb.sccoredb_external_abort();
+                        throw;
+                    }
+                }
+                throw ErrorCode.ToException(r);
+            }
+        }
+
+        /// <summary>
+        /// Executes the given <paramref name="func"/> within a new transaction.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the return value of the func.</typeparam>
+        /// <typeparam name="T">The type of the parameter of the func.</typeparam>
+        /// <param name="func">The func to execute.</param>
+        /// <param name="arg">Parameter to use as input to the func</param>
+        /// <param name="forceSnapshot">
+        /// If set, instructs Starcounter to raise an error if the transaction can't
+        /// be executed within a single snapshot (taken at the time of the transaction
+        /// start). The default is false, allowing the isolation to drop to "read
+        /// committed" in case the transaction for some reason should block or take a
+        /// long time.
+        /// </param>
+        /// <param name="maxRetries">Number of times to retry the execution of the
+        /// transaction if committing it fails because of a conflict with another
+        /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
+        /// to try until the transaction succeeds. Specify 0 to disable retrying.
+        /// </param>
+        /// <returns>The return value of the func.</returns>
+        public static TResult Transact<T, TResult>(Func<T, TResult> func, T arg, bool forceSnapshot = false, int maxRetries = 100) {
+            int retries = 0;
+            uint r;
+            ulong handle;
+            ulong verify;
+
+            VerifyTransactOptions(forceSnapshot, maxRetries);
+            for (;;) {
+                r = sccoredb.sccoredb_create_transaction_and_set_current(0, 1, out handle, out verify);
+                if (r == 0) {
+                    var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+
+                    try {
+                        TResult result = func(arg);
+                        TransactionManager.Commit(1, 1);
+                        return result;
+                    } catch (Exception ex) {
+                        if (!HandleTransactException(ex, handle, verify, ++retries, maxRetries))
+                            throw;
+                        continue;
+                    } finally {
+                        TransactionManager.SetCurrentTransaction(currentTransaction);
+                    }
+                }
+
+                if (r == Error.SCERRTRANSACTIONLOCKEDONTHREAD) {
+                    try {
+                        return func(arg);
+                    } catch {
+                        sccoredb.sccoredb_external_abort();
+                        throw;
+                    }
+                }
+                throw ErrorCode.ToException(r);
+            }
+        }
+
+        /// <summary>
+        /// Executes the given <paramref name="func"/> within a new transaction.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the return value of the func.</typeparam>
+        /// <typeparam name="T1">The type of the first parameter of the func.</typeparam>
+        /// <typeparam name="T2">The type of the second parameter of the func.</typeparam>
+        /// <param name="func">The func to execute.</param>
+        /// <param name="arg1">First parameter to use as input to the func</param>
+        /// <param name="arg2">Second parameter to use as input to the func</param>
+        /// <param name="forceSnapshot">
+        /// If set, instructs Starcounter to raise an error if the transaction can't
+        /// be executed within a single snapshot (taken at the time of the transaction
+        /// start). The default is false, allowing the isolation to drop to "read
+        /// committed" in case the transaction for some reason should block or take a
+        /// long time.
+        /// </param>
+        /// <param name="maxRetries">Number of times to retry the execution of the
+        /// transaction if committing it fails because of a conflict with another
+        /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
+        /// to try until the transaction succeeds. Specify 0 to disable retrying.
+        /// </param>
+        /// <returns>The return value of the func.</returns>
+        public static TResult Transact<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2, bool forceSnapshot = false, int maxRetries = 100) {
+            int retries = 0;
+            uint r;
+            ulong handle;
+            ulong verify;
+
+            VerifyTransactOptions(forceSnapshot, maxRetries);
+            for (;;) {
+                r = sccoredb.sccoredb_create_transaction_and_set_current(0, 1, out handle, out verify);
+                if (r == 0) {
+                    var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+
+                    try {
+                        TResult result = func(arg1, arg2);
+                        TransactionManager.Commit(1, 1);
+                        return result;
+                    } catch (Exception ex) {
+                        if (!HandleTransactException(ex, handle, verify, ++retries, maxRetries))
+                            throw;
+                        continue;
+                    } finally {
+                        TransactionManager.SetCurrentTransaction(currentTransaction);
+                    }
+                }
+
+                if (r == Error.SCERRTRANSACTIONLOCKEDONTHREAD) {
+                    try {
+                        return func(arg1, arg2);
+                    } catch {
+                        sccoredb.sccoredb_external_abort();
+                        throw;
+                    }
+                }
+                throw ErrorCode.ToException(r);
+            }
+        }
+        
         internal static void Transact(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100) {
             int retries;
             uint r;
             ulong handle;
             ulong verify;
 
-            if (maxRetries < 0) {
-                throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
-            }
-
-            if (forceSnapshot) {
-                throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Forcing snapshot isolation is not yet implemented.");
-            }
+            VerifyTransactOptions(forceSnapshot, maxRetries);
 
             retries = 0;
-
             for (; ; ) {
                 r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
                 if (r == 0) {
@@ -192,46 +527,56 @@ namespace Starcounter
                         TransactionManager.Commit(1, 1);
                         return;
                     } catch (Exception ex) {
-                        if (
-                            sccoredb.sccoredb_set_current_transaction(1, 0, 0) == 0 &&
-                            sccoredb.sccoredb_free_transaction(handle, verify) == 0
-                            ) {
-                            if (ex is ITransactionConflictException) {
-                                if (++retries <= maxRetries) continue;
-                                throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
-                            }
+                        if (!HandleTransactException(ex, handle, verify, ++retries, maxRetries))
                             throw;
-                        }
-                        HandleFatalErrorInTransactionScope();
+                        continue;
                     } finally {
                         TransactionManager.SetCurrentTransaction(currentTransaction);
                     }
                 }
 
                 if (r == Error.SCERRTRANSACTIONLOCKEDONTHREAD) {
-                    // We already have a transaction locked on thread so we're
-                    // already in a transaction scope (possibly an implicit one if
-                    // for example in the context of a trigger): Just invoke the
-                    // callback and exit.
-
+                    // We already have a transaction locked on thread so we're already in a transaction scope (possibly 
+                    // an implicit one if for example in the context of a trigger): Just invoke the callback and exit.
                     try {
                         action();
                     } catch {
-                        // Operation will fail only if transaction is already
-                        // aborted (in which case we need not abort it).
-
+                        // Operation will fail only if transaction is already aborted (in which case we need not abort it).
                         sccoredb.sccoredb_external_abort();
                         throw;
                     }
                     return;
                 }
-
                 throw ErrorCode.ToException(r);
             }
         }
 
         internal static void SystemTransact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
             Transact(action, sccoredb.MDB_TRANSCREATE_SYSTEM_PRIVILEGES, forceSnapshot, maxRetries);
+        }
+
+        private static void VerifyTransactOptions(bool forceSnapshot, int maxRetries) {
+            if (maxRetries < 0) {
+                throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
+            }
+
+            if (forceSnapshot) {
+                throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Forcing snapshot isolation is not yet implemented.");
+            }
+        }
+
+        private static bool HandleTransactException(Exception ex, ulong handle, ulong verify, int retries, int maxRetries) {
+            if (sccoredb.sccoredb_set_current_transaction(1, 0, 0) == 0 &&
+                sccoredb.sccoredb_free_transaction(handle, verify) == 0) {
+                if (ex is ITransactionConflictException) {
+                    if (retries <= maxRetries)
+                        return true;
+                    throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
+                }
+                return false;
+            }
+            HandleFatalErrorInTransactionScope();
+            return false;
         }
 
         public static void Scope(Action action, bool isReadOnly = false) {
