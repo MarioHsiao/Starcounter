@@ -40,7 +40,7 @@ namespace tpcc.Transactions
       {
         District d = Db.SQL<District>("SELECT d FROM District d WHERE D_W_ID=? AND D_ID=?", input.W_ID, input.D_ID).Single();
 
-        ret.low_stock = Db.SQL<OrderLine>("SELECT ol FROM OrderLine ol WHERE OL_W_ID=? AND OL_D_ID=? ORDER BY OL_W_ID DESC,OL_D_ID DESC,OL_O_ID DESC", input.W_ID, input.D_ID)
+        ret.low_stock = Db.SQL<OrderLine>("SELECT ol FROM OrderLine ol WHERE OL_W_ID=? AND OL_D_ID=? ORDER BY OL_W_ID DESC,OL_D_ID DESC,OL_O_ID DESC,OL_NUMBER DESC", input.W_ID, input.D_ID)
                           .Take(20)
                           .Select(ol => ol.OL_I_ID)
                           .Distinct()
