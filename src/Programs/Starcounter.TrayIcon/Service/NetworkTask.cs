@@ -67,7 +67,7 @@ namespace Starcounter.Tools.Service.Task {
             //    }
             //}
 
-            Response response = Http.GET(url, null, 10000);
+            Response response = Http.GET(url, null, 10);
 
             if (response.IsSuccessStatusCode) {
 

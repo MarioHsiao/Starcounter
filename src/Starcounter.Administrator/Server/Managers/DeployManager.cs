@@ -244,7 +244,7 @@ namespace Administrator.Server.Managers {
 
             // Get package from host
             Dictionary<String, String> headers = new Dictionary<String, String> { { "Accept", "application/octet-stream" } };
-            response = Http.GET(sourceUrl, headers, 30000, opt);
+            response = Http.GET(sourceUrl, headers, 30, opt);
             if (response.IsSuccessStatusCode) {
                 data = response.BodyBytes;
             }
@@ -282,7 +282,7 @@ namespace Administrator.Server.Managers {
                         errorCallback(response.StatusCode, response.Body);
                     }
                 }
-            }, 1000 * 60 * 60, opt);
+            },  3600, opt);
         }
     }
 }

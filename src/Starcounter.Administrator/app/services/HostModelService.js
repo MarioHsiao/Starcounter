@@ -20,6 +20,7 @@ adminModule.service('HostModelService', ['$http', '$q', '$rootScope', '$log', 'S
     this.serverStatus = new Puppet({
         remoteUrl: "/api/servermodel",
         useWebSocket: true,
+        pingInterval: 30,
         ignoreAdd: /./,
         callback: function () {
             $rootScope.$apply();
