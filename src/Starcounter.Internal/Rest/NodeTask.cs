@@ -132,12 +132,12 @@ namespace Starcounter {
         /// <summary>
         /// User delegate.
         /// </summary>
-        Action<Response, Object> userDelegate_ = null;
+        Action<Response> userDelegate_ = null;
 
         /// <summary>
         /// User delegate to call.
         /// </summary>
-        public Action<Response, Object> UserDelegate
+        public Action<Response> UserDelegate
         {
             get
             {
@@ -149,11 +149,6 @@ namespace Starcounter {
         /// Bound scheduler id.
         /// </summary>
         Byte boundSchedulerId_ = 0;
-
-        /// <summary>
-        /// User object.
-        /// </summary>
-        Object userObject_ = null;
 
         /// <summary>
         /// Memory stream.
@@ -186,8 +181,7 @@ namespace Starcounter {
         /// </summary>
         public void ResetButKeepSocket(
             Request req,
-            Action<Response, Object> userDelegate,
-            Object userObject,
+            Action<Response> userDelegate,
             Int32 receiveTimeoutSeconds,
             Byte boundSchedulerId) {
 
@@ -205,7 +199,6 @@ namespace Starcounter {
             }
 
             userDelegate_ = userDelegate;
-            userObject_ = userObject;
 
             receiveTimeoutSeconds_ = receiveTimeoutSeconds;
             connectionTimedOut_ = false;
@@ -283,7 +276,7 @@ namespace Starcounter {
                     memStream_ = null;
 
                     // Invoking user delegate.
-                    nodeInst_.CallUserDelegate(resp_, userDelegate_, userObject_, boundSchedulerId_);
+                    nodeInst_.CallUserDelegate(resp_, userDelegate_, boundSchedulerId_);
 
                     // Freeing connection resources.
                     nodeInst_.FreeConnection(this, false);
@@ -466,7 +459,7 @@ namespace Starcounter {
             }
 
             // Invoking user delegate.
-            nodeInst_.CallUserDelegate(resp_, userDelegate_, userObject_, boundSchedulerId_);
+            nodeInst_.CallUserDelegate(resp_, userDelegate_, boundSchedulerId_);
         }
 
 
@@ -602,7 +595,7 @@ namespace Starcounter {
 
             // Invoking user delegate.
             if (null != userDelegate_) {
-                nodeInst_.CallUserDelegate(resp_, userDelegate_, userObject_, boundSchedulerId_);
+                nodeInst_.CallUserDelegate(resp_, userDelegate_, boundSchedulerId_);
             }
 
             // Freeing connection resources.

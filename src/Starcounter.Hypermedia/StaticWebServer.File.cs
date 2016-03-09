@@ -122,6 +122,7 @@ namespace Starcounter.Internal.Web {
                     contentLength = compressed.Length;
                     payload = compressed;
                     response.ContentEncoding = "gzip";
+                    response.Headers["Vary"] = "Accept-Encoding";
                 } else {
                     //Debug(" (not-worth-compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                 }
@@ -129,10 +130,8 @@ namespace Starcounter.Internal.Web {
 
             if (statusCode != HttpStatusCode.OK) {
                 response.CacheControl = "no-cache";
-            } else if (Configuration.Current.FileServer.DisableAllCaching) {
-                response.CacheControl = "private,max-age=0";
             } else {
-                response.CacheControl = "public,max-age=31536000";
+                response.CacheControl = "public,max-age=0,must-revalidate";
             }
 
             response.ContentLength = contentLength;
@@ -151,7 +150,27 @@ namespace Starcounter.Internal.Web {
                 response.FileName = fileName + fileExtension;
                 response.FileExists = (statusCode != HttpStatusCode.NotFound);
                 if (response.FileExists) {
+
                     response.FileModified = File.GetLastWriteTime(path);
+
+                    String mt = response.FileModified.ToString();
+                    String ims = req.Headers["If-Modified-Since"];
+
+                    response.Headers["Last-Modified"] = mt;
+
+                    // Check if resource is not modified.
+                    if (mt.Equals(ims)) {
+
+                        response = new Response() {
+                            StatusCode = 304,
+                            StatusDescription = "Not Modified"
+                        };
+
+                        response.Headers["Cache-Control"] = "public,max-age=0,must-revalidate";
+                        response.Headers["Last-Modified"] = mt;
+
+                        return response;
+                    }
                 }
 
                 // Creating byte representation of the response.

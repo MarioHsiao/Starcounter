@@ -127,7 +127,7 @@ namespace Starcounter.Server.Commands {
                         if (exe.RunEntrypointAsynchronous) {
 
                             Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
-                                serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
+                                serviceUris.Executables, exe.ToJson(), null, (Response resp) => { });
 
                         } else {
 

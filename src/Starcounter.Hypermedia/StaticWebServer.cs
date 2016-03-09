@@ -125,6 +125,26 @@ namespace Starcounter.Internal.Web {
                         resourceResp = GetFileResource(resourceResp, relativeUri, request);
                     }
                 }
+
+            } else {
+
+                // Checking the cache status.
+                String mt = resourceResp.FileModified.ToString();
+                String ims = request.Headers["If-Modified-Since"];
+
+                // Checking if caching time is the same.
+                if (mt.Equals(ims)) {
+
+                    resourceResp = new Response() {
+                        StatusCode = 304,
+                        StatusDescription = "Not Modified"
+                    };
+
+                    resourceResp.Headers["Cache-Control"] = "public,max-age=0,must-revalidate";
+                    resourceResp.Headers["Last-Modified"] = mt;
+
+                    return resourceResp;
+                }
             }
 
             return resourceResp.CloneStaticResourceResponse();

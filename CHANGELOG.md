@@ -65,7 +65,8 @@
 - Made Handle.AddRequestFilter and Handle.AddResponseFilter obsolete in favor new Application.Use() API. See [#3296](https://github.com/Starcounter/Starcounter/issues/3296)
 - Syntax for getting headers in request and response changed from `r["Headername"]` to `r.Headers["Headername"]`.
 - Changed API for getting all headers string to `r.GetAllHeaders()` for both request and response.
-- In `Http` and `Node` receive timeout parameter has changed from milliseconds to seconds.
+- In `Http` and `Node` receive timeout parameter has changed from milliseconds to seconds (no reasons to have it with milliseconds precision). 
+- In `Http` and `Node` functions the `userObject` parameter is gone. Because of that the `userDelegate` parameter which was previously `Action<Response, Object>` became just `Action<Response>`.
 
 ## [2.1.177] - 2015-10-14
 ### Changed

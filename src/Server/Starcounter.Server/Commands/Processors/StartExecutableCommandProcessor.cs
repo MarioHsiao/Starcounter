@@ -131,7 +131,7 @@ namespace Starcounter.Server.Commands {
                         // Just make the asynchronous call and be done with it
                         // We never check anything more.
                         Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
-                            serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
+                            serviceUris.Executables, exe.ToJson(), null, (Response resp) => { });
 
                     } else {
                         // Make a asynchronous call, where we let the callback
@@ -142,10 +142,10 @@ namespace Starcounter.Server.Commands {
                         Response codeHostResponse = null;
 
                         Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
-                            serviceUris.Executables, exe.ToJson(), null, confirmed, (Response resp, object userObject) => {
-                            var done = (ManualResetEvent)userObject;
+                            serviceUris.Executables, exe.ToJson(), null, (Response resp) => {
+
                             codeHostResponse = resp;
-                            done.Set();
+                            confirmed.Set();
                         });
 
                         var timeout = 500;
