@@ -542,7 +542,7 @@ namespace NetworkIoTestApp {
 
                     Handle.GET("/postponed", (Request req) =>
                     {
-                        Http.POST("http://localhost:8080/echotest", "Here we go!", null, null, (Response resp, Object userObject) => {
+                        Http.POST("http://localhost:8080/echotest", "Here we go!", null, (Response resp) => {
                             // Modifying the response object by injecting some data.
                             resp.Headers["MySuperHeader"] = "Here is my header value!";
                             resp.Headers["Set-Cookie"] = "MySuperCookie=CookieValue;" + resp.Headers["Set-Cookie"];

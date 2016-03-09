@@ -49,7 +49,7 @@ namespace Administrator.Server.Managers {
 
                     Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
 
-                    Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, null, (Response response, Object userObject) => {
+                    Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, (Response response) => {
 
                         try {
 
@@ -160,7 +160,7 @@ namespace Administrator.Server.Managers {
 
                 Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
 
-                Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, null, (Response response, Object userObject) => {
+                Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, (Response response) => {
 
                     if (response.IsSuccessStatusCode) {
                         if (completionCallback != null) {
