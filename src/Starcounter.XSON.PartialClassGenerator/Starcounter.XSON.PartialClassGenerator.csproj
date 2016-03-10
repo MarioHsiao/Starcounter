@@ -72,6 +72,7 @@
     <Compile Include="CodeBehindMetaData\CodeBehindMetadata.cs" />
     <Compile Include="CodeBehindMetaData\InputBindingInfo.cs" />
     <Compile Include="CodeBehindMetaData\CodeBehindClassInfo.cs" />
+    <Compile Include="CodeBehindParser\RoslynCodeBehindParser.cs" />
     <Compile Include="CompilerMono\CodeBehindParser.cs" />
     <Compile Include="CompilerMono\CSharpToken.cs" />
     <Compile Include="CompilerMono\MiniAst\MastBase.cs" />
