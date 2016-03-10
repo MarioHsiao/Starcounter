@@ -10,12 +10,15 @@ using System.IO;
 using System.Text;
 using Mono.CSharp;
 using Starcounter.XSON.Metadata;
+using Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.XSON.Compiler.Mono {
     /// <summary>
     /// Class CodeBehindAnalyzer
     /// </summary>
     public static class CodeBehindParser {
+        public static bool UseRoslynCodeBehindParser = true;
+
         /// <summary>
         /// Parses the specified c# file using Mono.CSharp and builds a metadata
         /// structure used to generate code for json Apps.
@@ -31,6 +34,11 @@ namespace Starcounter.XSON.Compiler.Mono {
            
             if ((codebehind == null) || codebehind.Equals("") ) {
                 return CodeBehindMetadata.Empty;
+            }
+
+            if (UseRoslynCodeBehindParser) {
+                var parser = new RoslynCodeBehindParser(className, codebehind, filePathNote);
+                return parser.ParseToMetadata();
             }
 
             mce = new MonoCSharpEnumerator(codebehind, filePathNote );
