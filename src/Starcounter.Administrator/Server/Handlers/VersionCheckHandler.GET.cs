@@ -45,7 +45,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     Uri serverUri = new Uri("http://downloads.starcounter.com:80/api/versions/" + CurrentVersion.EditionName + "/" + CurrentVersion.ChannelName + "/latest");
 
                     // Retrive the latest available version for a specific edition and version
-                    Response response = Http.GET(serverUri.AbsoluteUri, null, 5000);
+                    Response response = Http.GET(serverUri.AbsoluteUri, null, 5);
 
                     if (!response.IsSuccessStatusCode) {
                         // TODO: Add "Retry-After" header

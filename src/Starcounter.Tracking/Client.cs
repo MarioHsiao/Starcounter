@@ -543,7 +543,7 @@ namespace Starcounter.Tracking {
             // ==================================================================================================
 
             Dictionary<String, String> headers = new Dictionary<String, String> { { "Accept", "application/starcounter.tracker.usage-v2+json" } };
-            node.POST(uri, content, headers, null, (Response respAsync, Object userObject) => {
+            node.POST(uri, content, headers, (Response respAsync) => {
 
                 if (respAsync.IsSuccessStatusCode) {
 

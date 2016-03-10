@@ -85,7 +85,7 @@ namespace NodeTest {
                         Int32 m = n;
 
                         // Doing asynchronous node call.
-                        node.CustomRESTRequest(RequestsToTest[n], null, (Response resp, Object userObject) => {
+                        node.CustomRESTRequest(RequestsToTest[n], (Response resp) => {
 
                             lock (RequestsToTest) {
 
