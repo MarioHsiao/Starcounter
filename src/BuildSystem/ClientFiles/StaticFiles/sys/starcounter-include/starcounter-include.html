@@ -2,92 +2,109 @@
 starcounter-include.html
 MIT license
 https://github.com/Starcounter/starcounter-include
-version: 0.0.9
+version: 0.1.0
 -->
 <link rel="import" href="../imported-template/imported-template.html">
 <script>
-  (function () {
-    var StarcounterIncludePrototype = Object.create(HTMLElement.prototype);
+    (function() {
+        var StarcounterIncludePrototype = Object.create(HTMLElement.prototype);
 
-    StarcounterIncludePrototype.partial = null;
-    StarcounterIncludePrototype.isAttached = false;
+        StarcounterIncludePrototype.partial = null;
 
-    /**
-     * Read the `partial` attribute of given element,
-     * filter if it's not Polymer's mustaches, and set it to `partial` property.
-     * @param  {HTMLElement} element
-     */
-    function partialAttributeToProperty(element){
-      var attrVal = element.getAttribute("partial");
-      // no value, or Polymer binding
-      if(!attrVal || attrVal.match(/\{\{.*\}\}|\[\[.*\]\]/)){
-        return;
-      }
-      element.partial = JSON.parse(attrVal);
-    }
-    /**
-     * Define partial setter, stamp inner `imported-template`
-     */
-    StarcounterIncludePrototype.createdCallback = function () {
-      //d console.log("starcounter-partial created");
-      //this.partial = /*this.partial ||*/ {};
-      var partial = undefined;
-      var starcounterInclude = this;
-      // define a setter for partial attribute,
-      // so it could be change by VanillaJs without Polymer Template Binding
-      Object.defineProperty(this,"partial",{
-        set: function(newValue){
-          //d console.log("partial set");
-          partial = newValue;
-          starcounterInclude.partialChanged(partial);
-        },
-        get: function(){
-          return partial;
+        /**
+         * Read the `partial` attribute of given element,
+         * filter if it's not Polymer's mustaches, and set it to `partial` property.
+         * @param  {HTMLElement} element
+         * @return {undefined | null | object} `undefined` - there is no value set; null - Polymer's mustaches are set, value is to come; object - parsed JSON object
+         */
+        function partialAttributeToProperty(element) {
+            var attrVal = element.getAttribute("partial");
+            if(!attrVal){
+                // no value
+                return undefined;
+            } else if (attrVal.match(/\{\{.*\}\}|\[\[.*\]\]/)) {
+                return null;
+            } else {
+                return JSON.parse(attrVal);
+            }
         }
-      });
+        /**
+         * Define partial setter, stamp inner `imported-template`
+         */
+        StarcounterIncludePrototype.createdCallback = function() {
+            //d console.log("starcounter-partial created");
+            //this.partial = /*this.partial ||*/ {};
+            var partial = partialAttributeToProperty(this);
+            var starcounterInclude = this;
+            // define a setter for partial attribute,
+            // so it could be change by VanillaJs without Polymer Template Binding
+            Object.defineProperty(this, "partial", {
+                set: function(newValue) {
+                    //d console.log("partial set");
+                    partial = newValue;
+                    starcounterInclude.partialChanged(partial);
+                },
+                get: function() {
+                    return partial;
+                }
+            });
 
-      var importedTemplate = document.createElement("template","imported-template");
-      this.template = importedTemplate;
-    };
+            var importedTemplate = document.createElement("template", "imported-template");
+            partial && partial.Html && importedTemplate.setAttribute('content', partial.Html);
+            importedTemplate.model = partial;
+            this.template = importedTemplate;
 
-    StarcounterIncludePrototype.attachedCallback = function () {
-      partialAttributeToProperty(this);
-      this.isAttached = true;
-      //d console.log("starcounter-partial attached");
-      this.partialChanged();
-      this.appendChild(this.template);
-    };
-
-    StarcounterIncludePrototype.detachedCallback = function () {
-      this.isAttached = false;
-      //d console.log("starcounter-partial detached");
-    };
-
-    StarcounterIncludePrototype.attributeChangedCallback = function (name, oldVal, newVal) {
-      if(name === "partial"){
-        partialAttributeToProperty(this);
-        //d console.log("starcounter-partial attr changed");
-      }
-    };
-    /**
-     * Updates inner `imported-template` with partial data given (if applicable)
-     * @param  {Object} newVal new partial value
-     */
-    StarcounterIncludePrototype.partialChanged = function (newVal) {
-      if(this.partial){
-        var html = this.partial.Html;
-        !html && console.warn("partial.Html for", this, "is missing.");
-        if(this.isAttached && html){
-          this.template.setAttribute("content", html);
-          this.template.model = this.partial;
-        }
-      }
-    };
-
-    document.registerElement('starcounter-include', {
-      prototype: StarcounterIncludePrototype
-    });
+            this.appendChild(this.template);
+        };
 
 
-  })();
+        StarcounterIncludePrototype.detachedCallback = function() {
+            //d console.log("starcounter-partial detached");
+        };
+
+        StarcounterIncludePrototype.attributeChangedCallback = function(name, oldVal, newVal) {
+            if (name === "partial") {
+                this.partial = partialAttributeToProperty(this);
+                //d console.log("starcounter-partial attr changed");
+            }
+        };
+        /**
+         * Updates inner `imported-template` with partial data given (if applicable)
+         * @param  {Object} newVal new partial value
+         */
+        StarcounterIncludePrototype.partialChanged = function(newVal) {
+            var html = undefined;
+            if (this.partial) {
+                html = this.partial.Html;
+                !html && console.warn("partial.Html for", this, "is missing.");
+            }
+            if(html === null || html === undefined){
+                this.template.removeAttribute("content");
+            } else {
+                this.template.setAttribute("content", html);
+            }
+
+            this.template.model = this.partial;
+        };
+
+        /**
+         * Forward Polymer notification downwards from `<template is="dom-bind">`
+         * to <template is="imported-template">
+         * @param  {String} path Polymer notification path
+         * @param  {Mixed} value New value
+         */
+        StarcounterIncludePrototype._notifyPath = function(path, value) {
+            if (path.indexOf("partial.") == 0) {
+                if (this.template._notifyPath) {
+                    this.template._notifyPath(path.replace("partial.", "model."), value);
+                }
+            }
+        };
+
+        document.registerElement('starcounter-include', {
+            prototype: StarcounterIncludePrototype
+        });
+
+
+    })();
 </script>

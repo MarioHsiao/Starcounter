@@ -1,6 +1,6 @@
 {
   "name": "imported-template",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "devDependencies": {
     "dom-bind-notifier": "~1.0.0",
     "iron-icon": "PolymerElements/iron-icon#~1.0.4",
@@ -36,15 +36,15 @@
     "wct.conf.json"
   ],
   "dependencies": {
-    "juicy-html": ">=1.0.0"
+    "juicy-html": ">=1.1.0"
   },
-  "_release": "1.2.0",
+  "_release": "1.4.0",
   "_resolution": {
     "type": "version",
-    "tag": "1.2.0",
-    "commit": "8064afebfde648f1a5ff6bf0ad48bc5e420ed136"
+    "tag": "1.4.0",
+    "commit": "e8f041fe9d72845df5862c96904cf2610c052f43"
   },
   "_source": "git://github.com/Juicy/imported-template.git",
-  "_target": "~1.2.0",
+  "_target": ">=1.3.0",
   "_originalSource": "imported-template"
 }
