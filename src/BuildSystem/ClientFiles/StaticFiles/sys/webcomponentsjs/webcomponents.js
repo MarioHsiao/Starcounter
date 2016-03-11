@@ -2166,10 +2166,6 @@ if (WebComponents.flags.shadow) {
     }
     var SelectorsInterface = {
       querySelector: function(selector) {
-	  if(selector.toLowerCase().indexOf("template") > -1) {
-		//debugger;
-		
-		}
         var shimmed = shimSelector(selector);
         var deep = shimmed !== selector;
         selector = shimmed;
@@ -2178,6 +2174,8 @@ if (WebComponents.flags.shadow) {
         var root = getTreeScope(this).root;
         if (root instanceof scope.wrappers.ShadowRoot) {
           return findOne(this, selector);
+        } else if (target instanceof OriginalElement) {
+          wrappedItem = wrap(originalElementQuerySelector.call(target, selector));
         } else if (target instanceof OriginalDocument) {
           wrappedItem = wrap(originalDocumentQuerySelector.call(target, selector));
         } else {
@@ -2193,10 +2191,6 @@ if (WebComponents.flags.shadow) {
         return wrappedItem;
       },
       querySelectorAll: function(selector) {
-	  if(selector.toLowerCase().indexOf("template") > -1) {
-		//debugger;
-		
-		}
         var shimmed = shimSelector(selector);
         var deep = shimmed !== selector;
         selector = shimmed;
@@ -2208,12 +2202,10 @@ if (WebComponents.flags.shadow) {
     var MatchesInterface = {
       matches: function(selector) {
         selector = shimMatchesSelector(selector);
-		
         return scope.originalMatches.call(unsafeUnwrap(this), selector);
       }
     };
     function getElementsByTagNameFiltered(p, index, result, localName, lowercase) {
-	
       var target = unsafeUnwrap(this);
       var list;
       var root = getTreeScope(this).root;
@@ -6045,12 +6037,7 @@ window.HTMLImports.addModule(function(scope) {
       if (scope.flags.debug || scope.flags.bust) {
         url += "?" + Math.random();
       }
-	  
-	  if(url.indexOf("merge") > -1) {
-		 //  url = "/marcin.html";
-		  }
       request.open("GET", url, xhr.async);
-	  
       request.addEventListener("readystatechange", function(e) {
         if (request.readyState === 4) {
           var redirectedUrl = null;
@@ -6062,9 +6049,6 @@ window.HTMLImports.addModule(function(scope) {
           } catch (e) {
             console.error(e.message);
           }
-		  if(url.indexOf("merge") > -1) {
-		     //  debugger;
-		  }
           next.call(nextContext, !xhr.ok(request) && request, request.response || request.responseText, redirectedUrl);
         }
       });
