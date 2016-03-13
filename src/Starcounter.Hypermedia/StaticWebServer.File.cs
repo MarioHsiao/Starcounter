@@ -151,9 +151,10 @@ namespace Starcounter.Internal.Web {
                 response.FileExists = (statusCode != HttpStatusCode.NotFound);
                 if (response.FileExists) {
 
-                    response.FileModified = File.GetLastWriteTime(path);
+                    // Saving modification date in RFC 1123 format.
+                    response.FileModifiedDate = File.GetLastWriteTime(path).ToUniversalTime().ToString("r");
 
-                    String mt = response.FileModified.ToString();
+                    String mt = response.FileModifiedDate;
                     String ims = req.Headers["If-Modified-Since"];
 
                     response.Headers["Last-Modified"] = mt;
