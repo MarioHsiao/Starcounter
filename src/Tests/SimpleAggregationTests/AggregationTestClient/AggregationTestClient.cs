@@ -61,7 +61,7 @@ namespace AggregationTestClient {
             Int32 exitCode = -1;
             try {
                 Console.WriteLine("Starting server side code...");
-                exitCode = Diagnostics.StartProcessAndWaitForExit("star.exe", "..\\..\\..\\AggregationTestServer.cs", 30000);
+                exitCode = Diagnostics.StartProcessAndWaitForExit("star.exe", "..\\..\\..\\AggregationTestServer.cs", 50000);
             } catch (Exception exc) {
                 Console.WriteLine(exc.ToString());
             }
