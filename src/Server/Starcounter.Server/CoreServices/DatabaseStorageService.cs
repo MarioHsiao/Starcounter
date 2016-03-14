@@ -106,9 +106,25 @@ namespace Starcounter.Server {
             return File.Exists(cfg) ? new string[] { cfg } : new string[0];
         }
 
+        private static IEnumerable<string> EnumerateFilesIgnoringNotExistingFolder(string directory, string pattern)
+        {
+            try
+            {
+                return Directory.EnumerateFiles(directory, pattern);
+            }
+            catch(System.IO.DirectoryNotFoundException)
+            {
+                return Enumerable.Empty<string>();
+            }
+        }
+
         internal static string[] GetTransactionLogFiles(string directory, string databaseName) {
             var pattern = string.Format("{0}.????????????.log", databaseName);
-            return Directory.GetFiles(directory, pattern);
+
+            var root_folder_files = Directory.GetFiles(directory, pattern);
+            var archive_subfolder_files = EnumerateFilesIgnoringNotExistingFolder(Path.Combine(directory, "archive"), pattern);
+
+            return root_folder_files.Concat(archive_subfolder_files).ToArray();
         }
 
         internal static IEnumerable<string> GetOptimizedLogFiles(string directory, string databaseName)
@@ -116,7 +132,10 @@ namespace Starcounter.Server {
             var pattern = string.Format("{0}.????????????.optlog", databaseName);
             var tmp_files_pattern = string.Format("{0}.????????????????????????????????????.optlog.tmp", databaseName);
 
-            return Directory.EnumerateFiles(directory, pattern).Concat(Directory.EnumerateFiles(directory, tmp_files_pattern));
+            var root_folder_files = Directory.EnumerateFiles(directory, pattern).Concat(Directory.EnumerateFiles(directory, tmp_files_pattern));
+            var archive_subfolder_files = EnumerateFilesIgnoringNotExistingFolder(Path.Combine(directory, "archive"), pattern);
+
+            return root_folder_files.Concat(archive_subfolder_files);
         }
 
         /// <summary>
