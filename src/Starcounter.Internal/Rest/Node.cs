@@ -221,9 +221,9 @@ namespace Starcounter
         /// <summary>
         /// Performs asynchronous HTTP GET.
         /// </summary>
-        public void GET(String relativeUri, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void GET(String relativeUri, Dictionary<String, String> headersDictionary, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("GET", relativeUri, headersDictionary, null, userDelegate, userObject, receiveTimeoutSeconds, ho);
+            DoRESTRequestAndGetResponse("GET", relativeUri, headersDictionary, null, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace Starcounter
         /// </summary>
         public Response GET(String relativeUri, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("GET", relativeUri, null, null, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse("GET", relativeUri, null, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -239,27 +239,27 @@ namespace Starcounter
         /// </summary>
         public Response GET(String relativeUri, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("GET", relativeUri, headersDictionary, null, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse("GET", relativeUri, headersDictionary, null, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP POST.
         /// </summary>
-        public void POST(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void POST(String relativeUri, String body, Dictionary<String, String> headersDictionary, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
+            DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP POST.
         /// </summary>
-        public void POST(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void POST(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
+            DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace Starcounter
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -279,27 +279,27 @@ namespace Starcounter
         /// </summary>
         public Response POST(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PUT.
         /// </summary>
-        public void PUT(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void PUT(String relativeUri, String body, Dictionary<String, String> headersDictionary, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
+            DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PUT.
         /// </summary>
-        public void PUT(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void PUT(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
+            DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -311,7 +311,7 @@ namespace Starcounter
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -319,27 +319,27 @@ namespace Starcounter
         /// </summary>
         public Response PUT(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PATCH.
         /// </summary>
-        public void PATCH(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void PATCH(String relativeUri, String body, Dictionary<String, String> headersDictionary, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
+            DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PATCH.
         /// </summary>
-        public void PATCH(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void PATCH(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
+            DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -351,7 +351,7 @@ namespace Starcounter
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -359,27 +359,27 @@ namespace Starcounter
         /// </summary>
         public Response PATCH(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP DELETE.
         /// </summary>
-        public void DELETE(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void DELETE(String relativeUri, String body, Dictionary<String, String> headersDictionary, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
+            DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP DELETE.
         /// </summary>
-        public void DELETE(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void DELETE(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
+            DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -391,7 +391,7 @@ namespace Starcounter
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -399,27 +399,27 @@ namespace Starcounter
         /// </summary>
         public Response DELETE(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        public void CustomRESTRequest(String method, String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void CustomRESTRequest(String method, String relativeUri, String body, Dictionary<String, String> headersDictionary, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
+            DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        public void CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutSeconds, ho);
+            DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, userDelegate, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -431,7 +431,7 @@ namespace Starcounter
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
@@ -439,13 +439,13 @@ namespace Starcounter
         /// </summary>
         public Response CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutSeconds, ho);
+            return DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, null, receiveTimeoutSeconds, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        public void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
+        public void CustomRESTRequest(Request req, Action<Response> userDelegate, Int32 receiveTimeoutSeconds = 0, HandlerOptions ho = null)
         {
             DoRESTRequestAndGetResponse(
                 req.Method,
@@ -453,7 +453,6 @@ namespace Starcounter
                 null,
                 null,
                 userDelegate,
-                userObject,
                 receiveTimeoutSeconds,
                 ho,
                 req);
@@ -467,7 +466,6 @@ namespace Starcounter
             return DoRESTRequestAndGetResponse(
                 req.Method,
                 req.Uri,
-                null,
                 null,
                 null,
                 null,
@@ -494,8 +492,7 @@ namespace Starcounter
         /// </summary>
         internal void CallUserDelegate(
             Response resp,
-            Action<Response, Object> userDelegate,
-            Object userObject,
+            Action<Response> userDelegate,
             Byte boundSchedulerId)
         {
             try
@@ -503,11 +500,11 @@ namespace Starcounter
                 // Invoking user delegate either on the same scheduler if inside Starcounter.
                 if (StarcounterEnvironment.IsCodeHosted)
                 {
-                    StarcounterBase._DB.RunAsync(() => { userDelegate.Invoke(resp, userObject); }, boundSchedulerId);
+                    StarcounterBase._DB.RunAsync(() => { userDelegate.Invoke(resp); }, boundSchedulerId);
                 }
                 else
                 {
-                    userDelegate(resp, userObject);
+                    userDelegate(resp);
                 }
             }
             catch (Exception exc)
@@ -525,8 +522,7 @@ namespace Starcounter
         /// </summary>
         void DoAsyncTransfer(
             Request req,
-            Action<Response, Object> userDelegate,
-            Object userObject = null,
+            Action<Response> userDelegate,
             Int32 receiveTimeoutSeconds = 0)
         {
             // Setting the receive timeout.
@@ -564,7 +560,6 @@ namespace Starcounter
             nt.ResetButKeepSocket(
                 req,
                 userDelegate,
-                userObject,
                 receiveTimeoutSeconds,
                 currentSchedulerId);
 
@@ -580,8 +575,7 @@ namespace Starcounter
             String relativeUri,
             Dictionary<String, String> headersDictionary,
             Byte[] bodyBytes,
-            Action<Response, Object> userDelegate,
-            Object userObject,
+            Action<Response> userDelegate,
             Int32 receiveTimeoutSeconds,
             HandlerOptions handlerOptions,
             Request req = null)
@@ -616,7 +610,7 @@ namespace Starcounter
             if (null != userDelegate) {
 
                 // Trying to perform an async request.
-                DoAsyncTransfer(req, userDelegate, userObject, receiveTimeoutSeconds);
+                DoAsyncTransfer(req, userDelegate, receiveTimeoutSeconds);
 
                 return null;
             }
@@ -624,7 +618,7 @@ namespace Starcounter
             lock (finished_async_tasks_) {
 
                 // Initializing connection.
-                syncTaskInfo_.ResetButKeepSocket(req, null, userObject, receiveTimeoutSeconds, 0);
+                syncTaskInfo_.ResetButKeepSocket(req, null, receiveTimeoutSeconds, 0);
 
                 // Doing synchronous request and returning response.
                 return syncTaskInfo_.PerformSyncRequest();
