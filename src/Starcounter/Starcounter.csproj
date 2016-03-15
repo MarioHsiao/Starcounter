@@ -153,6 +153,7 @@
     <Compile Include="Metadata\RuntimeIndex.cs" />
     <Compile Include="Metadata\RuntimeMember.cs" />
     <Compile Include="Metadata\RuntimeView.cs" />
+    <Compile Include="Middleware\HtmlFromJsonProvider.cs" />
     <Compile Include="Middleware\IMiddleware.cs" />
     <Compile Include="Middleware\MimeProvider.cs" />
     <Compile Include="Mock\Db.cs" />
