@@ -1,4 +1,6 @@
-﻿namespace Starcounter {
+﻿using System;
+
+namespace Starcounter {
 
     /// <summary>
     /// Built-in MIME provider that react to conversions of Json resources into
@@ -28,13 +30,22 @@
             byte[] result = null;
 
             if (json != null) {
-                var foo = json["Html"] as string;
-                if (foo != null) {
-                    result = Self.GET<byte[]>(foo);
+                var filePath = json["Html"] as string;
+                if (filePath != null) {
+                    result = ProvideFromFilePath<byte[]>(filePath);
                 }
             }
 
             return result;
-        } 
+        }
+
+        internal static T ProvideFromFilePath<T>(string filePath) {
+            var result = Self.GET<T>(filePath);
+            if (result == null) {
+                throw new ArgumentOutOfRangeException("Can not find referenced Html file: \"" + filePath + "\"");
+            }
+
+            return result;
+        }
     }
 }

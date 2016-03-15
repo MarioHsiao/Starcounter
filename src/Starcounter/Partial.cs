@@ -76,15 +76,10 @@ namespace Starcounter {
             resultingMimeType = mimeType;
 
             if (mimeType == MimeType.Text_Html) {
-                Byte[] byteRepres = Self.GET<Byte[]>(Html);
+                var bytes = HtmlFromJsonProvider.ProvideFromFilePath<byte[]>(Html);
 
-                // Checking if file not found.
-                if (null == byteRepres) {
-                    throw new ArgumentOutOfRangeException("Can not find file in Page->Html property: \"" + Html + "\"");
-                }
-
-                if (IsFullPageHtml(byteRepres)) {
-                    return byteRepres;
+                if (IsFullPageHtml(bytes)) {
+                    return bytes;
                 }
                 else {
                     if (ImplicitStandalonePageBytes == null) {
