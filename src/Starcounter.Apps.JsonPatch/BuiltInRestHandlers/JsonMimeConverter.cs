@@ -4,19 +4,16 @@ using Starcounter.Advanced;
 using Starcounter.XSON;
 
 namespace Starcounter.Internal {
+
     /// <summary>
-    /// 
+    /// Default converter that hook into Starcounter.XSON, overtaking the duty to get a
+    /// byte[] representation when a Json resource object is returned from a handler.
     /// </summary>
     public class JsonMimeConverter : IResponseConverter {
         private JsonPatch jsonPatch = new JsonPatch();
- 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="before"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public byte[] Convert(Request request, object before, MimeType mimeType, out MimeType resultingMimeType) {
+
+        /// <inheritdoc />
+        public byte[] Convert(Request request, IResource before, MimeType mimeType, out MimeType resultingMimeType) {
             Session s;
             byte[] ret = null;
 
