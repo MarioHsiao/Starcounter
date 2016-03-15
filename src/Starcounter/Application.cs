@@ -16,6 +16,7 @@ namespace Starcounter {
     public sealed class Application {
         readonly ICodeHost host;
         readonly ApplicationBase state;
+        readonly Dictionary<MimeType, MimeProvider> mimeProviders = new Dictionary<MimeType, MimeProvider>(2);
         static object monitor = new object();
         static Dictionary<string, Application> indexName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexLoadPath = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
@@ -128,7 +129,14 @@ namespace Starcounter {
             }
         }
 
-
+        /// <summary>
+        /// Gets a dictionary with installed mime providers.
+        /// </summary>
+        internal Dictionary<MimeType, MimeProvider> MimeProviders {
+            get {
+                return mimeProviders;
+            }
+        }
 
         /// <summary>
         /// Gets the current application, running in the current Starcounter
