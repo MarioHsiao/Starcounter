@@ -251,6 +251,16 @@ namespace Starcounter {
             return application;
         }
 
+        /// <summary>
+        /// Gets an application only by consulting its name. Internal version, not
+        /// checking the name for null, and assuming the application is indexed.
+        /// </summary>
+        /// <param name="name">The name of the application</param>
+        /// <returns>The application.</returns>
+        internal static Application GetFastNamedApplication(string name) {
+            return indexName[name];
+        }
+
         /// <inheritdoc />
         public override string ToString() {
             return DisplayName;

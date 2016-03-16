@@ -107,13 +107,11 @@ namespace Starcounter.Internal {
             byte[] result = null;
 
             if (!string.IsNullOrEmpty(appName)) {
-                var app = Application.GetApplication(appName);
-                if (app != null) {
-                    MimeProvider provider;
-                    var found = app.MimeProviders.TryGetValue(mimeType, out provider);
-                    if (found) {
-                        result = provider.InvokeProvider(json);
-                    }
+                var app = Application.GetFastNamedApplication(appName);
+                MimeProvider provider;
+                var found = app.MimeProviders.TryGetValue(mimeType, out provider);
+                if (found) {
+                    result = provider.InvokeProvider(json);
                 }
             }
 
