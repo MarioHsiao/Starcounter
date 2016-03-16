@@ -2,12 +2,7 @@
 using System.Text;
 
 namespace Starcounter {
-    // TODO:
-    // Decide how to handle if HTML is not defined, and incorporate the
-    // Page/Partial error handling when it is found, but reference a file
-    // that is not found.
-    // public bool IgnoreJsonWithoutHtml;
-
+    
     /// <summary>
     /// Built-in MIME provider that react to conversions of Json resources into
     /// HTML by investigating the JSON (view model) for a property referencing a
@@ -63,10 +58,19 @@ namespace Starcounter {
         public bool ProvisionImplicitStandalonePages { get; set; }
 
         /// <summary>
+        /// Gets or sets a value relaxing the provider to ignore any resource that
+        /// does not expose a property referencing HTML. The default is <c>false</c>,
+        /// and in such case, the provider will raise an error on any resource that
+        /// miss a property referencing a HTML view path.
+        /// </summary>
+        public bool IgnoreJsonWithoutHtml { get; set; }
+
+        /// <summary>
         /// Initialize a new <see cref="HtmlFromJsonProvider"/> instance.
         /// </summary>
         public HtmlFromJsonProvider() {
             ProvisionImplicitStandalonePages = false;
+            IgnoreJsonWithoutHtml = false;
         }
 
         void IMiddleware.Register(Application application) {
@@ -79,7 +83,13 @@ namespace Starcounter {
 
             if (json != null) {
                 var filePath = json["Html"] as string;
-                if (filePath != null) {
+                if (filePath == null) {
+                    if (!this.IgnoreJsonWithoutHtml) {
+                        throw ErrorCode.ToException(Error.SCERRINVALIDOPERATION,
+                            string.Format("Json instance {0} missing 'Html' property.", json));
+                    }
+                }
+                else {
                     result = ProvideFromFilePath<byte[]>(filePath);
 
                     if (ProvisionImplicitStandalonePages) {
