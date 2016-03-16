@@ -4,19 +4,16 @@ using Starcounter.Advanced;
 using Starcounter.XSON;
 
 namespace Starcounter.Internal {
+
     /// <summary>
-    /// 
+    /// Default converter that hook into Starcounter.XSON, overtaking the duty to get a
+    /// byte[] representation when a Json resource object is returned from a handler.
     /// </summary>
     public class JsonMimeConverter : IResponseConverter {
         private JsonPatch jsonPatch = new JsonPatch();
- 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="before"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public byte[] Convert(Request request, object before, MimeType mimeType, out MimeType resultingMimeType) {
+
+        /// <inheritdoc />
+        public byte[] Convert(Request request, IResource before, MimeType mimeType, out MimeType resultingMimeType) {
             Session s;
             byte[] ret = null;
 
@@ -68,20 +65,27 @@ namespace Starcounter.Internal {
                     resultingMimeType = MimeType.Unspecified;
                     if (before is Json) {
                         Json obj = (Json)before;
-                        var str = obj.AsMimeType(mimeType);
-                        if (str == null && request != null) {
-                            str = obj.AsMimeType(request.Headers["Accept"]);
-                        }
-                        if (str != null) {
+
+                        ret = TryConvertViaMimeConverter(obj, mimeType);
+                        if (ret != null) {
                             resultingMimeType = mimeType;
-                            ret = Encoding.UTF8.GetBytes(str);
                         } else {
-                            switch (mimeType) {
-                                case MimeType.Text_Plain:
-                                case MimeType.Unspecified:
-                                case MimeType.Text_Html:
-                                    ret = this.Convert(null, before, MimeType.Application_Json, out resultingMimeType);
-                                    break;
+
+                            var str = obj.AsMimeType(mimeType);
+                            if (str == null && request != null) {
+                                str = obj.AsMimeType(request.Headers["Accept"]);
+                            }
+                            if (str != null) {
+                                resultingMimeType = mimeType;
+                                ret = Encoding.UTF8.GetBytes(str);
+                            } else {
+                                switch (mimeType) {
+                                    case MimeType.Text_Plain:
+                                    case MimeType.Unspecified:
+                                    case MimeType.Text_Html:
+                                        ret = this.Convert(null, before, MimeType.Application_Json, out resultingMimeType);
+                                        break;
+                                }
                             }
                         }
                     }
@@ -96,6 +100,22 @@ namespace Starcounter.Internal {
             Profiler.Current.Stop(ProfilerNames.JsonMimeConverter);
 
             return ret;
+        }
+
+        static byte[] TryConvertViaMimeConverter(Json json, MimeType mimeType) {
+            var appName = json._appName;
+            byte[] result = null;
+
+            if (!string.IsNullOrEmpty(appName)) {
+                var app = Application.GetFastNamedApplication(appName);
+                MimeProvider provider;
+                var found = app.MimeProviders.TryGetValue(mimeType, out provider);
+                if (found) {
+                    result = provider.InvokeProvider(json);
+                }
+            }
+
+            return result;
         }
     }
 }
