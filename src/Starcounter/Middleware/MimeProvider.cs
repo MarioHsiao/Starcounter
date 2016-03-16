@@ -22,6 +22,13 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Gets the MIME type of this provider.
+        /// </summary>
+        internal MimeType MimeType {
+            get { return mimeType; }
+        }
+
+        /// <summary>
         /// Creates an <see cref="IMiddleware"/> abstraction representing a mime provider
         /// backed by the given <paramref name="provider"/> delegate.
         /// </summary>
@@ -56,7 +63,7 @@ namespace Starcounter {
         }
 
         void IMiddleware.Register(Application application) {
-            application.MimeProviders[mimeType] = this;
+            application.RegisterMimeProvider(this);
         }
 
         static MimeType TryConvertToSupportedMimeType(string mimeType) {
