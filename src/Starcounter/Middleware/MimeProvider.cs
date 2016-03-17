@@ -47,7 +47,10 @@ namespace Starcounter {
             if (provider == null) {
                 throw new ArgumentNullException("provider");
             }
-            var type = TryConvertToSupportedMimeType(mimeType);
+            var type = MimeTypeHelper.StringToMimeType(mimeType);
+            if (type == MimeType.Unspecified || type == MimeType.Other) {
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, string.Format("Mime providers for type {0} not supported", mimeType));
+            }
 
             return new MimeProvider(type, provider);
         }
@@ -63,6 +66,10 @@ namespace Starcounter {
                 throw new ArgumentNullException("provider");
             }
             return new MimeProvider(MimeType.Text_Html, provider);
+        }
+
+        void IMiddleware.Register(Application application) {
+            application.RegisterMimeProvider(this);
         }
 
         internal static byte[] InvokeInstalledProviders(string application, MimeType type, Request request, IResource resource) {
@@ -82,18 +89,6 @@ namespace Starcounter {
 
         internal byte[] InvokeProvider(IResource resource) {
             return provider.Invoke(resource);
-        }
-
-        void IMiddleware.Register(Application application) {
-            application.RegisterMimeProvider(this);
-        }
-
-        static MimeType TryConvertToSupportedMimeType(string mimeType) {
-            var result = MimeTypeHelper.StringToMimeType(mimeType);
-            if (result == MimeType.Unspecified || result == MimeType.Other) {
-                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, string.Format("Mime providers for type {0} not supported", mimeType));
-            }
-            return result;
         }
     }
 }
