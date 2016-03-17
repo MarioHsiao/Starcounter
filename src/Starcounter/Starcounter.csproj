@@ -156,6 +156,7 @@
     <Compile Include="Middleware\HtmlFromJsonProvider.cs" />
     <Compile Include="Middleware\IMiddleware.cs" />
     <Compile Include="Middleware\MimeProvider.cs" />
+    <Compile Include="Middleware\MimeProviderContext.cs" />
     <Compile Include="Mock\Db.cs" />
     <Compile Include="Mock\DbHelper.cs" />
     <Compile Include="Mock\Enumerator.cs" />
