@@ -66,7 +66,7 @@ namespace Starcounter.Internal {
                     if (before is Json) {
                         Json obj = (Json)before;
 
-                        ret = TryConvertViaMimeProvider(obj, mimeType);
+                        ret = MimeProvider.InvokeInstalledProviders(obj._appName, mimeType, request, obj);
                         if (ret != null) {
                             resultingMimeType = mimeType;
                         } else {
@@ -100,22 +100,6 @@ namespace Starcounter.Internal {
             Profiler.Current.Stop(ProfilerNames.JsonMimeConverter);
 
             return ret;
-        }
-
-        static byte[] TryConvertViaMimeProvider(Json json, MimeType mimeType) {
-            var appName = json._appName;
-            byte[] result = null;
-
-            if (!string.IsNullOrEmpty(appName)) {
-                var app = Application.GetFastNamedApplication(appName);
-                MimeProvider provider;
-                var found = app.MimeProviders.TryGetValue(mimeType, out provider);
-                if (found) {
-                    result = provider.InvokeProvider(json);
-                }
-            }
-
-            return result;
         }
     }
 }

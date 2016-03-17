@@ -65,6 +65,21 @@ namespace Starcounter {
             return new MimeProvider(MimeType.Text_Html, provider);
         }
 
+        internal static byte[] InvokeInstalledProviders(string application, MimeType type, Request request, IResource resource) {
+            byte[] result = null;
+
+            if (!string.IsNullOrEmpty(application)) {
+                var app = Application.GetFastNamedApplication(application);
+                MimeProvider provider;
+                var found = app.MimeProviders.TryGetValue(type, out provider);
+                if (found) {
+                    result = provider.InvokeProvider(resource);
+                }
+            }
+
+            return result;
+        }
+
         internal byte[] InvokeProvider(IResource resource) {
             return provider.Invoke(resource);
         }
