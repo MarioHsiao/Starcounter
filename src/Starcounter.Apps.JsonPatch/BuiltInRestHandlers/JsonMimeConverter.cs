@@ -66,7 +66,7 @@ namespace Starcounter.Internal {
                     if (before is Json) {
                         Json obj = (Json)before;
 
-                        ret = TryConvertViaMimeConverter(obj, mimeType);
+                        ret = TryConvertViaMimeProvider(obj, mimeType);
                         if (ret != null) {
                             resultingMimeType = mimeType;
                         } else {
@@ -102,7 +102,7 @@ namespace Starcounter.Internal {
             return ret;
         }
 
-        static byte[] TryConvertViaMimeConverter(Json json, MimeType mimeType) {
+        static byte[] TryConvertViaMimeProvider(Json json, MimeType mimeType) {
             var appName = json._appName;
             byte[] result = null;
 
