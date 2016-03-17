@@ -3,6 +3,13 @@
 namespace Starcounter {
 
     /// <summary>
+    /// Defines the signature of a MIME providers provision method.
+    /// </summary>
+    /// <param name="context">The context passed to the method.</param>
+    /// <param name="next">The next provider in the chain.</param>
+    public delegate void MimeProvisionDelegate(MimeProviderContext context, Action next);
+
+    /// <summary>
     /// Support custom mime providers to be installed as middleware, affecting the
     /// request pipeline for an application by governing in the convertion from a
     /// resource into a certain MIME representation.
