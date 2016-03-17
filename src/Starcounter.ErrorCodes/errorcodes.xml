@@ -4004,6 +4004,13 @@
         while the limit of the number of indexes had been reached.
       </message>
     </code>
+    <code hex="0030" severity="Error" name="ScErrSetIndexLimitReachedAbort">
+      <message>
+        The transaction was aborted because of an attempt to create a new index
+        while the limit of the number of indexes on the specific set had been
+        reached.
+      </message>
+    </code>
   </facility>
 
 <!--
