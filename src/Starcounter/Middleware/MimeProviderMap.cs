@@ -1,5 +1,4 @@
-﻿
-namespace Starcounter {
+﻿namespace Starcounter {
     /// <summary>
     /// Map of installed MIME providers. Governs thread-safe registration and
     /// lock-free consumption of MIME providers.
@@ -10,6 +9,9 @@ namespace Starcounter {
         readonly RootHandle[] mimeProviders = new RootHandle[MaxMimeProviderSets];
         Node terminator = new Node() { Target = MimeProvider.Terminator };
 
+        // For internal validation / testing
+        int installedProviderSets = 0;
+
         /// <summary>
         /// The representation we keep of any provider once it's installed (i.e
         /// when Use() is invoked).
@@ -17,23 +19,22 @@ namespace Starcounter {
         class Node {
             internal MimeProvisionDelegate Target;
             internal MimeProviderMap.Node Next;
+            internal int Generation;
 
             public void Invoke(MimeProviderContext context) {
                 Target(context, () => {
+                    context.ProvidersInvoked++;
                     Next.Invoke(context);
                 });
-            }
-
-            public Node Clone() {
-                return new Node() { Target = this.Target, Next = this.Next };
             }
         }
 
         class RootHandle {
             internal MimeType Type;
             internal Node Root;
+            internal int Generation;
         }
-
+        
         /// <summary>
         /// Installs the given provisioner as a provider of the specified
         /// MIME type.
@@ -57,26 +58,12 @@ namespace Starcounter {
                     Add(rootHandle);
                 }
                 else {
-                    // Clone the installed list. Add our node last.
-                    var currentRoot = mimeProviders[index].Root;
-                    var newRoot = currentRoot.Clone();
-                    rootHandle.Root = newRoot;
+                    var currentRootHandle = mimeProviders[index];
+                    rootHandle.Generation = currentRootHandle.Generation + 1;
+                    node.Generation = rootHandle.Generation;
 
-                    var current = currentRoot;
-                    var ptr = newRoot;
-                    while (current.Target != terminator.Target) {
-                        ptr.Next = current.Clone();
-
-                        current = current.Next;
-                        ptr = ptr.Next;
-                    }
-
-                    // We've reached the final node: it points to the terminator.
-                    // Replace it with the new node we have produced.
-                    ptr.Next = node;
-
-                    // Finally, install the root handle at the allocated
-                    // MIME type index.
+                    var tail = CloneRecursive(currentRootHandle.Root, rootHandle);
+                    tail.Next = node;
                     mimeProviders[index] = rootHandle;
                 }
             }
@@ -91,7 +78,51 @@ namespace Starcounter {
             return providers.InvokeAll(type, request, resource);
         }
 
+        void Assert(bool b) {
+            if (!b) throw new System.Exception();
+        }
+
+        internal void Test() {
+            bool firstNullFound = false;
+
+            for (int i = 0; i < MaxMimeProviderSets; i++) {
+                var rh = mimeProviders[i];
+
+                if (rh != null) {
+                    Assert(!firstNullFound);
+                    Assert(i < installedProviderSets);
+                }
+                else {
+                    firstNullFound = true;
+                    Assert(i >= installedProviderSets);
+                }
+            }
+
+            for (int i = 0; i < MaxMimeProviderSets; i++) {
+                var rh = mimeProviders[i];
+                if (rh == null) {
+                    break;
+                }
+
+                Assert(rh.Root != null);
+                var node = rh.Root;
+                while (node != null) {
+                    if (node != terminator) {
+                        Assert(node.Generation == rh.Generation);
+                    }
+                    else {
+                        Assert(node.Next == null);
+                    }
+
+                    Assert(node.Target != null);
+                    node = node.Next;
+                }
+            }
+        }
+
         byte[] InvokeAll(MimeType type, Request request, IResource resource) {
+            Test();
+
             var index = IndexOf(type);
             if (index == -1) {
                 return null;
@@ -99,9 +130,28 @@ namespace Starcounter {
 
             var context = new MimeProviderContext(request, resource);
             var rootHandle = mimeProviders[index];
+
             rootHandle.Root.Invoke(context);
 
             return context.Result;
+        }
+
+        Node CloneRecursive(Node node, RootHandle rh, Node prevClone = null) {
+            var clone = new Node() { Target = node.Target };
+            clone.Generation = rh.Generation;
+
+            var result = clone;
+            if (rh.Root == null) {
+                rh.Root = clone;
+            }
+            if (prevClone != null) {
+                prevClone.Next = clone;
+            }
+            if (node.Next != terminator) {
+                result = CloneRecursive(node.Next, rh, clone);
+            }
+
+            return result;
         }
 
         int IndexOf(MimeType type) {
@@ -132,6 +182,7 @@ namespace Starcounter {
                     string.Format("Too many variants of providers: we currently support only {0} MIME types", MaxMimeProviderSets));
             }
 
+            installedProviderSets++;
             mimeProviders[emptySlot] = rootHandle;
         }
     }
