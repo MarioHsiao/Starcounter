@@ -77,8 +77,8 @@ namespace Starcounter {
             application.Use(MimeProvider.Html(this.Invoke));
         }
 
-        byte[] Invoke(IResource resource) {
-            var json = resource as Json;
+        void Invoke(MimeProviderContext context, Action next) {
+            var json = context.Resource as Json;
             byte[] result = null;
 
             if (json != null) {
@@ -92,6 +92,8 @@ namespace Starcounter {
                 else {
                     result = ProvideFromFilePath<byte[]>(filePath);
 
+                    // Move this to separate provider.
+                    // TODO:
                     if (ProvisionImplicitStandalonePages) {
                         if (!IsFullPageHtml(result)) {
                             result = ProvideImplicitStandalonePage(result, json._appName);
@@ -100,7 +102,11 @@ namespace Starcounter {
                 }
             }
 
-            return result;
+            if (result != null) {
+                context.Result = result;
+            }
+
+            next();
         }
 
         internal static T ProvideFromFilePath<T>(string filePath) {

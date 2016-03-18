@@ -16,12 +16,12 @@ namespace Starcounter {
     public sealed class Application {
         readonly ICodeHost host;
         readonly ApplicationBase state;
-        object mimeProviderLock = new object();
-        Dictionary<MimeType, MimeProvider> mimeProviders = new Dictionary<MimeType, MimeProvider>();
         static object monitor = new object();
         static Dictionary<string, Application> indexName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexLoadPath = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexFileName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
+
+        internal readonly MimeProviderMap MimeProviders = new MimeProviderMap();
 
         internal static Application CurrentAssigned {
             get {
@@ -127,15 +127,6 @@ namespace Starcounter {
         internal string HostedFilePath {
             get {
                 return state.HostedFilePath;
-            }
-        }
-
-        /// <summary>
-        /// Gets a dictionary with installed mime providers.
-        /// </summary>
-        internal Dictionary<MimeType, MimeProvider> MimeProviders {
-            get {
-                return mimeProviders;
             }
         }
 
@@ -300,25 +291,6 @@ namespace Starcounter {
                 } else {
                     indexFileName.Add(fileName, application);
                 }
-            }
-        }
-
-        internal void RegisterMimeProvider(MimeProvider provider) {
-            lock (mimeProviderLock) {
-                // We use a strategy where we copy the original dictionary and
-                // expand an isolated copy before assigning that as the new one,
-                // to allow lock-free reads.
-                var count = mimeProviders.Count + 1;
-                if (mimeProviders.ContainsKey(provider.MimeType)) {
-                    count--;
-                }
-
-                var replacement = new Dictionary<MimeType, MimeProvider>(count);
-                foreach (var item in mimeProviders) {
-                    replacement[item.Key] = item.Value;
-                }
-                replacement[provider.MimeType] = provider;
-                mimeProviders = replacement;
             }
         }
 

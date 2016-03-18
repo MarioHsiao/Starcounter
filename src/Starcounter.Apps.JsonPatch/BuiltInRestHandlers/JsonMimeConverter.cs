@@ -66,7 +66,7 @@ namespace Starcounter.Internal {
                     if (before is Json) {
                         Json obj = (Json)before;
 
-                        ret = MimeProvider.InvokeInstalledProviders(obj._appName, mimeType, request, obj);
+                        ret = MimeProviderMap.Invoke(obj._appName, mimeType, request, obj);
                         if (ret != null) {
                             resultingMimeType = mimeType;
                         } else {

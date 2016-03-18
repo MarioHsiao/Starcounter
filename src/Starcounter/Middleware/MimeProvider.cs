@@ -21,13 +21,13 @@ namespace Starcounter {
     /// </remarks>
     public class MimeProvider : IMiddleware {
         readonly MimeType mimeType;
-        readonly Func<IResource, byte[]> provider;
+        readonly MimeProvisionDelegate provisioner;
 
-        private MimeProvider(MimeType type, Func<IResource, byte[]> provider) {
+        private MimeProvider(MimeType type, MimeProvisionDelegate provisioner) {
             this.mimeType = type;
-            this.provider = provider;
+            this.provisioner = provisioner;
         }
-
+        
         /// <summary>
         /// Gets the MIME type of this provider.
         /// </summary>
@@ -40,55 +40,42 @@ namespace Starcounter {
         /// backed by the given <paramref name="provider"/> delegate.
         /// </summary>
         /// <param name="mimeType">The MIME type this provider shall handle.</param>
-        /// <param name="provider">The providing method.</param>
+        /// <param name="provisioner">The provisioner method.</param>
         /// <returns>An instance of the provider that can be installed as middleware.
         /// </returns>
-        public static IMiddleware For(string mimeType, Func<IResource, byte[]> provider) {
-            if (provider == null) {
-                throw new ArgumentNullException("provider");
+        public static IMiddleware For(string mimeType, MimeProvisionDelegate provisioner) {
+            if (provisioner == null) {
+                throw new ArgumentNullException("provisioner");
             }
             var type = MimeTypeHelper.StringToMimeType(mimeType);
             if (type == MimeType.Unspecified || type == MimeType.Other) {
                 throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, string.Format("Mime providers for type {0} not supported", mimeType));
             }
 
-            return new MimeProvider(type, provider);
+            return new MimeProvider(type, provisioner);
         }
 
         /// <summary>
         /// Provide a simple way to create a MIME type provider for "text/html".
         /// </summary>
-        /// <param name="provider">The providing method.</param>
+        /// <param name="provisioner">The provisioner method.</param>
         /// <returns>An instance of the provider that can be installed as middleware.
         /// </returns>
-        public static IMiddleware Html(Func<IResource, byte[]> provider) {
-            if (provider == null) {
-                throw new ArgumentNullException("provider");
+        public static IMiddleware Html(MimeProvisionDelegate provisioner) {
+            if (provisioner == null) {
+                throw new ArgumentNullException("provisioner");
             }
-            return new MimeProvider(MimeType.Text_Html, provider);
+            return new MimeProvider(MimeType.Text_Html, provisioner);
         }
 
         void IMiddleware.Register(Application application) {
-            application.RegisterMimeProvider(this);
+            application.MimeProviders.Install(this.mimeType, this.provisioner);
         }
 
-        internal static byte[] InvokeInstalledProviders(string application, MimeType type, Request request, IResource resource) {
-            byte[] result = null;
-
-            if (!string.IsNullOrEmpty(application)) {
-                var app = Application.GetFastNamedApplication(application);
-                MimeProvider provider;
-                var found = app.MimeProviders.TryGetValue(type, out provider);
-                if (found) {
-                    result = provider.InvokeProvider(resource);
-                }
-            }
-
-            return result;
-        }
-
-        internal byte[] InvokeProvider(IResource resource) {
-            return provider.Invoke(resource);
+        internal static void Terminator(MimeProviderContext context, Action next) {
+            // Lets keep a terminator, and see if we can use that at
+            // some point in the future.
+            // Make sure never to invoke next() here.
         }
     }
 }
