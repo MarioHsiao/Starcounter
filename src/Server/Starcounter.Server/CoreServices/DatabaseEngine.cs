@@ -607,8 +607,7 @@ namespace Starcounter.Server {
 
         string GetDatabaseControlEventName(Database database) {
             string processControlEventName = string.Concat(
-                ScDataEvents.SC_S2MM_CONTROL_EVENT_NAME_BASE,
-                database.Name.ToUpperInvariant()
+                ScDataEvents.SC_S2MM_CONTROL_EVENT_NAME_BASE, database.InstanceID
                 );
             return processControlEventName;
         }
