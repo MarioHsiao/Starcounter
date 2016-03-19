@@ -57,25 +57,20 @@ namespace AggregationTestClient {
 
         static Int32 Main(string[] args) {
 
-            // Starting server side application.
-            Int32 exitCode = -1;
-            try {
-                Console.WriteLine("Starting server side code...");
-                exitCode = Diagnostics.StartProcessAndWaitForExit("star.exe", "..\\..\\..\\AggregationTestServer.cs", 50000);
-            } catch (Exception exc) {
-                Console.WriteLine(exc.ToString());
+            String ServerAddress = "localhost";
+
+            for (Int32 i = 0; i < args.Length; i++) {
+                if (args[i].StartsWith("--ServerAddress="))
+                    ServerAddress = args[i].Substring("--ServerAddress=".Length);
+                else
+                    throw new Exception("Wrong argument supplied: " + args[i]);
             }
 
-            if (exitCode != 0) {
-                Console.WriteLine("Can't properly start test server side code.");
-                return 1;
-            }
+            DoAggregatedGet("AggregatedSimpleCodehostEchoTest", ServerAddress, 8080, 9191, "/test", 1000000);
 
-            DoAggregatedGet("AggregatedSimpleCodehostEchoTest", "localhost", 8080, 9191, "/test", 1000000);
+            DoAggregatedGet("AggregatedSimpleGatewayEchoTest", ServerAddress, 8181, 9191, "/gw/test", 1000000);
 
-            DoAggregatedGet("AggregatedSimpleGatewayEchoTest", "localhost", 8181, 9191, "/gw/test", 1000000);
-
-            DoAggregatedGet("AggregatedSimpleCodehostEchoTest", "localhost", 8181, 9191, "/test", 1000000);
+            DoAggregatedGet("AggregatedSimpleCodehostEchoTest", ServerAddress, 8181, 9191, "/test", 1000000);
 
             return 0;
         }
