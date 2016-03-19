@@ -576,7 +576,7 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 	if (r) goto log_winerr;
 
     // Waiting for gateway process to initialize.
-    int32_t num_retries = 100;
+    int32_t num_retries = 300;
     for (; num_retries > 0; num_retries--) {
 
         // Try to open a mutex named "scnetworkgateway_is_ready_lock", and acquire the lock.
