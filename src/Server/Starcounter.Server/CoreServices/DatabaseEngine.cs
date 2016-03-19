@@ -44,11 +44,13 @@ namespace Starcounter.Server {
 
             [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
             internal static extern Int32 CloseHandle(IntPtr hObject);
+
+            [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
+            internal static extern int WaitNamedPipe(string lpNamedPipeName, int nTimeOut);
         }
 
         static class ScDataEvents {
             public const string SC_S2MM_CONTROL_EVENT_NAME_BASE = "SCDATA_EXE_";
-            public const string SC_S2MM_PMONLINE_EVENT_NAME_BASE = "SC_S2MM_PMONLINE_";
         }
 
         public static class ScCodeEvents {
@@ -150,37 +152,50 @@ namespace Starcounter.Server {
             }
 
             if (!databaseRunning) {
-                eventName = GetDatabaseOnlineEventName(database);
-                using (eventHandle = new EventWaitHandle(false, EventResetMode.ManualReset, eventName)) {
-                    int timeout = 500;
-                    int tries = 10;
-                    bool operational = false;
+                var startInfo = GetDatabaseStartInfo(database);
+                var process = DoStartEngineProcess(startInfo, database);
 
-                    var startInfo = GetDatabaseStartInfo(database);
-                    var process = DoStartEngineProcess(startInfo, database);
+                // Wait until DM accepts connections before proceeding to make sure that code host
+                // doesn't fail to connect later on because DM isn't available.
+                //
+                // By this time DM will have made sure that there is no duplicate instances and that
+                // no other instance is accessing the specific database (thus also confirming that
+                // the database exists). Database will not have been loaded into memory however.
+                // This is done in parallel to starting up the code host.
 
-                    for (int i = 0; i < tries; i++) {
-                        operational = eventHandle.WaitOne(timeout);
-                        if (operational) break;
+                var pipeName = GetDatabaseIpcPipeName(database);
+                const int interval = 50;
+                const int tries = 100;
+                bool operational = false;
 
-                        process.Refresh();
-                        if (process.HasExited) {
-                            throw CreateDatabaseTerminated(process, database);
-                        }
+                for (int i = 0; i < tries; i++) {
+                    // Fails immediatly if no pipe with the specific name. Waits forever if there is
+                    // a pipe with the specific name but it is not ready to receive a connection.
+
+                    operational = Win32.WaitNamedPipe(pipeName, -1) != 0;
+                    if (operational) break;
+
+                    // Pipe does not exist.
+
+                    process.Refresh();
+                    if (process.HasExited) {
+                        throw CreateDatabaseTerminated(process, database);
                     }
-                    
-                    if (!operational) {
-                        // The process didn't signal in time. Our current strategy
-                        // is to log a warning about this and consider the process
-                        // operational. If it's not, outer code will notice.
-                        ServerLogSources.Default.LogWarning(
-                            ErrorCode.ToMessage(Error.SCERRDBPROCNOTSIGNALING,
-                            string.Format("{0}. Start time: {1}; time spent waiting: {2}.",
-                            FormatDatabaseEngineProcessInfoString(database, process, false),
-                            process.StartTime,
-                            TimeSpan.FromMilliseconds(timeout * tries)))
-                            );
-                    }
+
+                    Thread.Sleep(interval);
+                }
+
+                if (!operational) {
+                    // The process didn't signal in time. Our current strategy
+                    // is to log a warning about this and consider the process
+                    // operational. If it's not, outer code will notice.
+                    ServerLogSources.Default.LogWarning(
+                        ErrorCode.ToMessage(Error.SCERRDBPROCNOTSIGNALING,
+                        string.Format("{0}. Start time: {1}; time spent waiting: {2}.",
+                        FormatDatabaseEngineProcessInfoString(database, process, false),
+                        process.StartTime,
+                        TimeSpan.FromMilliseconds(interval * tries)))
+                        );
                 }
             }
 
@@ -612,12 +627,12 @@ namespace Starcounter.Server {
             return processControlEventName;
         }
 
-        string GetDatabaseOnlineEventName(Database database) {
-            string processControlEventName = string.Concat(
-                ScDataEvents.SC_S2MM_PMONLINE_EVENT_NAME_BASE,
-                database.Name.ToUpperInvariant()
-                );
-            return processControlEventName;
+        string GetDatabaseIpcPipeName(Database database) {
+            const string pipeKeyPrefix = "STAR_P_";
+            const int ipcKeyBase = 0x53000000;
+            int pipeKey = ipcKeyBase + ((int)database.InstanceID << 16);
+            string pipeName = string.Format("\\\\.\\pipe\\{0}{1:X}", pipeKeyPrefix, pipeKey);
+            return pipeName;
         }
 
         internal static string FormatDatabaseEngineProcessInfoString(Database database, Process process, bool checkExited = false) {
