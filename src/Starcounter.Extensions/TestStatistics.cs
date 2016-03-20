@@ -62,7 +62,7 @@ namespace Starcounter.Extensions {
         /// <summary>
         /// Minimum time between two file writes.
         /// </summary>
-        const Int32 MinStatsWriteIntervalSeconds = 5;
+        const Int32 MinStatsWriteIntervalSeconds = 2;
 
         /// <summary>
         /// Saving current statistics to file.
