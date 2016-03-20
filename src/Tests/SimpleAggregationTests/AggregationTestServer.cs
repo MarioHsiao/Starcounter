@@ -17,6 +17,8 @@ class AggregationTestServer {
 
 	static void Main(String[] args)
 	{
+		Starcounter.Extensions.TestStatistics.EnableTestStatistics();
+	
 		Handle.GET("/test", () => {
 			return 200;
 		});
