@@ -102,7 +102,7 @@ namespace Starcounter.TestFramework
             if (_buildNumber != null)
                 return _buildNumber;
 
-            String buildNumber = Environment.GetEnvironmentVariable("BUILD_IS_PERSONAL");
+            String buildNumber = Environment.GetEnvironmentVariable("BUILD_NUMBER");
             if (null == buildNumber) {
                 return "nobuildnum";
             }
