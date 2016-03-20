@@ -17,4 +17,4 @@ HttpStreams_test.exe 900
 3LevelSchemaChange_test.bat 120
 umbrella_node_test.bat 240
 star_loop_test.bat 100
-SimpleAggregationRemote_test.bat 100
+SimpleAggregationRemote_test.bat 200
