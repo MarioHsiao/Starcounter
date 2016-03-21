@@ -62,7 +62,7 @@ namespace Starcounter {
                 var json = context.Resource as Json;
                 if (json != null) {
                     if (!IsFullPageHtml(content)) {
-                        content = ProvideImplicitStandalonePage(content, json._appName);
+                        content = ProvideImplicitStandalonePage(content, context.Request.HandlerAppName);
                         context.Result = content;
                     }
                 }
