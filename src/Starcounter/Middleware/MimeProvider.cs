@@ -37,7 +37,7 @@ namespace Starcounter {
 
         /// <summary>
         /// Creates an <see cref="IMiddleware"/> abstraction representing a mime provider
-        /// backed by the given <paramref name="provider"/> delegate.
+        /// backed by the given <paramref name="provisioner"/> delegate.
         /// </summary>
         /// <param name="mimeType">The MIME type this provider shall handle.</param>
         /// <param name="provisioner">The provisioner method.</param>
