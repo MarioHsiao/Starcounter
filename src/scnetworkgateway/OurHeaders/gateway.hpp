@@ -1789,7 +1789,12 @@ public:
     // Unique linear socket id.
     random_salt_type get_unique_socket_id()
     {
-        return InterlockedIncrement64(&unique_socket_id_);
+		// Checking if we exceeded maximum allowed value.
+		if (unique_socket_id_ >= MixedCodeConstants::MAX_UNIQUE_SOCKET_ID) {
+			unique_socket_id_ = 0;
+		}
+
+		return InterlockedIncrement64(&unique_socket_id_);
     }
 
     // Checks that all Gateway threads are alive.

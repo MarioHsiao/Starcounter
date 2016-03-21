@@ -227,7 +227,7 @@ namespace Starcounter {
             Byte* chunkMem;
 
             // Checking if we still have the data stream with original chunk available.
-            if (dataStream_ == null || dataStream_.IsDestroyed()) {
+            if ((dataStream_ == null) || (dataStream_.IsDestroyed())) {
 
                 UInt32 errCode = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
 
@@ -241,7 +241,10 @@ namespace Starcounter {
                     }
                 }
 
-                dataStream = new NetworkDataStream(chunkIndex, socketStruct_.GatewayWorkerId);
+                dataStream = new NetworkDataStream(
+                    chunkIndex, 
+                    socketStruct_.GatewayWorkerId, 
+                    socketStruct_.SchedulerId);
 
             } else {
 
