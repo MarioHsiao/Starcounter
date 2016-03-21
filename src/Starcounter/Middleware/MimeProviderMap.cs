@@ -78,51 +78,45 @@
             return providers.InvokeAll(type, request, resource);
         }
 
-        void Assert(bool b) {
-            if (!b) throw new System.Exception();
-        }
+        //internal void TestPrivateStructures() {
+        //    bool firstNullFound = false;
 
-        internal void Test() {
-            bool firstNullFound = false;
+        //    for (int i = 0; i < MaxMimeProviderSets; i++) {
+        //        var rh = mimeProviders[i];
 
-            for (int i = 0; i < MaxMimeProviderSets; i++) {
-                var rh = mimeProviders[i];
+        //        if (rh != null) {
+        //            Assert(!firstNullFound);
+        //            Assert(i < installedProviderSets);
+        //        }
+        //        else {
+        //            firstNullFound = true;
+        //            Assert(i >= installedProviderSets);
+        //        }
+        //    }
 
-                if (rh != null) {
-                    Assert(!firstNullFound);
-                    Assert(i < installedProviderSets);
-                }
-                else {
-                    firstNullFound = true;
-                    Assert(i >= installedProviderSets);
-                }
-            }
+        //    for (int i = 0; i < MaxMimeProviderSets; i++) {
+        //        var rh = mimeProviders[i];
+        //        if (rh == null) {
+        //            break;
+        //        }
 
-            for (int i = 0; i < MaxMimeProviderSets; i++) {
-                var rh = mimeProviders[i];
-                if (rh == null) {
-                    break;
-                }
+        //        Assert(rh.Root != null);
+        //        var node = rh.Root;
+        //        while (node != null) {
+        //            if (node != terminator) {
+        //                Assert(node.Generation == rh.Generation);
+        //            }
+        //            else {
+        //                Assert(node.Next == null);
+        //            }
 
-                Assert(rh.Root != null);
-                var node = rh.Root;
-                while (node != null) {
-                    if (node != terminator) {
-                        Assert(node.Generation == rh.Generation);
-                    }
-                    else {
-                        Assert(node.Next == null);
-                    }
-
-                    Assert(node.Target != null);
-                    node = node.Next;
-                }
-            }
-        }
+        //            Assert(node.Target != null);
+        //            node = node.Next;
+        //        }
+        //    }
+        //}
 
         byte[] InvokeAll(MimeType type, Request request, IResource resource) {
-            Test();
-
             var index = IndexOf(type);
             if (index == -1) {
                 return null;
