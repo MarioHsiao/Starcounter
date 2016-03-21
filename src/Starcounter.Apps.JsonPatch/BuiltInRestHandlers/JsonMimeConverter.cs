@@ -66,7 +66,9 @@ namespace Starcounter.Internal {
                     if (before is Json) {
                         Json obj = (Json)before;
 
-                        ret = TryConvertViaMimeConverter(obj, mimeType);
+                        // We must guard for the request being null, even though
+                        // I don't really understand why. See below comment.
+                        ret = request == null ? null : MimeProviderMap.Invoke(request.HandlerAppName, mimeType, request, obj);
                         if (ret != null) {
                             resultingMimeType = mimeType;
                         } else {
@@ -83,6 +85,9 @@ namespace Starcounter.Internal {
                                     case MimeType.Text_Plain:
                                     case MimeType.Unspecified:
                                     case MimeType.Text_Html:
+                                        // Why do we invoke this same method with a request that is NULL?
+                                        // Makes little sense to me. Just a sloppy way of not crafting
+                                        // some specific callback instead?
                                         ret = this.Convert(null, before, MimeType.Application_Json, out resultingMimeType);
                                         break;
                                 }
@@ -100,22 +105,6 @@ namespace Starcounter.Internal {
             Profiler.Current.Stop(ProfilerNames.JsonMimeConverter);
 
             return ret;
-        }
-
-        static byte[] TryConvertViaMimeConverter(Json json, MimeType mimeType) {
-            var appName = json._appName;
-            byte[] result = null;
-
-            if (!string.IsNullOrEmpty(appName)) {
-                var app = Application.GetFastNamedApplication(appName);
-                MimeProvider provider;
-                var found = app.MimeProviders.TryGetValue(mimeType, out provider);
-                if (found) {
-                    result = provider.InvokeProvider(json);
-                }
-            }
-
-            return result;
         }
     }
 }
