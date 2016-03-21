@@ -8,6 +8,7 @@
 #undef DELETE
 typedef char* const String;
 typedef unsigned int uint;
+typedef uint64_t UInt64;
 
 namespace starcounter
 {
@@ -163,6 +164,12 @@ namespace Starcounter.Internal
 
         // Invalid WebSocket channel ID.
         public const int INVALID_WS_CHANNEL_ID = 0;
+
+        // Maximum unique socket id.
+        public const UInt64 MAX_UNIQUE_SOCKET_ID = 0x3FFFFFFFF;
+
+        // Maximum socket index.
+        public const int MAX_SOCKET_INDEX = 0xFFFFF;
 
         /// <summary>
         /// Maxiumum total number of handlers.

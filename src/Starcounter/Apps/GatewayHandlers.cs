@@ -289,7 +289,10 @@ namespace Starcounter
             SchedulerNumRequests[taskInfo->scheduler_number]++;
 
             // Creating network data stream object which holds the chunk etc.
-            NetworkDataStream dataStream = new NetworkDataStream(taskInfo->chunk_index, taskInfo->client_worker_id);
+            NetworkDataStream dataStream = new NetworkDataStream(
+                taskInfo->chunk_index, 
+                taskInfo->client_worker_id, 
+                taskInfo->scheduler_number);
 
             TcpSocket tcpSocket = null;
 
@@ -411,7 +414,10 @@ namespace Starcounter
             Request req = null;
 
             // Creating network data stream object which holds the chunk etc.
-            NetworkDataStream dataStream = new NetworkDataStream(taskInfo->chunk_index, taskInfo->client_worker_id);
+            NetworkDataStream dataStream = new NetworkDataStream(
+                taskInfo->chunk_index,
+                taskInfo->client_worker_id, 
+                taskInfo->scheduler_number);
 
             Session session = null;
 
@@ -655,7 +661,10 @@ namespace Starcounter
             IntPtr plainChunksData = IntPtr.Zero;
 
             // Creating network data stream object.
-            NetworkDataStream dataStream = new NetworkDataStream(taskInfo->chunk_index, taskInfo->client_worker_id);
+            NetworkDataStream dataStream = new NetworkDataStream(
+                taskInfo->chunk_index, 
+                taskInfo->client_worker_id, 
+                taskInfo->scheduler_number);
 
             // The WebSocket object on which we perform the operations.
             WebSocket ws = null;
