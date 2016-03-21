@@ -19,12 +19,12 @@ namespace Starcounter {
 
             if (mimeType == MimeType.Text_Html) {
                 var bytes = HtmlFromJsonProvider.ProvideFromFilePath<byte[]>(Html);
-                if (HtmlFromJsonProvider.IsFullPageHtml(bytes)) {
+                if (PartialToStandaloneHtmlProvider.IsFullPageHtml(bytes)) {
                     return bytes;
                 }
 
                 if (ImplicitStandalonePageBytes == null) {
-                    ImplicitStandalonePageBytes = HtmlFromJsonProvider.ProvideImplicitStandalonePage(bytes, ImplicitStandaloneTitle);
+                    ImplicitStandalonePageBytes = PartialToStandaloneHtmlProvider.ProvideImplicitStandalonePage(bytes, ImplicitStandaloneTitle);
                 }
 
                 return ImplicitStandalonePageBytes;
