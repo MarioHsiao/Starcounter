@@ -94,9 +94,9 @@ namespace Starcounter.Internal {
                 var oldSiblings = mainJson.StepSiblings;
 
                 stepSiblings = new List<Json>();
-                mainJson.StepSiblings = stepSiblings;
                 stepSiblings.Add(mainJson);
-
+                mainJson.StepSiblings = stepSiblings;
+                
                 for (Int32 i = 0; i < responses.Count; i++) {
 
                     if (mainResponseId != i) {
@@ -126,11 +126,11 @@ namespace Starcounter.Internal {
                                 }
                             }
                         }
-                        siblingJson.StepSiblings = stepSiblings;
 
                         if (!stepSiblings.Contains(siblingJson)) {
                             stepSiblings.Add(siblingJson);
                         }
+                        siblingJson.StepSiblings = stepSiblings;
                     }
                 }
 
