@@ -155,6 +155,7 @@
     <Compile Include="Metadata\RuntimeView.cs" />
     <Compile Include="Middleware\HtmlFromJsonProvider.cs" />
     <Compile Include="Middleware\IMiddleware.cs" />
+    <Compile Include="Middleware\JsonAutoSessions.cs" />
     <Compile Include="Middleware\MimeProvider.cs" />
     <Compile Include="Middleware\MimeProviderContext.cs" />
     <Compile Include="Middleware\MimeProviderMap.cs" />
