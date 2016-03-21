@@ -1102,7 +1102,10 @@ namespace Starcounter.Rest
                 if (MixedCodeConstants.InvalidUriMatcherHandlerId != handlerId) {
 
                     req.ManagedHandlerId = (UInt16) handlerId;
-                    req.MethodEnum = uhm.AllUserHandlerInfos[handlerId].UriInfo.http_method_;
+                    UserHandlerInfo uhi = uhm.AllUserHandlerInfos[handlerId];
+
+                    req.MethodEnum = uhi.UriInfo.http_method_;
+                    req.HandlerAppName = uhi.AppName;
 
                     // Creating the stack native method and URI.
                     Byte* methodSpaceUriSpaceOnStack = stackalloc Byte[methodSpaceUriSpace.Length];

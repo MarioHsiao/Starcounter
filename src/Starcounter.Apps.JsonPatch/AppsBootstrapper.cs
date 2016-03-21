@@ -543,6 +543,9 @@ namespace Starcounter.Internal {
                 UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel);
                 UserHandlerInfo uhi = uhm.AllUserHandlerInfos[req.ManagedHandlerId];
 
+                // Setting the application name to which this external request belongs.
+                req.HandlerAppName = uhi.AppName;
+
                 if (!uhi.SkipRequestFilters) {
                     // Checking if there is a filtering delegate.
                     resp = Handle.RunRequestFilters(req);
