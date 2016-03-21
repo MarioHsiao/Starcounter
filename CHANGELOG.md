@@ -22,6 +22,7 @@
 - Added excecptions with information about failed table to upgrade. Related to [#3383](https://github.com/Starcounter/Starcounter/issues/3383) and [#3368](https://github.com/Starcounter/Starcounter/issues/3368).
 - Introduced new IMiddleware class and the new consolidated middleware Application.Use() API's, as described in See [#3296](https://github.com/Starcounter/Starcounter/issues/3296)
 - Extended weaver diagnostics emitted by `scweaver --verbosity=diagnostic according to [#3420](https://github.com/Starcounter/Starcounter/issues/3420)
+- Introduced support to provision HTML (views) from JSON (view models) by means of middleware. See [#3444](https://github.com/Starcounter/Starcounter/issues/3444)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
@@ -64,6 +65,8 @@
 - Changed API for getting all headers string to `r.GetAllHeaders()` for both request and response.
 - In `Http` and `Node` receive timeout parameter has changed from milliseconds to seconds (no reasons to have it with milliseconds precision). 
 - In `Http` and `Node` functions the `userObject` parameter is gone. Because of that the `userDelegate` parameter which was previously `Action<Response, Object>` became just `Action<Response>`.
+- Static files from /sys/ folder migrated to Polymer 1.3. See [#3384](https://github.com/Starcounter/Starcounter/issues/3384), [#3022](https://github.com/Starcounter/Starcounter/issues/3022)
+- Deprecate usage of `<dom-bind-notifier>` in HTML partial templates. Since Polymer 1.3 upgrade, it is not needed. See [#2922](https://github.com/Starcounter/Starcounter/issues/2922)
 
 ## [2.1.177] - 2015-10-14
 ### Changed

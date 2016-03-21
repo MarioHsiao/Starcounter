@@ -16,6 +16,8 @@ namespace Starcounter {
     public sealed class Application {
         readonly ICodeHost host;
         readonly ApplicationBase state;
+        object mimeProviderLock = new object();
+        Dictionary<MimeType, MimeProvider> mimeProviders = new Dictionary<MimeType, MimeProvider>();
         static object monitor = new object();
         static Dictionary<string, Application> indexName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexLoadPath = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
@@ -128,7 +130,14 @@ namespace Starcounter {
             }
         }
 
-
+        /// <summary>
+        /// Gets a dictionary with installed mime providers.
+        /// </summary>
+        internal Dictionary<MimeType, MimeProvider> MimeProviders {
+            get {
+                return mimeProviders;
+            }
+        }
 
         /// <summary>
         /// Gets the current application, running in the current Starcounter
@@ -242,6 +251,16 @@ namespace Starcounter {
             return application;
         }
 
+        /// <summary>
+        /// Gets an application only by consulting its name. Internal version, not
+        /// checking the name for null, and assuming the application is indexed.
+        /// </summary>
+        /// <param name="name">The name of the application</param>
+        /// <returns>The application.</returns>
+        internal static Application GetFastNamedApplication(string name) {
+            return indexName[name];
+        }
+
         /// <inheritdoc />
         public override string ToString() {
             return DisplayName;
@@ -281,6 +300,25 @@ namespace Starcounter {
                 } else {
                     indexFileName.Add(fileName, application);
                 }
+            }
+        }
+
+        internal void RegisterMimeProvider(MimeProvider provider) {
+            lock (mimeProviderLock) {
+                // We use a strategy where we copy the original dictionary and
+                // expand an isolated copy before assigning that as the new one,
+                // to allow lock-free reads.
+                var count = mimeProviders.Count + 1;
+                if (mimeProviders.ContainsKey(provider.MimeType)) {
+                    count--;
+                }
+
+                var replacement = new Dictionary<MimeType, MimeProvider>(count);
+                foreach (var item in mimeProviders) {
+                    replacement[item.Key] = item.Value;
+                }
+                replacement[provider.MimeType] = provider;
+                mimeProviders = replacement;
             }
         }
 

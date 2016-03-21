@@ -223,9 +223,9 @@ namespace Starcounter
         bool fileExists_;
 
         /// <summary>
-        /// Date of file modification for this file resource.
+        /// Date of file modification for this file resource (in RFC 1123 format).
         /// </summary>
-        DateTime fileModified_;
+        String fileModifiedDate_;
 
         /// <summary>
         /// Indicates if user wants to send custom response.
@@ -316,7 +316,7 @@ namespace Starcounter
                 fileDirectory_ = fileDirectory_,
                 fileName_ = fileName_,
                 fileExists_ = fileExists_,
-                fileModified_ = fileModified_,
+                fileModifiedDate_ = fileModifiedDate_,
                 bufferContainingResponse_ = bufferContainingResponse_,
                 responseOffsetInBuffer_ = responseOffsetInBuffer_,
                 responseSizeBytes_ = responseSizeBytes_,
@@ -380,15 +380,29 @@ namespace Starcounter
         public bool FileExists {
             get { return fileExists_; }
             internal set { fileExists_ = value; }
-        } 
+        }
+
+        /// <summary>
+        /// File modification date string (in RFC 1123 format).
+        /// </summary>
+        public String FileModifiedDate {
+            get { return fileModifiedDate_; }
+            internal set { fileModifiedDate_ = value; }
+        }
 
         /// <summary>
         /// File modification date.
         /// </summary>
-        public DateTime FileModified {
-            get { return fileModified_; }
-            internal set { fileModified_ = value; }
-        } 
+        public DateTime FileModified
+        {
+            get
+            {
+                if (null != fileModifiedDate_)
+                    return DateTime.Parse(fileModifiedDate_);
+
+                return new DateTime();
+            }
+        }
 
         /// <summary>
         /// Handling status for this response.

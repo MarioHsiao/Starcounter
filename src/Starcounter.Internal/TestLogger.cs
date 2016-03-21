@@ -9,6 +9,8 @@ namespace Starcounter.TestFramework
 {
     public class TestLogger
     {
+        public const String MappedBuildServerFTPDrive = "Z:"; // Resembles a mapped drive to \\scbuildserver\ftp.
+
         static Boolean _turnOffStatistics = false;
 
         /// <summary>
@@ -100,7 +102,7 @@ namespace Starcounter.TestFramework
             if (_buildNumber != null)
                 return _buildNumber;
 
-            String buildNumber = Environment.GetEnvironmentVariable("BUILD_IS_PERSONAL");
+            String buildNumber = Environment.GetEnvironmentVariable("BUILD_NUMBER");
             if (null == buildNumber) {
                 return "nobuildnum";
             }

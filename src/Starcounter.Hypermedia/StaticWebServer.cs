@@ -129,7 +129,7 @@ namespace Starcounter.Internal.Web {
             } else {
 
                 // Checking the cache status.
-                String mt = resourceResp.FileModified.ToString();
+                String mt = resourceResp.FileModifiedDate;
                 String ims = request.Headers["If-Modified-Since"];
 
                 // Checking if caching time is the same.
@@ -185,7 +185,9 @@ namespace Starcounter.Internal.Web {
                 bool was = cached.Value.FileExists;
                 bool exists = File.Exists(path);
 
-                if (was != exists || exists && File.GetLastWriteTime(path) != cached.Value.FileModified) {
+                if ((was != exists) || exists &&
+                    (0 != String.Compare(File.GetLastWriteTime(path).ToUniversalTime().ToString("r"), cached.Value.FileModifiedDate, true))) {
+
                     invalidatedCachedResponses.Add(cached.Value);
                 }
             }
