@@ -252,7 +252,7 @@ namespace Starcounter.CLI {
             }
 
             var responded = new ManualResetEvent(false);
-            node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null, (resp, ignored) => {
+            node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, (resp) => {
                 response = resp;
                 responded.Set();
             });

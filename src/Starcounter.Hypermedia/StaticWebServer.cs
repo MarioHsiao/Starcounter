@@ -125,6 +125,26 @@ namespace Starcounter.Internal.Web {
                         resourceResp = GetFileResource(resourceResp, relativeUri, request);
                     }
                 }
+
+            } else {
+
+                // Checking the cache status.
+                String mt = resourceResp.FileModifiedDate;
+                String ims = request.Headers["If-Modified-Since"];
+
+                // Checking if caching time is the same.
+                if (mt.Equals(ims)) {
+
+                    resourceResp = new Response() {
+                        StatusCode = 304,
+                        StatusDescription = "Not Modified"
+                    };
+
+                    resourceResp.Headers["Cache-Control"] = "public,max-age=0,must-revalidate";
+                    resourceResp.Headers["Last-Modified"] = mt;
+
+                    return resourceResp;
+                }
             }
 
             return resourceResp.CloneStaticResourceResponse();
@@ -165,7 +185,9 @@ namespace Starcounter.Internal.Web {
                 bool was = cached.Value.FileExists;
                 bool exists = File.Exists(path);
 
-                if (was != exists || exists && File.GetLastWriteTime(path) != cached.Value.FileModified) {
+                if ((was != exists) || exists &&
+                    (0 != String.Compare(File.GetLastWriteTime(path).ToUniversalTime().ToString("r"), cached.Value.FileModifiedDate, true))) {
+
                     invalidatedCachedResponses.Add(cached.Value);
                 }
             }

@@ -327,7 +327,10 @@ namespace Starcounter
                 }
 
                 // Creating network data stream object.
-                dataStream = new NetworkDataStream(chunkIndex, socketStruct_.GatewayWorkerId);
+                dataStream = new NetworkDataStream(
+                    chunkIndex, 
+                    socketStruct_.GatewayWorkerId, 
+                    socketStruct_.SchedulerId);
             }
             else
             {

@@ -594,11 +594,11 @@ namespace NodeTest
                 try
                 {
                     if (useNodeX_) {
-                        Http.POST(Settings.CompleteHttpUri, body_bytes_, null, null, (Response resp, Object userObject) => {
+                        Http.POST(Settings.CompleteHttpUri, body_bytes_, null, (Response resp) => {
                             CheckResponse(resp);
                         });
                     } else {
-                        node.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null, null, (Response resp, Object userObject) => {
+                        node.POST(Settings.ServerNodeTestHttpRelativeUri, body_bytes_, null, (Response resp) => {
                             CheckResponse(resp);
                         });
                     }

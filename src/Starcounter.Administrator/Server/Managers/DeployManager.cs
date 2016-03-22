@@ -269,7 +269,7 @@ namespace Administrator.Server.Managers {
             // Get package from host
             Dictionary<String, String> headers = new Dictionary<String, String> { { "Accept", "application/octet-stream" } };
 
-            Http.GET(sourceUrl, headers, null, (Response response, Object userObject) => {
+            Http.GET(sourceUrl, headers, (Response response) => {
 
                 if (response.IsSuccessStatusCode) {
 

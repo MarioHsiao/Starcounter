@@ -4,7 +4,7 @@
 (function() {
     var DBNPrototype = Object.create(HTMLElement.prototype);
 	DBNPrototype.attachedCallback - function(){
-		console.warn('dom-bind-notifier is no longer needed. Latest `<puppet-polumer-client>` takes care of Polymer binding from top to boottom.');
+		console.warn('dom-bind-notifier is no longer needed. It can be safely removed from .html partial templates in Starcounter apps. This warning is deprecated and will be removed in future Starcounter versions.');
 	}
     document.registerElement('dom-bind-notifier', {
         prototype: DBNPrototype
