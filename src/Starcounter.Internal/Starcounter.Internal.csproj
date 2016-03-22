@@ -94,7 +94,6 @@
     <Compile Include="Interfaces\IReadOnlyITree.cs" />
     <Compile Include="Interfaces\ITransactionManager.cs" />
     <Compile Include="Interfaces\XSON\IBindableRetriever.cs" />
-    <Compile Include="LockFreeStack.cs" />
     <Compile Include="Rest\Node.cs" />
     <Compile Include="Rest\NodeExtensions.cs" />
     <Compile Include="Rest\NodeTask.cs" />

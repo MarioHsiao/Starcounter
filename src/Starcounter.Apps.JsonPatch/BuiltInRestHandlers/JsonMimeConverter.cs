@@ -4,19 +4,16 @@ using Starcounter.Advanced;
 using Starcounter.XSON;
 
 namespace Starcounter.Internal {
+
     /// <summary>
-    /// 
+    /// Default converter that hook into Starcounter.XSON, overtaking the duty to get a
+    /// byte[] representation when a Json resource object is returned from a handler.
     /// </summary>
     public class JsonMimeConverter : IResponseConverter {
         private JsonPatch jsonPatch = new JsonPatch();
- 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="before"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public byte[] Convert(Request request, object before, MimeType mimeType, out MimeType resultingMimeType) {
+
+        /// <inheritdoc />
+        public byte[] Convert(Request request, IResource before, MimeType mimeType, out MimeType resultingMimeType) {
             Session s;
             byte[] ret = null;
 
@@ -68,20 +65,32 @@ namespace Starcounter.Internal {
                     resultingMimeType = MimeType.Unspecified;
                     if (before is Json) {
                         Json obj = (Json)before;
-                        var str = obj.AsMimeType(mimeType);
-                        if (str == null && request != null) {
-                            str = obj.AsMimeType(request.Headers["Accept"]);
-                        }
-                        if (str != null) {
+
+                        // We must guard for the request being null, even though
+                        // I don't really understand why. See below comment.
+                        ret = request == null ? null : MimeProviderMap.Invoke(request.HandlerAppName, mimeType, request, obj);
+                        if (ret != null) {
                             resultingMimeType = mimeType;
-                            ret = Encoding.UTF8.GetBytes(str);
                         } else {
-                            switch (mimeType) {
-                                case MimeType.Text_Plain:
-                                case MimeType.Unspecified:
-                                case MimeType.Text_Html:
-                                    ret = this.Convert(null, before, MimeType.Application_Json, out resultingMimeType);
-                                    break;
+
+                            var str = obj.AsMimeType(mimeType);
+                            if (str == null && request != null) {
+                                str = obj.AsMimeType(request.Headers["Accept"]);
+                            }
+                            if (str != null) {
+                                resultingMimeType = mimeType;
+                                ret = Encoding.UTF8.GetBytes(str);
+                            } else {
+                                switch (mimeType) {
+                                    case MimeType.Text_Plain:
+                                    case MimeType.Unspecified:
+                                    case MimeType.Text_Html:
+                                        // Why do we invoke this same method with a request that is NULL?
+                                        // Makes little sense to me. Just a sloppy way of not crafting
+                                        // some specific callback instead?
+                                        ret = this.Convert(null, before, MimeType.Application_Json, out resultingMimeType);
+                                        break;
+                                }
                             }
                         }
                     }

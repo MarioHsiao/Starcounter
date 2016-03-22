@@ -173,6 +173,11 @@ namespace Starcounter {
         Boolean came_with_correct_session_ = false;
 
         /// <summary>
+        /// Request application name.
+        /// </summary>
+        String handlerAppName_;
+
+        /// <summary>
         /// Handler options.
         /// </summary>
         internal HandlerOptions HandlerOpts {
@@ -570,6 +575,18 @@ namespace Starcounter {
         /// </summary>
         public Boolean IsExternal {
             get { return isExternalRequest_; }
+        }
+
+        /// <summary>
+        /// To which application/handler this request belongs to.
+        /// </summary>
+        public String HandlerAppName {
+            get {
+                return handlerAppName_;
+            }
+            internal set {
+                handlerAppName_ = value;
+            }
         }
 
         /// <summary>
@@ -1174,7 +1191,7 @@ namespace Starcounter {
 
                    // TODO: Check for the proper fix.
                    if (null != dataStream_) {
-                       dataStream_.SendResponse(buffer, offset, length, connFlags);
+                       dataStream_.SendResponseSameScheduler(buffer, offset, length, connFlags);
                    }
                 }
 

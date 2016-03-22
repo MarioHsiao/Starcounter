@@ -50,6 +50,67 @@ namespace Starcounter.Extensions {
         }
 
         /// <summary>
+        /// Lock object when saving statistics to file.
+        /// </summary>
+        static String lockObject_ = "SomeString";
+
+        /// <summary>
+        /// Date time of last written statistics.
+        /// </summary>
+        static DateTime lastWrittenStatististicsTime_ = DateTime.Now;
+
+        /// <summary>
+        /// Minimum time between two file writes.
+        /// </summary>
+        const Int32 MinStatsWriteIntervalSeconds = 2;
+
+        /// <summary>
+        /// Saving current statistics to file.
+        /// </summary>
+        public static void SaveStatisticsToFile(String testName) {
+
+            // Checking if we are running on the build server.
+            if (!TestLogger.IsRunningOnBuildServer())
+                return;
+
+            String statFileName = TestLogger.GetBuildNumber() + ".txt";
+
+            if (TestLogger.IsPersonalBuild())
+                statFileName = "personal-" + statFileName;
+
+            if (!TestLogger.IsReleaseBuild())
+                statFileName = "debug-" + statFileName;
+
+            statFileName = testName + "-" + statFileName;
+
+            String dirToStatistics = TestLogger.MappedBuildServerFTPDrive + @"\SCDev\BuildSystem\BuildStatistics\TestStats";
+
+            var json = new ClientStatsJson();
+            json.TestStats = Db.SQL("SELECT s FROM " + typeof(ClientStatsEntry).Name + " s");
+
+            String jsonStats = json.ToJson();
+            String pathToStatsFile = Path.Combine(dirToStatistics, statFileName);
+
+            lock (lockObject_) {
+
+                // Checking if MinStatsFileWriteInterval seconds passed since last time we wrote statistics to file.
+                if ((DateTime.Now - lastWrittenStatististicsTime_).TotalSeconds < MinStatsWriteIntervalSeconds) {
+                    return;
+                }
+
+                if (!Directory.Exists(dirToStatistics)) {
+                    Directory.CreateDirectory(dirToStatistics);
+                }
+
+                // We need to lock because two threads might do this at the same time.
+                File.WriteAllText(pathToStatsFile, jsonStats);
+
+                // Taking current time when statistics was written.
+                lastWrittenStatististicsTime_ = DateTime.Now;
+            }            
+        }
+
+        /// <summary>
         /// Enables test statistics.
         /// </summary>
         public static void EnableTestStatistics() {
@@ -79,6 +140,9 @@ namespace Starcounter.Extensions {
                     };
 
                 });
+
+                // Saving statistics to file.
+                SaveStatisticsToFile(testName);
 
                 return 204;
             });

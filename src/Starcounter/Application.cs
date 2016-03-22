@@ -21,6 +21,8 @@ namespace Starcounter {
         static Dictionary<string, Application> indexLoadPath = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexFileName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
 
+        internal readonly MimeProviderMap MimeProviders = new MimeProviderMap();
+
         internal static Application CurrentAssigned {
             get {
                 var app = (StarcounterEnvironment.AppName != null) ? indexName[StarcounterEnvironment.AppName] : null;
@@ -127,8 +129,6 @@ namespace Starcounter {
                 return state.HostedFilePath;
             }
         }
-
-
 
         /// <summary>
         /// Gets the current application, running in the current Starcounter
@@ -240,6 +240,16 @@ namespace Starcounter {
                 }
             }
             return application;
+        }
+
+        /// <summary>
+        /// Gets an application only by consulting its name. Internal version, not
+        /// checking the name for null, and assuming the application is indexed.
+        /// </summary>
+        /// <param name="name">The name of the application</param>
+        /// <returns>The application.</returns>
+        internal static Application GetFastNamedApplication(string name) {
+            return indexName[name];
         }
 
         /// <inheritdoc />

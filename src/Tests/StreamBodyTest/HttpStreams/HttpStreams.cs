@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Starcounter.Internal;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -11,39 +12,13 @@ namespace FileTestClient {
 
     class Program {
 
-        /// <summary>
-        /// Starts given process and waits for it exit.
-        /// </summary>
-        public static Int32 StartProcessAndWaitForExit(String pathToExe, String args, Int32 msToWait = 10000) {
-            ProcessStartInfo procInfo = new ProcessStartInfo();
-            procInfo.FileName = pathToExe;
-            procInfo.Arguments = args;
-            procInfo.UseShellExecute = false;
-            procInfo.WorkingDirectory = Path.GetDirectoryName(pathToExe);
-
-            Console.WriteLine("-- Running process \"{0} {1}\"", pathToExe, args);
-
-            // Start the upload and wait for exit.
-            Process uploadProcess = Process.Start(procInfo);
-            Boolean exited = uploadProcess.WaitForExit(msToWait);
-            if (!exited) {
-                uploadProcess.Close();
-                throw new Exception("Process did not exit within allowed time: \"" + pathToExe + " " + args + "\" and allowed time(sec): " + msToWait / 1000);
-            }
-
-            Int32 exitCode = uploadProcess.ExitCode;
-
-            uploadProcess.Close();
-            return exitCode;
-        }
-
         static Int32 Main(string[] args) {
 
             // Starting server side application.
             Int32 exitCode = -1;
             try {
                 Console.WriteLine("Starting server side code...");
-                exitCode = StartProcessAndWaitForExit("star.exe", "..\\..\\..\\StreamBodyTestServer.cs", 30000);
+                exitCode = Diagnostics.StartProcessAndWaitForExit("star.exe", "..\\..\\..\\StreamBodyTestServer.cs", 30000);
             } catch (Exception exc) {
                 Console.WriteLine(exc.ToString());
             }
