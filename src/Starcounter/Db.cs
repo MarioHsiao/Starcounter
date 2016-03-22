@@ -388,6 +388,18 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// Checks the specified exception. If the exception is of type <see cref="ITransactionConflictException"/>
+        /// and the number of retries is lower then max number of retries true is returned and no other action is taken.
+        /// If the maximum number of retries is reached an unhandled transaction conflict is thrown.
+        /// For other exception types false is returned. 
+        /// </summary>
+        /// <param name="ex">The catched exception.</param>
+        /// <param name="handle">Handle of the transaction in use.</param>
+        /// <param name="verify">Verify of the transaction in use.</param>
+        /// <param name="retries">The number of times the transaction have been retried.</param>
+        /// <param name="maxRetries">The maximum number of retries.</param>
+        /// <returns></returns>
         private static bool HandleTransactException(Exception ex, ulong handle, ulong verify, int retries, int maxRetries) {
             if (sccoredb.sccoredb_set_current_transaction(1, 0, 0) == 0 &&
                 sccoredb.sccoredb_free_transaction(handle, verify) == 0) {
