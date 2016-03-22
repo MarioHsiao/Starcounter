@@ -1,5 +1,8 @@
 ﻿using Starcounter.XSON.Metadata;
 using System;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Starcounter.XSON.PartialClassGenerator {
 
@@ -38,7 +41,11 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// </summary>
         /// <returns></returns>
         public CodeBehindMetadata ParseToMetadata() {
-            throw new NotImplementedException();
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(SourceCode);
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+            var walker = new CodeBehindFileWalker(this);
+            walker.Visit(root);
+            return walker.Result;
         }
     }
 }
