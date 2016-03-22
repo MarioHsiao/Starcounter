@@ -105,18 +105,30 @@ namespace Starcounter.Internal
         UInt64 socketUniqueId_;
 
         /// <summary>
-        /// Unique socket id on gateway.
-        /// </summary>
-        internal UInt64 SocketUniqueId {
-            get {
-                return socketUniqueId_;
-            }
-        }
-
-        /// <summary>
         /// Socket index on gateway.
         /// </summary>
         UInt32 socketIndexNum_;
+
+        /// <summary>
+        /// Gateway worker id.
+        /// </summary>
+        Byte gatewayWorkerId_;
+
+        /// <summary>
+        /// Scheduler id.
+        /// </summary>
+        Byte schedulerId_;
+
+        /// <summary>
+        /// Unique socket id on gateway.
+        /// </summary>
+        internal UInt64 SocketUniqueId
+        {
+            get
+            {
+                return socketUniqueId_;
+            }
+        }
 
         /// <summary>
         /// Socket index on gateway.
@@ -130,14 +142,18 @@ namespace Starcounter.Internal
         /// <summary>
         /// Gateway worker id.
         /// </summary>
-        Byte gatewayWorkerId_;
-
-        /// <summary>
-        /// Gateway worker id.
-        /// </summary>
         internal Byte GatewayWorkerId {
             get {
                 return gatewayWorkerId_;
+            }
+        }
+
+        /// <summary>
+        /// Scheduler id.
+        /// </summary>
+        internal Byte SchedulerId {
+            get {
+                return schedulerId_;
             }
         }
 
@@ -147,11 +163,21 @@ namespace Starcounter.Internal
         internal void Init(
             UInt32 socketIndexNum,
             UInt64 socketUniqueId,
-            Byte gatewayWorkerId) {
+            Byte gatewayWorkerId,
+            Byte schedulerId) {
+
+            if (socketIndexNum >= MixedCodeConstants.MAX_SOCKET_INDEX) {
+                throw new ArgumentOutOfRangeException("Given socket index number is bigger than " + MixedCodeConstants.MAX_SOCKET_INDEX);
+            }
+
+            if (socketUniqueId >= MixedCodeConstants.MAX_UNIQUE_SOCKET_ID) {
+                throw new ArgumentOutOfRangeException("Given socket unique number is bigger than " + MixedCodeConstants.MAX_UNIQUE_SOCKET_ID);
+            }
 
             socketUniqueId_ = socketUniqueId;
             socketIndexNum_ = socketIndexNum;
             gatewayWorkerId_ = gatewayWorkerId;
+            schedulerId_ = schedulerId;
         }
 
         /// <summary>
@@ -164,7 +190,8 @@ namespace Starcounter.Internal
                 Init(
                     *(UInt32*)(dataStream.GetChunkMemory() + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
                     *(UInt64*)(dataStream.GetChunkMemory() + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
-                    dataStream.GatewayWorkerId
+                    dataStream.GatewayWorkerId,
+                    dataStream.SchedulerId
                     );
             }
         }
@@ -222,23 +249,26 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// Converts socket struct to lower and upper parts.
+        /// Converts socket id to UInt64.
+        /// [6-4-20-34]
         /// </summary>
         public UInt64 ToUInt64() {
 
-            UInt64 ws = socketUniqueId_ | (((UInt64)socketIndexNum_) << 40) | (((UInt64)gatewayWorkerId_) << 60);
+            UInt64 ws = socketUniqueId_ | (((UInt64)socketIndexNum_) << 34) | (((UInt64)gatewayWorkerId_) << 54) | (((UInt64)schedulerId_) << 58);
 
             return ws;
         }
 
         /// <summary>
-        /// Converts socket struct to lower and upper parts.
+        /// Converts socket data from UInt64:
+        /// [6-4-20-34]
         /// </summary>
         public void FromUInt64(UInt64 ws) {
 
-            socketUniqueId_ = ws & 0xFFFFFFFFFF;
-            socketIndexNum_ = (UInt32) ((ws >> 40) & 0xFFFFF);
-            gatewayWorkerId_ = (Byte)((ws >> 60) & 0xF);
+            socketUniqueId_ = ws & MixedCodeConstants.MAX_UNIQUE_SOCKET_ID;
+            socketIndexNum_ = (UInt32) ((ws >> 34) & MixedCodeConstants.MAX_SOCKET_INDEX);
+            gatewayWorkerId_ = (Byte)((ws >> 54) & 0xF);
+            schedulerId_ = (Byte)((ws >> 58) & 0x3F);
         }
 
         /// <summary>
@@ -251,6 +281,7 @@ namespace Starcounter.Internal
             socketUniqueId_ = (UInt64)ScSessionStruct.hex_string_to_uint64(strBytes, 0, 16);
             socketIndexNum_ = (UInt32)ScSessionStruct.hex_string_to_uint64(strBytes, 16, 6);
             gatewayWorkerId_ = (Byte)ScSessionStruct.hex_string_to_uint64(strBytes, 22, 2);
+            schedulerId_ = (Byte)ScSessionStruct.hex_string_to_uint64(strBytes, 24, 2);
         }
 
         /// <summary>
@@ -261,6 +292,7 @@ namespace Starcounter.Internal
             ScSessionStruct.uint64_to_hex_string(socketUniqueId_, session_bytes, 0, 16);
             ScSessionStruct.uint64_to_hex_string(socketIndexNum_, session_bytes, 16, 6);
             ScSessionStruct.uint64_to_hex_string(gatewayWorkerId_, session_bytes, 22, 2);
+            ScSessionStruct.uint64_to_hex_string(schedulerId_, session_bytes, 24, 2);
         }
 
         public const Int32 SocketStructSize = 14;

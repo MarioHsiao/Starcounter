@@ -29,19 +29,47 @@ namespace Starcounter
         UInt32 chunkIndex_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
 
         /// <summary>
-        /// Chunk index.
-        /// </summary>
-        internal UInt32 ChunkIndex { get { return chunkIndex_; } }
-
-        /// <summary>
         /// Gateway worker id from which the chunk came.
         /// </summary>
         Byte gwWorkerId_ = 0;
 
         /// <summary>
+        /// Scheduler id.
+        /// </summary>
+        Byte schedulerId_ = StarcounterEnvironment.InvalidSchedulerId;
+
+        /// <summary>
         /// Gateway worker id.
         /// </summary>
-        internal Byte GatewayWorkerId { get { return gwWorkerId_; } }
+        internal Byte GatewayWorkerId
+        {
+            get
+            {
+                return gwWorkerId_;
+            }
+        }
+
+        /// <summary>
+        /// Scheduler id.
+        /// </summary>
+        internal Byte SchedulerId
+        {
+            get
+            {
+                return schedulerId_;
+            }
+        }
+
+        /// <summary>
+        /// Chunk index.
+        /// </summary>
+        internal UInt32 ChunkIndex
+        {
+            get
+            {
+                return chunkIndex_;
+            }
+        }
 
         /// <summary>
         /// Gets chunk memory.
@@ -63,9 +91,29 @@ namespace Starcounter
         /// <summary>
         /// Prohibiting default constructor.
         /// </summary>
-        internal NetworkDataStream(UInt32 chunkIndex, Byte gwWorkerId) {
+        internal NetworkDataStream(UInt32 chunkIndex, Byte gwWorkerId, Byte schedulerId) {
             chunkIndex_ = chunkIndex;
             gwWorkerId_ = gwWorkerId;
+            schedulerId_ = schedulerId;
+        }
+
+        /// <summary>
+        /// Writes the specified buffer.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="offset">The offset.</param>
+        /// <param name="length_bytes">The length in bytes.</param>
+        public void SendResponseSameScheduler(Byte[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags) {
+
+            // Checking if already destroyed.
+            if (chunkIndex_ == MixedCodeConstants.INVALID_CHUNK_INDEX) {
+                throw new ArgumentNullException("Response was already sent.");
+            }
+
+            // Running on current Starcounter scheduler.
+            fixed (Byte* p = buffer) {
+                SendResponseBufferInternal(p, offset, length_bytes, conn_flags);
+            }
         }
 
         /// <summary>
@@ -76,14 +124,16 @@ namespace Starcounter
         /// <param name="length_bytes">The length in bytes.</param>
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags)
         {
-            // Checking if already destroyed.
-            if (chunkIndex_ == MixedCodeConstants.INVALID_CHUNK_INDEX) {
-                throw new ArgumentNullException("Response was already sent on this Request!");
-            }
+            // Checking that scheduler id is correct.
+            Debug.Assert(StarcounterEnvironment.InvalidSchedulerId != schedulerId_);
 
-            // Running on current Starcounter thread.
-            fixed (Byte* p = buffer) {
-                SendResponseBufferInternal(p, offset, length_bytes, conn_flags);
+            // Checking that already on correct scheduler.
+            if (StarcounterEnvironment.CurrentSchedulerId == schedulerId_) {
+                SendResponseSameScheduler(buffer, offset, length_bytes, conn_flags);
+            } else {
+                StarcounterBase._DB.RunAsync(() => {
+                    SendResponseSameScheduler(buffer, offset, length_bytes, conn_flags);
+                }, schedulerId_);
             }
         }
 
