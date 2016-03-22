@@ -62,6 +62,7 @@
     <Compile Include="Application.cs" />
     <Compile Include="Apps\App.cs" />
     <Compile Include="Apps\GatewayHandlers.cs" />
+    <Compile Include="Apps\JsonResponseMerger.cs" />
     <Compile Include="Apps\OntologyAndOrdinaryMapping.cs" />
     <Compile Include="Binary.cs" />
     <Compile Include="Binding\BinaryPropertyBinding.cs" />

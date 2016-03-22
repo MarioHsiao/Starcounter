@@ -1,13 +1,20 @@
-﻿ using System;
-using System.Collections.Generic;
-using System.Linq;
-using Starcounter.Internal;
+﻿using Starcounter.Internal;
+using System;
 
 namespace Starcounter.Advanced.XSON {
     /// <summary>
     /// Extension class for Json. Contains advanced features that can be excluded for normal use.
     /// </summary>
     public static class JsonExtension {
+        /// <summary>
+        /// Returns the name of the app that created this instance.
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static string GetAppName(this Json json) {
+            return json._appName;
+        }
+        
         /// <summary>
         /// Executes the specifed Action either in the scope of a transaction
         /// on the object or if no transaction is found, just executes the action.
