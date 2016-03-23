@@ -14,11 +14,9 @@ using System.Text;
 using System.Reflection;
 using Starcounter.Metadata;
 
-namespace Starcounter
-{
+namespace Starcounter {
 
-    public static partial class Db
-    {
+    public static partial class Db {
         /// <summary>
         /// </summary>
         public static DbEnvironment Environment { get; private set; }
@@ -27,8 +25,10 @@ namespace Starcounter
         /// Gets the set of <see cref="Application"/>s currently running
         /// in the <see cref="Db"/>.
         /// </summary>
-        public static Application[] Applications {
-            get {
+        public static Application[] Applications
+        {
+            get
+            {
                 return Application.GetAllApplications();
             }
         }
@@ -37,26 +37,23 @@ namespace Starcounter
         /// Occurs when the database is being stopped.
         /// </summary>
         public static event EventHandler DatabaseStopping;
-        
+
         /// <summary>
         /// Gets the table definition based on the name.
         /// </summary>
         /// <param name="name">The fullname of the table.</param>
         /// <returns>TableDef.</returns>
-        public static TableDef LookupTable(string name) 
-        {
+        public static TableDef LookupTable(string name) {
             unsafe
             {
                 ulong token = SqlProcessor.SqlProcessor.GetTokenFromName(name);
-                if (token != 0) 
-                {
+                if (token != 0) {
                     uint layoutInfoCount = 1;
                     sccoredb.STARI_LAYOUT_INFO layoutInfo;
                     var r = sccoredb.stari_context_get_layout_infos_by_token(
                         ThreadData.ContextHandle, token, &layoutInfoCount, &layoutInfo
                         );
-                    if (r == 0) 
-                    {
+                    if (r == 0) {
                         if (layoutInfoCount > 1)
                             return LookupTableFromRawView(name, layoutInfoCount);
 
@@ -70,9 +67,8 @@ namespace Starcounter
                 return null;
             }
         }
-        
-        private static TableDef LookupTableFromRawView(string name, uint layoutInfoCount) 
-        {
+
+        private static TableDef LookupTableFromRawView(string name, uint layoutInfoCount) {
             unsafe
             {
                 var rawView = Db.SQL<RawView>("SELECT r FROM Starcounter.Metadata.RawView r WHERE r.FullName=?", name).First;
@@ -81,7 +77,7 @@ namespace Starcounter
                     uint ec = sccoredb.stari_context_get_layout_info(
                                   ThreadData.ContextHandle, rawView.LayoutHandle, out layoutInfo
                               );
-                    if (ec == 0) 
+                    if (ec == 0)
                         return TableDef.ConstructTableDef(layoutInfo, layoutInfoCount, true);
 
                     throw ErrorCode.ToException(ec);
@@ -94,8 +90,7 @@ namespace Starcounter
         /// Creates the table.
         /// </summary>
         /// <param name="tableDef">The table def.</param>
-        public static void CreateTable(TableDef tableDef)
-        {
+        public static void CreateTable(TableDef tableDef) {
             CreateTable(tableDef, null);
         }
 
@@ -104,8 +99,7 @@ namespace Starcounter
         /// </summary>
         /// <param name="tableDef">The table def.</param>
         /// <param name="inheritedTableDef">The inherited table def.</param>
-        public static void CreateTable(TableDef tableDef, TableDef inheritedTableDef)
-        {
+        public static void CreateTable(TableDef tableDef, TableDef inheritedTableDef) {
             // Operation creates its own transaction. Not allowed if transaction is locked on
             // thread.
             if (ThreadData.inTransactionScope_ != 0)
@@ -115,12 +109,9 @@ namespace Starcounter
             {
                 int implicitColumnCount;
                 ushort inheritedTableId = 0;
-                if (inheritedTableDef == null)
-                {
+                if (inheritedTableDef == null) {
                     implicitColumnCount = 2; // Implicit key column.
-                }
-                else
-                {
+                } else {
                     // TODO:
                     // We're assume that the base table definition is complete
                     // (has definition address) and that the current table
@@ -133,11 +124,9 @@ namespace Starcounter
                 SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_WITH_NAMES[] column_defs =
                     new SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_WITH_NAMES[columns.Length - implicitColumnCount + 1];
                 Debug.Assert(column_defs.Length > 0);
-    
-                try
-                {
-                    for (int cc = column_defs.Length - 1, ci = implicitColumnCount, di = 0; di < cc; ci++, di++)
-                    {
+
+                try {
+                    for (int cc = column_defs.Length - 1, ci = implicitColumnCount, di = 0; di < cc; ci++, di++) {
                         column_defs[di].name = (char*)Marshal.StringToCoTaskMemUni(columns[ci].Name);
                         column_defs[di].primitive_type = columns[ci].Type;
                         column_defs[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
@@ -146,11 +135,10 @@ namespace Starcounter
                     fixed (SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_WITH_NAMES* fixed_column_defs = column_defs)
                     {
                         SqlProcessor.SqlProcessor.CreatTableByNames(
-                            tableDef.Name, tableDef.BaseName, fixed_column_defs, 
+                            tableDef.Name, tableDef.BaseName, fixed_column_defs,
                             out layout_id);
                     }
-                }
-                finally { }
+                } finally { }
             }
         }
 
@@ -159,8 +147,7 @@ namespace Starcounter
         /// </summary>
         /// <param name="tableId">The table id.</param>
         /// <param name="newName">The new name.</param>
-        public static void RenameTable(ushort tableId, string newName)
-        {
+        public static void RenameTable(ushort tableId, string newName) {
             // Rename table no longer supported by kernel (no tables in kernel even). Used by table
             // upgrade so probably to be dropped (should not be public).
             throw new NotSupportedException(); // TODO EOH:
@@ -175,8 +162,7 @@ namespace Starcounter
         /// Drops the table.
         /// </summary>
         /// <param name="name">The name.</param>
-        public static void DropTable(string name)
-        {
+        public static void DropTable(string name) {
             // Drop table no longer supported by kernel (no tables in kernel even). Used by table
             // upgrade so probably to be dropped (should not be public).
             throw new NotSupportedException(); // TODO EOH:
@@ -204,61 +190,109 @@ namespace Starcounter
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
         public static void Transact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Advanced.Transact(new Advanced.TransactOptions() { forceSnapshot = forceSnapshot, maxRetries = maxRetries }, action);
+            Transact(action, 0, new Advanced.TransactOptions() { forceSnapshot = forceSnapshot, maxRetries = maxRetries });
         }
 
-        public static class Advanced
-        {
-            public class TransactOptions
-            {
-                public bool forceSnapshot
-                {
+        /// <summary>
+        /// Executes the given <paramref name="action"/> within a new transaction.
+        /// </summary>
+        /// <typeparam name="T">The type of the parameter for the action.</typeparam>
+        /// <param name="action">The action to execute.</param>
+        /// <param name="arg">Parameter to use as input to the action.</param>
+        /// <param name="forceSnapshot">
+        /// If set, instructs Starcounter to raise an error if the transaction can't
+        /// be executed within a single snapshot (taken at the time of the transaction
+        /// start). The default is false, allowing the isolation to drop to "read
+        /// committed" in case the transaction for some reason should block or take a
+        /// long time.
+        /// </param>
+        /// <param name="maxRetries">Number of times to retry the execution of the
+        /// transaction if committing it fails because of a conflict with another
+        /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
+        /// to try until the transaction succeeds. Specify 0 to disable retrying.
+        /// </param>
+        public static void Transact<T>(Action<T> action, T arg, bool forceSnapshot = false, int maxRetries = 100) {
+            Transact<T>(action, arg, 0, new Advanced.TransactOptions() { forceSnapshot = forceSnapshot, maxRetries = maxRetries });
+        }
+
+        /// <summary>
+        /// Executes the given <paramref name="func"/> within a new transaction.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the return value of the func.</typeparam>
+        /// <param name="func">The func to execute.</param>
+        /// <param name="forceSnapshot">
+        /// If set, instructs Starcounter to raise an error if the transaction can't
+        /// be executed within a single snapshot (taken at the time of the transaction
+        /// start). The default is false, allowing the isolation to drop to "read
+        /// committed" in case the transaction for some reason should block or take a
+        /// long time.
+        /// </param>
+        /// <param name="maxRetries">Number of times to retry the execution of the
+        /// transaction if committing it fails because of a conflict with another
+        /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
+        /// to try until the transaction succeeds. Specify 0 to disable retrying.
+        /// </param>
+        /// <returns>The return value of the func.</returns>
+        public static TResult Transact<TResult>(Func<TResult> func, bool forceSnapshot = false, int maxRetries = 100) {
+            return Transact<TResult>(func, 0, new Advanced.TransactOptions() { forceSnapshot = forceSnapshot, maxRetries = maxRetries });
+        }
+
+        /// <summary>
+        /// Executes the given <paramref name="func"/> within a new transaction.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the return value of the func.</typeparam>
+        /// <typeparam name="T">The type of the parameter of the func.</typeparam>
+        /// <param name="func">The func to execute.</param>
+        /// <param name="arg">Parameter to use as input to the func</param>
+        /// <param name="forceSnapshot">
+        /// If set, instructs Starcounter to raise an error if the transaction can't
+        /// be executed within a single snapshot (taken at the time of the transaction
+        /// start). The default is false, allowing the isolation to drop to "read
+        /// committed" in case the transaction for some reason should block or take a
+        /// long time.
+        /// </param>
+        /// <param name="maxRetries">Number of times to retry the execution of the
+        /// transaction if committing it fails because of a conflict with another
+        /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
+        /// to try until the transaction succeeds. Specify 0 to disable retrying.
+        /// </param>
+        /// <returns>The return value of the func.</returns>
+        public static TResult Transact<T, TResult>(Func<T, TResult> func, T arg, bool forceSnapshot = false, int maxRetries = 100) {
+            return Transact<T, TResult>(func, arg, 0, new Advanced.TransactOptions() { forceSnapshot = forceSnapshot, maxRetries = maxRetries });
+        }
+        
+        public static class Advanced {
+            public class TransactOptions {
+                public bool forceSnapshot {
                     get; set;
                 } = false;
 
-                public int maxRetries
-                {
+                public int maxRetries {
                     get; set;
                 } = 100;
 
-                public bool applyHooks
-                {
+                public bool applyHooks {
                     get; set;
                 } = true;
             }
-
-
-            public static void Transact(TransactOptions opts, Action action)
-            {
+            
+            public static void Transact(TransactOptions opts, Action action) {
                 Db.Transact(action, 0, opts);
             }
         }
 
         internal static void Transact(Action action, uint flags, Advanced.TransactOptions opts) {
-            int retries;
+            int retries = 0;
             uint r;
             ulong handle;
 
-            if (opts.maxRetries < 0) {
-                throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
-            }
-
-            if (opts.forceSnapshot) {
-                throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Forcing snapshot isolation is not yet implemented.");
-            }
-
-            retries = 0;
-
+            VerifyTransactOptions(opts);
+            
             if (ThreadData.inTransactionScope_ == 0) {
                 for (;;) {
-                    r = sccoredb.star_context_create_transaction(
-                        ThreadData.ContextHandle, flags, out handle
-                        );
+                    r = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
                     if (r == 0) {
-                        // We only set the handle to none here, since Transaction.Current will
-                        // follow this value.
-                        var currentTransaction =
-                            TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+                        var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
                         try {
                             ThreadData.inTransactionScope_ = 1;
@@ -271,52 +305,204 @@ namespace Starcounter
                             action();
                             TransactionManager.Commit(1);
                             return;
-                        }
-                        catch (Exception ex) {
-                            ulong verify = ThreadData.ObjectVerify;
-                            uint cr = sccoredb.star_transaction_free(handle, verify);
-                            if (cr == 0) {
-                                if (ex is ITransactionConflictException) {
-                                    if (++retries <= opts.maxRetries) continue;
-                                    throw ErrorCode.ToException(
-                                        Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex
-                                        );
-                                }
+                        } catch (Exception ex) {
+                            if (!HandleTransactException(ex, handle, ++retries, opts.maxRetries))
                                 throw;
-                            }
-                            HandleFatalErrorInTransactionScope(cr);
-                        }
-                        finally {
+                            continue;
+                        } finally {
                             Debug.Assert(ThreadData.inTransactionScope_ == 1);
                             ThreadData.inTransactionScope_ = 0;
-
+                            ThreadData.applyHooks_ = false;
                             TransactionManager.SetCurrentTransaction(currentTransaction);
                         }
                     }
-                    return;
+                    throw ErrorCode.ToException(r);
                 }
             }
 
             // We already have a transaction locked on thread so we're already in a transaction
             // scope (possibly an implicit one if for example in the context of a trigger): Just
             // invoke the callback and exit.
-
             try {
                 action();
             } catch {
                 // Operation will fail only if transaction is already aborted (in which case we need
                 // not abort it).
-
                 sccoredb.star_context_external_abort(ThreadData.ContextHandle);
                 throw;
             }
-            return;
+        }
+
+        internal static void Transact<T>(Action<T> action, T arg, uint flags, Advanced.TransactOptions opts) {
+            int retries = 0;
+            uint r;
+            ulong handle;
+
+            VerifyTransactOptions(opts);
+
+            if (ThreadData.inTransactionScope_ == 0) {
+                for (;;) {
+                    r = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
+                    if (r == 0) {
+                        var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+
+                        try {
+                            ThreadData.inTransactionScope_ = 1;
+                            ThreadData.applyHooks_ = opts.applyHooks;
+                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
+                            action(arg);
+                            TransactionManager.Commit(1);
+                            return;
+                        } catch (Exception ex) {
+                            if (!HandleTransactException(ex, handle, ++retries, opts.maxRetries))
+                                throw;
+                            continue;
+                        } finally {
+                            Debug.Assert(ThreadData.inTransactionScope_ == 1);
+                            ThreadData.inTransactionScope_ = 0;
+                            ThreadData.applyHooks_ = false;
+                            TransactionManager.SetCurrentTransaction(currentTransaction);
+                        }
+                    }
+                    throw ErrorCode.ToException(r);
+                }
+            }
+            
+            try {
+                action(arg);
+            } catch {
+                sccoredb.star_context_external_abort(ThreadData.ContextHandle);
+                throw;
+            }
+        }
+
+        internal static TResult Transact<TResult>(Func<TResult> func, uint flags, Advanced.TransactOptions opts) {
+            int retries = 0;
+            uint r;
+            ulong handle;
+
+            VerifyTransactOptions(opts);
+
+            if (ThreadData.inTransactionScope_ == 0) {
+                for (;;) {
+                    r = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
+                    if (r == 0) {
+                        var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+
+                        try {
+                            ThreadData.inTransactionScope_ = 1;
+                            ThreadData.applyHooks_ = opts.applyHooks;
+                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
+                            TResult retValue = func();
+                            TransactionManager.Commit(1);
+                            return retValue;
+                        } catch (Exception ex) {
+                            if (!HandleTransactException(ex, handle, ++retries, opts.maxRetries))
+                                throw;
+                            continue;
+                        } finally {
+                            Debug.Assert(ThreadData.inTransactionScope_ == 1);
+                            ThreadData.inTransactionScope_ = 0;
+                            ThreadData.applyHooks_ = false;
+                            TransactionManager.SetCurrentTransaction(currentTransaction);
+                        }
+                    }
+                    throw ErrorCode.ToException(r);
+                }
+            }
+            
+            try {
+                return func();
+            } catch {
+                sccoredb.star_context_external_abort(ThreadData.ContextHandle);
+                throw;
+            }
+        }
+
+        internal static TResult Transact<T, TResult>(Func<T, TResult> func, T arg, uint flags, Advanced.TransactOptions opts) {
+            int retries = 0;
+            uint r;
+            ulong handle;
+
+            VerifyTransactOptions(opts);
+
+            if (ThreadData.inTransactionScope_ == 0) {
+                for (;;) {
+                    r = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
+                    if (r == 0) {
+                        var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+
+                        try {
+                            ThreadData.inTransactionScope_ = 1;
+                            ThreadData.applyHooks_ = opts.applyHooks;
+                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
+                            TResult retValue = func(arg);
+                            TransactionManager.Commit(1);
+                            return retValue;
+                        } catch (Exception ex) {
+                            if (!HandleTransactException(ex, handle, ++retries, opts.maxRetries))
+                                throw;
+                            continue;
+                        } finally {
+                            Debug.Assert(ThreadData.inTransactionScope_ == 1);
+                            ThreadData.inTransactionScope_ = 0;
+                            ThreadData.applyHooks_ = false;
+                            TransactionManager.SetCurrentTransaction(currentTransaction);
+                        }
+                    }
+                    throw ErrorCode.ToException(r);
+                }
+            }
+
+            try {
+                return func(arg);
+            } catch {
+                sccoredb.star_context_external_abort(ThreadData.ContextHandle);
+                throw;
+            }
         }
 
         internal static void SystemTransact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
             Transact(action, 0, new Advanced.TransactOptions { forceSnapshot = forceSnapshot, maxRetries = maxRetries });
         }
 
+        private static void VerifyTransactOptions(Advanced.TransactOptions opts) {
+            if (opts.maxRetries < 0) {
+                throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
+            }
+
+            if (opts.forceSnapshot) {
+                throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Forcing snapshot isolation is not yet implemented.");
+            }
+        }
+
+        /// <summary>
+        /// Checks the specified exception. If the exception is of type <see cref="ITransactionConflictException"/>
+        /// and the number of retries is lower then max number of retries true is returned and no other action is taken.
+        /// If the maximum number of retries is reached an unhandled transaction conflict is thrown.
+        /// For other exception types false is returned. 
+        /// </summary>
+        /// <param name="ex">The catched exception.</param>
+        /// <param name="handle">Handle of the transaction in use.</param>
+        /// <param name="verify">Verify of the transaction in use.</param>
+        /// <param name="retries">The number of times the transaction have been retried.</param>
+        /// <param name="maxRetries">The maximum number of retries.</param>
+        /// <returns></returns>
+        private static bool HandleTransactException(Exception ex, ulong handle, int retries, int maxRetries) {
+            ulong verify = ThreadData.ObjectVerify;
+            uint cr = sccoredb.star_transaction_free(handle, verify);
+            if (cr == 0) {
+                if (ex is ITransactionConflictException) {
+                    if (retries <= maxRetries)
+                        return true;
+                    throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
+                }
+                return false;
+            }
+            HandleFatalErrorInTransactionScope(cr);
+            return false; // Will never be reached, but needed so that the compiler is happy.
+        }
+        
         public static void Scope(Action action, bool isReadOnly = false) {
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
             TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
@@ -352,7 +538,7 @@ namespace Starcounter
             TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
             bool create = (old.handle == 0 || old.IsImplicit);
             try {
-                if (create) 
+                if (create)
                     transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action(arg1, arg2);
             } finally {
@@ -372,7 +558,7 @@ namespace Starcounter
                 action(arg1, arg2, arg3);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (create) 
+                if (create)
                     TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
@@ -398,7 +584,7 @@ namespace Starcounter
             bool create = (old.handle == 0 || old.IsImplicit);
             try {
                 if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 return func(arg);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
@@ -408,16 +594,16 @@ namespace Starcounter
         }
 
         public static TResult Scope<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2, bool isReadOnly = false) {
-           TransactionHandle transactionHandle = TransactionHandle.Invalid;
-           TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
-           bool create = (old.handle == 0 || old.IsImplicit);
-           try {
-               if (create) 
-                   transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
+            try {
+                if (create)
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 return func(arg1, arg2);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (create) 
+                if (create)
                     TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
@@ -480,25 +666,21 @@ namespace Starcounter
             Delete(new ObjectRef { ObjectID = oid, ETI = address });
         }
 
-        private static void InvokeBeforeDeleteHooks(IObjectProxy proxy, ulong oid, ulong address)
-        {
+        private static void InvokeBeforeDeleteHooks(IObjectProxy proxy, ulong oid, ulong address) {
             int ir = sccoredb.star_context_set_trans_flags(
                 ThreadData.ContextHandle, oid, address, sccoredb.DELETE_PENDING
                 );
-            if (ir != 0)
-            {
+            if (ir != 0) {
                 // Positive value contains previously set flags, negative value indicates and error.
 
-                if (ir > 0)
-                {
-                    if ((ir & sccoredb.DELETE_PENDING) != 0)
-                    {
+                if (ir > 0) {
+                    if ((ir & sccoredb.DELETE_PENDING) != 0) {
                         // Delete already was issued. We ignore it and just return. We are
                         // processing the delete of this object so it will be deleted eventually.
                         return;
                     }
-                }
-                else throw ErrorCode.ToException((uint)(-ir));
+                } else
+                    throw ErrorCode.ToException((uint)(-ir));
             }
 
             // Invoke all callbacks. If any of theese throws an exception then
@@ -511,18 +693,14 @@ namespace Starcounter
             //
             // When should this be called? Before or after OnDelete?
             // TODO:
-            if (MapConfig.Enabled)
-            {
+            if (MapConfig.Enabled) {
                 MapInvoke.DELETE(proxy.TypeBinding.Name, oid);
             }
 
             ThreadData.inTransactionScope_++;
-            try
-            {
+            try {
                 InvokeOnDelete(proxy);
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 // We can't generate an exception from an error in this
                 // function since this will hide the original error.
                 //
@@ -536,20 +714,19 @@ namespace Starcounter
                 sccoredb.star_context_reset_trans_flags(
                     ThreadData.ContextHandle, oid, address, sccoredb.DELETE_PENDING
                     );
-                if (ex is System.Threading.ThreadAbortException) throw;
+                if (ex is System.Threading.ThreadAbortException)
+                    throw;
                 throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, ex);
-            }
-            finally
-            {
+            } finally {
                 ThreadData.inTransactionScope_--;
             }
 
         }
 
-        public static void Delete(ObjectRef o)
-        {
+        public static void Delete(ObjectRef o) {
             uint r = sccoredb.star_context_delete(ThreadData.ContextHandle, o.ObjectID, o.ETI);
-            if (r == 0) return;
+            if (r == 0)
+                return;
             throw ErrorCode.ToException(r);
         }
 
@@ -581,8 +758,7 @@ namespace Starcounter
             }
         }
 
-        private static void HandleFatalErrorInTransactionScope(uint e)
-        {
+        private static void HandleFatalErrorInTransactionScope(uint e) {
             ExceptionManager.HandleInternalFatalError(e);
         }
     }
