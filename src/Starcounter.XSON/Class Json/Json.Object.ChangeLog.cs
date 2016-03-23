@@ -599,6 +599,14 @@ namespace Starcounter {
         /// This method will be called on each childjson as well.
         /// </summary>
         private void OnAddedToViewmodel(bool callStepSiblings) {
+            if (callStepSiblings == true && this._stepSiblings != null) {
+                foreach (var stepSibling in this._stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+                    stepSibling.OnAddedToViewmodel(false);
+                }
+            }
+
             if (this.isAddedToViewmodel == true)
                 return;
 
@@ -620,14 +628,6 @@ namespace Starcounter {
                 // on the session to keep track of it. This will also mean that the session
                 // is responsible for releasing it when noone uses it anymore.
                 _transaction = Session.RegisterTransaction(_transaction);
-            }
-
-            if (callStepSiblings == true && this._stepSiblings != null) {
-                foreach (var stepSibling in this._stepSiblings) {
-                    if (stepSibling == this)
-                        continue;
-                    stepSibling.OnAddedToViewmodel(false);
-                }
             }
             
             _trackChanges = true;
@@ -717,7 +717,7 @@ namespace Starcounter {
                     // We just call OnAdd for this sibling since the list will be set on each one.
                     // If the sibling is already added the method will just return so no need to 
                     // do additional checks here.
-                    this.OnAddedToViewmodel(false);
+                    this.OnAddedToViewmodel(true);
                 }
             }
         }
