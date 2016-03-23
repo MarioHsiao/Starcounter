@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace Starcounter.XSON.PartialClassGenerator {
 
-    internal sealed class CodeBehindFileWalker : CSharpSyntaxWalker {
+    internal sealed class CodeBehindFileAnalyzer : CSharpSyntaxWalker {
         public readonly RoslynCodeBehindParser Parser;
         public readonly CodeBehindMetadata Result;
 
-        public CodeBehindFileWalker(RoslynCodeBehindParser parser) {
+        public CodeBehindFileAnalyzer(RoslynCodeBehindParser parser) {
             Parser = parser;
             Result = new CodeBehindMetadata();
         }
@@ -26,8 +26,9 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         public override void VisitClassDeclaration(ClassDeclarationSyntax node) {
-            // TODO:
-            base.VisitClassDeclaration(node);
+            // Top level class. Pass it on.
+            var classAnalysis = new ClassAnalyzer(this, node);
+            classAnalysis.Visit(node);
         }
     }
 }

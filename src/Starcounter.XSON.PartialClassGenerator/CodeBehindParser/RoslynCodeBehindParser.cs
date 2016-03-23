@@ -41,9 +41,10 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// </summary>
         /// <returns></returns>
         public CodeBehindMetadata ParseToMetadata() {
+            Console.WriteLine("Begin parsing with Roslyn ...");
             SyntaxTree tree = CSharpSyntaxTree.ParseText(SourceCode);
             var root = (CompilationUnitSyntax)tree.GetRoot();
-            var walker = new CodeBehindFileWalker(this);
+            var walker = new CodeBehindFileAnalyzer(this);
             walker.Visit(root);
             return walker.Result;
         }
