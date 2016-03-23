@@ -103,7 +103,7 @@ namespace Starcounter
         /// <param name="buffer">The buffer.</param>
         /// <param name="offset">The offset.</param>
         /// <param name="length_bytes">The length in bytes.</param>
-        public void SendResponseSameScheduler(Byte[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags) {
+        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags) {
 
             // Checking if already destroyed.
             if (chunkIndex_ == MixedCodeConstants.INVALID_CHUNK_INDEX) {
@@ -113,27 +113,6 @@ namespace Starcounter
             // Running on current Starcounter scheduler.
             fixed (Byte* p = buffer) {
                 SendResponseBufferInternal(p, offset, length_bytes, conn_flags);
-            }
-        }
-
-        /// <summary>
-        /// Writes the specified buffer.
-        /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="length_bytes">The length in bytes.</param>
-        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags)
-        {
-            // Checking that scheduler id is correct.
-            Debug.Assert(StarcounterEnvironment.InvalidSchedulerId != schedulerId_);
-
-            // Checking that already on correct scheduler.
-            if (StarcounterEnvironment.CurrentSchedulerId == schedulerId_) {
-                SendResponseSameScheduler(buffer, offset, length_bytes, conn_flags);
-            } else {
-                StarcounterBase._DB.RunAsync(() => {
-                    SendResponseSameScheduler(buffer, offset, length_bytes, conn_flags);
-                }, schedulerId_);
             }
         }
 
