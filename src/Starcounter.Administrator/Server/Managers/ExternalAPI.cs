@@ -344,93 +344,68 @@ namespace Administrator.Server.Managers {
             // Create TaskItem
             Task taskItem = new Task();
 
-            AppStoreApplication appStoreApplication = null;
+            DeployManager.Download(task.SourceUrl, database, (deployedApplication) => {
 
-            database.InvalidateAppStoreStores(() => {
                 // Success
+                #region Install Application
+                deployedApplication.InstallApplication((installedApplication) => {
 
-                // Get the application
-                foreach (AppStoreStore store in database.AppStoreStores) {
+                    #region SetCanBeUninstalledFlag
 
-                    foreach (AppStoreApplication item in store.Applications) {
-
-                        if (item.ID == task.ID) {
-                            appStoreApplication = item;
-                            break;
-                        }
-                    }
-
-                    if (appStoreApplication != null) {
-                        break;
-                    }
-                }
-
-                if (appStoreApplication == null) {
-
-                    taskItem.Status = -2; // Error;
-                    taskItem.Message = "Application not found";
-                }
-                else {
-
-                    appStoreApplication.DeployApplication((deployedApplication) => {
+                    installedApplication.SetCanBeUninstalledFlag(task.CanBeUninstalled, (databaseApplication) => {
 
                         // Success
-                        deployedApplication.InstallApplication((installedApplication) => {
+                        // If database is started start application
+                        if (installedApplication.Database.IsRunning) {
 
-                            installedApplication.SetCanBeUninstalledFlag(task.CanBeUninstalled, (databaseApplication) => {
-
-                                // Success
-                                // If database is started start application
-                                if (installedApplication.Database.IsRunning) {
-
-                                    // TODO: Handle success
-                                    installedApplication.StartApplication((startedApplication) => {
-                                        // TODO: Handle success
-                                        taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
-                                        taskItem.ResourceID = databaseApplication.ID;
-                                        taskItem.Status = 0; // Done;
-                                    }, (startedApplication, wasCancelled, title, message, helpLink) => {
-                                        // TODO: Handle error
-                                        taskItem.Status = -5; // Error;
-                                        taskItem.Message = message;
-                                    });
-                                }
-                                else {
-
-                                    taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
-                                    taskItem.ResourceID = databaseApplication.ID;
-                                    taskItem.Status = 0; // Done;
-                                }
-
-                            }, (dapplication, wasCancelled, title, message, helpLink) => {
-
-                                taskItem.Status = -7; // Error;
+                            #region Start Application
+                            // TODO: Handle success
+                            installedApplication.StartApplication((startedApplication) => {
+                                // TODO: Handle success
+                                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                                taskItem.ResourceID = databaseApplication.ID;
+                                taskItem.Status = 0; // Done;
+                            }, (startedApplication, wasCancelled, title, message, helpLink) => {
+                                // TODO: Handle error
+                                taskItem.Status = -5; // Error;
                                 taskItem.Message = message;
-                                // Error
                             });
+                            #endregion
+                        }
+                        else {
 
+                            taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                            taskItem.ResourceID = databaseApplication.ID;
+                            taskItem.Status = 0; // Done;
+                        }
 
-                        }, (installedApplication, wasCancelled, title, message, helpLink) => {
-                            // TODO: Handle error
-                            taskItem.Status = -4; // Error;
-                            taskItem.Message = message;
-                        });
+                    }, (dapplication, wasCancelled, title, message, helpLink) => {
 
-
-                    }, (application, wasCanceled, title, message, helpLink) => {
-                        // Error
-                        taskItem.Status = -3; // Error;
+                        taskItem.Status = -7; // Error;
                         taskItem.Message = message;
+                        // Error
                     });
+                    #endregion
 
-                }
+                }, (installedApplication, wasCancelled, title, message, helpLink) => {
+                    // TODO: Handle error
+                    taskItem.Status = -4; // Error;
+                    taskItem.Message = message;
+                });
+
+                #endregion
 
 
-            }, (title, message, helpLink) => {
-                // Error
+            }, (message) => {
                 taskItem.Status = -1; // Error;
                 taskItem.Message = message;
             });
+
+
+
+
+
+
 
             TaskJson taskItemJson = new TaskJson();
             taskItemJson.Data = taskItem;

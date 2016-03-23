@@ -263,14 +263,26 @@ namespace Starcounter {
             if (ss.schedulerId_ == StarcounterEnvironment.CurrentSchedulerId) {
 
                 Session s = (Session) GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
-                s.Use(task, sessionId);
+
+                // Checking if session is dead.
+                if (null != s) {
+                    s.Use(task, sessionId);
+                } else {
+                    task(null, sessionId);
+                }
 
             } else {
 
                 Scheduling.ScheduleTask(() => {
 
                     Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
-                    s.Use(task, sessionId);
+
+                    // Checking if session is dead.
+                    if (null != s) {
+                        s.Use(task, sessionId);
+                    } else {
+                        task(null, sessionId);
+                    }
 
                 }, waitForCompletion, ss.schedulerId_);
             }
