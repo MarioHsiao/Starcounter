@@ -21,10 +21,10 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			Assert.AreEqual("Json", monoMetadata.RootClassInfo.BaseClassName);
 			Assert.AreEqual("MySampleNamespace", monoMetadata.RootClassInfo.Namespace);
 			
-			Assert.AreEqual(2, monoMetadata.JsonPropertyMapList.Count);
-			Assert.AreEqual("OrderItem", monoMetadata.JsonPropertyMapList[1].BoundDataClass);
-			Assert.AreEqual("MyOtherNs.MySubNS.SubClass", monoMetadata.JsonPropertyMapList[1].BaseClassName);
-			Assert.AreEqual("Apapa.json.Items", monoMetadata.JsonPropertyMapList[1].RawDebugJsonMapAttribute);
+			Assert.AreEqual(2, monoMetadata.CodeBehindClasses.Count);
+			Assert.AreEqual("OrderItem", monoMetadata.CodeBehindClasses[1].BoundDataClass);
+			Assert.AreEqual("MyOtherNs.MySubNS.SubClass", monoMetadata.CodeBehindClasses[1].BaseClassName);
+			Assert.AreEqual("Apapa.json.Items", monoMetadata.CodeBehindClasses[1].RawDebugJsonMapAttribute);
 
 			Assert.AreEqual(3, monoMetadata.UsingDirectives.Count);
 			Assert.AreEqual("System", monoMetadata.UsingDirectives[0]);
@@ -42,10 +42,10 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			Assert.AreEqual("MyBaseJsonClass", monoMetadata.RootClassInfo.BaseClassName);
 			Assert.AreEqual("MySampleNamespace", monoMetadata.RootClassInfo.Namespace);
 
-			Assert.AreEqual(6, monoMetadata.JsonPropertyMapList.Count);
-			Assert.AreEqual("OrderItem", monoMetadata.JsonPropertyMapList[1].BoundDataClass);
-			Assert.AreEqual("Json", monoMetadata.JsonPropertyMapList[1].BaseClassName);
-			Assert.AreEqual("json.ActivePage.SubPage1.SubPage2.SubPage3", monoMetadata.JsonPropertyMapList[1].RawDebugJsonMapAttribute);
+			Assert.AreEqual(6, monoMetadata.CodeBehindClasses.Count);
+			Assert.AreEqual("OrderItem", monoMetadata.CodeBehindClasses[1].BoundDataClass);
+			Assert.AreEqual("Json", monoMetadata.CodeBehindClasses[1].BaseClassName);
+			Assert.AreEqual("json.ActivePage.SubPage1.SubPage2.SubPage3", monoMetadata.CodeBehindClasses[1].RawDebugJsonMapAttribute);
 
 			Assert.AreEqual(3, monoMetadata.UsingDirectives.Count);
 			Assert.AreEqual("System", monoMetadata.UsingDirectives[0]);

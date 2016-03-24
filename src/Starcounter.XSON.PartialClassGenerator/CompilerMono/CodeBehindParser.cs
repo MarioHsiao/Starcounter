@@ -406,7 +406,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                 }
 
                 //                    classInfo.AutoBindToDataObject = (genericArg != null);
-                metadata.JsonPropertyMapList.Add(classInfo);
+                metadata.CodeBehindClasses.Add(classInfo);
 
 #if DEBUG
                 if (metadata.RootClassInfo == null)
@@ -424,7 +424,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                     //               info.JsonMapName = attribute.Raw;
                     info.Namespace = mce.CurrentNamespace;
                     info.ParentClasses = mce.ClassList;
-                    metadata.JsonPropertyMapList.Add(info);
+                    metadata.CodeBehindClasses.Add(info);
                 }
             }
             mce.PushClass(foundClassName);
