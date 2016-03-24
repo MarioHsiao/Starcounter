@@ -1,5 +1,5 @@
 ﻿
-[Company.json]
+[Company_json]
 partial class Company : Json {
 
     void Handle( Input.CompanyName input ) {
@@ -10,7 +10,7 @@ partial class Company : Json {
 
 }
 
-[Company.json.Contact]
+[Company_json.Contact]
 partial class ContactJson : Json {
 
     void Handle(Input.FirstName input) {

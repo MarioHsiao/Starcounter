@@ -2,7 +2,7 @@
 partial class ParentChild : Json {
 }
 
-[ParentChild.json.Child2]
+[ParentChild_json.Child2]
 partial class ContactPage : Json {
 }
 

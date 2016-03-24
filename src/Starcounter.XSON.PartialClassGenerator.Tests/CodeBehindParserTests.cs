@@ -24,7 +24,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			Assert.AreEqual(2, monoMetadata.CodeBehindClasses.Count);
 			Assert.AreEqual("OrderItem", monoMetadata.CodeBehindClasses[1].BoundDataClass);
 			Assert.AreEqual("MyOtherNs.MySubNS.SubClass", monoMetadata.CodeBehindClasses[1].BaseClassName);
-			Assert.AreEqual("Apapa.json.Items", monoMetadata.CodeBehindClasses[1].RawDebugJsonMapAttribute);
+			Assert.AreEqual("Apapa_json.Items", monoMetadata.CodeBehindClasses[1].RawDebugJsonMapAttribute);
 
 			Assert.AreEqual(3, monoMetadata.UsingDirectives.Count);
 			Assert.AreEqual("System", monoMetadata.UsingDirectives[0]);
@@ -45,7 +45,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			Assert.AreEqual(6, monoMetadata.CodeBehindClasses.Count);
 			Assert.AreEqual("OrderItem", monoMetadata.CodeBehindClasses[1].BoundDataClass);
 			Assert.AreEqual("Json", monoMetadata.CodeBehindClasses[1].BaseClassName);
-			Assert.AreEqual("json.ActivePage.SubPage1.SubPage2.SubPage3", monoMetadata.CodeBehindClasses[1].RawDebugJsonMapAttribute);
+			Assert.AreEqual("Complex_json.ActivePage.SubPage1.SubPage2.SubPage3", monoMetadata.CodeBehindClasses[1].RawDebugJsonMapAttribute);
 
 			Assert.AreEqual(3, monoMetadata.UsingDirectives.Count);
 			Assert.AreEqual("System", monoMetadata.UsingDirectives[0]);
