@@ -39,6 +39,40 @@ class SchedulingPerfTest {
         return 0;
     }
 
+    public static Int32 LargeSyncTaskOnAnyScheduler(Int32 numTasks) {
+
+        Int32 numFinishedTasks = 0;
+
+        Stopwatch sw = Stopwatch.StartNew();
+
+        for (Int32 i = 0; i < numTasks; i++) {
+
+            Scheduling.ScheduleTask(() => {
+
+                for (Int32 c = 0; c < 100; c++) {
+
+                    var x = Db.SQL<SomeClass>("select t from SomeClass t").First;
+                    if (x.SomeProperty != "Blabla") {
+                        throw new ArgumentOutOfRangeException("Required class object is not found!");
+                    }
+                }
+
+                Interlocked.Increment(ref numFinishedTasks);
+            }, true);
+        }
+
+        while (numFinishedTasks != numTasks) {
+            Thread.Sleep(1);
+        }
+
+        sw.Stop();
+
+        Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
+            "LargeSyncTaskOnAnyScheduler_PerSec", (Int32)(numTasks / (sw.ElapsedMilliseconds / 1000.0)));
+
+        return 0;
+    }
+
     public static Int32 SimplestSyncTaskOnSpecificScheduler(Int32 numTasks, Byte schedId) {
 
         Int32 numFinishedTasks = 0;
@@ -101,6 +135,40 @@ class SchedulingPerfTest {
         return 0;
     }
 
+    public static Int32 LargeAsyncTaskOnAnyScheduler(Int32 numTasks) {
+
+        Int32 numFinishedTasks = 0;
+
+        Stopwatch sw = Stopwatch.StartNew();
+
+        for (Int32 i = 0; i < numTasks; i++) {
+
+            Scheduling.ScheduleTask(() => {
+
+                for (Int32 c = 0; c < 100; c++) {
+
+                    var x = Db.SQL<SomeClass>("select t from SomeClass t").First;
+                    if (x.SomeProperty != "Blabla") {
+                        throw new ArgumentOutOfRangeException("Required class object is not found!");
+                    }
+                }
+
+                Interlocked.Increment(ref numFinishedTasks);
+            });
+        }
+
+        while (numFinishedTasks != numTasks) {
+            Thread.Sleep(1);
+        }
+
+        sw.Stop();
+
+        Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
+            "LargeAsyncTaskOnAnyScheduler_PerSec", (Int32)(numTasks / (sw.ElapsedMilliseconds / 1000.0)));
+
+        return 0;
+    }
+
     public static Int32 SmallAsyncTaskOnSpecificScheduler(Int32 numTasks, Byte schedId) {
 
         Int32 numFinishedTasks = 0;
@@ -135,6 +203,48 @@ class SchedulingPerfTest {
 
         Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
             "SmallAsyncTaskOnSpecificScheduler" + schedId + "_PerSec", (Int32)(numTasks / (sw.ElapsedMilliseconds / 1000.0)));
+
+        return 0;
+    }
+
+    public static Int32 LargeAsyncTaskOnSpecificScheduler(Int32 numTasks, Byte schedId) {
+
+        Int32 numFinishedTasks = 0;
+
+        Stopwatch sw = Stopwatch.StartNew();
+
+        for (Int32 i = 0; i < numTasks; i++) {
+
+            Scheduling.ScheduleTask(() => {
+
+                if (StarcounterEnvironment.CurrentSchedulerId == schedId) {
+
+                    for (Int32 c = 0; c < 100; c++) {
+
+                        var x = Db.SQL<SomeClass>("select t from SomeClass t").First;
+
+                        if (x.SomeProperty != "Blabla") {
+                            throw new ArgumentOutOfRangeException("Required class object is not found!");
+                        }
+                    }
+
+                    Interlocked.Increment(ref numFinishedTasks);
+
+                } else {
+                    throw new ArgumentOutOfRangeException("Wrong scheduler id: " + schedId);
+                }
+
+            }, false, schedId);
+        }
+
+        while (numFinishedTasks != numTasks) {
+            Thread.Sleep(1);
+        }
+
+        sw.Stop();
+
+        Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
+            "LargeAsyncTaskOnSpecificScheduler" + schedId + "_PerSec", (Int32)(numTasks / (sw.ElapsedMilliseconds / 1000.0)));
 
         return 0;
     }
@@ -204,7 +314,9 @@ class SchedulingPerfTest {
             };
         });
 
-        Int32 errCode = SimplestAsyncTaskOnAnyScheduler(10000000);
+        Int32 errCode;
+        
+        errCode = SimplestAsyncTaskOnAnyScheduler(10000000);
         if (0 != errCode) {
             return errCode;
         }
@@ -248,6 +360,26 @@ class SchedulingPerfTest {
         if (0 != errCode) {
             return errCode;
         }
+
+        errCode = LargeAsyncTaskOnAnyScheduler(200000);
+        if (0 != errCode) {
+            return errCode;
+        }
+
+        errCode = LargeAsyncTaskOnSpecificScheduler(200000, 1);
+        if (0 != errCode) {
+            return errCode;
+        }
+
+        errCode = LargeAsyncTaskOnSpecificScheduler(200000, 0);
+        if (0 != errCode) {
+            return errCode;
+        }
+
+        errCode = LargeSyncTaskOnAnyScheduler(200000);
+        if (0 != errCode) {
+            return errCode;
+        }        
 
         return 0;
     }
