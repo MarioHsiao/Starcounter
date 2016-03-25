@@ -50,6 +50,7 @@ namespace Starcounter.Internal {
 
 #pragma warning disable 0618
             Scheduling.SetDbSessionImplementation(new DbSession());
+            DbSession.Init();
 #pragma warning restore 0618
 
             // Invalidating scheduler id.
