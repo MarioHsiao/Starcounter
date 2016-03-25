@@ -65,7 +65,7 @@ class SchedulingPerfTest {
         sw.Stop();
 
         Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
-            "SimplestSyncTaskOnSpecificScheduler_PerSec", (Int32)(numTasks / (sw.ElapsedMilliseconds / 1000.0)));
+            "SimplestSyncTaskOnSpecificScheduler" + schedId + "_PerSec", (Int32)(numTasks / (sw.ElapsedMilliseconds / 1000.0)));
 
         return 0;
     }
@@ -134,7 +134,7 @@ class SchedulingPerfTest {
         sw.Stop();
 
         Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
-            "SmallAsyncTaskOnSpecificScheduler_PerSec", (Int32)(numTasks / (sw.ElapsedMilliseconds / 1000.0)));
+            "SmallAsyncTaskOnSpecificScheduler" + schedId + "_PerSec", (Int32)(numTasks / (sw.ElapsedMilliseconds / 1000.0)));
 
         return 0;
     }
@@ -165,7 +165,7 @@ class SchedulingPerfTest {
         sw.Stop();
 
         Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
-            "SimplestAsyncTaskOnSpecificScheduler_PerSec", (Int32)(numTasks / (sw.ElapsedMilliseconds / 1000.0)));
+            "SimplestAsyncTaskOnSpecificScheduler" + schedId + "_PerSec", (Int32)(numTasks / (sw.ElapsedMilliseconds / 1000.0)));
 
         return 0;
     }
@@ -214,6 +214,11 @@ class SchedulingPerfTest {
             return errCode;
         }
 
+        errCode = SimplestAsyncTaskOnSpecificScheduler(10000000, 0);
+        if (0 != errCode) {
+            return errCode;
+        }
+
         errCode = SmallAsyncTaskOnAnyScheduler(10000000);
         if (0 != errCode) {
             return errCode;
@@ -224,12 +229,22 @@ class SchedulingPerfTest {
             return errCode;
         }
 
+        errCode = SmallAsyncTaskOnSpecificScheduler(10000000, 0);
+        if (0 != errCode) {
+            return errCode;
+        }
+
         errCode = SimplestSyncTaskOnAnyScheduler(1000000);
         if (0 != errCode) {
             return errCode;
         }
 
         errCode = SimplestSyncTaskOnSpecificScheduler(1000000, 1);
+        if (0 != errCode) {
+            return errCode;
+        }
+
+        errCode = SimplestSyncTaskOnSpecificScheduler(1000000, 0);
         if (0 != errCode) {
             return errCode;
         }
