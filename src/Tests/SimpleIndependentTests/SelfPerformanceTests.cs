@@ -38,8 +38,7 @@ class TestSelfPerformance {
         CreateGetHandlers(uris);
 
         Int32 numSelfGets = 1000000;
-        Stopwatch sw = new Stopwatch();
-        sw.Start();
+        Stopwatch sw = Stopwatch.StartNew();
 
         for (Int32 i = 0; i < numSelfGets; i++) {
             Int32 randIndex = rand.Next(0, numToGenerate - 1);
