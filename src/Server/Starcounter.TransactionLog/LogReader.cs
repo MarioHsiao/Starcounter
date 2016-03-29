@@ -118,11 +118,6 @@ namespace Starcounter.TransactionLog
             return res;
         }
 
-        private static void Test(int code)
-        {
-            TransactionLogException.Test(code);
-        }
-
         #region IDisposable Support
         protected virtual void Free()
         {
