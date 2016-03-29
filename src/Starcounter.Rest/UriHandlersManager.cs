@@ -596,7 +596,7 @@ namespace Starcounter.Rest
                 if (UriInjectMethods.registerHttpHandlerInGateway_ != null) {
 
                     // Checking if we are on default handler level so we register with gateway.
-                    if (ho.HandlerLevel == HandlerOptions.HandlerLevels.DefaultLevel) {
+                    if ((ho.HandlerLevel == HandlerOptions.HandlerLevels.DefaultLevel) && (!ho.SelfOnly)) {
 
                         String appName = allUriHandlers_[handlerId].AppName;
                         if (String.IsNullOrEmpty(appName)) {
