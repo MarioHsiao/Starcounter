@@ -165,6 +165,7 @@ sccorelog.dll
 sccorelog.exp
 sccorelog.lib
 sccorelog.pdb
+sccorelogcmd.exe
 sccreatedb.exe
 sccreatedb.pdb
 scdata.exe
