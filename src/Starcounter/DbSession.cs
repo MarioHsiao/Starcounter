@@ -1,6 +1,8 @@
 ﻿
 using Starcounter.Internal;
 using System;
+using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Starcounter.Internal {
 
@@ -28,7 +30,7 @@ namespace Starcounter.Internal {
 
         /// <summary>
         /// </summary>
-        void Run(ITask task, Byte schedId = StarcounterEnvironment.InvalidSchedulerId);
+        UInt32 Run(ITask task, Byte schedId = StarcounterEnvironment.InvalidSchedulerId);
     }
 
     /// <summary>
@@ -42,8 +44,8 @@ namespace Starcounter.Internal {
             impl_ = impl;
         }
 
-        internal static void Run(ITask task, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
-            impl_.Run(task, schedId);
+        internal static UInt32 Run(ITask task, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
+            return impl_.Run(task, schedId);
         }
     }
 }
@@ -82,7 +84,8 @@ namespace Starcounter {
                 unsafe {
                     if (hEvent_ != null) {
                         var r = sccorelib.cm3_mevt_set(hEvent_);
-                        if (r != 0) ExceptionManager.HandleInternalFatalError(r);
+                        if (r != 0)
+                            ExceptionManager.HandleInternalFatalError(r);
                     }
                 }
             }
@@ -94,52 +97,197 @@ namespace Starcounter {
     }
 
     /// <summary>
+    /// Saved structure containing user task.
+    /// </summary>
+    class UserTaskInfo {
+        public String AppName;
+        public Action UserTask;
+    }
+
+    /// <summary>
     /// </summary>
     [Obsolete("Please use Scheduling.ScheduleTask instead.")]
     public class DbSession : IDbSession {
 
         /// <summary>
-        /// Round robin scheduler ID for RunAsync calls.
+        /// List of user tasks scheduled on any scheduler.
         /// </summary>
+        static ConcurrentQueue<UserTaskInfo> asyncTasksAnyScheduler_ = new ConcurrentQueue<UserTaskInfo>();
+
+        /// <summary>
+        /// List of user tasks per scheduler.
+        /// </summary>
+        static ConcurrentQueue<UserTaskInfo>[] asyncTasksPerScheduler_;
+
+        /// <summary>
+        /// Current round robin scheduler id value.
+        /// </summary>
+        [ThreadStatic]
         static Byte roundRobinSchedId_ = 0;
 
         /// <summary>
-        /// Lock for incrementing scheduler id.
+        /// Initializes schdeduling data.
         /// </summary>
-        static String roundRobinLock_ = "some value";
+        public static void Init() {
+            asyncTasksPerScheduler_ = new ConcurrentQueue<UserTaskInfo>[StarcounterEnvironment.SchedulerCount];
+
+            for (Int32 i = 0; i < asyncTasksPerScheduler_.Length; i++) {
+                asyncTasksPerScheduler_[i] = new ConcurrentQueue<UserTaskInfo>();
+            }
+        }
+
+        /// <summary>
+        /// Gets and executes already scheduled tasks on current scheduler.
+        /// </summary>
+        public static void GetAndExecuteQueuedTasks(Action<Action, String> taskExecutionMethod) {
+
+            Byte curSchedId = StarcounterEnvironment.CurrentSchedulerId;
+            UserTaskInfo task;
+
+            // First we need to execute all tasks waiting on the same scheduler.
+            while (true) {
+
+                // Trying to dequeue a task from schedulers queue.
+                if (!asyncTasksPerScheduler_[curSchedId].IsEmpty) {
+
+                    if (!asyncTasksPerScheduler_[curSchedId].TryDequeue(out task))
+                        break;
+
+                    // Running the given task execution.
+                    taskExecutionMethod(task.UserTask, task.AppName);
+
+                } else {
+                    break;
+                }
+            }
+
+            // Now taking the task from all schedulers queue.
+            while (true) {
+
+                // Trying to dequeue a task from schedulers queue.
+                if (!asyncTasksAnyScheduler_.IsEmpty) {
+
+                    if (!asyncTasksAnyScheduler_.TryDequeue(out task))
+                        break;
+
+                    taskExecutionMethod(task.UserTask, task.AppName);
+
+                } else {
+                    break;
+                }
+            }
+        }
 
         /// <summary>
         /// Runs the task represented by the action delegate asynchronously.
         /// </summary>
         /// <remarks>
-        /// Unless overridden by specifying a specific scheduler for the task
-        /// to run on: If calling thread is attached to a Starcounter
-        /// scheduler, the task runs on the same scheduler as the calling
-        /// thread. If the calling thread is not a Starcounter thread, the task
-        /// is scheduled on scheduler 0.
+        /// Schedules a task on a given scheduler (even if current scheduler is the same).
+        /// In case if invalid scheduler is supplied then all schedulers are tried in round robin
+        /// manner. When all schedulers are tried but the queues are full - then task is put into
+        /// the awaiting queue.
         /// </remarks>
         public void RunAsync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
-            unsafe {
+
+            unsafe
+            {
+                Boolean anyScheduler = (StarcounterEnvironment.InvalidSchedulerId == schedId);
+
                 String curAppName = StarcounterEnvironment.AppName;
 
                 // Checking if we need to use round robin for getting scheduler id.
-                if (StarcounterEnvironment.InvalidSchedulerId == schedId) {
-                    lock (roundRobinLock_) {
-                        roundRobinSchedId_++;
-                        if (roundRobinSchedId_ >= StarcounterEnvironment.SchedulerCount) {
-                            roundRobinSchedId_ = 0;
-                        }
-                        schedId = roundRobinSchedId_;
+                if (anyScheduler) {
+
+                    // First checking if we have any tasks in the common queue.
+                    if (!asyncTasksAnyScheduler_.IsEmpty) {
+
+                        asyncTasksAnyScheduler_.Enqueue(new UserTaskInfo() {
+                            AppName = curAppName,
+                            UserTask = action
+                        });
+
+                        return;
+                    }
+
+                } else {
+
+                    // First checking if we have any tasks in the common queue.
+                    if (!asyncTasksPerScheduler_[schedId].IsEmpty) {
+
+                        asyncTasksPerScheduler_[schedId].Enqueue(new UserTaskInfo() {
+                            AppName = curAppName,
+                            UserTask = action
+                        });
+
+                        return;
                     }
                 }
 
-                TaskScheduler.Run(new Task(
-                () => {
-                    // NOTE: Setting current application name, since StarcounterEnvironment.AppName is thread static.
-                    StarcounterEnvironment.AppName = curAppName;
-                    action();
-                }, null), schedId);
+                // Creating the task to run.
+                var task = new Task(
+                    () => {
+                        // NOTE: Setting current application name, since StarcounterEnvironment.AppName is thread static.
+                        StarcounterEnvironment.AppName = curAppName;
+                        action();
+                    }, null);
+
+                // Number of tries = number of schedulers.
+                for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+
+                    // In case if any scheduler supplied, doing round robin.
+                    if (anyScheduler) {
+
+                        schedId = ++roundRobinSchedId_;
+
+                        if (schedId >= StarcounterEnvironment.SchedulerCount) {
+                            roundRobinSchedId_ = 0;
+                            schedId = 0;
+                        }
+                    }
+
+                    // Running the task and getting the result.
+                    UInt32 errCode = TaskScheduler.Run(task, schedId);
+
+                    // If success - stop trying.
+                    if (0 == errCode) {
+                        return;
+                    }
+
+                    // If queue is full, sleeping a bit and then trying again.
+                    if (Error.SCERRINPUTQUEUEFULL == errCode) {
+
+                        // Checking if any scheduler is involved.
+                        if (anyScheduler) {
+
+                            // Checking if its the last round robin attempt.
+                            if (StarcounterEnvironment.SchedulerCount - 1 == i) {
+
+                                asyncTasksAnyScheduler_.Enqueue(new UserTaskInfo() {
+                                    AppName = curAppName,
+                                    UserTask = action
+                                });
+
+                                return;
+                            }
+                        } else {
+
+                            // Putting to the specific scheduler queue.
+                            asyncTasksPerScheduler_[schedId].Enqueue(new UserTaskInfo() {
+                                AppName = curAppName,
+                                UserTask = action
+                            });
+
+                            return;
+                        }
+
+                    } else {
+
+                        // In case if error is not related to full queue - throwing.
+                        throw ErrorCode.ToException(errCode);
+                    }
+                }
             }
+
         }
 
         /// <summary>
@@ -165,18 +313,21 @@ namespace Starcounter {
 
                 // Checking if we need to use round robin for getting scheduler id.
                 if (StarcounterEnvironment.InvalidSchedulerId == schedId) {
-                    lock (roundRobinLock_) {
-                        roundRobinSchedId_++;
-                        if (roundRobinSchedId_ >= StarcounterEnvironment.SchedulerCount) {
-                            roundRobinSchedId_ = 0;
-                        }
-                        schedId = roundRobinSchedId_;
+
+                    schedId = ++roundRobinSchedId_;
+
+                    if (schedId >= StarcounterEnvironment.SchedulerCount) {
+                        roundRobinSchedId_ = 0;
+                        schedId = 0;
                     }
                 }
 
                 byte schedulerNumber;
                 r = sccorelib.cm3_get_cpun(null, &schedulerNumber);
-                if ((r != 0) || (schedId != StarcounterEnvironment.InvalidSchedulerId && schedulerNumber != schedId)) {
+
+                if ((r != 0) ||
+                    ((schedId != StarcounterEnvironment.InvalidSchedulerId) && (schedulerNumber != schedId))) {
+
                     void* hEvent;
                     r = sccorelib.cm3_mevt_new(null, 0, &hEvent);
                     if (r == 0) {
@@ -190,10 +341,28 @@ namespace Starcounter {
                                 action();
                             }, hEvent);
 
-                            TaskScheduler.Run(task, schedId);
+                            while (true) {
+                                
+                                // Running the task and getting the result.
+                                UInt32 errCode = TaskScheduler.Run(task, schedId);
+
+                                // If success - stop trying.
+                                if (0 == errCode) {
+                                    break;
+                                }
+
+                                // If queue is full, sleeping a bit and then trying again.
+                                if (Error.SCERRINPUTQUEUEFULL == errCode) {
+                                    Thread.Sleep(1);
+                                } else {
+                                    // If different type of error - throwing it.
+                                    throw ErrorCode.ToException(errCode);
+                                }
+                            }
 
                             r = sccorelib.cm3_mevt_wait(hEvent, UInt32.MaxValue, 0);
-                            if (r != 0) throw ErrorCode.ToException(r);
+                            if (r != 0)
+                                throw ErrorCode.ToException(r);
 
                             var e = task.GetException();
                             if (e != null) {

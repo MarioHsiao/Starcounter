@@ -376,7 +376,7 @@ namespace Administrator.Server.Model {
             this.DeployError = false;
             this.Status |= ApplicationStatus.Installing;
 
-            DeployManager.Download(this, (application) => {
+            DeployManager.Download(this.SourceUrl, this.Database, (application) => {
 
                 this.Status &= ~ApplicationStatus.Installing;
 
@@ -489,8 +489,6 @@ namespace Administrator.Server.Model {
                 return;
             }
 
-            // Get Right DatabaseApplication to upgrade
-//            DatabaseApplication currentDatabaseApplication = this.Database.GetLatestApplication(this.Namespace, this.Channel);
             if (currentDatabaseApplication == null) {
                 this.UpgradeError = true;
                 this.OnCommandError("Upgrade Application", "Failed to find the application", null);

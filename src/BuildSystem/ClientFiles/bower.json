@@ -12,7 +12,7 @@
     "puppet-client": "PuppetJs/puppet-polymer-client#~2.0.0",
     "bootswatch": "thomaspark/bootswatch#~3.3.5",
     "starcounter-include": "StarcounterSamples/starcounter-include#~0.1.0",
-    "polymer": "polymer/polymer#>=1.3.0",
+    "polymer": "polymer/polymer#>=1.4.0",
     "object.observe": "~0.2.6",
     "array.observe": "~0.0.1"
   }

@@ -40,7 +40,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Runs the task represented by the action delegate asynchronously.
+        /// Schedules given task represented by the action delegate. The task is placed into queue
+        /// and is processed by corresponding scheduler when picked from the queue. In case when "schedId" is not 
+        /// set to a specific scheduler - processing scheduler is picked in round robin manner.
+        /// In case when "waitForCompletion" flag is set, the completion of the task is awaited.
         /// </summary>
         /// <param name="action">Action to be run on scheduler.</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>

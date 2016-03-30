@@ -1191,7 +1191,7 @@ namespace Starcounter {
 
                    // TODO: Check for the proper fix.
                    if (null != dataStream_) {
-                       dataStream_.SendResponseSameScheduler(buffer, offset, length, connFlags);
+                       dataStream_.SendResponse(buffer, offset, length, connFlags);
                    }
                 }
 

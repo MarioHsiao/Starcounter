@@ -61,6 +61,11 @@ namespace StarcounterInternal.Hosting
                             case sccorelib_ext.TYPE_RUN_TASK:
 
                                 RunTask((IntPtr)task_data.Output3);
+
+#pragma warning disable 0618
+                                DbSession.GetAndExecuteQueuedTasks(RunTaskNoScheduling);
+#pragma warning restore 0618
+
                                 break;
 
                             case sccorelib_ext.TYPE_PROCESS_PACKAGE:
@@ -82,7 +87,49 @@ namespace StarcounterInternal.Hosting
             }
         }
 
+        static void RunTaskNoScheduling(Action userAction, String appName) {
+
+            // Allocate memory on the stack that can hold a few number of transactions that are fast 
+            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+            // be invalid after.
+            unsafe
+            {
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
+            }
+
+            try {
+                // No need to keep track of this since it will be cleaned up anyways in the end.
+                if (Db.Environment.HasDatabase)
+                    TransactionManager.CreateImplicitAndSetCurrent(true);
+
+                // Setting current application name.
+                StarcounterEnvironment.AppName = appName;
+
+                Task task;
+
+                unsafe
+                {
+                    // Creating a task containing user action.
+                    task = new Task(userAction, null);
+
+                    // Executing the task and getting the exception, if any.
+                    task.Run();
+                }
+
+                // Checking if any exception was thrown.
+                var e = task.GetException();
+                if (e != null) {
+                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNHANDLEDEXCEPTION, e);
+                }
+            } finally {
+                TransactionManager.Cleanup();
+            }
+        }
+
         static void RunTask(IntPtr hTask) {
+
             // Allocate memory on the stack that can hold a few number of transactions that are fast 
             // to allocate. The pointer to the memory will be kept on the thread. It is important that 
             // TransactionManager.Cleanup() is called before exiting this method since the pointer will 

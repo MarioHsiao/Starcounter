@@ -51,7 +51,7 @@ namespace Starcounter.Internal.Test
             Profiler.Init(true);
 
             // Not actually a merger anymore but linker of sibling Json parts.
-            Response.ResponsesMergerRoutine_ = UriMapping.DefaultJsonMerger;
+            Response.ResponsesMergerRoutine_ = JsonResponseMerger.DefaultMerger;
 
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(1);

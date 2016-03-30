@@ -127,6 +127,14 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Flag that allows only internal codehost calls to this handler.
+        /// </summary>
+        public Boolean SelfOnly
+        {
+            get; set;
+        }
+
+        /// <summary>
         /// Parameters info.
         /// </summary>
         internal MixedCodeConstants.UserDelegateParamInfo ParametersInfo {

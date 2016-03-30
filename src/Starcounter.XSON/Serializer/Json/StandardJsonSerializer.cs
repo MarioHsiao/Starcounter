@@ -1,16 +1,11 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-using Starcounter.Internal;
+﻿using Starcounter.Internal;
 using Starcounter.Templates;
-using System.Diagnostics;
+using System;
 using System.Collections;
-using Starcounter.Logging;
+using System.Collections.Generic;
 
 namespace Starcounter.Advanced.XSON {
-	public abstract class StandardJsonSerializerBase : TypedJsonSerializer {
+    public abstract class StandardJsonSerializerBase : TypedJsonSerializer {
         private delegate int EstimateSizeDelegate(TypedJsonSerializer serializer, Json json, Template template);
         private delegate int SerializeDelegate(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize);
 
@@ -106,18 +101,7 @@ namespace Starcounter.Advanced.XSON {
                 json._checkBoundProperties = oldValue;
             }
         }
-
-        private static bool WrapInAppName(Session session, Json obj) {
-            if (obj._wrapInAppName
-                && session != null
-                && session.enableNamespaces
-                && session.CheckOption(SessionOptions.IncludeNamespaces)
-                && (session.PublicViewModel != obj)
-                && !obj.calledFromStepSibling)
-                return true;
-            return false;
-        }
-
+        
         private static void AssertWrittenSize(Json json, int realSize, int destSize) {
             if (realSize > destSize) {
                 var errMsg = "TypedJson serializer: written size is larger than size of destination!";
@@ -176,8 +160,6 @@ namespace Starcounter.Advanced.XSON {
         private static int EstimateObject(TypedJsonSerializer serializer, Json json) {
             Session session = json.Session;
             int sizeBytes = 0;
-            string partialConfigId = null;
-            string appNameForLayout = null;
             string htmlUriMerged = null;
 
             if (json.Template == null) {
@@ -186,7 +168,7 @@ namespace Starcounter.Advanced.XSON {
             }
 
             // Checking if application name should wrap the JSON.
-            bool wrapInAppName = WrapInAppName(session, json);
+            bool wrapInAppName = ShouldBeNamespaced(json, session);
 
             sizeBytes += 1; // 1 for "{".
             List<Template> exposedProperties;
@@ -206,48 +188,18 @@ namespace Starcounter.Advanced.XSON {
                 tProperty = exposedProperties[i];
 
                 sizeBytes += tProperty.TemplateName.Length + 3; // 1 for ":" and to for quotation marks around string.
-
-                //if (tProperty.TemplateTypeId == (int)TemplateTypeEnum.Object) {
-                //    sizeBytes += serializer.EstimateSizeBytes(((TObject)tProperty).Getter(json));
-                //} else {
-                    sizeBytes += estimatePerTemplate[(int)tProperty.TemplateTypeId](serializer, json, tProperty);
-                //}
+                sizeBytes += estimatePerTemplate[(int)tProperty.TemplateTypeId](serializer, json, tProperty);
                 sizeBytes += 1; // 1 for comma.
             }
 
             if (wrapInAppName) {
                 sizeBytes += json._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
-
-                // Checking if siblings contains info for layout.
-                if (json._appNameForLayout != null) {
-                    if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
-                        for (int s = 0; s < json.StepSiblings.Count; s++) {
-                            var pp = json.StepSiblings[s];
-
-                            if (pp == json)
-                                continue;
-
-                            if (json._appNameForLayout.Equals(pp._appName, StringComparison.InvariantCultureIgnoreCase)) { // This is the sibling we want.
-                                // Checking if there is any partial Html provided.
-                                partialConfigId = pp.GetHtmlPartialUrl();
-                                break;
-                            }
-                        }
-                    }
-                    appNameForLayout = json._appNameForLayout;
-                } 
                 
-                if (partialConfigId == null) {
-                    // Checking if there is any partial Html provided.
-                    partialConfigId = json.GetHtmlPartialUrl();
-                    appNameForLayout = json._appName;
-
-                    if (!String.IsNullOrEmpty(partialConfigId)) {
-                        htmlUriMerged = appNameForLayout + "=" + partialConfigId;
-                        sizeBytes += 15 + partialConfigId.Length; // "PartialId":"",
-                    }
+                // Checking if there is any partial Html provided.
+                if (!String.IsNullOrEmpty(json.GetHtmlPartialUrl())) {
+                    htmlUriMerged = json._appName + "=" + json.GetHtmlPartialUrl();
                 }
-            
+                
                 // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
                 // we check if we have more than one stepsibling.
                 if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
@@ -263,7 +215,6 @@ namespace Starcounter.Advanced.XSON {
                         try {
                             // Checking if there is any partial Html provided.
                             if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
-
                                 if (htmlUriMerged != null)
                                     htmlUriMerged += "&";
 
@@ -285,21 +236,6 @@ namespace Starcounter.Advanced.XSON {
                 if (htmlUriMerged != null) {
                     htmlUriMerged = StarcounterConstants.HtmlMergerPrefix + htmlUriMerged;
                     sizeBytes += htmlUriMerged.Length;
-
-                    if (!string.IsNullOrEmpty(partialConfigId)) {
-
-                        // "AppName":"",
-                        sizeBytes += 13 + appNameForLayout.Length;
-
-                        // "PartialId":"",
-                        sizeBytes += 15 + partialConfigId.Length;
-
-                        string setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM Starcounter.Layout p WHERE p.Key = ?", partialConfigId).First;
-
-                        if (setupStr != null) {
-                            sizeBytes += setupStr.Length * 2 + 12; // "layout":"",
-                        }
-                    }
                 }
             }
 
@@ -400,12 +336,10 @@ namespace Starcounter.Advanced.XSON {
             int used = 0;
             List<Template> exposedProperties;
             string htmlUriMerged = null;
-            string partialConfigId = null;
-            string appNameForLayout = null;
             Session session = json.Session;
 
             // Checking if application name should wrap the JSON.
-            bool wrapInAppName = WrapInAppName(session, json);
+            bool wrapInAppName = ShouldBeNamespaced(json, session);
 
             unsafe {
                 byte* pfrag = (byte*)dest;
@@ -419,37 +353,10 @@ namespace Starcounter.Advanced.XSON {
                     return used;
                 }
 
-                if (wrapInAppName) {
-                    // Checking if active application is defined.
-                    if (json._appNameForLayout != null) {
-                        if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
-                            // Serializing every sibling first.
-                            for (int s = 0; s < json.StepSiblings.Count; s++) {
-                                var pp = json.StepSiblings[s];
-
-                                if (pp == json)
-                                    continue;
-
-                                // Checking if application name is the same.
-                                if (json._appNameForLayout.Equals(pp._appName, StringComparison.InvariantCultureIgnoreCase)) {
-                                    // Checking if there is any partial Html provided.
-                                    partialConfigId = pp.GetHtmlPartialUrl();
-                                    break;
-                                }
-                            }
-                        }
-
-                        appNameForLayout = json._appNameForLayout;
-                    } 
-                    
-                    if (partialConfigId == null) {
-                        // Checking if there is any partial Html provided.
-                        partialConfigId = json.GetHtmlPartialUrl();
-                        appNameForLayout = json._appName;
-
-                        if (!String.IsNullOrEmpty(partialConfigId)) {
-                            htmlUriMerged = appNameForLayout + "=" + partialConfigId;
-                        }
+                if (wrapInAppName) {   
+                    // Checking if there is any partial Html provided.
+                    if (!String.IsNullOrEmpty(json.GetHtmlPartialUrl())) {
+                        htmlUriMerged = json._appName + "=" + json.GetHtmlPartialUrl();
                     }
 
                     valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, json._appName);
@@ -517,8 +424,7 @@ namespace Starcounter.Advanced.XSON {
                         used++;
                     }
                 }
-
-                // Wrapping in application name.
+                
                 if (wrapInAppName) {
                     *pfrag++ = (byte)'}';
                     used++;
@@ -545,7 +451,6 @@ namespace Starcounter.Advanced.XSON {
                             try {
                                 // Checking if there is any partial Html provided.
                                 if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
-
                                     if (htmlUriMerged != null)
                                         htmlUriMerged += "&";
 
@@ -591,61 +496,8 @@ namespace Starcounter.Advanced.XSON {
                         valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, htmlUriMerged);
                         used += valueSize;
                         pfrag += valueSize;
-
-                        string setupStr = null;
-                        if (!string.IsNullOrEmpty(partialConfigId)) {
-
-                            *pfrag++ = (byte)',';
-                            used++;
-
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, "AppName");
-                            used += valueSize;
-                            pfrag += valueSize;
-
-                            *pfrag++ = (byte)':';
-                            used++;
-
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, appNameForLayout);
-                            used += valueSize;
-                            pfrag += valueSize;
-
-                            *pfrag++ = (byte)',';
-                            used++;
-
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, "PartialId");
-                            used += valueSize;
-                            pfrag += valueSize;
-
-                            *pfrag++ = (byte)':';
-                            used++;
-
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, partialConfigId);
-                            used += valueSize;
-                            pfrag += valueSize;
-
-                            setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM Starcounter.Layout p WHERE p.Key = ?", partialConfigId).First;
-                        }
-
-                        if (setupStr != null) {
-                            *pfrag++ = (byte)',';
-                            used++;
-
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, "layout");
-                            used += valueSize;
-                            pfrag += valueSize;
-
-                            *pfrag++ = (byte)':';
-                            used++;
-
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, setupStr);
-                            used += valueSize;
-                            pfrag += valueSize;
-                        }
-
                     } else {
-
                         // Inserting an empty string.
-
                         *pfrag++ = (byte)'\"';
                         used++;
                         *pfrag++ = (byte)'\"';
@@ -710,7 +562,29 @@ namespace Starcounter.Advanced.XSON {
         private static int SerializeTrigger(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
             return JsonHelper.WriteNull(dest, destSize);
         }
-	}
+
+        /// <summary>
+        /// Returns true if the specified json should be wrapped in namespace when
+        /// serializing. 
+        /// Only certain kinds of json will be namespaced.
+        /// 1. Is stateful (i.e state stored on a session)
+        /// 2. Session have the namespace option enabled.
+        /// 3. Is a possible attachpoint for siblings of other viewmodels (partial/merged).
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="session"></param>
+        /// <returns></returns>
+        private static bool ShouldBeNamespaced(Json json, Session session) {
+            if (json._wrapInAppName
+                && session != null
+                && session.enableNamespaces
+                && session.CheckOption(SessionOptions.IncludeNamespaces)
+                && (session.PublicViewModel != json)
+                && !json.calledFromStepSibling)
+                return true;
+            return false;
+        }
+    }
 
     public class StandardJsonSerializer : StandardJsonSerializerBase {
         private delegate void PopulateDelegate(Json json, Template template, JsonReader reader);

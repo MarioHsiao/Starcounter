@@ -255,24 +255,52 @@ namespace Starcounter {
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
         public static void ScheduleTask(String sessionId, SessionTask task, Boolean waitForCompletion = false) {
 
-            // Getting session structure from string.
-            ScSessionStruct ss = new ScSessionStruct();
-            ss.ParseFromString(sessionId);
+            Session savedCurrentSession = Session.Current;
+            try {
 
-            // Checking if we are on the same scheduler.
-            if (ss.schedulerId_ == StarcounterEnvironment.CurrentSchedulerId) {
+                // Checking if we already have a current session.
+                if (null != savedCurrentSession) {
+                    savedCurrentSession.StopUsing();
+                }
 
-                Session s = (Session) GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
-                s.Use(task, sessionId);
+                // Getting session structure from string.
+                ScSessionStruct ss = new ScSessionStruct();
+                ss.ParseFromString(sessionId);
 
-            } else {
-
-                Scheduling.ScheduleTask(() => {
+                // Checking if we are on the same scheduler.
+                if (ss.schedulerId_ == StarcounterEnvironment.CurrentSchedulerId) {
 
                     Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
-                    s.Use(task, sessionId);
 
-                }, waitForCompletion, ss.schedulerId_);
+                    // Checking if session is dead.
+                    if (null != s) {
+                        s.Use(task, sessionId);
+                    } else {
+                        task(null, sessionId);
+                    }
+
+                } else {
+
+                    Scheduling.ScheduleTask(() => {
+
+                        Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
+
+                        // Checking if session is dead.
+                        if (null != s) {
+                            s.Use(task, sessionId);
+                        } else {
+                            task(null, sessionId);
+                        }
+
+                    }, waitForCompletion, ss.schedulerId_);
+                }
+
+            } finally {
+
+                // Checking if we need to restore current session.
+                if (null != savedCurrentSession) {
+                    savedCurrentSession.StartUsing();
+                }
             }
         }
 

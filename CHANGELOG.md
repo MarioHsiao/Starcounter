@@ -23,6 +23,7 @@
 - Introduced new IMiddleware class and the new consolidated middleware Application.Use() API's, as described in See [#3296](https://github.com/Starcounter/Starcounter/issues/3296)
 - Extended weaver diagnostics emitted by `scweaver --verbosity=diagnostic according to [#3420](https://github.com/Starcounter/Starcounter/issues/3420)
 - Introduced support to provision HTML (views) from JSON (view models) by means of middleware. See [#3444](https://github.com/Starcounter/Starcounter/issues/3444)
+- Added possibility to register internal codehost handlers with `HandlerOptions.SelfOnly`. See [#3339](https://github.com/Starcounter/Starcounter/issues/3339)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
@@ -49,6 +50,7 @@
 - Assured weaver.ignore expressions with leading/trailing whitespaces are trimmed, as defined in [#3414](https://github.com/Starcounter/Starcounter/issues/3414)
 - Removed buggy dependency to custom VS output pane "Starcounter" as described in [#3423](https://github.com/Starcounter/Starcounter/issues/3423)
 - Shaped up obsolete status terminology used in VS as reported in [#532](https://github.com/Starcounter/Starcounter/issues/532)
+- Fixed the problem with ScErrInputQueueFull exception when scheduling tasks [#3388](https://github.com/Starcounter/Starcounter/issues/3388)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.

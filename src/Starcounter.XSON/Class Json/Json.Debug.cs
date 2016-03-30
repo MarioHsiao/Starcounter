@@ -49,10 +49,7 @@ namespace Starcounter {
                 sb.Append(json._appName);
             else 
                 sb.Append("<null>");
-
-            if (json._appNameForLayout != null)
-                sb.Append(", appNameForLayout: " + json._appNameForLayout);
-
+            
             if (json._wrapInAppName)
                 sb.Append(", addNamespaces");
 

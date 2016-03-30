@@ -132,12 +132,12 @@ namespace Administrator.Server.Managers {
         /// <summary>
         /// Dowload package
         /// </summary>
-        /// <param name="application"></param>
+        /// <param name="sourceUrl"></param>
         /// <param name="completionCallback"></param>
         /// <param name="errorCallback"></param>
-        internal static void Download(AppStoreApplication application, Action<DatabaseApplication> completionCallback = null, Action<string> errorCallback = null) {
+        internal static void Download(string sourceUrl, Database database, Action<DatabaseApplication> completionCallback = null, Action<string> errorCallback = null) {
 
-            DeployManager.DownloadPackage(application.SourceUrl, (data) => {
+            DeployManager.DownloadPackage(sourceUrl, (data) => {
 
                 try {
 
@@ -147,12 +147,12 @@ namespace Administrator.Server.Managers {
                         string imageResourceFolder = System.IO.Path.Combine(Program.ResourceFolder, DeployManager.GetAppImagesFolder());
 
                         // Install package (Unzip)
-                        PackageManager.Unpack(packageZip, application.SourceUrl, application.StoreUrl, DeployManager.GetDeployFolder(application.DatabaseName), imageResourceFolder, out config);
+                        PackageManager.Unpack(packageZip, sourceUrl, sourceUrl, DeployManager.GetDeployFolder(database.ID), imageResourceFolder, out config);
 
-                        // Update server modelF
-                        DatabaseApplication deployedApplication = DatabaseApplication.ToApplication(config, application.DatabaseName);
+                        // Update server model
+                        DatabaseApplication deployedApplication = DatabaseApplication.ToApplication(config, database.ID);
                         deployedApplication.IsDeployed = true;
-                        application.Database.Applications.Add(deployedApplication);
+                        database.Applications.Add(deployedApplication);
                         if (completionCallback != null) {
                             completionCallback(deployedApplication);
                         }
