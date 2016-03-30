@@ -99,12 +99,12 @@ namespace Starcounter.TestFramework
         /// </summary>
         static String _buildNumber = null;
         public static String GetBuildNumber() {
-            if (_buildNumber != null)
+            if (null != _buildNumber)
                 return _buildNumber;
 
-            String buildNumber = Environment.GetEnvironmentVariable("BUILD_NUMBER");
-            if (null == buildNumber) {
-                return "nobuildnum";
+            _buildNumber = Environment.GetEnvironmentVariable("BUILD_NUMBER");
+            if (null == _buildNumber) {
+                _buildNumber = "nobuildnum";
             }
 
             return _buildNumber;
