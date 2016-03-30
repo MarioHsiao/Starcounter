@@ -167,26 +167,7 @@ namespace Starcounter.XSON.Metadata {
         public static CodeBehindClassInfo EvaluateAttributeString(string attribute, CodeBehindClassInfo existing) {
             if (attribute == null)
                 return null;
-
-			if (attribute.Contains("BindChildren")) {
-				int count;
-				int index = attribute.IndexOf("Bound.");
-				if (index == -1)
-					throw new Exception("Invalid value for BindChildren attribute");
-
-				index += 6;
-				count = attribute.Length - index - 1;
-
-				BindingStrategy bound;
-				if (!Enum.TryParse<BindingStrategy>(attribute.Substring(index, count), out bound))
-					throw new Exception("Unable to get correct value from BindChildren attribute");
-
-				if (existing == null)
-					existing = new CodeBehindClassInfo(null);
-				existing.BindChildren = bound;
-				return existing;
-			}
-
+            
             var strings = attribute.Split('.');
 
             // Example: "[MyFile_json.Somestuff]
