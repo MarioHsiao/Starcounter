@@ -10,3 +10,4 @@ https://github.com/StarcounterSamples/Skyper.git master
 https://github.com/StarcounterSamples/Cartographer.git master
 https://github.com/StarcounterSamples/Images.git master
 https://github.com/StarcounterSamples/SignIn.git master
+https://github.com/Starcounter/TPC-A.git master
