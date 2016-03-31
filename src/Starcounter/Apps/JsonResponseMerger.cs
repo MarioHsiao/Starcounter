@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Starcounter.XSON;
+using System;
 using System.Collections.Generic;
 
 namespace Starcounter.Internal {
@@ -50,7 +51,7 @@ namespace Starcounter.Internal {
         private static Response DoMerge(Request req, Response resp, List<Response> responses) {
             Json siblingJson;
             Json mainJson;
-            List<Json> stepSiblings;
+            SiblingList stepSiblings;
 
             // Checking if there is only one response, which becomes the main response.
             if (resp != null) {
@@ -58,7 +59,14 @@ namespace Starcounter.Internal {
                 mainJson = resp.Resource as Json;
 
                 if (mainJson != null) {
-                    mainJson.StepSiblings = null;
+                    if (mainJson.StepSiblings != null) {
+                        stepSiblings = new SiblingList();
+                        stepSiblings.Add(mainJson);
+
+                        if (mainJson.StepSiblings.HasBeenSent(mainJson.StepSiblings.IndexOf(mainJson)))
+                            stepSiblings.MarkAsSent(0);
+                        mainJson.StepSiblings = stepSiblings;
+                    }
                     mainJson._appName = resp.AppName;
                     mainJson._wrapInAppName = true;
                 }
@@ -90,13 +98,13 @@ namespace Starcounter.Internal {
 
                 if (responses.Count == 1)
                     return mainResponse;
-                
+
                 var oldSiblings = mainJson.StepSiblings;
 
-                stepSiblings = new List<Json>();
+                stepSiblings = new SiblingList();
                 stepSiblings.Add(mainJson);
                 mainJson.StepSiblings = stepSiblings;
-                
+
                 for (Int32 i = 0; i < responses.Count; i++) {
 
                     if (mainResponseId != i) {
@@ -135,30 +143,34 @@ namespace Starcounter.Internal {
                 }
 
                 if (oldSiblings != null && mainJson.Parent != null) {
-                    bool refresh = false;
+                    // Old siblings exists. We need to check if we have the same ones 
+                    // as before, or if some have been changed or removed to get the 
+                    // correct result to the client since we don't want to send everything.
 
-                    if (oldSiblings.Count != stepSiblings.Count) {
-                        refresh = true;
+                    if (oldSiblings.Count > stepSiblings.Count) {
+                        // TODO:
+
+                        // Siblings have been removed. We need to find which ones and 
+                        // if we should remove the property (i.e. namespace) from the client.
                     } else {
-                        for (int i = 0; i < stepSiblings.Count; i++) {
-                            if (oldSiblings[i] != stepSiblings[i]) {
-                                refresh = true;
-                                break;
+                        // The default setting is that siblings are sent to the client.
+                        // We only check here for siblings that already exists.
+                        for (int i = 0; i < oldSiblings.Count; i++) {
+                            int index = stepSiblings.IndexOf(oldSiblings[i]);
+                            if (index != -1) {
+                                // The same sibling already exists. Lets not send it again.
+                                // Updated values will be sent as usual though.
+                                stepSiblings.MarkAsSent(index);
                             }
                         }
                     }
-
-                    // if the old siblings differ in any way from the new siblings, we refresh the whole mainjson.
-                    if (refresh)
-                        mainJson.Parent.MarkAsReplaced(mainJson.IndexInParent);
                 }
             }
-
             return mainResponse;
         }
 
         private static void TriggerAfterMergeCallback(Request request, Json json) {
-            List<Json> list;
+            SiblingList list;
             Json newSibling = null;
 
             if (json == null || afterMergeCallbacks_.Count == 0)
@@ -166,13 +178,14 @@ namespace Starcounter.Internal {
 
             list = json.StepSiblings;
             if (list == null) {
-                list = new List<Json>();
+                list = new SiblingList();
                 list.Add(json);
             }
 
             foreach (var hook in afterMergeCallbacks_) {
                 newSibling = hook.Invoke(request, StarcounterEnvironment.AppName, list);
                 if (newSibling != null) {
+                    newSibling._wrapInAppName = true;
                     list.Add(newSibling);
                     newSibling.StepSiblings = list;
                 }
