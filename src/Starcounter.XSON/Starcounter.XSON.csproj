@@ -61,6 +61,7 @@
     <Compile Include="Class Json\Json.cs" />
     <Compile Include="Class Json\Json.State.cs" />
     <Compile Include="Class Json\JsonExtension.cs" />
+    <Compile Include="Class Json\SiblingList.cs" />
     <Compile Include="JSON-By-Example\MetaTemplate.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstJSConstructor.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstJsonSerializerClass.cs" />

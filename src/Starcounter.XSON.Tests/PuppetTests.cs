@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Starcounter.Templates;
 using Starcounter.Internal.XSON.Tests.CompiledJson;
+using Starcounter.XSON;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
@@ -490,8 +491,8 @@ namespace Starcounter.Internal.XSON.Tests {
             supersimple ss = new supersimple();
             ss._appName = "PartialApp";
             ss._wrapInAppName = true;
-            
-            List<Json> stepSiblings = new List<Json>();
+
+            SiblingList stepSiblings = new SiblingList();
             stepSiblings.Add(p.ExtraInfo);
             stepSiblings.Add(ss);
 
@@ -527,7 +528,7 @@ namespace Starcounter.Internal.XSON.Tests {
             ss._appName = "PartialApp";
             ss._wrapInAppName = true;
 
-            List<Json> stepSiblings = new List<Json>();
+            SiblingList stepSiblings = new SiblingList();
             stepSiblings.Add(p.ExtraInfo);
             stepSiblings.Add(ss);
 

@@ -63,13 +63,16 @@ namespace Starcounter {
                         (TValue)Template);
 
                     if (callStepSiblings == true && this._stepSiblings != null) {
-                        foreach (Json stepSibling in _stepSiblings) {
-                            if (stepSibling == this)
-                                continue;
-                            stepSibling.CheckpointChangeLog(false);
+                        for (int i = 0; i < _stepSiblings.Count; i++) {
+                            var sibling = _stepSiblings[i];
+                            _stepSiblings.MarkAsSent(i);
 
-                            if (stepSibling.Parent != null) {
-                                stepSibling.Parent.CheckpointAt(stepSibling.IndexInParent);
+                            if (sibling == this)
+                                continue;
+                            
+                            sibling.CheckpointChangeLog(false);
+                            if (sibling.Parent != null) {
+                                sibling.Parent.CheckpointAt(sibling.IndexInParent);
                             }
                         }
                     }
@@ -253,10 +256,17 @@ namespace Starcounter {
                 }
 
                 if (css == true && json._stepSiblings != null) {
-                    foreach (var stepSibling in json._stepSiblings) {
-                        if (stepSibling == json)
+                    for (int i = 0; i < _stepSiblings.Count; i++) {
+                        var sibling = _stepSiblings[i];
+
+                        if (sibling == json)
                             continue;
-                        stepSibling.LogValueChangesWithDatabase(clog, false);
+
+                        if (_stepSiblings.HasBeenSent(i)) {
+                            sibling.LogValueChangesWithDatabase(clog, false);
+                        } else {
+                            clog.Add(Change.Update(sibling, null, true));
+                        }
                     }
                 }
             },
@@ -586,7 +596,7 @@ namespace Starcounter {
             }
 
             if (callStepSiblings && _stepSiblings != null) {
-                foreach (Json stepSibling in _stepSiblings) {
+                foreach (var stepSibling in _stepSiblings) {
                     if (stepSibling == this)
                         continue;
                     stepSibling.CleanupOldVersionLogs(version, toVersion, false);
@@ -709,7 +719,7 @@ namespace Starcounter {
             }
         }
 
-        internal List<Json> StepSiblings {
+        internal SiblingList StepSiblings {
             get { return _stepSiblings; }
             set {
                 _stepSiblings = value;
