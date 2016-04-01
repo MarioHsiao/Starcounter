@@ -138,7 +138,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 Json hack = json2;
                 hack._appName = "OtherApp";
 
-                List<Json> stepSiblings = new List<Json>();
+                SiblingList stepSiblings = new SiblingList();
                 stepSiblings.Add(json.Page);
                 stepSiblings.Add(json2);
                 Json real = json.Page;
@@ -173,7 +173,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 hack = json2;
                 hack._appName = "OtherApp";
-                stepSiblings = new List<Json>();
+                stepSiblings = new SiblingList();
                 stepSiblings.Add(json.Focused);
                 stepSiblings.Add(json2);
                 real = json.Focused;

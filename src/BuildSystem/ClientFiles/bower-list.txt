@@ -1,31 +1,29 @@
 bower check-new     Checking for new versions of the project dependencies...
-sys#1.0.0 c:\www\Starcounter\Starcounter\src\BuildSystem\ClientFiles
+sys#1.0.0 C:\www\Starcounter\starcounter\src\BuildSystem\ClientFiles
 ├─┬ PuppetJs#1.3.8
 │ ├── fast-json-patch#0.5.7
 │ ├── json-patch-ot#618c52e9a7
 │ ├─┬ json-patch-ot-agent#d1ce630561
 │ │ └── json-patch-queue#fdae225638
 │ └── json-patch-queue#fdae225638
-├── array.observe#0.0.1
 ├─┬ bootswatch#3.3.6+1
 │ └─┬ bootstrap#3.3.6 (latest is 4.0.0-alpha.2)
-│   └── jquery#2.2.1 (latest is 3.0.0-beta1)
+│   └── jquery#2.2.2 (latest is 3.0.0-beta1)
 ├── dom-bind-notifier#9a0a4d20a1
-├─┬ imported-template#1.4.0 incompatible with ~1.0.5 (1.0.5 available, latest is 1.4.0)
+├─┬ imported-template#1.4.0
 │ └── juicy-html#1.1.0
 ├── juicy-redirect#0.4.0
-├── object.observe#0.2.6
-├── polymer#1.3.1
+├── polymer#1.4.0
 ├─┬ puppet-client#2.0.0
 │ ├── PuppetJs#1.3.8
-│ └── polymer#1.3.1
-├── puppet-redirect#0.4.0
+│ └── polymer#1.4.0
+├── puppet-redirect#0.4.2
 ├─┬ starcounter-debug-aid#2.0.5
 │ ├─┬ juicy-jsoneditor#1.0.5
 │ │ ├── fast-json-patch#0.5.7
-│ │ ├── jsoneditor#4.2.1 (latest is 5.1.5)
-│ │ └─┬ polymer#1.3.1 incompatible with ~1.1.4 (1.1.5 available, latest is 1.3.1)
+│ │ ├── jsoneditor#4.2.1 (latest is 5.2.0)
+│ │ └─┬ polymer#1.4.0 incompatible with ~1.1.4 (1.1.5 available, latest is 1.4.0)
 │ │   └── webcomponentsjs#0.7.21
-│ └── polymer#1.3.1 incompatible with ~1.1.4 (1.1.5 available, latest is 1.3.1)
+│ └── polymer#1.4.0 incompatible with ~1.1.4 (1.1.5 available, latest is 1.4.0)
 └─┬ starcounter-include#0.1.0
   └── imported-template#1.4.0

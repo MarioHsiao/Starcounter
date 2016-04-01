@@ -43,19 +43,25 @@ namespace Starcounter.Internal.XSON {
         public readonly Json Item;
 
         /// <summary>
+        /// 
+        /// </summary>
+        public bool SuppressNamespace;
+        
+        /// <summary>
         /// Initializes a new instance of the <see cref="Change" /> struct.
         /// </summary>
         /// <param name="changeType">The change type.</param>
         /// <param name="app">The app that was changed.</param>
         /// <param name="prop">The template of the property that was changed.</param>
         /// <param name="index">The index.</param>
-        private Change(byte changeType, Json obj, TValue prop, Int32 index, Json item, Int32 fromIndex = -1) {
+        private Change(byte changeType, Json obj, TValue prop, Int32 index, Json item, Int32 fromIndex = -1, bool suppressNS = false) {
             ChangeType = changeType;
             Parent = obj;
             Property = prop;
             Index = index;
             Item = item;
             FromIndex = fromIndex;
+            SuppressNamespace = suppressNS;
 
 #if DEBUG
             if (prop != null)
@@ -136,6 +142,17 @@ namespace Starcounter.Internal.XSON {
         /// <returns></returns>
         internal static Change Update(Json obj, TValue property, int index, Json item) {
             return new Change(Change.REPLACE, obj, property, index, item);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="property"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        internal static Change Update(Json obj, TValue property, bool suppressNamespace) {
+            return new Change(Change.REPLACE, obj, property, -1, null, -1, suppressNamespace);
         }
     }
 }
