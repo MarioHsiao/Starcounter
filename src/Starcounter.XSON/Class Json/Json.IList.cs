@@ -52,6 +52,10 @@ namespace Starcounter {
                 if (!_trackChanges)
                     return false;
 
+                if (_stepSiblings != null) {
+                    return _stepSiblings.HasBeenSent(_stepSiblings.IndexOf(this));
+                }
+
                 if (Parent != null) {
                     return ((IndexInParent != -1) && (!Parent.WasReplacedAt(IndexInParent)));
                 } else {

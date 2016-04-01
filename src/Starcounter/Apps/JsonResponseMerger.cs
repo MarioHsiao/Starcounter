@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Starcounter.XSON;
+using System;
 using System.Collections.Generic;
 
 namespace Starcounter.Internal {
@@ -50,7 +51,7 @@ namespace Starcounter.Internal {
         private static Response DoMerge(Request req, Response resp, List<Response> responses) {
             Json siblingJson;
             Json mainJson;
-            List<Json> stepSiblings;
+            SiblingList stepSiblings;
 
             // Checking if there is only one response, which becomes the main response.
             if (resp != null) {
@@ -58,7 +59,14 @@ namespace Starcounter.Internal {
                 mainJson = resp.Resource as Json;
 
                 if (mainJson != null) {
-                    mainJson.StepSiblings = null;
+                    if (mainJson.StepSiblings != null) {
+                        if (mainJson.StepSiblings.HasBeenSent(mainJson.StepSiblings.IndexOf(mainJson))) {
+                            stepSiblings = new SiblingList();
+                            stepSiblings.Add(mainJson);
+                            stepSiblings.MarkAsSent(0);
+                            mainJson.StepSiblings = stepSiblings;
+                        }
+                    }
                     mainJson._appName = resp.AppName;
                     mainJson._wrapInAppName = true;
                 }
@@ -90,13 +98,13 @@ namespace Starcounter.Internal {
 
                 if (responses.Count == 1)
                     return mainResponse;
-                
+
                 var oldSiblings = mainJson.StepSiblings;
 
-                stepSiblings = new List<Json>();
+                stepSiblings = new SiblingList();
                 stepSiblings.Add(mainJson);
                 mainJson.StepSiblings = stepSiblings;
-                
+
                 for (Int32 i = 0; i < responses.Count; i++) {
 
                     if (mainResponseId != i) {
@@ -135,30 +143,20 @@ namespace Starcounter.Internal {
                 }
 
                 if (oldSiblings != null && mainJson.Parent != null) {
-                    bool refresh = false;
-
-                    if (oldSiblings.Count != stepSiblings.Count) {
-                        refresh = true;
-                    } else {
-                        for (int i = 0; i < stepSiblings.Count; i++) {
-                            if (oldSiblings[i] != stepSiblings[i]) {
-                                refresh = true;
-                                break;
-                            }
+                    for (int i = 0; i < stepSiblings.Count; i++) {
+                        int index = oldSiblings.IndexOf(stepSiblings[i]);
+                        if (index != -1) {
+                            // The same sibling already exists. Lets not send it again.
+                            stepSiblings.MarkAsSent(index);
                         }
                     }
-
-                    // if the old siblings differ in any way from the new siblings, we refresh the whole mainjson.
-                    if (refresh)
-                        mainJson.Parent.MarkAsReplaced(mainJson.IndexInParent);
                 }
             }
-
             return mainResponse;
         }
 
         private static void TriggerAfterMergeCallback(Request request, Json json) {
-            List<Json> list;
+            SiblingList list;
             Json newSibling = null;
 
             if (json == null || afterMergeCallbacks_.Count == 0)
@@ -166,13 +164,14 @@ namespace Starcounter.Internal {
 
             list = json.StepSiblings;
             if (list == null) {
-                list = new List<Json>();
+                list = new SiblingList();
                 list.Add(json);
             }
 
             foreach (var hook in afterMergeCallbacks_) {
                 newSibling = hook.Invoke(request, StarcounterEnvironment.AppName, list);
                 if (newSibling != null) {
+                    newSibling._wrapInAppName = true;
                     list.Add(newSibling);
                     newSibling.StepSiblings = list;
                 }
