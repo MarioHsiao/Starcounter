@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Starcounter.XSON.PartialClassGenerator {
 
+    /// <summary>
+    /// Analayzer of JSON code-behind classes.
+    /// </summary>
     internal sealed class ClassAnalyzer : CSharpSyntaxWalker {
         CodeBehindClassInfo codeBehindMetadata;
         public readonly CodeBehindFileAnalyzer CodeBehindAnalyzer;
@@ -40,15 +43,48 @@ namespace Starcounter.XSON.PartialClassGenerator {
             var ci = codeBehindMetadata = new CodeBehindClassInfo(null);
             ci.IsDeclaredInCodeBehind = true;
 
-            // Pre-validation we can gather here: if the class is partial?
-            // Is that a requirement for all classes in the code-behind?
-            // TODO:
-            //foreach (var modifier in node.Modifiers) {
-            //    modifier.Kind() == SyntaxKind.PartialKeyword
-            //}
+            // Check 1: we are named as the root object, or 2, we contain an attribute
+            // that specify where we relate. Otherwise, raise an error. Also raise an
+            // error if there is more mapping attributes than one.
 
-            // Discover if this class is to be considered a root class.
-            // ci.IsRootClass = false; // We are a root class if we got that attribute and/or are named according to the code-behind file
+            var lists = node.AttributeLists;
+            AttributeSyntax map = null;
+            foreach (var list in lists) {
+                foreach (var attrib in list.Attributes) {
+                    var mapped = CodeBehindClassInfo.EvaluateAttributeString(attrib.ToString().Trim('[', ']'), ci);
+                    if (mapped != null) {
+                        if (map != null) {
+                            throw new Exception("TODO: We've already seen it mapped once: ci contains %attrib% and %map% mapping.");
+                        }
+                        else {
+                            map = attrib;
+                        }
+                    }
+                }
+            }
+
+            if (map == null) {
+                if (!IsNamedRootObject()) {
+                    throw new Exception("TODO: Class %ci% is not a named root nor contains a mapping.");
+                }
+
+                // This is the named root, but without any mapping information
+                // explicitly given: let's decorate it by faking it
+                ci = CodeBehindClassInfo.EvaluateAttributeString(this.CodeBehindAnalyzer.Root.Name + "_json", ci);
+            }
+            else {
+                // If it's mapped, we should validate it. If it's a named root, it
+                // can only be mapped as such.
+                if (IsNamedRootObject()) {
+                    // Check it's mapped as the root: otherwise raise an error
+                    // TODO:
+                }
+            }
+
+            var isPartial = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.PartialKeyword);
+            if (!isPartial) {
+                throw new Exception("TODO: Class %node% is not marked partial.");
+            }
 
             // Run through the declaration
             base.VisitClassDeclaration(node);
@@ -56,8 +92,16 @@ namespace Starcounter.XSON.PartialClassGenerator {
             // Validate, and wrap up (add attribute if not exist), and finally
             // add to the result.
             // Validate 1: we have detected a base class
+            // Validate 2: we are adding ourselves as a root, and there is already
+            // a result in the result
+            // TODO:
 
-            // Result.JsonPropertyMapList.Add(ci);
+            var root = Result.RootClassInfo;
+            if (root != null && ci.IsRootClass) {
+                throw new Exception("TODO: Class %node% is considered a root class; %root% is too.");
+            }
+
+            Result.CodeBehindClasses.Add(ci);
         }
 
         public override void VisitBaseList(BaseListSyntax node) {
@@ -97,16 +141,18 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 }
             }
         }
-
-        public override void VisitAttribute(AttributeSyntax node) {
-            Console.WriteLine("Attribute of {0}: {1} - {2}", this.Node.Identifier.ValueText, node.ToString(), node.Name.ToString());
-            // Console.WriteLine("Argument list: {0}", node.ArgumentList.ToString());
-            base.VisitAttribute(node);
-        }
-
+        
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node) {
             Console.WriteLine("Found this method: {0}", node.Identifier.Text);
-            // base.VisitMethodDeclaration(node);
+            base.VisitMethodDeclaration(node);
+        }
+
+        bool IsNamedRootObject() {
+            if (this.NestingClass != null) {
+                return false;
+            }
+
+            return this.Node.Identifier.ValueText == this.CodeBehindAnalyzer.Root.Name;
         }
 
         void DiscoverBaseClass(BaseTypeSyntax baseType) {
