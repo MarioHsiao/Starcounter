@@ -12,9 +12,11 @@ namespace Starcounter.XSON.PartialClassGenerator {
     internal sealed class CodeBehindFileAnalyzer : CSharpSyntaxWalker {
         public readonly RoslynCodeBehindParser Parser;
         public readonly CodeBehindMetadata Result;
+        public readonly RootClass Root;
 
         public CodeBehindFileAnalyzer(RoslynCodeBehindParser parser) {
             Parser = parser;
+            Root = new RootClass(parser.ClassName);
             Result = new CodeBehindMetadata();
         }
 
