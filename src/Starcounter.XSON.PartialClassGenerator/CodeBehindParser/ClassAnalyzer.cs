@@ -22,10 +22,20 @@ namespace Starcounter.XSON.PartialClassGenerator {
             get { return CodeBehindAnalyzer.Result; }
         }
 
+        string ClassDiagnosticName {
+            get {
+                return string.Format("{0} (in {1})", nestedName, CodeBehindAnalyzer.Parser.FileNameNotNull);
+            }
+        }
+
+        string nestedName;
+
         public ClassAnalyzer(CodeBehindFileAnalyzer parent, ClassDeclarationSyntax node, ClassAnalyzer nestingClass = null) {
             CodeBehindAnalyzer = parent;
             Node = node;
             NestingClass = nestingClass;
+            var simpleName = node.Identifier.ValueText;
+            nestedName = nestingClass != null ? nestingClass.nestedName + "+" + simpleName : simpleName;
         }
 
         public override void VisitClassDeclaration(ClassDeclarationSyntax node) {
@@ -54,7 +64,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     var mapped = CodeBehindClassInfo.EvaluateAttributeString(attrib.ToString().Trim('[', ']'), ci);
                     if (mapped != null) {
                         if (map != null) {
-                            throw new Exception("TODO: We've already seen it mapped once: ci contains %attrib% and %map% mapping.");
+                            throw IllegalCodeBehindException("Class {0} contain more than one mapping attribute", ClassDiagnosticName);
                         }
                         else {
                             map = attrib;
@@ -63,27 +73,34 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 }
             }
 
+            var rootMapAttributeText = this.CodeBehindAnalyzer.Root.Name + "_json";
             if (map == null) {
                 if (!IsNamedRootObject()) {
-                    throw new Exception("TODO: Class %ci% is not a named root nor contains a mapping.");
+                    throw IllegalCodeBehindException("Class {0} is neither a named root nor contains any mapping attribute", ClassDiagnosticName);
                 }
 
                 // This is the named root, but without any mapping information
                 // explicitly given: let's decorate it by faking it
-                ci = CodeBehindClassInfo.EvaluateAttributeString(this.CodeBehindAnalyzer.Root.Name + "_json", ci);
+                ci = CodeBehindClassInfo.EvaluateAttributeString(rootMapAttributeText, ci);
             }
             else {
-                // If it's mapped, we should validate it. If it's a named root, it
-                // can only be mapped as such.
+                // It's mapped. If it's also a named root, it can only be
+                // mapped as such.
                 if (IsNamedRootObject()) {
-                    // Check it's mapped as the root: otherwise raise an error
-                    // TODO:
+                    if (ci.RawDebugJsonMapAttribute != rootMapAttributeText) {
+                        throw IllegalCodeBehindException(
+                            "Class {0} is a named root but maps to [{1}]", ClassDiagnosticName, ci.RawDebugJsonMapAttribute);
+                    }
                 }
             }
 
             var isPartial = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.PartialKeyword);
             if (!isPartial) {
-                throw new Exception("TODO: Class %node% is not marked partial.");
+                throw IllegalCodeBehindException("Class {0} is not marked partial.", ClassDiagnosticName);
+            }
+
+            if (node.TypeParameterList != null) {
+                throw IllegalCodeBehindException("Class {0} is a generic class.", ClassDiagnosticName);
             }
 
             // Run through the declaration
@@ -98,7 +115,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
             var root = Result.RootClassInfo;
             if (root != null && ci.IsRootClass) {
-                throw new Exception("TODO: Class %node% is considered a root class; %root% is too.");
+                throw IllegalCodeBehindException("Class {0} is considered a root class; {1}  is too.", ClassDiagnosticName, root.ClassName);
             }
 
             Result.CodeBehindClasses.Add(ci);
@@ -141,7 +158,14 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 }
             }
         }
-        
+
+        public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node) {
+            var isStatic = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.StaticKeyword);
+            if (!isStatic) {
+                throw IllegalCodeBehindException("Class {0} defines at least one constructor.", ClassDiagnosticName);
+            }
+        }
+
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node) {
             Console.WriteLine("Found this method: {0}", node.Identifier.Text);
             base.VisitMethodDeclaration(node);
@@ -177,6 +201,10 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
         void DiscoverBaseType(BaseTypeSyntax baseType, QualifiedNameSyntax name) {
 
+        }
+
+        Exception IllegalCodeBehindException(string message, params object[] args) {
+            return new Exception(string.Format(message, args));
         }
     }
 }

@@ -5,17 +5,19 @@ using Starcounter.XSON.Compiler.Mono;
 using Starcounter.XSON.Metadata;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
+
     public class CodeBehindParserTests {
-        private static CodeBehindMetadata MonoAnalyze(string className, string path) {
+
+        private static CodeBehindMetadata ParserAnalyze(string className, string path, bool useRoslynParser = false) {
             return CodeBehindParser.Analyze(className,
-                File.ReadAllText(path),path );
+                File.ReadAllText(path), path, useRoslynParser);
         }
 
         [Test]
         public static void CodeBehindSimpleAnalyzeTest() {
             CodeBehindMetadata monoMetadata;
             
-			monoMetadata = MonoAnalyze("Simple", @"Input\simple.json.cs");
+			monoMetadata = ParserAnalyze("Simple", @"Input\simple.json.cs");
 			Assert.AreEqual(null, monoMetadata.RootClassInfo.BoundDataClass);
 			Assert.AreEqual("Simple_json", monoMetadata.RootClassInfo.RawDebugJsonMapAttribute);
 			Assert.AreEqual("Json", monoMetadata.RootClassInfo.BaseClassName);
@@ -36,7 +38,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 		public static void CodeBehindComplexAnalyzeTest() {
 			CodeBehindMetadata monoMetadata;
 
-			monoMetadata = MonoAnalyze("Complex", @"Input\complex.json.cs");
+			monoMetadata = ParserAnalyze("Complex", @"Input\complex.json.cs");
 			Assert.AreEqual("Order", monoMetadata.RootClassInfo.BoundDataClass);
 			Assert.AreEqual("Complex_json", monoMetadata.RootClassInfo.RawDebugJsonMapAttribute);
 			Assert.AreEqual("MyBaseJsonClass", monoMetadata.RootClassInfo.BaseClassName);
@@ -56,12 +58,36 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 		[Test]
 		public static void CodeBehindIncorrectAnalyzeTest() {
             Exception ex;
-            
-            ex = Assert.Throws<Exception>(() => MonoAnalyze("Incorrect", @"Input\incorrect.json.cs"));
+
+            bool useRoslynParser = false;
+
+            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect", @"Input\incorrect.json.cs", useRoslynParser));
             Assert.IsTrue(ex.Message.Contains("Generic declaration"));
 
-            ex = Assert.Throws<Exception>(() => MonoAnalyze("Incorrect2", @"Input\incorrect2.json.cs"));
+            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect2", @"Input\incorrect2.json.cs", useRoslynParser));
             Assert.IsTrue(ex.Message.Contains("constructors are not"));
-		}
+
+            useRoslynParser = true;
+
+            // Introduce both above tests in the roslyn parser too
+            // TODO:
+
+            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect", @"Input\incorrect.json.cs", useRoslynParser));
+            Assert.IsTrue(ex.Message.Contains("generic class"));
+
+            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect2", @"Input\incorrect2.json.cs", useRoslynParser));
+            Assert.IsTrue(ex.Message.Contains("defines at least one constructor"));
+
+            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect3", @"Input\incorrect3.json.cs", useRoslynParser));
+            Assert.IsTrue(ex.Message.Contains("not marked partial"));
+            
+            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect4", @"Input\incorrect4.json.cs", useRoslynParser));
+            Assert.IsTrue(ex.Message.Contains("neither a named root nor contains any mapping attribute"));
+            Assert.IsTrue(ex.Message.Contains("DoesNotMap"));
+
+            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect5", @"Input\incorrect5.json.cs", useRoslynParser));
+            Assert.IsTrue(ex.Message.Contains("is a named root but maps to"));
+            Assert.IsTrue(ex.Message.Contains("SomethingElse_json"));
+        }
     }
 }

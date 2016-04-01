@@ -2,6 +2,7 @@
 using MySampleNamespace.Something;
 using SomeOtherNamespace;
 
+[Temp_json]
 public class ClassWithoutNamespace : Page {
     static void Main() {
         using (string s = "") {
@@ -51,6 +52,10 @@ namespace MySampleNamespace {
             return new Complex();
         }
 
+        [Random5]
+        public int Foo123;
+
+        [Obsolete, NonSerialized]
         public void Handle(Input.userLink input) {
         }
 
@@ -64,6 +69,7 @@ namespace MySampleNamespace {
         [Another(Fake = true), Test]
         [Complex_json.ActivePage.SubPage1.SubPage2.SubPage3]
         [SomeOther]
+        [Random2][Random8][Random9]
         public partial class SubPage3Impl : Json, IFoo, IFoo3, IBound<OrderItem> {
             [Complex_json.Blabla.bla]
             public partial class SubPage3Sub1 : Json {

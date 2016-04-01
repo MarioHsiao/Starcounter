@@ -194,6 +194,15 @@
       <DependentUpon>Primitive.json</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Input\incorrect3.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Input\incorrect4.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Input\incorrect5.json.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="SimpleNestingTests.cs" />
     <None Include="Input\ParentChild.json.cs.v1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

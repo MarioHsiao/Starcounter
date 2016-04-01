@@ -17,16 +17,16 @@ namespace Starcounter.XSON.Compiler.Mono {
     /// Class CodeBehindAnalyzer
     /// </summary>
     public static class CodeBehindParser {
-        public static bool UseRoslynCodeBehindParser = true;
-
         /// <summary>
         /// Parses the specified c# file using Mono.CSharp and builds a metadata
         /// structure used to generate code for json Apps.
         /// </summary>
         /// <param name="className">Name of the class.</param>
         /// <param name="codeBehindFilename">The codebehind filename.</param>
+        /// <param name="useRoslynParser">Instruct the analyzer to use the newer
+        /// Roslyn-based parser</param>
         /// <returns>CodeBehindMetadata.</returns>
-        public static CodeBehindMetadata Analyze(string className, string codebehind, string filePathNote ) {
+        public static CodeBehindMetadata Analyze(string className, string codebehind, string filePathNote, bool useRoslynParser = false) {
             CodeBehindMetadata metadata;
             CSharpToken token;
             MonoCSharpEnumerator mce;
@@ -36,7 +36,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                 return CodeBehindMetadata.Empty;
             }
 
-            if (UseRoslynCodeBehindParser) {
+            if (useRoslynParser) {
                 var parser = new RoslynCodeBehindParser(className, codebehind, filePathNote);
                 return parser.ParseToMetadata();
             }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.IO;
 
 namespace Starcounter.XSON.PartialClassGenerator {
 
@@ -23,6 +24,13 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// Gets the file path of the source code file, if present.
         /// </summary>
         public readonly string FilePath;
+
+        public string FileNameNotNull {
+            get {
+                var path = FilePath;
+                return path != null ? Path.GetFileName(path) : "<codebehind.json>";
+            }
+        }
 
         /// <summary>
         /// Initialize a new <see cref="RoslynCodeBehindParser"/>.
