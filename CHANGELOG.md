@@ -24,6 +24,7 @@
 - Extended weaver diagnostics emitted by `scweaver --verbosity=diagnostic according to [#3420](https://github.com/Starcounter/Starcounter/issues/3420)
 - Introduced support to provision HTML (views) from JSON (view models) by means of middleware. See [#3444](https://github.com/Starcounter/Starcounter/issues/3444)
 - Added possibility to register internal codehost handlers with `HandlerOptions.SelfOnly`. See [#3339](https://github.com/Starcounter/Starcounter/issues/3339)
+- Added overloads for `Db.Transact` that allows specifying delegates that take input and output parameters. See [#2822](https://github.com/Starcounter/Starcounter/issues/2822) and documentation on http://starcounter.io/guides/transactions/ 
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
