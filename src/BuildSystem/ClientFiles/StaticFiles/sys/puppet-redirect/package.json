@@ -1,28 +1,28 @@
 {
   "private": true,
-  "name": "juicy-redirect",
-  "description": "> Custom Element that redirects to a new URL when an attribute is changed. It can be configured to work using window location or History API.",
-  "version": "0.4.0",
-  "main": "juicy-redirect.html",
+  "name": "puppet-redirect",
+  "description": "Custom Element that redirects to a new URL when an attribute is changed. It's also being listened by PuppetJS.",
+  "version": "0.4.2",
+  "main": "puppet-redirect.html",
   "dependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Juicy/juicy-redirect.git"
+    "url": "git+https://github.com/PuppetJs/puppet-redirect.git"
   },
   "keywords": [
-    "juicy",
+    "puppet",
     "web-components",
     "redirect"
   ],
   "author": "Marcin Warpechowski <marcin@nextgen.pl>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Juicy/juicy-redirect/issues"
+    "url": "https://github.com/PuppetJs/puppet-redirect/issues"
   },
-  "homepage": "https://github.com/Juicy/juicy-redirect#readme",
+  "homepage": "https://github.com/PuppetJs/puppet-redirect#readme",
   "devDependencies": {
     "grunt": "~0.4.5",
     "grunt-bump": "^0.3.0",

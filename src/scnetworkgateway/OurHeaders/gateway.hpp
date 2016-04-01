@@ -437,13 +437,6 @@ uint32_t TcpPortProcessData(
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
-uint32_t OuterSubportProcessData(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
-
 uint32_t OuterUriProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
