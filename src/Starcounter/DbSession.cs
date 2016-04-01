@@ -170,8 +170,11 @@ namespace Starcounter {
             while (true) {
 
                 // Trying to dequeue.
-                if (!asyncTasksPerScheduler_[curSchedId].TryDequeue(out task))
+                if (!asyncTasksPerScheduler_[curSchedId].TryDequeue(out task)) {
+
+                    // Breaking the loop if there is not task to run.
                     break;
+                }
 
                 // Running the given task execution.
                 taskExecutionMethod(task.UserTask, task.AppName);
@@ -181,8 +184,11 @@ namespace Starcounter {
             while (true) {
 
                 // Trying to dequeue.
-                if (!asyncTasksAnyScheduler_.TryDequeue(out task))
+                if (!asyncTasksAnyScheduler_.TryDequeue(out task)) {
+
+                    // Breaking the loop if there is not task to run.
                     break;
+                }
 
                 // Running the given task execution.
                 taskExecutionMethod(task.UserTask, task.AppName);
@@ -207,13 +213,10 @@ namespace Starcounter {
                 String curAppName = StarcounterEnvironment.AppName;
 
                 // Creating the task to run.
-                var task = new Task(Task.AsyncTaskAction, null);
+                Task task = new Task(Task.AsyncTaskAction, null);
 
                 // Checking if we need to use round robin for getting scheduler id.
                 if (anyScheduler) {
-
-                    // First checking if we have any tasks in the common queue.
-                    bool isEmpty = asyncTasksAnyScheduler_.IsEmpty;
 
                     // Adding to the queue now.
                     asyncTasksAnyScheduler_.Enqueue(new UserTaskInfo() {
@@ -221,28 +224,19 @@ namespace Starcounter {
                         UserTask = action
                     });
 
-                    //if (isEmpty) {
+                    // Waking up a round robin scheduler.
+                    schedId = ++roundRobinSchedId_;
 
-                        schedId = ++roundRobinSchedId_;
+                    // Checking if scheduler id exceeds the amount.
+                    if (schedId >= StarcounterEnvironment.SchedulerCount) {
+                        roundRobinSchedId_ = 0;
+                        schedId = 0;
+                    }
 
-                        if (schedId >= StarcounterEnvironment.SchedulerCount) {
-                            roundRobinSchedId_ = 0;
-                            schedId = 0;
-                        }
-
-                        TaskScheduler.Run(task, schedId);
-
-                        /*
-                        // Waking up all schedulers.
-                        for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
-                            TaskScheduler.Run(task, i);
-                        }*/
-                    //}
+                    // Just sending a special task to read from queue.
+                    TaskScheduler.Run(task, schedId);
 
                 } else {
-
-                    // First checking if we have any tasks in the common queue.
-                    Boolean isEmpty = asyncTasksPerScheduler_[schedId].IsEmpty;
 
                     // Enqueing the task.
                     asyncTasksPerScheduler_[schedId].Enqueue(new UserTaskInfo() {
@@ -250,9 +244,8 @@ namespace Starcounter {
                         UserTask = action
                     });
 
-                    //if (isEmpty) {
-                        TaskScheduler.Run(task, schedId);
-                    //}
+                    // Just sending a special task to read from queue.
+                    TaskScheduler.Run(task, schedId);
                 }
             }
         }

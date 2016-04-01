@@ -144,6 +144,7 @@ namespace StarcounterInternal.Hosting
                     // Immediately cleaning the transaction.
                     TransactionManager.Cleanup();
 
+                    // Getting and running tasks from scheduler queue and common queue.
 #pragma warning disable 0618
                     DbSession.GetAndExecuteQueuedTasks(RunTaskNoScheduling);
 #pragma warning restore 0618
