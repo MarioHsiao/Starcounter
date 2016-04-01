@@ -78,13 +78,7 @@ namespace StarcounterInternal.Hosting
                                 break;
 
                             case sccorelib_ext.TYPE_RUN_TASK:
-
                                 RunTask((IntPtr)task_data.Output3);
-
-#pragma warning disable 0618
-                                DbSession.GetAndExecuteQueuedTasks(RunTaskNoScheduling);
-#pragma warning restore 0618
-
                                 break;
 
                             case sccorelib_ext.TYPE_PROCESS_PACKAGE:
@@ -162,6 +156,20 @@ namespace StarcounterInternal.Hosting
                 var gcHandle = (GCHandle)hTask;
                 var task = (ITask)gcHandle.Target;
                 gcHandle.Free();
+
+                // Checking if its async action.
+                if (Task.AsyncTaskAction == task.UserAction) {
+
+                    // Immediately cleaning the transaction.
+                    TransactionManager.Cleanup();
+
+                    // Getting and running tasks from scheduler queue and common queue.
+#pragma warning disable 0618
+                    DbSession.GetAndExecuteQueuedTasks(RunTaskNoScheduling);
+#pragma warning restore 0618
+
+                    return;
+                }
 
                 // No need to keep track of this since it will be cleaned up anyways in the end.
                 if (Db.Environment.HasDatabase)
