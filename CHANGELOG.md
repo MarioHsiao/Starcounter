@@ -27,6 +27,7 @@
 - Extended weaver diagnostics emitted by `scweaver --verbosity=diagnostic according to [#3420](https://github.com/Starcounter/Starcounter/issues/3420)
 - Introduced support to provision HTML (views) from JSON (view models) by means of middleware. See [#3444](https://github.com/Starcounter/Starcounter/issues/3444)
 - Added possibility to register internal codehost handlers with `HandlerOptions.SelfOnly`. See [#3339](https://github.com/Starcounter/Starcounter/issues/3339)
+- Added overloads for `Db.Transact` that allows specifying delegates that take input and output parameters. See [#2822](https://github.com/Starcounter/Starcounter/issues/2822) and documentation on http://starcounter.io/guides/transactions/ 
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
@@ -54,6 +55,7 @@
 - Removed buggy dependency to custom VS output pane "Starcounter" as described in [#3423](https://github.com/Starcounter/Starcounter/issues/3423)
 - Shaped up obsolete status terminology used in VS as reported in [#532](https://github.com/Starcounter/Starcounter/issues/532)
 - Fixed the problem with ScErrInputQueueFull exception when scheduling tasks [#3388](https://github.com/Starcounter/Starcounter/issues/3388)
+- Fixed sending only changed/added siblings instead of all siblings when sending patches to client. [#3465](https://github.com/Starcounter/Starcounter/issues/3465)   
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
