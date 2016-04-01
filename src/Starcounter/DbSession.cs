@@ -221,13 +221,23 @@ namespace Starcounter {
                         UserTask = action
                     });
 
-                    if (isEmpty) {
+                    //if (isEmpty) {
 
+                        schedId = ++roundRobinSchedId_;
+
+                        if (schedId >= StarcounterEnvironment.SchedulerCount) {
+                            roundRobinSchedId_ = 0;
+                            schedId = 0;
+                        }
+
+                        TaskScheduler.Run(task, schedId);
+
+                        /*
                         // Waking up all schedulers.
                         for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
                             TaskScheduler.Run(task, i);
-                        }
-                    }
+                        }*/
+                    //}
 
                 } else {
 
@@ -240,9 +250,9 @@ namespace Starcounter {
                         UserTask = action
                     });
 
-                    if (isEmpty) {
+                    //if (isEmpty) {
                         TaskScheduler.Run(task, schedId);
-                    }
+                    //}
                 }
             }
         }
