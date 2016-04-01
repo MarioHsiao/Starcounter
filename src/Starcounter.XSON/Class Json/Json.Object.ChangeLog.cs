@@ -266,6 +266,7 @@ namespace Starcounter {
                             sibling.LogValueChangesWithDatabase(clog, false);
                         } else {
                             clog.Add(Change.Update(sibling, null, true));
+                            _stepSiblings.MarkAsSent(i);
                         }
                     }
                 }

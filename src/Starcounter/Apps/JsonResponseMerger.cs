@@ -60,12 +60,12 @@ namespace Starcounter.Internal {
 
                 if (mainJson != null) {
                     if (mainJson.StepSiblings != null) {
-                        stepSiblings = new SiblingList();
-                        stepSiblings.Add(mainJson);
-
-                        if (mainJson.StepSiblings.HasBeenSent(mainJson.StepSiblings.IndexOf(mainJson)))
+                        if (mainJson.StepSiblings.HasBeenSent(mainJson.StepSiblings.IndexOf(mainJson))) {
+                            stepSiblings = new SiblingList();
+                            stepSiblings.Add(mainJson);
                             stepSiblings.MarkAsSent(0);
-                        mainJson.StepSiblings = stepSiblings;
+                            mainJson.StepSiblings = stepSiblings;
+                        }
                     }
                     mainJson._appName = resp.AppName;
                     mainJson._wrapInAppName = true;
@@ -143,25 +143,11 @@ namespace Starcounter.Internal {
                 }
 
                 if (oldSiblings != null && mainJson.Parent != null) {
-                    // Old siblings exists. We need to check if we have the same ones 
-                    // as before, or if some have been changed or removed to get the 
-                    // correct result to the client since we don't want to send everything.
-
-                    if (oldSiblings.Count > stepSiblings.Count) {
-                        // TODO:
-
-                        // Siblings have been removed. We need to find which ones and 
-                        // if we should remove the property (i.e. namespace) from the client.
-                    } else {
-                        // The default setting is that siblings are sent to the client.
-                        // We only check here for siblings that already exists.
-                        for (int i = 0; i < oldSiblings.Count; i++) {
-                            int index = stepSiblings.IndexOf(oldSiblings[i]);
-                            if (index != -1) {
-                                // The same sibling already exists. Lets not send it again.
-                                // Updated values will be sent as usual though.
-                                stepSiblings.MarkAsSent(index);
-                            }
+                    for (int i = 0; i < stepSiblings.Count; i++) {
+                        int index = oldSiblings.IndexOf(stepSiblings[i]);
+                        if (index != -1) {
+                            // The same sibling already exists. Lets not send it again.
+                            stepSiblings.MarkAsSent(index);
                         }
                     }
                 }
