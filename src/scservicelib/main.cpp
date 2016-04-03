@@ -10,7 +10,12 @@
 
 extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
 
+//#define USE_OLD_IPC_MONITOR
+
+#ifdef USE_OLD_IPC_MONITOR
 #define INHERIT_CONSOLE_IPC_MONITOR 0
+#endif
+
 #define INHERIT_CONSOLE_GATEWAY 0
 #define INHERIT_CONSOLE_SCDATA 0
 #define INHERIT_CONSOLE_SCCODE 1
@@ -24,7 +29,9 @@ extern "C" int32_t make_sc_process_uri(const char *server_name, const char *proc
 enum ProcessIds
 {
     ID_SCSERVICE,
+#ifdef USE_OLD_IPC_MONITOR
     ID_IPC_MONITOR,
+#endif
     ID_GATEWAY,
     ID_ADMIN_SCCODE,
 
@@ -145,7 +152,9 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 	size_t str_num_chars, str_size_bytes;
 
 	wchar_t *event_name;
+#ifdef USE_OLD_IPC_MONITOR
 	wchar_t *monitor_cmd;
+#endif
 	wchar_t *gateway_cmd;
 
 #ifdef START_PROLOG
@@ -357,6 +366,8 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 	}
 #endif
 
+#ifdef USE_OLD_IPC_MONITOR
+
 	str_template = L"scipcmonitor.exe \"%s\" \"%s\"";
 	str_num_chars =
 		wcslen(str_template) +
@@ -369,6 +380,8 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 	if (!monitor_cmd) goto err_nomem;
 
 	swprintf(monitor_cmd, str_num_chars, str_template, srv_name_upr, server_logs_dir);
+
+#endif
 
 	str_template = L"scnetworkgateway.exe \"%s\" \"%s\" \"%s\"";
 	str_num_chars =
@@ -561,6 +574,8 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 
 	handles[ID_SCSERVICE] = hcontrol_event;
 
+#ifdef USE_OLD_IPC_MONITOR
+
 	if (logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"About to start the IPC monitor: %s", monitor_cmd);
 		LogVerboseMessage(logmessagebuffer);
@@ -573,6 +588,8 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 	if (logsteps != 0 ) { 
 		LogVerboseMessage(L"IPC monitor started");
 	}
+
+#endif
 
 	if (logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"About to start the Network gateway: %s", gateway_cmd);
@@ -677,6 +694,8 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 			    goto end;
             }
 
+#ifdef USE_OLD_IPC_MONITOR
+
 		    case ID_IPC_MONITOR:
             {
 			    // IPC monitor died. Kill the server.
@@ -688,6 +707,8 @@ int Start(wchar_t* serverName, BOOL logSteps) {
                 r = SCERRIPCMONITORTERMINATED;
 			    goto log_scerr;
             }
+
+#endif
 
 		    case ID_GATEWAY:
             {
@@ -807,7 +828,10 @@ end:
     if (handles[ID_PROLOG]) _kill_and_cleanup(handles[ID_PROLOG]);
 #endif
 
+#ifdef USE_OLD_IPC_MONITOR
 	if (handles[ID_IPC_MONITOR]) _kill_and_cleanup(handles[ID_IPC_MONITOR]);
+#endif
+
 	if (handles[ID_SCSERVICE]) _destroy_event(handles[ID_SCSERVICE]);
 
 	// Release and close the "Local\\scservice_is_running_lock" mutex if open.

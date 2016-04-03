@@ -254,6 +254,11 @@ namespace Starcounter.Internal
         public const int INVALID_SERVER_LOG_HANDLE = 0;
 
         /// <summary>
+        /// End of internal requests.
+        /// </summary>
+        public const String EndOfRequest = "--- End Of Request ---";
+
+        /// <summary>
         /// Example of string constant.
         /// </summary>
         public const String DefaultPersonalServerNameUpper = "PERSONAL";
