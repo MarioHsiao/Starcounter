@@ -9,6 +9,8 @@ class TestAppName {
 
     public static Int32 Run() {
 
+        Console.WriteLine("Starting 'AppName' tests...");
+
         String expectedAppName = StarcounterEnvironment.AppName;
 
         Assert.IsTrue(!String.IsNullOrEmpty(expectedAppName));

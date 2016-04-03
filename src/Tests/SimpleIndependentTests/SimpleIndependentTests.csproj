@@ -67,6 +67,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HandlerTests.cs" />
     <Compile Include="SchedulingPerfTest.cs" />
     <Compile Include="SelfPerformanceTests.cs" />
     <Compile Include="SimpleIndependentTests.cs" />

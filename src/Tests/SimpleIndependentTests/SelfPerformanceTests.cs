@@ -28,6 +28,8 @@ class TestSelfPerformance {
 
     public static Int32 Run() {
 
+        Console.WriteLine("Starting 'Self' performance tests...");
+
         Int32 numToGenerate = 1000;
         String[] uris = new String[numToGenerate];
         Random rand = new Random();
