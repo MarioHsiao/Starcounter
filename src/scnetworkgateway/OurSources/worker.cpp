@@ -1425,9 +1425,7 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 }
 
 // Checks if cloning was performed and does operations.
-// TODO: 
-// Alexey, release will not compile with __forceinline
-/*__forceinline*/ uint32_t GatewayWorker::ProcessReceiveClones(bool just_delete_clone)
+uint32_t GatewayWorker::ProcessReceiveClones(bool just_delete_clone)
 {
     // Checking if there was no clone.
     if (sd_receive_clone_ == NULL)

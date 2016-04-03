@@ -9,6 +9,10 @@ using Starcounter.Logging;
 using Starcounter.Rest;
 using System.Collections.Concurrent;
 using System.Web;
+using System.Text;
+using System.Net.Sockets;
+using System.Net;
+using Microsoft.Win32;
 
 namespace Starcounter.Internal {
 
@@ -32,6 +36,32 @@ namespace Starcounter.Internal {
 
         // Node error log source.
         static LogSource NodeErrorLogSource = new LogSource("Node");
+
+        /// <summary>
+        /// Registers newly started codehost.
+        /// </summary>
+        static void RegisterNewCodehostInGateway() {
+
+            String dbName = StarcounterEnvironment.DatabaseNameLower;
+
+            String reqBody =
+                dbName + " ";
+
+            reqBody += MixedCodeConstants.EndOfRequest;
+
+            Response r = Http.POST(
+                "http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/codehost", reqBody, null);
+
+            if (!r.IsSuccessStatusCode) {
+
+                String errCodeStr = r.Headers[MixedCodeConstants.ScErrorCodeHttpHeader];
+
+                if (null != errCodeStr)
+                    throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
+                else
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, r.Body);
+            }
+        }
 
         /// <summary>
         /// Initializes AppsBootstrapper.
@@ -80,6 +110,7 @@ namespace Starcounter.Internal {
 
             // Giving REST needed delegates.
             unsafe {
+
                 UriManagedHandlersCodegen.Setup(
                     GatewayHandlers.RegisterHttpHandlerInGateway,
                     GatewayHandlers.UnregisterHttpHandlerInGateway,
@@ -90,6 +121,11 @@ namespace Starcounter.Internal {
                     UriManagedHandlersCodegen.RunUriMatcherAndCallHandler);
 
                 AllWsGroups.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerInGateway);
+            }
+
+            // Registering this codehost.
+            if (!noNetworkGateway) {
+                RegisterNewCodehostInGateway();
             }
 
             // Injecting required hosted Node functionality.

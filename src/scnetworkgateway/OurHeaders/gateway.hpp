@@ -81,6 +81,7 @@ typedef uint32_t ws_group_id_type;
 //#define LEAST_USED_SCHEDULING
 #define CASE_INSENSITIVE_URI_MATCHER
 #define DISCONNECT_SOCKETS_WHEN_CODEHOST_DIES
+//#define USE_OLD_IPC_MONITOR
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -1519,8 +1520,12 @@ class Gateway
     // Event to wait for active databases update.
     HANDLE active_databases_updates_event_;
 
+#ifdef USE_OLD_IPC_MONITOR
+
     // Monitor shared interface.
     core::monitor_interface_ptr shm_monitor_interface_;
+
+#endif
 
     // Gateway pid.
     core::pid_type gateway_pid_;
@@ -1528,8 +1533,12 @@ class Gateway
     // Gateway owner id.
     core::owner_id gateway_owner_id_;
 
+#ifdef USE_OLD_IPC_MONITOR
+
     // Shared memory monitor interface name.
     std::string shm_monitor_int_name_;
+
+#endif
 
     ////////////////////////
     // WORKERS
@@ -1541,8 +1550,12 @@ class Gateway
     // Worker thread handles.
     HANDLE* worker_thread_handles_;
 
+#ifdef USE_OLD_IPC_MONITOR
+
     // Active databases monitor thread handle.
     HANDLE db_monitor_thread_handle_;
+
+#endif
 
     // Channels events monitor thread handle.
     HANDLE channels_events_thread_handle_;
@@ -1754,10 +1767,14 @@ public:
         return sc_log_handle_;
     }
 
+#ifdef USE_OLD_IPC_MONITOR
+
     // Constant reference to monitor interface.
     const core::monitor_interface_ptr& the_monitor_interface() const {
         return shm_monitor_interface_;
     }
+
+#endif
 
     // Get a reference to the active_databases_updates_event_.
 	HANDLE& active_databases_updates_event() {
@@ -1912,11 +1929,15 @@ public:
         return gateway_owner_id_;
     }
 
+#ifdef USE_OLD_IPC_MONITOR
+
     // Shared memory monitor interface name.
     const std::string& get_shm_monitor_int_name()
     {
         return shm_monitor_int_name_;
     }
+
+#endif
 
     uint32_t setting_maximum_receive_content_length()
     {
@@ -2006,9 +2027,6 @@ public:
 
         return server_ports_ + empty_slot;
     }
-
-    // Runs all port handlers.
-    uint32_t RunAllHandlers();
 
     // Delete all handlers associated with given database.
     uint32_t EraseDatabaseFromPorts(db_index_type db_index);
@@ -2105,8 +2123,12 @@ public:
 	// Disconnect sockets when codehost dies.
 	void DisconnectSocketsWhenCodehostDies(db_index_type db_index);
 
+#ifdef USE_OLD_IPC_MONITOR
+
     // Opens active databases events with monitor.
     uint32_t OpenActiveDatabasesUpdatedEvent();
+
+#endif
 
     // Releases global lock.
     void LeaveGlobalLock()
@@ -2192,6 +2214,12 @@ public:
     // Checking for database changes.
     uint32_t CheckDatabaseChanges(const std::set<std::string>& active_databases);
 
+	// Deleting existing codehost.
+	uint32_t DeleteExistingCodehost(GatewayWorker *gw, const std::string codehost_name);
+
+	// Adding new codehost.
+	uint32_t AddNewCodehost(GatewayWorker *gw, const std::string codehost_name);
+
     // Print statistics.
     uint32_t StatisticsAndMonitoringRoutine();
 
@@ -2204,8 +2232,9 @@ public:
     // Start workers.
     uint32_t StartWorkerAndManagementThreads(
         LPTHREAD_START_ROUTINE workerRoutine,
+#ifdef USE_OLD_IPC_MONITOR
         LPTHREAD_START_ROUTINE scanDbsRoutine,
-        LPTHREAD_START_ROUTINE channelsEventsMonitorRoutine,
+#endif
         LPTHREAD_START_ROUTINE inactiveSocketsCleanupRoutine,
         LPTHREAD_START_ROUTINE gatewayLoggingRoutine,
         LPTHREAD_START_ROUTINE threadsMonitorRoutine);

@@ -1384,6 +1384,111 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     return 0;
 }
 
+uint32_t UnregisterCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+	*is_handled = true;
+
+	char* request_begin = (char*)(sd->get_data_blob_start());
+
+	// Looking for the end of the request.
+	char* end_of_message = strstr(request_begin, MixedCodeConstants::EndOfRequest);
+	GW_ASSERT(NULL != end_of_message);
+
+	// Looking for the "\r\n\r\n" meaning the start of the body.
+	char* body_string = strstr(request_begin, "\r\n\r\n");
+	GW_ASSERT(NULL != body_string);
+	request_begin[sd->get_accumulated_len_bytes()] = '\0';
+
+	std::stringstream ss(body_string);
+	std::string codehost_name;
+
+	ss >> codehost_name;
+
+	uint16_t err_code = 0;
+
+	std::transform(codehost_name.begin(), codehost_name.end(), codehost_name.begin(), ::tolower);
+	db_index_type db_index = g_gateway.FindDatabaseIndex(codehost_name);
+
+	if (INVALID_DB_INDEX != db_index) {
+
+		GW_COUT << "Deleting existing codehost " << codehost_name << GW_ENDL;
+
+		err_code = g_gateway.DeleteExistingCodehost(gw, codehost_name);
+	}
+	else {
+
+		err_code = SCERRDATABASEDELETEFAILED;
+	}
+
+	if (err_code) {
+
+		std::stringstream ss;
+		ss << "Can't delete existing codehost \"" << codehost_name << ".";
+
+		char temp_buf[TEMP_BIG_BUFFER_SIZE];
+		int32_t size_bytes = ConstructHttp400(temp_buf, TEMP_BIG_BUFFER_SIZE, ss.str(), err_code);
+
+		return gw->SendPredefinedMessage(sd, temp_buf, size_bytes);
+	}
+	else {
+
+		return gw->SendPredefinedMessage(sd, kHttpOKResponse, kHttpOKResponseLength);
+	}
+}
+
+uint32_t RegisterNewCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+	*is_handled = true;
+
+	char* request_begin = (char*)(sd->get_data_blob_start());
+
+	// Looking for the end of the request.
+	char* end_of_message = strstr(request_begin, MixedCodeConstants::EndOfRequest);
+	GW_ASSERT(NULL != end_of_message);
+
+	// Looking for the "\r\n\r\n" meaning the start of the body.
+	char* body_string = strstr(request_begin, "\r\n\r\n");
+	GW_ASSERT(NULL != body_string);
+	request_begin[sd->get_accumulated_len_bytes()] = '\0';
+
+	std::stringstream ss(body_string);
+	std::string codehost_name;
+
+	ss >> codehost_name;
+
+	uint16_t err_code = 0;
+
+	std::transform(codehost_name.begin(), codehost_name.end(), codehost_name.begin(), ::tolower);
+	db_index_type db_index = g_gateway.FindDatabaseIndex(codehost_name);
+	
+	if (INVALID_DB_INDEX == db_index) {
+
+		GW_COUT << "New codehost is up " << codehost_name << GW_ENDL;
+
+		// Registering new codehost.
+		err_code = g_gateway.AddNewCodehost(gw, codehost_name);
+
+	} else {
+
+		err_code = SCERRDATABASEALREADYEXISTS;
+	}
+	
+	if (err_code) {
+
+		std::stringstream ss;
+		ss << "Can't register new codehost \"" << codehost_name << ".";
+
+		char temp_buf[TEMP_BIG_BUFFER_SIZE];
+		int32_t size_bytes = ConstructHttp400(temp_buf, TEMP_BIG_BUFFER_SIZE, ss.str(), err_code);
+
+		return gw->SendPredefinedMessage(sd, temp_buf, size_bytes);
+	}
+	else {
+
+		return gw->SendPredefinedMessage(sd, kHttpOKResponse, kHttpOKResponseLength);
+	}
+}
+
 uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
     *is_handled = true;
@@ -1772,6 +1877,161 @@ uint32_t RegisterWsHandler(
     }
 }
 
+// Deleting the existing codehost.
+uint32_t Gateway::DeleteExistingCodehost(GatewayWorker *gw, const std::string codehost_name) {
+
+	// Entering global lock.
+	gw->EnterGlobalLock();
+
+	// Checking what databases went down.
+	for (int32_t s = 0; s < num_dbs_slots_; s++)
+	{
+		if ((0 == active_databases_[s].get_db_name().compare(codehost_name)) &&
+			(!active_databases_[s].IsDeletionStarted()))
+		{
+#ifdef GW_DATABASES_DIAG
+			GW_PRINT_GLOBAL << "Start detaching dead database: " << active_databases_[s].get_db_name() << GW_ENDL;
+#endif
+
+			// Killing channels events monitor thread.
+			active_databases_[s].KillChannelsEventsMonitor();
+
+			// Start database deletion.
+			active_databases_[s].StartDeletion();
+
+		}
+	}
+
+	// Leaving global lock.
+	gw->LeaveGlobalLock();
+
+	return 0;
+}
+
+// Adding new codehost.
+uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_name) {
+
+#ifdef GW_DATABASES_DIAG
+	GW_PRINT_GLOBAL << "Attaching a new codehost: " << codehost_name << GW_ENDL;
+#endif
+
+	// Entering global lock.
+	if (NULL != gw)
+		gw->EnterGlobalLock();
+	else 
+		EnterGlobalLock();
+
+	// Finding first empty slot.
+	int32_t empty_db_index = 0;
+	for (empty_db_index = 0; empty_db_index < num_dbs_slots_; ++empty_db_index)
+	{
+		// Checking if database slot is empty.
+		if (active_databases_[empty_db_index].IsEmpty())
+			break;
+	}
+
+	GW_ASSERT(empty_db_index < MAX_ACTIVE_DATABASES);
+
+	// Filling necessary fields.
+	active_databases_[empty_db_index].Init(
+		codehost_name,
+		++db_seq_num_,
+		empty_db_index);
+
+	db_did_go_down_[empty_db_index] = false;
+
+	// Increasing number of active databases.
+	if (empty_db_index >= num_dbs_slots_)
+		num_dbs_slots_++;
+
+	// Adding to workers database interfaces.
+	bool db_init_failed = false;
+	uint32_t err_code = 0;
+	for (int32_t i = 0; i < setting_num_workers_; i++)
+	{
+		try
+		{
+			err_code = gw_workers_[i].AddNewDatabase(empty_db_index);
+		}
+		catch (...)
+		{
+			// Reporting a warning to server log.
+			std::wstring temp_str = std::wstring(L"Attaching new codehost failed: ") +
+				std::wstring(codehost_name.begin(), codehost_name.end());
+			g_gateway.LogWriteWarning(temp_str.c_str());
+
+			// Deleting worker database parts.
+			for (int32_t i = 0; i < setting_num_workers_; i++)
+				gw_workers_[i].DeleteInactiveDatabase(empty_db_index);
+
+			// Resetting newly created database.
+			active_databases_[empty_db_index].Reset(true);
+
+			// Removing the database slot if it was the last.
+			if (num_dbs_slots_ == empty_db_index + 1)
+				num_dbs_slots_--;
+
+			// Leaving global lock.
+			if (NULL != gw)
+				gw->LeaveGlobalLock();
+			else
+				LeaveGlobalLock();
+
+			db_init_failed = true;
+
+			break;
+		}
+
+		if (err_code)
+		{
+			// Leaving global lock.
+			if (NULL != gw)
+				gw->LeaveGlobalLock();
+			else
+				LeaveGlobalLock();
+
+			return err_code;
+		}
+	}
+
+	// Checking if any error occurred.
+	if (db_init_failed) {
+		return err_code;
+	}
+
+	// Spawning channels events monitor.
+	err_code = active_databases_[empty_db_index].SpawnChannelsEventsMonitor();
+	if (err_code)
+	{
+		// Leaving global lock.
+		if (NULL != gw)
+			gw->LeaveGlobalLock();
+		else
+			LeaveGlobalLock();
+
+		return err_code;
+	}
+
+	// Registering gateway ready on every worker (fix_wait_for_gateway_available).
+	for (int32_t i = 0; i < setting_num_workers_; i++)
+	{
+		err_code = gw_workers_[i].GetWorkerDb(empty_db_index)->SetGatewayReadyForDbPushes();
+		if (err_code) {
+			GW_ASSERT(false);
+		}
+	}
+
+	// Leaving global lock.
+	if (NULL != gw)
+		gw->LeaveGlobalLock();
+	else
+		LeaveGlobalLock();
+
+	return 0;
+}
+
+#ifdef USE_OLD_IPC_MONITOR
+
 // Checks for new/existing databases and updates corresponding shared memory structures.
 uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_databases)
 {
@@ -1818,104 +2078,9 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
         // We have a new database being up.
         if (is_new_database)
         {
-
-#ifdef GW_DATABASES_DIAG
-            GW_PRINT_GLOBAL << "Attaching a new database: " << current_db_name << GW_ENDL;
-#endif
-
-            // Entering global lock.
-            EnterGlobalLock();
-
-            // Finding first empty slot.
-            int32_t empty_db_index = 0;
-            for (empty_db_index = 0; empty_db_index < num_dbs_slots_; ++empty_db_index)
-            {
-                // Checking if database slot is empty.
-                if (active_databases_[empty_db_index].IsEmpty())
-                    break;
-            }
-
-            GW_ASSERT(empty_db_index < MAX_ACTIVE_DATABASES);
-
-            // Filling necessary fields.
-            active_databases_[empty_db_index].Init(
-                current_db_name,
-                ++db_seq_num_,
-                empty_db_index);
-
-            db_did_go_down_[empty_db_index] = false;
-
-            // Increasing number of active databases.
-            if (empty_db_index >= num_dbs_slots_)
-                num_dbs_slots_++;
-
-            // Adding to workers database interfaces.
-            bool db_init_failed = false;
-            for (int32_t i = 0; i < setting_num_workers_; i++)
-            {
-                try
-                {
-                    err_code = gw_workers_[i].AddNewDatabase(empty_db_index);
-                }
-                catch (...)
-                {
-                    // Reporting a warning to server log.
-                    std::wstring temp_str = std::wstring(L"Attaching new database failed: ") +
-                        std::wstring(current_db_name.begin(), current_db_name.end());
-                    g_gateway.LogWriteWarning(temp_str.c_str());
-
-                    // Deleting worker database parts.
-                    for (int32_t i = 0; i < setting_num_workers_; i++)
-                        gw_workers_[i].DeleteInactiveDatabase(empty_db_index);
-
-                    // Resetting newly created database.
-                    active_databases_[empty_db_index].Reset(true);
-
-                    // Removing the database slot if it was the last.
-                    if (num_dbs_slots_ == empty_db_index + 1)
-                        num_dbs_slots_--;
-
-                    // Leaving global lock.
-                    LeaveGlobalLock();
-
-                    db_init_failed = true;
-                    
-                    break;
-                }
-                
-                if (err_code)
-                {
-                    // Leaving global lock.
-                    LeaveGlobalLock();
-                    return err_code;
-                }
-            }
-
-            // Checking if any error occurred.
-            if (db_init_failed)
-                continue;
-
-            // Spawning channels events monitor.
-            err_code = active_databases_[empty_db_index].SpawnChannelsEventsMonitor();
-            if (err_code)
-            {
-                // Leaving global lock.
-                LeaveGlobalLock();
-                return err_code;
-            }
-
-            // Registering gateway ready on every worker (fix_wait_for_gateway_available).
-            for (int32_t i = 0; i < setting_num_workers_; i++)
-            {
-                err_code = gw_workers_[i].GetWorkerDb(empty_db_index)->SetGatewayReadyForDbPushes();
-                if (err_code)
-                {
-                    GW_ASSERT(false);
-                }
-            }
-
-            // Leaving global lock.
-            LeaveGlobalLock();
+			err_code = AddNewCodehost(NULL, current_db_name);
+			if (0 != err_code)
+				return err_code;
         }
     }
 
@@ -1944,6 +2109,8 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
     return 0;
 }
+
+#endif
 
 // Active database constructor.
 ActiveDatabase::ActiveDatabase()
@@ -2172,15 +2339,19 @@ uint32_t Gateway::Init()
 
     g_gateway.clangDestroyFunc_(clang_engine);
 
+#ifdef USE_OLD_IPC_MONITOR
+
     // Registering shared memory monitor interface.
     shm_monitor_int_name_ = setting_sc_server_type_upper_ + "_" + MONITOR_INTERFACE_SUFFIX;
 
-    // Waiting until we can open shared memory monitor interface.
-    GW_COUT << "Opening scipcmonitor interface: ";
+	// Waiting until we can open shared memory monitor interface.
+	GW_COUT << "Opening scipcmonitor interface: ";
 
-    // Get monitor_interface_ptr for monitor_interface_name.
-    shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
-    GW_COUT << "opened!" << GW_ENDL;
+	// Get monitor_interface_ptr for monitor_interface_name.
+	shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
+	GW_COUT << "opened!" << GW_ENDL;
+
+#endif
 
 #if 0
     // Send registration request to the monitor and try to acquire an owner_id.
@@ -2288,6 +2459,36 @@ uint32_t Gateway::UpdateReverseProxies() {
 uint32_t Gateway::RegisterGatewayHandlers() {
 
     uint32_t err_code = 0;
+
+	err_code = AddUriHandler(
+		&gw_workers_[0],
+		setting_internal_system_port_,
+		"gateway",
+		"POST /gw/codehost",
+		NULL,
+		0,
+		bmx::BMX_INVALID_HANDLER_INFO,
+		INVALID_DB_INDEX,
+		RegisterNewCodehost,
+		true);
+
+	if (err_code)
+		return err_code;
+
+	err_code = AddUriHandler(
+		&gw_workers_[0],
+		setting_internal_system_port_,
+		"gateway",
+		"DELETE /gw/codehost",
+		NULL,
+		0,
+		bmx::BMX_INVALID_HANDLER_INFO,
+		INVALID_DB_INDEX,
+		UnregisterCodehost,
+		true);
+
+	if (err_code)
+		return err_code;
 
     // Registering HTTP handler for gateway.
     err_code = AddUriHandler(
@@ -2463,7 +2664,10 @@ void Gateway::PrintWorkersStatistics(std::stringstream& stats_stream)
 }
 
 // Gateway URIs that are used for handlers registration and tests.
+// NOTE: Should be in order.
 const char* GatewayHandlers[] = {
+	"POST /gw/codehost",
+	"DELETE /gw/codehost",
     "POST /gw/handler/uri",
 	"DELETE /gw/handler/uri",
     "POST /gw/handler/ws",
@@ -2808,6 +3012,8 @@ void Gateway::WakeUpAllWorkersToCollectInactiveSockets()
     }
 }
 
+#ifdef USE_OLD_IPC_MONITOR
+
 // Opens active databases events with monitor.
 uint32_t Gateway::OpenActiveDatabasesUpdatedEvent()
 {
@@ -2913,6 +3119,8 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
     return err_code;
 }
 
+#endif
+
 // Entry point for gateway worker.
 uint32_t __stdcall GatewayWorkerRoutine(LPVOID params)
 {
@@ -2932,28 +3140,6 @@ uint32_t __stdcall GatewayWorkerRoutine(LPVOID params)
     g_gateway.LogWriteError(temp);
 
     return err_code;
-}
-
-// Entry point for channels events monitor.
-uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
-{
-    // Catching all unhandled exceptions in this thread.
-    GW_SC_BEGIN_FUNC
-
-    while (true)
-    {
-        Sleep(100000);
-
-        for (int32_t i = 0; i < g_gateway.get_num_dbs_slots(); i++)
-        {
-
-        }
-    }
-
-    return 0;
-
-    // Catching all unhandled exceptions in this thread.
-    GW_SC_END_FUNC
 }
 
 // Entry point for inactive sockets cleanup.
@@ -3073,12 +3259,16 @@ uint32_t Gateway::GatewayMonitor()
             }
         }
 
+#ifdef USE_OLD_IPC_MONITOR
+
         // Checking if database monitor thread is alive.
         if (!WaitForSingleObject(db_monitor_thread_handle_, 0))
         {
             GW_COUT << "Active databases monitor thread is dead." << GW_ENDL;
             GW_ASSERT(false);
         }
+
+#endif
 
         // Checking if database channels events thread is alive.
         if (!WaitForSingleObject(channels_events_thread_handle_, 0))
@@ -3280,8 +3470,9 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 // Starts gateway workers and statistics printer.
 uint32_t Gateway::StartWorkerAndManagementThreads(
     LPTHREAD_START_ROUTINE workerRoutine,
+#ifdef USE_OLD_IPC_MONITOR
     LPTHREAD_START_ROUTINE monitorDatabasesRoutine,
-    LPTHREAD_START_ROUTINE channelsEventsMonitorRoutine,
+#endif
     LPTHREAD_START_ROUTINE inactiveSocketsCleanupRoutine,
     LPTHREAD_START_ROUTINE gatewayLoggingRoutine,
     LPTHREAD_START_ROUTINE allThreadsMonitorRoutine)
@@ -3305,6 +3496,8 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
         GW_ASSERT(worker_thread_handles_[i] != NULL);
     }
 
+#ifdef USE_OLD_IPC_MONITOR
+
     uint32_t dbScanThreadId;
 
     // Starting database scanning thread.
@@ -3319,19 +3512,7 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
     // Checking if thread is created.
     GW_ASSERT(db_monitor_thread_handle_ != NULL);
 
-    uint32_t channelsEventsThreadId;
-
-    // Starting channels events monitor thread.
-    channels_events_thread_handle_ = CreateThread(
-        NULL, // Default security attributes.
-        0, // Use default stack size.
-        channelsEventsMonitorRoutine, // Thread function name.
-        NULL, // Argument to thread function.
-        0, // Use default creation flags.
-        (LPDWORD)&channelsEventsThreadId); // Returns the thread identifier.
-
-    // Checking if thread is created.
-    GW_ASSERT(channels_events_thread_handle_ != NULL);
+#endif
 
     uint32_t inactiveSocketsCleanupThreadId;
 
@@ -3442,8 +3623,9 @@ int32_t Gateway::StartGateway()
     // Starting workers and statistics printer.
     err_code = StartWorkerAndManagementThreads(
         (LPTHREAD_START_ROUTINE)GatewayWorkerRoutine,
+#ifdef USE_OLD_IPC_MONITOR
         (LPTHREAD_START_ROUTINE)MonitorDatabasesRoutine,
-        (LPTHREAD_START_ROUTINE)AllDatabasesChannelsEventsMonitorRoutine,
+#endif
         (LPTHREAD_START_ROUTINE)InactiveSocketsCleanupRoutine,
         (LPTHREAD_START_ROUTINE)GatewayLoggingRoutine,
         (LPTHREAD_START_ROUTINE)GatewayMonitorRoutine);
