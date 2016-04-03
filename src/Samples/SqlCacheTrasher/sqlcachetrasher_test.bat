@@ -25,7 +25,7 @@ IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 
 :: Starting IPC monitor first.
-START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
+::START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
 
 :: Weaving the test.
 scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"

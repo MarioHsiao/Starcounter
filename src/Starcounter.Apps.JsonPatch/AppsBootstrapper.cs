@@ -124,7 +124,9 @@ namespace Starcounter.Internal {
             }
 
             // Registering this codehost.
-            RegisterNewCodehostInGateway();
+            if (!noNetworkGateway) {
+                RegisterNewCodehostInGateway();
+            }
 
             // Injecting required hosted Node functionality.
             Node.InjectHostedImpl(NodeErrorLogSource.LogException);

@@ -34,7 +34,7 @@ IF ERRORLEVEL 1 (
 )
 
 :: Starting IPC monitor first.
-START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
+::START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
 
 :: Path to signed assembly.
 SET TEST_WEAVED_ASSEMBLY=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe
