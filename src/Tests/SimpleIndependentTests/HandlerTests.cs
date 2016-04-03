@@ -139,6 +139,8 @@ class HandlerDeletionTests {
         TestPostHandlerDeletion();
         TestGetHandlerDeletion();
 
+        Console.WriteLine("Finished handler deletion tests...");
+
         return 0;
     }
 }
