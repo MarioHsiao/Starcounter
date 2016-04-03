@@ -407,7 +407,11 @@ WorkerDbInterface::WorkerDbInterface(
     // Initializing worker shared memory interface.
     shared_int_.init(
         active_db->get_shm_seg_name().c_str(),
+#ifdef USE_OLD_IPC_MONITOR
         g_gateway.get_shm_monitor_int_name().c_str(),
+#else
+		"ipcmonitor",
+#endif
         g_gateway.get_gateway_pid(),
         g_gateway.get_gateway_owner_id());
 
