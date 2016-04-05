@@ -74,7 +74,8 @@
 - In `Http` and `Node` functions the `userObject` parameter is gone. Because of that the `userDelegate` parameter which was previously `Action<Response, Object>` became just `Action<Response>`.
 - Static files from /sys/ folder migrated to Polymer 1.3. See [#3384](https://github.com/Starcounter/Starcounter/issues/3384), [#3022](https://github.com/Starcounter/Starcounter/issues/3022)
 - Deprecate usage of `<dom-bind-notifier>` in HTML partial templates. Since Polymer 1.3 upgrade, it is not needed. See [#2922](https://github.com/Starcounter/Starcounter/issues/2922)
-- Removed `Object.observe` and `Array.observe` shims [#3468](https://github.com/Starcounter/Starcounter/issues/3468)
+- Deprecate usage of `Object.observe` and `Array.observe` shims. Since Polymer 1.3 upgrade, they are not needed. [#3468](https://github.com/Starcounter/Starcounter/issues/3468)
+- Deprecate usage of `juicy-redirect`. Puppet web apps should use `puppet-redirect` instead. [#3469](https://github.com/Starcounter/Starcounter/issues/3469)
 
 ## [2.1.177] - 2015-10-14
 ### Changed
