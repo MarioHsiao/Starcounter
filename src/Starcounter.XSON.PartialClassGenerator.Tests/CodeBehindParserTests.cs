@@ -15,23 +15,26 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void CodeBehindSimpleAnalyzeTest() {
-            CodeBehindMetadata monoMetadata;
-            
-			monoMetadata = ParserAnalyze("Simple", @"Input\simple.json.cs");
-			Assert.AreEqual(null, monoMetadata.RootClassInfo.BoundDataClass);
-			Assert.AreEqual("Simple_json", monoMetadata.RootClassInfo.RawDebugJsonMapAttribute);
-			Assert.AreEqual("Json", monoMetadata.RootClassInfo.BaseClassName);
-			Assert.AreEqual("MySampleNamespace", monoMetadata.RootClassInfo.Namespace);
-			
-			Assert.AreEqual(2, monoMetadata.CodeBehindClasses.Count);
-			Assert.AreEqual("OrderItem", monoMetadata.CodeBehindClasses[1].BoundDataClass);
-			Assert.AreEqual("MyOtherNs.MySubNS.SubClass", monoMetadata.CodeBehindClasses[1].BaseClassName);
-			Assert.AreEqual("Apapa_json.Items", monoMetadata.CodeBehindClasses[1].RawDebugJsonMapAttribute);
+			var monoMetadata = ParserAnalyze("Simple", @"Input\simple.json.cs");
+            var roslynMetadata = ParserAnalyze("Simple", @"Input\simple.json.cs", true);
 
-			Assert.AreEqual(3, monoMetadata.UsingDirectives.Count);
-			Assert.AreEqual("System", monoMetadata.UsingDirectives[0]);
-			Assert.AreEqual("Starcounter", monoMetadata.UsingDirectives[1]);
-			Assert.AreEqual("ScAdv=Starcounter.Advanced", monoMetadata.UsingDirectives[2]);
+            foreach (var metadata in new[] { monoMetadata, roslynMetadata }) {
+                Assert.AreEqual(null, metadata.RootClassInfo.BoundDataClass);
+                Assert.AreEqual("Simple_json", metadata.RootClassInfo.RawDebugJsonMapAttribute);
+                Assert.AreEqual("Json", metadata.RootClassInfo.BaseClassName);
+                Assert.AreEqual("MySampleNamespace", metadata.RootClassInfo.Namespace);
+
+                Assert.AreEqual(2, metadata.CodeBehindClasses.Count);
+                Assert.AreEqual("OrderItem", metadata.CodeBehindClasses[1].BoundDataClass);
+                Assert.AreEqual("MyOtherNs.MySubNS.SubClass", metadata.CodeBehindClasses[1].BaseClassName);
+                Assert.AreEqual("Apapa_json.Items", metadata.CodeBehindClasses[1].RawDebugJsonMapAttribute);
+
+                Assert.AreEqual(3, metadata.UsingDirectives.Count);
+                Assert.AreEqual("System", metadata.UsingDirectives[0]);
+                Assert.AreEqual("Starcounter", metadata.UsingDirectives[1]);
+                Assert.AreEqual("ScAdv=Starcounter.Advanced", metadata.UsingDirectives[2]);
+            }
+
         }
 
 		[Test]
@@ -68,10 +71,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.IsTrue(ex.Message.Contains("constructors are not"));
 
             useRoslynParser = true;
-
-            // Introduce both above tests in the roslyn parser too
-            // TODO:
-
+            
             ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect", @"Input\incorrect.json.cs", useRoslynParser));
             Assert.IsTrue(ex.Message.Contains("generic class"));
 
