@@ -23,7 +23,11 @@ namespace Starcounter.XSON.PartialClassGenerator {
         public override void VisitUsingDirective(UsingDirectiveSyntax node) {
             // Capture only root/file level usings
             if (node.Parent != null && node.Parent.Kind() == SyntaxKind.CompilationUnit) {
-                Result.UsingDirectives.Add(node.ToString());
+                var result = node.Name.ToString();
+                if (node.Alias != null) {
+                    result = node.Alias.Name.ToString() + "=" + result;
+                }
+                Result.UsingDirectives.Add(result);
             }
         }
 
