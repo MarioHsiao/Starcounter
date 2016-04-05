@@ -97,6 +97,10 @@ namespace Starcounter.Internal {
             return new Transaction(handle);
         }
 
+        TransactionHandle ITransactionManager.CreateImplicitAndSetCurrent() {
+            return TransactionManager.CreateImplicitAndSetCurrent(true);
+        }
+
         internal static TransactionHandle CreateImplicitAndSetCurrent(bool readOnly) {
             return CreateAndSetCurrent(readOnly, false, true, true);
         }
@@ -329,6 +333,7 @@ namespace Starcounter.Internal {
 
         public TransactionHandle CurrentTransaction {
             get { return CurrentHandle; }
+            set { SetCurrentTransaction(value); }
         }
 
         internal static TransactionHandle GetCurrentAndSetToNoneManagedOnly() {
