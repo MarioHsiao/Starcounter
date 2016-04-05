@@ -25,9 +25,12 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 Assert.AreEqual("MySampleNamespace", metadata.RootClassInfo.Namespace);
 
                 Assert.AreEqual(2, metadata.CodeBehindClasses.Count);
-                Assert.AreEqual("OrderItem", metadata.CodeBehindClasses[1].BoundDataClass);
-                Assert.AreEqual("MyOtherNs.MySubNS.SubClass", metadata.CodeBehindClasses[1].BaseClassName);
-                Assert.AreEqual("Apapa_json.Items", metadata.CodeBehindClasses[1].RawDebugJsonMapAttribute);
+                var c2 = metadata.CodeBehindClasses.Find((candidate) => {
+                    return candidate.ClassName == "InheritedChild";
+                });
+                Assert.AreEqual("OrderItem", c2.BoundDataClass);
+                Assert.AreEqual("MyOtherNs.MySubNS.SubClass", c2.BaseClassName);
+                Assert.AreEqual("Apapa_json.Items", c2.RawDebugJsonMapAttribute);
 
                 Assert.AreEqual(3, metadata.UsingDirectives.Count);
                 Assert.AreEqual("System", metadata.UsingDirectives[0]);

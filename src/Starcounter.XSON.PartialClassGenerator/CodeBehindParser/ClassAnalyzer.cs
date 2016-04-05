@@ -49,6 +49,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             var ci = codeBehindMetadata = new CodeBehindClassInfo(null);
             var outer = NestingClass;
 
+            ci.ClassName = node.Identifier.ValueText;
             ci.IsDeclaredInCodeBehind = true;
             if (outer != null) {
                 ci.Namespace = outer.codeBehindMetadata.Namespace;
@@ -126,7 +127,10 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         public override void VisitBaseList(BaseListSyntax node) {
-            Console.WriteLine("Baselist of {0}: {1}", this.Node.Identifier.ValueText, node.ToString());
+            // It the base list contains only a single element, we don't know if it's
+            // a base class or an interface ... We have to assume it's the base class.
+            // To implement interfaces on code-behind classes, you'll have to specify
+            // first the base class (e.g. "Json"), then the interfaces.
 
             // Grab and discover the presumed base class
             DiscoverBaseClass(node.Types[0]);
@@ -136,8 +140,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 
                 var baseType = node.Types[i];
                 var type = baseType.Type;
-
-                Console.WriteLine("Basetype: {0} = {1}, {2}", baseType.ToString(), baseType.Type.Kind(), baseType.Type.GetType());
 
                 switch (type.Kind()) {
                     case SyntaxKind.IdentifierName:
@@ -151,13 +153,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     case SyntaxKind.GenericName:
                         // e.g IBound<Foo>
                         DiscoverBaseType(baseType, (GenericNameSyntax)type);
-                        break;
-                    default:
-                        // NOTE: Lets add a test for `Starcounter.IBound<Foo>`
-                        // TODO:
-
-                        // Internal error
-                        // TODO;
                         break;
                 }
             }
@@ -184,12 +179,10 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         void DiscoverBaseClass(BaseTypeSyntax baseType) {
-            Console.WriteLine("{0} base class: {1}", this.Node.Identifier.Text, baseType.Type.ToString());
             this.codeBehindMetadata.BaseClassName = baseType.Type.ToString();
         }
 
         void DiscoverBaseType(BaseTypeSyntax baseType, IdentifierNameSyntax name) {
-
         }
 
         void DiscoverBaseType(BaseTypeSyntax baseType, GenericNameSyntax name) {
@@ -204,7 +197,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         void DiscoverBaseType(BaseTypeSyntax baseType, QualifiedNameSyntax name) {
-
         }
 
         Exception IllegalCodeBehindException(string message, params object[] args) {
