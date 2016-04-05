@@ -1,6 +1,6 @@
 {
   "name": "juicy-redirect",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Custom Element that redirects to a new URL when an attribute is changed",
   "license": "MIT",
   "main": "juicy-redirect.html",
