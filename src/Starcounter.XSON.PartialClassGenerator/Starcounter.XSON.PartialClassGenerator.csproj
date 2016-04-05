@@ -76,6 +76,7 @@
     <Compile Include="CodeBehindParser\CodeBehindFileAnalyzer.cs" />
     <Compile Include="CodeBehindParser\RootClass.cs" />
     <Compile Include="CodeBehindParser\RoslynCodeBehindParser.cs" />
+    <Compile Include="CodeBehindParser\RoslynSyntaxHelpers.cs" />
     <Compile Include="CompilerMono\CodeBehindParser.cs" />
     <Compile Include="CompilerMono\CSharpToken.cs" />
     <Compile Include="CompilerMono\MiniAst\MastBase.cs" />
