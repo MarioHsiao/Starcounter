@@ -93,3 +93,4 @@ A.observe = function(object, handler) {
 A.unobserve = O.unobserve;
 
 })(Object, Array);
+console.warn("Deprecation notice: One of the currently running apps is using 'array-observe.js' shim, which will not be included in future versions of Starcounter. Since Starcounter 2.2, Puppet web apps no longer need this shim. Please remove reference to this file from your projects. See https://github.com/Starcounter/Starcounter/issues/3468");

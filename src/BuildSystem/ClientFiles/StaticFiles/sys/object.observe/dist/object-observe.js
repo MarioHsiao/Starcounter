@@ -739,3 +739,4 @@ Object.observe || (function(O, A, root, _undefined) {
     };
 
 })(Object, Array, this);
+console.warn("Deprecation notice: One of the currently running apps is using 'object-observe.js' shim, which will not be included in future versions of Starcounter. Since Starcounter 2.2, Puppet web apps no longer need this shim. Please remove reference to this file from your projects. See https://github.com/Starcounter/Starcounter/issues/3468");
