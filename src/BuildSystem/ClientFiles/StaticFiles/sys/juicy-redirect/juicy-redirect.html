@@ -1,4 +1,4 @@
-<!-- juicy-redirect version:0.4.0 | MIT License -->
+<!-- juicy-redirect version:0.4.1 | MIT License -->
 <script>
     (function (global) {
         var JuicyRedirectElementPrototype = Object.create(HTMLLinkElement.prototype);
@@ -68,4 +68,7 @@
             extends: "link"
         });
     })(window);
+</script>
+<script>
+    console.warn("Deprecation notice: One of the currently running apps is using 'juicy-redirect', which will not be included in future versions of Starcounter. Please switch to use 'puppet-redirect'.");
 </script>

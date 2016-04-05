@@ -1,6 +1,6 @@
 {
   "name": "juicy-redirect",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Custom Element that redirects to a new URL when an attribute is changed",
   "license": "MIT",
   "main": "juicy-redirect.html",
@@ -20,13 +20,13 @@
     "Tomek Wytrebowicz"
   ],
   "homepage": "https://github.com/Juicy/juicy-redirect",
-  "_release": "0.4.0",
+  "_release": "0.4.1",
   "_resolution": {
     "type": "version",
-    "tag": "0.4.0",
-    "commit": "cd92d1868f5014bf1c63ec333b2eff706e1b6ab1"
+    "tag": "0.4.1",
+    "commit": "362a2929f4f8ebc5b8ebd1654d9b65bf10630f67"
   },
   "_source": "git://github.com/Juicy/juicy-redirect.git",
-  "_target": "~0.4.0",
+  "_target": "~0.4.1",
   "_originalSource": "Juicy/juicy-redirect"
 }
