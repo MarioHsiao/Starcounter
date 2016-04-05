@@ -42,23 +42,29 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
 		[Test]
 		public static void CodeBehindComplexAnalyzeTest() {
-			CodeBehindMetadata monoMetadata;
+            var monoMetadata = ParserAnalyze("Complex", @"Input\complex.json.cs");
+            var roslynMetadata = ParserAnalyze("Complex", @"Input\complex.json.cs", true);
 
-			monoMetadata = ParserAnalyze("Complex", @"Input\complex.json.cs");
-			Assert.AreEqual("Order", monoMetadata.RootClassInfo.BoundDataClass);
-			Assert.AreEqual("Complex_json", monoMetadata.RootClassInfo.RawDebugJsonMapAttribute);
-			Assert.AreEqual("MyBaseJsonClass", monoMetadata.RootClassInfo.BaseClassName);
-			Assert.AreEqual("MySampleNamespace", monoMetadata.RootClassInfo.Namespace);
+            foreach (var metadata in new[] { monoMetadata, roslynMetadata }) {
+                Assert.AreEqual("Order", metadata.RootClassInfo.BoundDataClass);
+                Assert.AreEqual("Complex_json", metadata.RootClassInfo.RawDebugJsonMapAttribute);
+                Assert.AreEqual("MyBaseJsonClass", metadata.RootClassInfo.BaseClassName);
+                Assert.AreEqual("MySampleNamespace", metadata.RootClassInfo.Namespace);
 
-			Assert.AreEqual(6, monoMetadata.CodeBehindClasses.Count);
-			Assert.AreEqual("OrderItem", monoMetadata.CodeBehindClasses[1].BoundDataClass);
-			Assert.AreEqual("Json", monoMetadata.CodeBehindClasses[1].BaseClassName);
-			Assert.AreEqual("Complex_json.ActivePage.SubPage1.SubPage2.SubPage3", monoMetadata.CodeBehindClasses[1].RawDebugJsonMapAttribute);
+                Assert.AreEqual(6, metadata.CodeBehindClasses.Count);
+                var c2 = metadata.CodeBehindClasses.Find((candidate) => {
+                    return candidate.ClassName == "SubPage3Impl";
+                });
 
-			Assert.AreEqual(3, monoMetadata.UsingDirectives.Count);
-			Assert.AreEqual("System", monoMetadata.UsingDirectives[0]);
-			Assert.AreEqual("MySampleNamespace.Something", monoMetadata.UsingDirectives[1]);
-			Assert.AreEqual("SomeOtherNamespace", monoMetadata.UsingDirectives[2]);
+                Assert.AreEqual("OrderItem", c2.BoundDataClass);
+                Assert.AreEqual("Json", c2.BaseClassName);
+                Assert.AreEqual("Complex_json.ActivePage.SubPage1.SubPage2.SubPage3", c2.RawDebugJsonMapAttribute);
+
+                Assert.AreEqual(3, metadata.UsingDirectives.Count);
+                Assert.AreEqual("System", metadata.UsingDirectives[0]);
+                Assert.AreEqual("MySampleNamespace.Something", metadata.UsingDirectives[1]);
+                Assert.AreEqual("SomeOtherNamespace", metadata.UsingDirectives[2]);
+            }
 		}
 
 		[Test]

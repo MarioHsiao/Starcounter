@@ -2,7 +2,6 @@
 using MySampleNamespace.Something;
 using SomeOtherNamespace;
 
-[Temp_json]
 public class ClassWithoutNamespace : Page {
     static void Main() {
         using (string s = "") {
