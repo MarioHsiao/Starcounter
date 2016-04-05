@@ -53,6 +53,7 @@
 - Shaped up obsolete status terminology used in VS as reported in [#532](https://github.com/Starcounter/Starcounter/issues/532)
 - Fixed the problem with ScErrInputQueueFull exception when scheduling tasks [#3388](https://github.com/Starcounter/Starcounter/issues/3388)
 - Fixed sending only changed/added siblings instead of all siblings when sending patches to client. [#3465](https://github.com/Starcounter/Starcounter/issues/3465)   
+- Fixed a potential problem with long-running transactions and scheduling a task for a session that used the same scheduler. [#3472](https://github.com/Starcounter/Starcounter/issues/3472)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
@@ -71,7 +72,8 @@
 - In `Http` and `Node` functions the `userObject` parameter is gone. Because of that the `userDelegate` parameter which was previously `Action<Response, Object>` became just `Action<Response>`.
 - Static files from /sys/ folder migrated to Polymer 1.3. See [#3384](https://github.com/Starcounter/Starcounter/issues/3384), [#3022](https://github.com/Starcounter/Starcounter/issues/3022)
 - Deprecate usage of `<dom-bind-notifier>` in HTML partial templates. Since Polymer 1.3 upgrade, it is not needed. See [#2922](https://github.com/Starcounter/Starcounter/issues/2922)
-- Removed `Object.observe` and `Array.observe` shims [#3468](https://github.com/Starcounter/Starcounter/issues/3468)
+- Deprecate usage of `Object.observe` and `Array.observe` shims. Since Polymer 1.3 upgrade, they are not needed. [#3468](https://github.com/Starcounter/Starcounter/issues/3468)
+- Deprecate usage of `juicy-redirect`. Puppet web apps should use `puppet-redirect` instead. [#3469](https://github.com/Starcounter/Starcounter/issues/3469)
 
 ## [2.1.177] - 2015-10-14
 ### Changed

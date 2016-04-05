@@ -16,7 +16,8 @@ namespace Starcounter.Internal {
         void SetTemporaryRef(TransactionHandle handle);
         bool HasTemporaryRef(TransactionHandle handle);
         void ClaimOwnership(TransactionHandle handle);
-        TransactionHandle CurrentTransaction { get; }
+        TransactionHandle CurrentTransaction { get; set; }
+        TransactionHandle CreateImplicitAndSetCurrent();
         void Scope(TransactionHandle handle, Action action);
         void Scope<T>(TransactionHandle handle, Action<T> action, T arg);
         void Scope<T1, T2>(TransactionHandle handle, Action<T1, T2> action, T1 arg1, T2 arg2);
