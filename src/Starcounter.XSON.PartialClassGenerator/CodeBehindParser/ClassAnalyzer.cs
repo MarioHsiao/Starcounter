@@ -44,14 +44,18 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 nested.Visit(node);
                 return;
             }
-
-            // Should we check if there is already a class info registered? I'm
-            // thinking we might find partial class declarations in the same file
-            // TODO;
-
+            
             // Materialize ourself as a code behind class
             var ci = codeBehindMetadata = new CodeBehindClassInfo(null);
+            var outer = NestingClass;
+
             ci.IsDeclaredInCodeBehind = true;
+            if (outer != null) {
+                ci.Namespace = outer.codeBehindMetadata.Namespace;
+            }
+            else {
+                ci.Namespace = RoslynSyntaxHelpers.GetFullNamespace(node);
+            }
 
             // Check 1: we are named as the root object, or 2, we contain an attribute
             // that specify where we relate. Otherwise, raise an error. Also raise an
