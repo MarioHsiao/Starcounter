@@ -88,6 +88,10 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect5", @"Input\incorrect5.json.cs", useRoslynParser));
             Assert.IsTrue(ex.Message.Contains("is a named root but maps to"));
             Assert.IsTrue(ex.Message.Contains("SomethingElse_json"));
+
+            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect6", @"Input\incorrect6.json.cs", useRoslynParser));
+            Assert.IsTrue(ex.Message.Contains("is considered a root class"));
+            Assert.IsTrue(ex.Message.Contains("is too"));
         }
     }
 }
