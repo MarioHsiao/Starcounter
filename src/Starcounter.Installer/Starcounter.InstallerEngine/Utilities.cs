@@ -747,6 +747,7 @@ namespace Starcounter.InstallerEngine
                     try
                     {
                         proc.Kill();
+                        proc.WaitForExit();
 
                     } catch (Exception exc) {
 

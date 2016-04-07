@@ -78,6 +78,7 @@ namespace staradmin.Commands {
                     try {
 
                         proc.Kill();
+                        proc.WaitForExit();
 
                         Console.WriteLine(DateTime.Now.TimeOfDay + ": process '" + name + "' successfully killed!");
 
