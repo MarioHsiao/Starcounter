@@ -1,14 +1,18 @@
 # Here you can specify your external repositories that will be pulled by
 # test framework, all solutions will be built there and all tests runned.
+# One can specify the environment variable to enable/disable pulling
+# for the corresponding test (so we don't need to pull everything, it takes time).
 
-https://github.com/Starcounter/PokerDemo.git %GIT_POKERDEMO_BRANCH%
-https://github.com/StarcounterSamples/Launcher.git %GIT_LAUNCHER_BRANCH%
-https://github.com/StarcounterSamples/Products.git master
-https://github.com/StarcounterSamples/Procurement.git master
-https://github.com/StarcounterSamples/Barcodes.git master
-https://github.com/StarcounterSamples/Skyper.git master
-https://github.com/StarcounterSamples/Cartographer.git master
-https://github.com/StarcounterSamples/Images.git master
-https://github.com/StarcounterSamples/SignIn.git master
-https://github.com/Starcounter/TPC-A.git master
-https://github.com/StarcounterSamples/KitchenSink.git %GIT_KITCHENSINK_BRANCH%
+# Format: GitRepoUrl %BranchName% [%EnvVarName%]
+# example: https://github.com/starcounter/pokerdemo.git %git_pokerdemo_branch% %sc_run_pokerdemo_test%
+
+https://github.com/starcounter/pokerdemo.git %git_pokerdemo_branch% %sc_run_pokerdemo_test%
+https://github.com/starcountersamples/launcher.git %git_launcher_branch% %sc_run_store_apps_test%
+https://github.com/starcountersamples/products.git master %sc_run_store_apps_test%
+https://github.com/starcountersamples/procurement.git master %sc_run_store_apps_test%
+https://github.com/starcountersamples/barcodes.git master %sc_run_store_apps_test%
+https://github.com/starcountersamples/skyper.git master %sc_run_store_apps_test%
+https://github.com/starcountersamples/images.git master %sc_run_store_apps_test%
+https://github.com/starcountersamples/signin.git master %sc_run_store_apps_test%
+https://github.com/starcounter/tpc-a.git master %run_tpca_test%
+https://github.com/starcountersamples/kitchensink.git %git_kitchensink_branch% %run_kitchensink_selenium_test%
