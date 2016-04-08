@@ -96,13 +96,13 @@ namespace Starcounter.TransactionLog
         private extern static int TransactionLogGetColumnBinaryValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out IntPtr data, out uint size);
 
         [DllImport("logreader.dll")]
-        private extern static int TransactionLogGetColumnIntValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out long val, [MarshalAs(UnmanagedType.I1)] out bool eof);
+        private extern static int TransactionLogGetColumnIntValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out long val, [MarshalAs(UnmanagedType.I1)] out bool is_initialized);
 
         [DllImport("logreader.dll")]
-        private extern static int TransactionLogGetColumnDoubleValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out double val, [MarshalAs(UnmanagedType.I1)] out bool eof);
+        private extern static int TransactionLogGetColumnDoubleValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out double val, [MarshalAs(UnmanagedType.I1)] out bool is_initialized);
 
         [DllImport("logreader.dll")]
-        private extern static int TransactionLogGetColumnFloatValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out float val, [MarshalAs(UnmanagedType.I1)] out bool eof);
+        private extern static int TransactionLogGetColumnFloatValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out float val, [MarshalAs(UnmanagedType.I1)] out bool is_initialized);
 
         public static void TransactionLogGetInsertUpdateEntryColumnInfo(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out string column_name, out object column_value)
         {
