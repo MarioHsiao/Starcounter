@@ -2097,7 +2097,15 @@ public:
     void EnterGlobalLock()
     {
         // Checking if already locked.
-        while (global_lock_unsafe_);
+		int32_t max_tries = 300;
+		while (global_lock_unsafe_) {
+			Sleep(10);
+
+			max_tries--;
+			if (0 == max_tries) {
+				GW_ASSERT(!"Reached maximum number of tries to obtain a global lock.");
+			}
+		}
 
         // Entering the critical section.
         EnterCriticalSection(&cs_global_lock_);
