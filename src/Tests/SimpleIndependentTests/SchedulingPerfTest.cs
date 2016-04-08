@@ -307,6 +307,8 @@ class SchedulingPerfTest {
 
     public static Int32 Run() {
 
+        Console.WriteLine("Starting scheduling performance tests...");
+
         Db.Transact(() => {
 
             SomeClass dbi = new SomeClass() {

@@ -151,6 +151,11 @@ namespace Starcounter {
         Byte boundSchedulerId_ = 0;
 
         /// <summary>
+        /// Bound application name.
+        /// </summary>
+        String appName_;
+
+        /// <summary>
         /// Memory stream.
         /// </summary>
         MemoryStream memStream_ = null;
@@ -205,6 +210,7 @@ namespace Starcounter {
 
             memStream_ = new MemoryStream();
             boundSchedulerId_ = boundSchedulerId;
+            appName_ = StarcounterEnvironment.AppName;
         }
 
         /// <summary>
@@ -276,7 +282,7 @@ namespace Starcounter {
                     memStream_ = null;
 
                     // Invoking user delegate.
-                    nodeInst_.CallUserDelegate(resp_, userDelegate_, boundSchedulerId_);
+                    nodeInst_.CallUserDelegate(resp_, userDelegate_, boundSchedulerId_, appName_);
 
                     // Freeing connection resources.
                     nodeInst_.FreeConnection(this, false);
@@ -459,7 +465,7 @@ namespace Starcounter {
             }
 
             // Invoking user delegate.
-            nodeInst_.CallUserDelegate(resp_, userDelegate_, boundSchedulerId_);
+            nodeInst_.CallUserDelegate(resp_, userDelegate_, boundSchedulerId_, appName_);
         }
 
 
@@ -595,7 +601,7 @@ namespace Starcounter {
 
             // Invoking user delegate.
             if (null != userDelegate_) {
-                nodeInst_.CallUserDelegate(resp_, userDelegate_, boundSchedulerId_);
+                nodeInst_.CallUserDelegate(resp_, userDelegate_, boundSchedulerId_, appName_);
             }
 
             // Freeing connection resources.

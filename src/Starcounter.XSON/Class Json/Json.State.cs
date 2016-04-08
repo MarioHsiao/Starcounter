@@ -94,7 +94,7 @@ namespace Starcounter {
         /// <summary>
         /// List containing all stepsiblings that exists on this level.
         /// </summary>
-        private List<Json> _stepSiblings;
+        private SiblingList _stepSiblings;
 
         internal String _appName;
 

@@ -216,7 +216,7 @@ namespace Starcounter.XSON {
             writer.Write(patchOpUtf8Arr[change.ChangeType]);
             writer.Write(patchEndToPath);
 
-            if (change.Property != null) {
+//            if (change.Property != null) {
 //                pathStart = writer.Written;
                 if (!WritePath(ref writer, change, includeNamespace)) {
                     writer.Skip(writer.Written - writerStart);
@@ -239,15 +239,20 @@ namespace Starcounter.XSON {
                         
                     //}
                 }
-            }
+//            }
 
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
                 writer.Write(patchEndToValue);
 
                 unsafe {
                     if (change.Property == null) {
-                        serializer = ((TValue)change.Parent.Template).JsonSerializer;
-                        size = serializer.Serialize(change.Parent, (IntPtr)writer.Buffer, int.MaxValue);
+                        change.Parent.calledFromStepSibling = change.SuppressNamespace;
+                        try {
+                            serializer = ((TValue)change.Parent.Template).JsonSerializer;
+                            size = serializer.Serialize(change.Parent, (IntPtr)writer.Buffer, int.MaxValue);
+                        } finally {
+                            change.Parent.calledFromStepSibling = false;
+                        }
                     } else if (change.Index != -1) {
                         serializer = ((TValue)change.Item.Template).JsonSerializer;
                         size = serializer.Serialize(change.Item, (IntPtr)writer.Buffer, int.MaxValue);
@@ -303,8 +308,13 @@ namespace Starcounter.XSON {
                 size += 9;
 
                 if (change.Property == null) {
-                    serializer = ((TValue)change.Parent.Template).JsonSerializer;
-                    size += serializer.EstimateSizeBytes(change.Parent);
+                    change.Parent.calledFromStepSibling = change.SuppressNamespace;
+                    try {
+                        serializer = ((TValue)change.Parent.Template).JsonSerializer;
+                        size += serializer.EstimateSizeBytes(change.Parent);
+                    } finally {
+                        change.Parent.calledFromStepSibling = false;
+                    }
                 } else if (change.Index != -1) {
                     serializer = ((TValue)change.Item.Template).JsonSerializer;
                     size += serializer.EstimateSizeBytes(change.Item);
@@ -443,8 +453,10 @@ namespace Starcounter.XSON {
 
         private bool WritePath(ref Utf8Writer writer, Change change, bool includeNamespace) {
             if (WritePath(ref writer, change.Parent, includeNamespace, false)) {
-                writer.Write('/');
-                writer.Write(change.Property.TemplateName);
+                if (change.Property != null) {
+                    writer.Write('/');
+                    writer.Write(change.Property.TemplateName);
+                }
 
                 if (change.Index != -1) {
                     writer.Write('/');

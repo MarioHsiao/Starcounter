@@ -8,6 +8,11 @@ namespace SimpleIndependentTests {
 
             Int32 errCode;
 
+            errCode = HandlerDeletionTests.Run();
+            if (0 != errCode) {
+                return errCode;
+            }
+
             errCode = SchedulingPerfTest.Run();
             if (0 != errCode) {
                 return errCode;

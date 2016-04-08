@@ -269,14 +269,23 @@ namespace Starcounter {
 
                 // Checking if we are on the same scheduler.
                 if (ss.schedulerId_ == StarcounterEnvironment.CurrentSchedulerId) {
+                    // Since we are running the task on the same scheduler (i.e no scheduling, just 
+                    // executing the task) we need to set the current active transaction to avoid 
+                    // sharing transactions between sessions.
+                    var oldTrans = StarcounterBase.TransactionManager.CurrentTransaction;
+                    StarcounterBase.TransactionManager.CreateImplicitAndSetCurrent();
 
-                    Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
+                    try {
+                        Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
 
-                    // Checking if session is dead.
-                    if (null != s) {
-                        s.Use(task, sessionId);
-                    } else {
-                        task(null, sessionId);
+                        // Checking if session is dead.
+                        if (null != s) {
+                            s.Use(task, sessionId);
+                        } else {
+                            task(null, sessionId);
+                        }
+                    } finally {
+                        StarcounterBase.TransactionManager.CurrentTransaction = oldTrans;
                     }
 
                 } else {
