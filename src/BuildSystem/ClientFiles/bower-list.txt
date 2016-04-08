@@ -6,13 +6,16 @@ sys#1.0.0 C:\www\Starcounter\starcounter\src\BuildSystem\ClientFiles
 │ ├─┬ json-patch-ot-agent#d1ce630561
 │ │ └── json-patch-queue#fdae225638
 │ └── json-patch-queue#fdae225638
+├── array.observe#0.0.1 extraneous
 ├─┬ bootswatch#3.3.6+1
 │ └─┬ bootstrap#3.3.6 (latest is 4.0.0-alpha.2)
 │   └── jquery#2.2.2 (latest is 3.0.0-beta1)
 ├── dom-bind-notifier#9a0a4d20a1
 ├─┬ imported-template#1.4.0
 │ └── juicy-html#1.1.0
-├── juicy-redirect#0.4.0
+├── juicy-jsoneditor#1.0.5 extraneous
+├── juicy-redirect#0.4.1 extraneous
+├── object.observe#0.2.6 extraneous
 ├── polymer#1.4.0
 ├─┬ puppet-client#2.0.0
 │ ├── PuppetJs#1.3.8

@@ -6,6 +6,6 @@ IF %ERRORLEVEL% NEQ 0 EXIT /b 1
 SET TEST_DIR=AggregationTestClient\bin\Release
 IF NOT EXIST "%TEST_DIR%\AggregationTestClient.exe" SET TEST_DIR=AggregationTestClient\bin\Debug
 
-CMD /C "RunRemoteClients.exe --MaxNumClients=3 --ExeToStart=%TEST_DIR%\AggregationTestClient.exe --ExeParams="--ServerAddress=%COMPUTERNAME%" --MaxWaitTimeSeconds=60"
+CMD /C "RunRemoteClients.exe --MaxNumClients=3 --ExeToStart=%TEST_DIR%\AggregationTestClient.exe --ExeParams="--ServerAddress=%COMPUTERNAME%" --MaxWaitTimeSeconds=200"
 
 IF %ERRORLEVEL% NEQ 0 EXIT /b 1

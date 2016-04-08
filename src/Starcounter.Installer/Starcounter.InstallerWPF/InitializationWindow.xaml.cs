@@ -150,6 +150,7 @@ namespace Starcounter.InstallerWPF {
 
                     try {
                         proc.Kill();
+                        proc.WaitForExit();
 
                     } catch (Exception exc) {
 

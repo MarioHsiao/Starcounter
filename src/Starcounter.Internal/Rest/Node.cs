@@ -493,14 +493,21 @@ namespace Starcounter
         internal void CallUserDelegate(
             Response resp,
             Action<Response> userDelegate,
-            Byte boundSchedulerId)
+            Byte boundSchedulerId,
+            String appName)
         {
             try
             {
                 // Invoking user delegate either on the same scheduler if inside Starcounter.
                 if (StarcounterEnvironment.IsCodeHosted)
                 {
-                    StarcounterBase._DB.RunAsync(() => { userDelegate.Invoke(resp); }, boundSchedulerId);
+                    StarcounterBase._DB.RunAsync(() => {
+
+                        StarcounterEnvironment.RunWithinApplication(appName, () => {
+                            userDelegate.Invoke(resp);
+                        });
+                        
+                    }, boundSchedulerId);
                 }
                 else
                 {

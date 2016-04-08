@@ -33,14 +33,6 @@ mem_test.sln
 mpm_test.sln
 sctlog_test.sln
 TurboText.sln
-Barcodes.sln
-Cartographer.sln
-Images.sln
-Launcher.sln
-Procurement.sln
-Products.sln
-SignIn.sln
-Skyper.sln
 PostSharp.CustomTasks.sln
 PostSharp-Core.sln
 PostSharp.CF.sln
