@@ -115,6 +115,7 @@ NodeTest.exe.config
 nunit.framework.dll
 nunit.framework.xml
 on_new_log.cmd
+optlogreader.dll
 PostSharp.dll
 PostSharp.Hosting.dll
 PostSharp.Hosting.dll.config
@@ -286,6 +287,8 @@ Starcounter.MsBuild.xml
 Starcounter.Node.dll
 Starcounter.Node.pdb
 Starcounter.Node.XML
+Starcounter.OptimizedLog.dll
+Starcounter.OptimizedLog.pdb
 Starcounter.REST.dll
 Starcounter.REST.pdb
 Starcounter.Server.dll
