@@ -1537,7 +1537,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     GW_COUT << "Registering HTTP handler on " << db_name << " \"" << method_space_uri << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
     // Entering global lock.
-    gw->EnterGlobalLock();
+    gw->WorkerEnterGlobalLock();
 
     // Registering determined URI Apps handler.
     uint32_t err_code = g_gateway.AddUriHandler(
@@ -1613,7 +1613,7 @@ uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChu
 	GW_COUT << "Removing HTTP handler on \"" << method_space_uri << "\" on port " << port << GW_ENDL;
 
 	// Entering global lock.
-	gw->EnterGlobalLock();
+	gw->WorkerEnterGlobalLock();
 
 	// Getting the port structure.
 	ServerPort* server_port = g_gateway.FindServerPort(port);
@@ -1705,7 +1705,7 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
     GW_COUT << "Registering PORT handler on " << db_name << " on port " << port << "(is udp: " << is_udp << ")" << " registration with handler id: " << handler_info << GW_ENDL;
 
     // Entering global lock.
-    gw->EnterGlobalLock();
+    gw->WorkerEnterGlobalLock();
 
     if (is_udp) {
 
@@ -1802,7 +1802,7 @@ uint32_t RegisterWsHandler(
     GW_COUT << "Registering WebSocket channel handler on " << db_name << " \"" << ws_channel_name << ":" << ws_channel_id << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
     // Entering global lock.
-    gw->EnterGlobalLock();
+    gw->WorkerEnterGlobalLock();
 
     uint32_t err_code = 0;
 
@@ -1881,7 +1881,7 @@ uint32_t RegisterWsHandler(
 uint32_t Gateway::DeleteExistingCodehost(GatewayWorker *gw, const std::string codehost_name) {
 
 	// Entering global lock.
-	gw->EnterGlobalLock();
+	gw->WorkerEnterGlobalLock();
 
 	// Checking what databases went down.
 	for (int32_t s = 0; s < num_dbs_slots_; s++)
@@ -1916,10 +1916,8 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 #endif
 
 	// Entering global lock.
-	if (NULL != gw)
-		gw->EnterGlobalLock();
-	else 
-		EnterGlobalLock();
+	GW_ASSERT(NULL != gw);
+	gw->WorkerEnterGlobalLock();
 
 	// Finding first empty slot.
 	int32_t empty_db_index = 0;
@@ -1972,10 +1970,7 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 				num_dbs_slots_--;
 
 			// Leaving global lock.
-			if (NULL != gw)
-				gw->LeaveGlobalLock();
-			else
-				LeaveGlobalLock();
+			gw->LeaveGlobalLock();
 
 			db_init_failed = true;
 
@@ -1985,10 +1980,7 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 		if (err_code)
 		{
 			// Leaving global lock.
-			if (NULL != gw)
-				gw->LeaveGlobalLock();
-			else
-				LeaveGlobalLock();
+			gw->LeaveGlobalLock();
 
 			return err_code;
 		}
@@ -2004,10 +1996,7 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 	if (err_code)
 	{
 		// Leaving global lock.
-		if (NULL != gw)
-			gw->LeaveGlobalLock();
-		else
-			LeaveGlobalLock();
+		gw->LeaveGlobalLock();
 
 		return err_code;
 	}
@@ -2022,10 +2011,7 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 	}
 
 	// Leaving global lock.
-	if (NULL != gw)
-		gw->LeaveGlobalLock();
-	else
-		LeaveGlobalLock();
+	gw->LeaveGlobalLock();
 
 	return 0;
 }
@@ -3300,19 +3286,6 @@ uint32_t Gateway::GatewayMonitor()
     }
 
     return 0;
-}
-
-// Safely shutdowns the gateway.
-void Gateway::ShutdownGateway(GatewayWorker* gw, int32_t exit_code)
-{
-    // Entering safe mode.
-    if (gw)
-        gw->EnterGlobalLock();
-    else
-        EnterGlobalLock();
-
-    // Killing process with given exit code.
-    ExitProcess(exit_code);
 }
 
 // Prints statistics, monitors all gateway threads, etc.

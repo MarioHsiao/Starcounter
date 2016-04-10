@@ -2231,9 +2231,6 @@ public:
     // Print statistics.
     uint32_t StatisticsAndMonitoringRoutine();
 
-    // Safely shutdowns the gateway.
-    void ShutdownGateway(GatewayWorker* gw, int32_t exit_code);
-
     // Creates socket and binds it to server port.
     uint32_t CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t port_num, SOCKET& sock);
 

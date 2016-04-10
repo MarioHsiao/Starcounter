@@ -1886,7 +1886,7 @@ uint32_t GatewayWorker::ScanChannels(uint32_t* next_sleep_interval_ms)
                 if (g_gateway.GetDatabase(i)->IsReadyForCleanup())
                 {
                     // Entering global lock.
-                    EnterGlobalLock();
+                    WorkerEnterGlobalLock();
 
                     // Deleting all ports that are empty from chunks, etc.
                     g_gateway.CleanUpEmptyPorts();
