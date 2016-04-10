@@ -349,6 +349,10 @@ namespace Starcounter.Internal.XSON.Tests {
                     for (int i = 0; i < 100000; i++) {
                         json.Data = data;
                         var v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
                     }
                 } catch (Exception ex) {
                     ex1 = ex;
@@ -365,6 +369,10 @@ namespace Starcounter.Internal.XSON.Tests {
                     for (int i = 0; i < 100000; i++) {
                         json.Data = data;
                         var v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
                     }
                 } catch (Exception ex) {
                     ex2 = ex;
