@@ -1,6 +1,8 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
+using System.Threading;
 using NUnit.Framework;
 using Starcounter.Advanced;
 using Starcounter.Internal.XSON.Tests.CompiledJson;
@@ -270,6 +272,128 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestAutoBindAndChangeBind() {
+            // Making sure that we have our own private schema and not the 
+            // default one, since we modify it in the test.
+            var template = new BaseJson.JsonByExample.Schema();
+            var json = new BaseJson() { Template = template };
+            
+            json.Data = new Person() {
+                FirstName = "John",
+                LastName = "Doe"
+            };
+            
+            // Verify that the property SimpleValue is not bound and that it is verified as
+            // unbound, meaning that the binding is not recreated each time.
+            var value = json.SimpleValue;
+
+            // Calling again for debugging purposes to see that the binding is not checked for again.
+            value = json.SimpleValue;
+
+            Assert.IsTrue(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.IsNull(template.SimpleValue.dataTypeForBinding);
+
+            Assert.AreEqual("Base", value);
+
+            // Change Bind path, which will invalidate the binding.
+            template.SimpleValue.Bind = "FirstName";
+
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.IsNull(template.SimpleValue.dataTypeForBinding);
+
+            value = json.SimpleValue;
+
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.IsNotNull(template.SimpleValue.dataTypeForBinding);
+            Assert.AreEqual("John", value);
+
+            // Change Bind path again to a property in the codebehind.
+            template.SimpleValue.Bind = "BaseStringValue";
+
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.IsNull(template.SimpleValue.dataTypeForBinding);
+
+            value = json.SimpleValue;
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsTrue(template.SimpleValue.isBoundToParent);
+            Assert.IsNotNull(template.SimpleValue.dataTypeForBinding);
+            Assert.AreEqual("CBValue", value);
+
+        }
+
+        [Test]
+        public static void TestAccessingBoundPropertyFromMultipleThreadsWithDataAndNull() {
+            // Making sure that we have our own private schema and not the 
+            // default one, since we modify it in the test.
+            var template = new BaseJson.JsonByExample.Schema();
+            
+            Exception ex1 = null;
+            Exception ex2 = null;
+
+            template.SimpleValue.Bind = "FirstName";
+
+            AutoResetEvent[] autos = new AutoResetEvent[2];
+            autos[0] = new AutoResetEvent(false);
+            autos[1] = new AutoResetEvent(false);
+
+            ThreadPool.QueueUserWorkItem((state) => {
+                try {
+                    var json = new BaseJson() { Template = template };
+                    var data = new Person() {
+                        FirstName = "John"
+                    };
+
+                    for (int i = 0; i < 100000; i++) {
+                        json.Data = data;
+                        var v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                    }
+                } catch (Exception ex) {
+                    ex1 = ex;
+                } finally {
+                    autos[0].Set();
+                }
+            });
+
+            ThreadPool.QueueUserWorkItem((state) => {
+                try {
+                    var json = new BaseJson() { Template = template };
+                    Person data = null;
+
+                    for (int i = 0; i < 100000; i++) {
+                        json.Data = data;
+                        var v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                    }
+                } catch (Exception ex) {
+                    ex2 = ex;
+                } finally {
+                    autos[1].Set();
+                }
+            });
+
+            WaitHandle.WaitAll(autos);
+
+            if (ex1 != null) {
+                ExceptionDispatchInfo.Capture(ex1).Throw();
+            }
+
+            if (ex2 != null) {
+                ExceptionDispatchInfo.Capture(ex2).Throw();
+            }
+        }
+
+        [Test]
         public static void TestBoundToCodeBehindWithData() {
             // Unittest for reproducing issue #2542
             // The second call to session.GenerateChangeLog will call the bound property
@@ -283,6 +407,18 @@ namespace Starcounter.Internal.XSON.Tests {
 
             simple.ChangeLog.Generate(true);
             simple.ChangeLog.Generate(true);
+        }
+
+        [Test]
+        public static void TestBoundToCodeBehindWithNoData() {
+            var json = new BaseJson() {
+                Template = new BaseJson.JsonByExample.Schema()
+            };
+            json.Template.SimpleValue.Bind = "BaseStringValue"; // Property in codebehind
+
+            // Data-property should be null.
+            string value = json.SimpleValue;
+            Assert.AreEqual("CBValue", value);
         }
 
         [Test]

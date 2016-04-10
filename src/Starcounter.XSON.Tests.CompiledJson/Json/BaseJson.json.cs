@@ -5,5 +5,13 @@ namespace Starcounter.Internal.XSON.Tests.CompiledJson {
     /// </summary>
     //[]
     partial class BaseJson : Json {
+        /// <summary>
+        /// 
+        /// </summary>
+        public string BaseStringValue {
+            get {
+                return "CBValue";
+            }
+        }
     }
 }
