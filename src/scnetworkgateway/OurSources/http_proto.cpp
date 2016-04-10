@@ -639,7 +639,7 @@ uint32_t HttpProto::HttpUriDispatcher(
             if (INVALID_URI_INDEX == matched_index)
             {
                 // Entering global lock.
-                gw->EnterGlobalLock();
+                gw->WorkerEnterGlobalLock();
 
                 // Checking once again since maybe it was already generated.
                 if (false == port_uris->HasGeneratedUriMatcher())
@@ -1160,7 +1160,7 @@ uint32_t GatewayUpdateConfiguration(HandlersList* hl, GatewayWorker *gw, SocketD
 {
     *is_handled = true;
 
-    gw->EnterGlobalLock();
+    gw->WorkerEnterGlobalLock();
     
     uint32_t err_code = g_gateway.LoadReverseProxies();
 
@@ -1201,7 +1201,7 @@ uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkR
 // Profilers statistics for Gateway.
 uint32_t GatewayProfilersInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    gw->EnterGlobalLock();
+    gw->WorkerEnterGlobalLock();
 
     int32_t resp_len_bytes;
     std::string s = g_gateway.GetGlobalProfilersString(&resp_len_bytes);

@@ -360,7 +360,7 @@ public:
     }
 
     // Gets global lock.
-    void EnterGlobalLock()
+    void WorkerEnterGlobalLock()
     {
         worker_suspended_unsafe_ = true;
 
