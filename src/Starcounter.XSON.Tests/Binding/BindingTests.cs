@@ -410,6 +410,18 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestBoundToCodeBehindWithNoData() {
+            var json = new BaseJson() {
+                Template = new BaseJson.JsonByExample.Schema()
+            };
+            json.Template.SimpleValue.Bind = "BaseStringValue"; // Property in codebehind
+
+            // Data-property should be null.
+            string value = json.SimpleValue;
+            Assert.AreEqual("CBValue", value);
+        }
+
+        [Test]
         public static void TestConversionToAndFromEnumAndString() {
             dynamic json = new Json();
             var dataObj = new ObjWithEnum() { TestEnum = TestEnum.Second };
