@@ -220,22 +220,17 @@ namespace Starcounter.Templates {
 
             if (BindingStrategy == BindingStrategy.Unbound || isVerifiedUnbound)
 				return false;
-            
+
             data = parent.Data;
+            if (data == null)
+                return false;
+            
             if (dataTypeForBinding == null) {
-                bool b = GenerateBoundGetterAndSetter(parent);
-                
-                if (data == null)
-                    this.isVerifiedUnbound = false;
-
-                return b;
+                return GenerateBoundGetterAndSetter(parent);
             } else {
-                if (data == null)
-                    return false;
-
-                if (VerifyBinding(data.GetType())) {
+                if (VerifyBinding(data.GetType()))
                     return true;
-                }
+              
                 InvalidateBoundGetterAndSetter();
                 return GenerateBoundGetterAndSetter(parent);
             }

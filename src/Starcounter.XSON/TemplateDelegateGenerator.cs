@@ -184,10 +184,12 @@ namespace Starcounter.XSON {
 				if (setLambda != null)
 					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
-			} else {
+                property.dataTypeForBinding = bInfo.BoundToType;
+            } else {
 				property.isVerifiedUnbound = true; // Auto binding where property not match.
-			}
-            property.dataTypeForBinding = bInfo.BoundToType;
+                property.dataTypeForBinding = null;
+            }
+            
 
             if (boundDirectlyToData)
                 property.isBoundToParent = false;
@@ -227,10 +229,13 @@ namespace Starcounter.XSON {
 				if (setLambda != null)
 					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
-			} else {
+
+                property.dataTypeForBinding = bInfo.BoundToType;
+            } else {
                 property.isVerifiedUnbound = true; // Auto binding where property not match.
-			}
-            property.dataTypeForBinding = bInfo.BoundToType;
+                property.dataTypeForBinding = null;
+            }
+            
             property.isBoundToParent = bInfo.IsBoundToParent;
 		}
 
@@ -268,10 +273,12 @@ namespace Starcounter.XSON {
 				if (setLambda != null)
 					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
-			} else {
+                property.dataTypeForBinding = bInfo.BoundToType;
+            } else {
                 property.isVerifiedUnbound = true; // Auto binding where property not match.
-			}
-            property.dataTypeForBinding = bInfo.BoundToType;
+                property.dataTypeForBinding = null;
+            }
+            
             property.isBoundToParent = bInfo.IsBoundToParent;
 		}
 
