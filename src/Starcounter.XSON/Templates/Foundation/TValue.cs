@@ -11,6 +11,7 @@ namespace Starcounter.Templates {
 	public abstract class TValue : Template {
 		private BindingStrategy strategy = BindingStrategy.UseParent;
 		private string bind;
+        private bool forceGenerateBindings = true;
         protected Type jsonType;
 		internal Type dataTypeForBinding;
 		internal bool isVerifiedUnbound;
@@ -168,6 +169,7 @@ namespace Starcounter.Templates {
             isBoundToParent = false;
             isVerifiedUnbound = false;
 			dataTypeForBinding = null;
+            forceGenerateBindings = true;
 		}
 
 		/// <summary>
@@ -206,7 +208,7 @@ namespace Starcounter.Templates {
         //public abstract int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize);
 
         //public abstract int EstimateUtf8SizeInBytes(Json json);
-
+        
 		/// <summary>
 		/// Checks, verifies and creates the binding.
 		/// </summary>
@@ -215,25 +217,36 @@ namespace Starcounter.Templates {
 		internal bool UseBinding(Json parent) {
             object data;
 
+            if (BindingStrategy == BindingStrategy.Unbound || isVerifiedUnbound)
+                return false;
+
+            // TODO:
+            // Workaround for having a property bound to codebehind, but
+            // Data-property is always null. Since we want to avoid recreate
+            // the binding when Data is null, we need to first check if
+            // we are bound to codebehind. 
+            // This will not be needed when we change how codebehind-properties
+            // work (https://github.com/Starcounter/Starcounter/issues/2964).
+            if (forceGenerateBindings) {
+                bool b = GenerateBoundGetterAndSetter(parent);
+                forceGenerateBindings = false;
+                return b;
+            }
+
             if (isBoundToParent)
                 return true;
-
-            if (BindingStrategy == BindingStrategy.Unbound || isVerifiedUnbound)
-				return false;
-
+            
             data = parent.Data;
             if (data == null)
                 return false;
             
-            if (dataTypeForBinding == null) {
-                return GenerateBoundGetterAndSetter(parent);
-            } else {
+            if (dataTypeForBinding != null) {
                 if (VerifyBinding(data.GetType()))
                     return true;
-              
+
                 InvalidateBoundGetterAndSetter();
-                return GenerateBoundGetterAndSetter(parent);
             }
+            return GenerateBoundGetterAndSetter(parent);
 		}
 
 		/// <summary>

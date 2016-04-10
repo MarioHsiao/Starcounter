@@ -186,7 +186,9 @@ namespace Starcounter.XSON {
 #endif
                 property.dataTypeForBinding = bInfo.BoundToType;
             } else {
-				property.isVerifiedUnbound = true; // Auto binding where property not match.
+                if (json.Data != null)
+				    property.isVerifiedUnbound = true; // Auto binding where property not match.
+
                 property.dataTypeForBinding = null;
             }
             
@@ -232,7 +234,8 @@ namespace Starcounter.XSON {
 
                 property.dataTypeForBinding = bInfo.BoundToType;
             } else {
-                property.isVerifiedUnbound = true; // Auto binding where property not match.
+                if (json.Data != null)
+                    property.isVerifiedUnbound = true; // Auto binding where property not match.
                 property.dataTypeForBinding = null;
             }
             
@@ -275,7 +278,8 @@ namespace Starcounter.XSON {
 #endif
                 property.dataTypeForBinding = bInfo.BoundToType;
             } else {
-                property.isVerifiedUnbound = true; // Auto binding where property not match.
+                if (json.Data != null)
+                    property.isVerifiedUnbound = true; // Auto binding where property not match.
                 property.dataTypeForBinding = null;
             }
             
