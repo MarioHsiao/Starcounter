@@ -2955,9 +2955,16 @@ void Gateway::WaitAllWorkersSuspended()
     WakeUpAllWorkers();
 
     // Waiting for all workers to suspend.
+	int32_t max_tries = 300;
     while (num_worker_locked < setting_num_workers_)
     {
-        Sleep(1);
+        Sleep(10);
+		max_tries--;
+
+		if (0 == max_tries) {
+			GW_ASSERT(!"Reached maximum number of tries in wait for suspended workers.");
+		}
+
         num_worker_locked = 0;
         for (int32_t i = 0; i < setting_num_workers_; i++)
         {
