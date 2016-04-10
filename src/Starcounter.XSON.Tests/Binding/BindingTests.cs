@@ -273,12 +273,11 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestAutoBindAndChangeBind() {
-            // Making sure that we get the default schema and not a modified one since it is static.
-            BaseJson.DefaultTemplate = new BaseJson.JsonByExample.Schema();
-
-            var json = new BaseJson();
-            var stringTemplate = (TString)json.Template.Properties.GetTemplateByPropertyName("SimpleValue");
-
+            // Making sure that we have our own private schema and not the 
+            // default one, since we modify it in the test.
+            var template = new BaseJson.JsonByExample.Schema();
+            var json = new BaseJson() { Template = template };
+            
             json.Data = new Person() {
                 FirstName = "John",
                 LastName = "Doe"
@@ -291,49 +290,51 @@ namespace Starcounter.Internal.XSON.Tests {
             // Calling again for debugging purposes to see that the binding is not checked for again.
             value = json.SimpleValue;
 
-            Assert.IsTrue(stringTemplate.isVerifiedUnbound);
-            Assert.IsFalse(stringTemplate.isBoundToParent);
-            Assert.IsNull(stringTemplate.dataTypeForBinding);
+            Assert.IsTrue(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.IsNull(template.SimpleValue.dataTypeForBinding);
 
             Assert.AreEqual("Base", value);
 
             // Change Bind path, which will invalidate the binding.
-            stringTemplate.Bind = "FirstName";
+            template.SimpleValue.Bind = "FirstName";
 
-            Assert.IsFalse(stringTemplate.isVerifiedUnbound);
-            Assert.IsFalse(stringTemplate.isBoundToParent);
-            Assert.IsNull(stringTemplate.dataTypeForBinding);
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.IsNull(template.SimpleValue.dataTypeForBinding);
 
             value = json.SimpleValue;
 
-            Assert.IsFalse(stringTemplate.isVerifiedUnbound);
-            Assert.IsFalse(stringTemplate.isBoundToParent);
-            Assert.IsNotNull(stringTemplate.dataTypeForBinding);
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.IsNotNull(template.SimpleValue.dataTypeForBinding);
             Assert.AreEqual("John", value);
 
             // Change Bind path again to a property in the codebehind.
-            stringTemplate.Bind = "BaseStringValue";
+            template.SimpleValue.Bind = "BaseStringValue";
 
-            Assert.IsFalse(stringTemplate.isVerifiedUnbound);
-            Assert.IsFalse(stringTemplate.isBoundToParent);
-            Assert.IsNull(stringTemplate.dataTypeForBinding);
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.IsNull(template.SimpleValue.dataTypeForBinding);
 
             value = json.SimpleValue;
-            Assert.IsFalse(stringTemplate.isVerifiedUnbound);
-            Assert.IsTrue(stringTemplate.isBoundToParent);
-            Assert.IsNotNull(stringTemplate.dataTypeForBinding);
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsTrue(template.SimpleValue.isBoundToParent);
+            Assert.IsNotNull(template.SimpleValue.dataTypeForBinding);
             Assert.AreEqual("CBValue", value);
 
         }
 
         [Test]
         public static void TestAccessingBoundPropertyFromMultipleThreadsWithDataAndNull() {
-            // Making sure that we get the default schema and not a modified one since it is static.
-            BaseJson.DefaultTemplate = new BaseJson.JsonByExample.Schema();
-
+            // Making sure that we have our own private schema and not the 
+            // default one, since we modify it in the test.
+            var template = new BaseJson.JsonByExample.Schema();
+            
             Exception ex1 = null;
             Exception ex2 = null;
-            BaseJson.DefaultTemplate.SimpleValue.Bind = "FirstName";
+
+            template.SimpleValue.Bind = "FirstName";
 
             AutoResetEvent[] autos = new AutoResetEvent[2];
             autos[0] = new AutoResetEvent(false);
@@ -341,7 +342,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             ThreadPool.QueueUserWorkItem((state) => {
                 try {
-                    var json = new BaseJson();
+                    var json = new BaseJson() { Template = template };
                     var data = new Person() {
                         FirstName = "John"
                     };
@@ -363,7 +364,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             ThreadPool.QueueUserWorkItem((state) => {
                 try {
-                    var json = new BaseJson();
+                    var json = new BaseJson() { Template = template };
                     Person data = null;
 
                     for (int i = 0; i < 100000; i++) {
