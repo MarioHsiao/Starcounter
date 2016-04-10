@@ -165,7 +165,8 @@ namespace Starcounter.Templates {
 		/// 
 		/// </summary>
 		internal virtual void InvalidateBoundGetterAndSetter() {
-			isVerifiedUnbound = false;
+            isBoundToParent = false;
+            isVerifiedUnbound = false;
 			dataTypeForBinding = null;
 		}
 
@@ -207,34 +208,37 @@ namespace Starcounter.Templates {
         //public abstract int EstimateUtf8SizeInBytes(Json json);
 
 		/// <summary>
-		/// 
+		/// Checks, verifies and creates the binding.
 		/// </summary>
 		/// <param name="data"></param>
 		/// <returns></returns>
 		internal bool UseBinding(Json parent) {
-			object data;
-            if (BindingStrategy == BindingStrategy.Unbound)
-				return false;
+            object data;
 
-            if (isVerifiedUnbound && isBoundToParent) {
-                if (parent.Data == null)
+            if (isBoundToParent)
+                return true;
+
+            if (BindingStrategy == BindingStrategy.Unbound || isVerifiedUnbound)
+				return false;
+            
+            data = parent.Data;
+            if (dataTypeForBinding == null) {
+                bool b = GenerateBoundGetterAndSetter(parent);
+                
+                if (data == null)
+                    this.isVerifiedUnbound = false;
+
+                return b;
+            } else {
+                if (data == null)
                     return false;
 
-                // If we have an auto binding and we have checked once but
-                // no dataobject was set (i. e the "unbound" points to the parent)
-                // we want to reset and check again if we have a dataobject now.
+                if (VerifyBinding(data.GetType())) {
+                    return true;
+                }
                 InvalidateBoundGetterAndSetter();
+                return GenerateBoundGetterAndSetter(parent);
             }
-
-            if (dataTypeForBinding != null) {
-                data = (isBoundToParent) ? parent : parent.Data;
-                if (data != null && VerifyBinding(data.GetType()))
-                    return !isVerifiedUnbound;
-
-                InvalidateBoundGetterAndSetter();
-            }
-
-			return GenerateBoundGetterAndSetter(parent);
 		}
 
 		/// <summary>
