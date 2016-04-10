@@ -9,6 +9,7 @@ namespace Starcounter.Templates {
 	/// 
 	/// </summary>
 	public abstract class TValue : Template {
+        private object bindingLock = new object();
 		private BindingStrategy strategy = BindingStrategy.UseParent;
 		private string bind;
         private bool forceGenerateBindings = true;
@@ -58,7 +59,10 @@ namespace Starcounter.Templates {
 				} else {
 					strategy = BindingStrategy.Unbound;
 				}
-				InvalidateBoundGetterAndSetter();
+
+                lock(bindingLock) {
+                    InvalidateBoundGetterAndSetter();
+                }
 			}
 		}
 
@@ -91,7 +95,10 @@ namespace Starcounter.Templates {
 					bind = null;
 				else if (bind == null)
 					bind = PropertyName;
-				InvalidateBoundGetterAndSetter();
+
+                lock (bindingLock) {
+                    InvalidateBoundGetterAndSetter();
+                }
 			}
 		}
 
@@ -162,15 +169,15 @@ namespace Starcounter.Templates {
 		/// <param name="from"></param>
 		internal abstract void CopyValueDelegates(Template toTemplate);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		internal virtual void InvalidateBoundGetterAndSetter() {
+        /// <summary>
+        /// 
+        /// </summary>
+        internal virtual void InvalidateBoundGetterAndSetter() {
             isBoundToParent = false;
             isVerifiedUnbound = false;
-			dataTypeForBinding = null;
+            dataTypeForBinding = null;
             forceGenerateBindings = true;
-		}
+        }
 
 		/// <summary>
 		/// 
@@ -215,6 +222,7 @@ namespace Starcounter.Templates {
 		/// <param name="data"></param>
 		/// <returns></returns>
 		internal bool UseBinding(Json parent) {
+            bool b;
             object data;
 
             if (BindingStrategy == BindingStrategy.Unbound || isVerifiedUnbound)
@@ -228,7 +236,9 @@ namespace Starcounter.Templates {
             // This will not be needed when we change how codebehind-properties
             // work (https://github.com/Starcounter/Starcounter/issues/2964).
             if (forceGenerateBindings) {
-                GenerateBoundGetterAndSetter(parent);
+                lock (bindingLock) {
+                    GenerateBoundGetterAndSetter(parent);
+                }
                 forceGenerateBindings = false;
             }
 
@@ -238,14 +248,21 @@ namespace Starcounter.Templates {
             data = parent.Data;
             if (data == null)
                 return false;
-            
+
             if (dataTypeForBinding != null) {
                 if (VerifyBinding(data.GetType()))
                     return true;
 
-                InvalidateBoundGetterAndSetter();
+                lock (bindingLock) {
+                    InvalidateBoundGetterAndSetter();
+                    b = GenerateBoundGetterAndSetter(parent);
+                }
+            } else {
+                lock (bindingLock) {
+                    b = GenerateBoundGetterAndSetter(parent);
+                }
             }
-            return GenerateBoundGetterAndSetter(parent);
+            return b;
 		}
 
 		/// <summary>
