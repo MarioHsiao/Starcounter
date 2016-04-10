@@ -228,9 +228,8 @@ namespace Starcounter.Templates {
             // This will not be needed when we change how codebehind-properties
             // work (https://github.com/Starcounter/Starcounter/issues/2964).
             if (forceGenerateBindings) {
-                bool b = GenerateBoundGetterAndSetter(parent);
+                GenerateBoundGetterAndSetter(parent);
                 forceGenerateBindings = false;
-                return b;
             }
 
             if (isBoundToParent)
