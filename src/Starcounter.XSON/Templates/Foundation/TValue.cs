@@ -9,7 +9,6 @@ namespace Starcounter.Templates {
 	/// 
 	/// </summary>
 	public abstract class TValue : Template {
-        private object bindingLock = new object();
 		private BindingStrategy strategy = BindingStrategy.UseParent;
 		private string bind;
         private bool forceGenerateBindings = true;
@@ -59,10 +58,8 @@ namespace Starcounter.Templates {
 				} else {
 					strategy = BindingStrategy.Unbound;
 				}
-
-                lock(bindingLock) {
-                    InvalidateBoundGetterAndSetter();
-                }
+                
+                InvalidateBoundGetterAndSetter();
 			}
 		}
 
@@ -95,10 +92,8 @@ namespace Starcounter.Templates {
 					bind = null;
 				else if (bind == null)
 					bind = PropertyName;
-
-                lock (bindingLock) {
-                    InvalidateBoundGetterAndSetter();
-                }
+                
+                InvalidateBoundGetterAndSetter();
 			}
 		}
 
@@ -215,15 +210,15 @@ namespace Starcounter.Templates {
         //public abstract int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize);
 
         //public abstract int EstimateUtf8SizeInBytes(Json json);
-        
-		/// <summary>
-		/// Checks, verifies and creates the binding.
-		/// </summary>
-		/// <param name="data"></param>
-		/// <returns></returns>
-		internal bool UseBinding(Json parent) {
-            bool b;
+
+        /// <summary>
+        /// Checks, verifies and creates the binding.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        internal bool UseBinding(Json parent) {
             object data;
+            Type boundType;
 
             if (BindingStrategy == BindingStrategy.Unbound || isVerifiedUnbound)
                 return false;
@@ -236,42 +231,34 @@ namespace Starcounter.Templates {
             // This will not be needed when we change how codebehind-properties
             // work (https://github.com/Starcounter/Starcounter/issues/2964).
             if (forceGenerateBindings) {
-                lock (bindingLock) {
-                    GenerateBoundGetterAndSetter(parent);
-                }
+                GenerateBoundGetterAndSetter(parent);
                 forceGenerateBindings = false;
             }
 
             if (isBoundToParent)
                 return true;
-            
+
             data = parent.Data;
             if (data == null)
                 return false;
 
-            if (dataTypeForBinding != null) {
-                if (VerifyBinding(data.GetType()))
+            boundType = dataTypeForBinding;
+            if (boundType != null) {
+                if (VerifyBinding(data.GetType(), boundType))
                     return true;
 
-                lock (bindingLock) {
-                    InvalidateBoundGetterAndSetter();
-                    b = GenerateBoundGetterAndSetter(parent);
-                }
-            } else {
-                lock (bindingLock) {
-                    b = GenerateBoundGetterAndSetter(parent);
-                }
+                InvalidateBoundGetterAndSetter();
             }
-            return b;
-		}
+            return GenerateBoundGetterAndSetter(parent);
+        }
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="dataType"></param>
 		/// <returns></returns>
-		private bool VerifyBinding(Type dataType) {
-			if (dataType.Equals(dataTypeForBinding) || dataType.IsSubclassOf(dataTypeForBinding))
+		private bool VerifyBinding(Type dataType, Type boundDataType) {
+			if (dataType.Equals(boundDataType) || dataType.IsSubclassOf(boundDataType))
 				return true;
 			return false;
 		}
