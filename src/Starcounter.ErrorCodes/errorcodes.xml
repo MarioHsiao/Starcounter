@@ -3327,6 +3327,13 @@
     <code hex="012C" severity="Error" name="ScErrColumnNotFound">
       <message>Column with specified name not found.</message>
     </code>
+    <code hex="012D" severity="Error" name="ScErrTransactionLogPositionNotFound">
+      <message>Specified position not found in the transaction log.</message>
+      <remarks>
+        Position passed is not found in the transaction log. Most likely appropriate transaction
+        log files has been removed due to retention policy.
+      </remarks>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
