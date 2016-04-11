@@ -54,6 +54,7 @@
 - Fixed the problem with ScErrInputQueueFull exception when scheduling tasks [#3388](https://github.com/Starcounter/Starcounter/issues/3388)
 - Fixed sending only changed/added siblings instead of all siblings when sending patches to client. [#3465](https://github.com/Starcounter/Starcounter/issues/3465)   
 - Fixed a potential problem with long-running transactions and scheduling a task for a session that used the same scheduler. [#3472](https://github.com/Starcounter/Starcounter/issues/3472)
+- Fixed a nullreference exception when merging json. [#3485](https://github.com/Starcounter/Starcounter/issues/3485)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.

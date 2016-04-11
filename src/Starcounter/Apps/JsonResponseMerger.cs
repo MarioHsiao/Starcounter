@@ -79,6 +79,8 @@ namespace Starcounter.Internal {
 
             // Searching for the current application in responses.
             for (Int32 i = 0; i < responses.Count; i++) {
+                if (responses[i] == null)
+                    continue;
 
                 if (responses[i].AppName == req.HandlerOpts.CallingAppName) {
 
