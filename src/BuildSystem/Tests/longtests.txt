@@ -19,3 +19,4 @@ star_loop_exception_test.bat 100
 SimpleAggregationRemote_test.bat 200
 SimpleIndependentTests_hosted_test.exe 500
 tpca_test.bat 300
+kitchensink_selenium_test.bat 120
