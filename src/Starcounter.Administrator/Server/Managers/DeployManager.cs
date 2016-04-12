@@ -172,6 +172,9 @@ namespace Administrator.Server.Managers {
                 if (resultCode == (ushort)System.Net.HttpStatusCode.ServiceUnavailable) {
                     errorMessage += " " + "Service Unavailable.";
                 }
+                else if (resultCode == (ushort)System.Net.HttpStatusCode.NotFound) {
+                    errorMessage += " " + "Application not found.";
+                }
 
                 if (errorCallback != null) {
                     errorCallback(errorMessage);
