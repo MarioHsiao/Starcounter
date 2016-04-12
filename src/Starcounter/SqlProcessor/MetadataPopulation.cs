@@ -25,12 +25,12 @@ namespace Starcounter.SqlProcessor {
                     string uniqueIdentifierRev = classReverseFullName;
                     string uniqueIdentifier = typeDef.Name;
                     Starcounter.Metadata.RawView rawview =
-                        Db.SQL<Starcounter.Metadata.RawView>("select m from rawview m where fullname = ?",
+                        Db.SQL<Starcounter.Metadata.RawView>("select m from Starcounter.Metadata.rawview m where fullname = ?",
                         typeDef.TableDef.Name).First;
                     Debug.Assert(rawview != null);
                     ClrClass parentView = null;
                     if (typeDef.BaseName != null)
-                        parentView = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", typeDef.BaseName).First;
+                        parentView = Db.SQL<ClrClass>("select v from Starcounter.Metadata.ClrClass v where fullclassname = ?", typeDef.BaseName).First;
                     ClrClass obj = new ClrClass {
                         Name = typeDef.Name.LastDotWord(),
                         FullName = typeDef.Name,
@@ -55,9 +55,9 @@ namespace Starcounter.SqlProcessor {
                         PropertyDef propDef = typeDef.PropertyDefs[i];
                         Starcounter.Metadata.DataType propType = null;
                         if (propDef.Type == DbTypeCode.Object)
-                            propType = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", propDef.TargetTypeName).First;
+                            propType = Db.SQL<ClrClass>("select v from Starcounter.Metadata.ClrClass v where fullclassname = ?", propDef.TargetTypeName).First;
                         else
-                            propType = Db.SQL<Starcounter.Metadata.ClrPrimitiveType>("select t from ClrPrimitivetype t where dbtypecode = ?", propDef.Type).First;
+                            propType = Db.SQL<Starcounter.Metadata.ClrPrimitiveType>("select t from Starcounter.Metadata.ClrPrimitivetype t where dbtypecode = ?", propDef.Type).First;
                         if (propType != null) {
                             if (propDef.ColumnName == null) {
                                 CodeProperty codeProp = new CodeProperty {
