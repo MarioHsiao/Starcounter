@@ -13,5 +13,6 @@ namespace Starcounter.Advanced {
         Rows<T> SlowSQL<T>(string query, params object[] args);
         void Transact(Action action);
         void Scope(Action action);
+        bool HasDatabase { get; }
     }
 }
