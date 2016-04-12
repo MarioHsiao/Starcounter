@@ -35,6 +35,10 @@ namespace Starcounter.XSON.Tests {
 
         }
 
+        bool IDb.HasDatabase {
+            get { return false; }
+        }
+
 //        ITransaction IDb.CurrentTransaction { get { return null; } }
     }
 
