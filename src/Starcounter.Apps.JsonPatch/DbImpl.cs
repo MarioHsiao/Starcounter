@@ -35,6 +35,10 @@ namespace Starcounter.Internal {
             Db.Scope(action);
         }
 
+        bool IDb.HasDatabase {
+            get { return Db.Environment.HasDatabase; }
+        }
+
         //ITransaction IDb.CurrentTransaction {
         //    get { return Transaction.Current; }
         //}
