@@ -70,6 +70,7 @@
     <Compile Include="AssemblyResolver.cs" />
     <Compile Include="CodeHostError.cs" />
     <Compile Include="ExceptionManager.cs" />
+    <Compile Include="IPrivateAssemblyStore.cs" />
     <Compile Include="Loader.cs" />
     <Compile Include="orange.cs" />
     <Compile Include="Package.cs" />
