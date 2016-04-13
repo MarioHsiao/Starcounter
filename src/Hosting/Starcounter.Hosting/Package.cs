@@ -6,18 +6,17 @@
 
 using Starcounter.Binding;
 using Starcounter.Internal;
+using Starcounter.Legacy;
+using Starcounter.Metadata;
 using Starcounter.Query;
+using Starcounter.SqlProcessor;
+using StarcounterInternal.Hosting;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.IO;
-using Starcounter.Metadata;
-using Starcounter.SqlProcessor;
-using System.Collections.Generic;
-using StarcounterInternal.Hosting;
-using Starcounter.Legacy;
 
 namespace Starcounter.Hosting {
 
@@ -71,12 +70,9 @@ namespace Starcounter.Hosting {
         /// </summary>
         static TypeDef[] systemTypeDefinitions_;
 
-        /// <summary>
-        /// The assembly_
-        /// </summary>
-        private readonly Assembly assembly_;
-
         private readonly Application application_;
+
+        private readonly ApplicationDirectory appDirectory_;
 
         private readonly Stopwatch stopwatch_;
 
@@ -100,8 +96,8 @@ namespace Starcounter.Hosting {
             stopwatch_ = stopwatch;
             processedEvent_ = new ManualResetEvent(false);
             processedResult = uint.MaxValue;
-            assembly_ = null;
             application_ = null;
+            appDirectory_ = null;
         }
 
 		/// <summary>
@@ -109,18 +105,17 @@ namespace Starcounter.Hosting {
         /// </summary>
         /// <param name="typeDefs">Set of type definitions to consider.</param>
         /// <param name="stopwatch">A watch used to time package loading.</param>
-        /// <param name="assembly">The assembly that comprise the primary
-        /// application code.</param>
         /// <param name="application">The application that is being launched.</param>
+        /// <param name="appDir">The materialized application directory.</param>
         /// <param name="execEntryPointSynchronously">
         /// If true the event for processing complete will be set after the entrypoint returns, 
         /// if set to false the event will be set before the entrypoint executes.
         /// </param>
         internal Package(
-            TypeDef[] typeDefs, Stopwatch stopwatch, Assembly assembly, Application application, bool execEntryPointSynchronously) 
+            TypeDef[] typeDefs, Stopwatch stopwatch, Application application, ApplicationDirectory appDir, bool execEntryPointSynchronously) 
             : this(typeDefs, stopwatch) {
-            assembly_ = assembly;
             application_ = application;
+            appDirectory_ = appDir;
             execEntryPointSynchronously_ = execEntryPointSynchronously;
         }
 
@@ -140,7 +135,7 @@ namespace Starcounter.Hosting {
 
             Application.CurrentAssigned = application_;
             try {
-                ProcessWithinCurrentApplication(application_);
+                ProcessWithinCurrentApplication(application_, appDirectory_);
             } finally {
                 Application.CurrentAssigned = null;
                 TransactionManager.Cleanup();
@@ -162,11 +157,16 @@ namespace Starcounter.Hosting {
             processedEvent_.Dispose();
         }
 
-        void ProcessWithinCurrentApplication(Application application) {
+        void ProcessWithinCurrentApplication(Application application, ApplicationDirectory applicationDir) {
+            Assembly assembly = null;
+            if (application != null) {
+                assembly = LoadMainAssembly(application, applicationDir);
+            }
+
             var unregisteredTypeDefinitions = GetUnregistered(typeDefinitions);
 
             if (application != null) {
-                Application.Index(application_);
+                Application.Index(application);
                 LegacyContext.Enter(application, typeDefinitions, unregisteredTypeDefinitions);
             }
 
@@ -239,7 +239,7 @@ namespace Starcounter.Hosting {
                 // application start synchronously.
                 if (application != null) {
                     try {
-                        ExecuteHost(application);
+                        ExecuteHost(application, assembly);
                     }
                     finally {
                         LegacyContext.Exit(application);
@@ -248,7 +248,7 @@ namespace Starcounter.Hosting {
 
                 // Starting user Main() here.
                 if (application != null && execEntryPointSynchronously_)
-                    ExecuteEntryPoint(application);
+                    ExecuteEntryPoint(application, assembly);
 
             } catch (Exception e) {
                 uint code = 0;
@@ -267,7 +267,23 @@ namespace Starcounter.Hosting {
             }
 
             if (application != null && !execEntryPointSynchronously_)
-                ExecuteEntryPoint(application);
+                ExecuteEntryPoint(application, assembly);
+        }
+
+        Assembly LoadMainAssembly(Application application, ApplicationDirectory appDir) {
+            var assemblyResolver = Loader.Resolver;
+
+            assemblyResolver.PrivateAssemblies.RegisterApplicationDirectory(appDir);
+            OnInputVerifiedAndAssemblyResolverUpdated();
+
+            var assembly = assemblyResolver.ResolveApplication(application.HostedFilePath);
+            if (assembly.EntryPoint == null) {
+                throw ErrorCode.ToException(
+                    Error.SCERRAPPLICATIONNOTANEXECUTABLE, string.Format("Failing application file: {0}", application.HostedFilePath));
+            }
+            OnTargetAssemblyLoaded();
+
+            return assembly;
         }
 
         TypeDef[] GetUnregistered(TypeDef[] all) {
@@ -503,9 +519,9 @@ namespace Starcounter.Hosting {
             return updated;
         }
 
-        void ExecuteHost(Application application) {
+        void ExecuteHost(Application application, Assembly assembly) {
             Debug.Assert(application != null);
-            var entrypoint = assembly_.EntryPoint;
+            var entrypoint = assembly.EntryPoint;
             if (entrypoint != null) {
                 var declaringClass = entrypoint.DeclaringType;
                 if (typeof(IApplicationHost).IsAssignableFrom(declaringClass)) {
@@ -528,7 +544,7 @@ namespace Starcounter.Hosting {
         /// <summary>
         /// Executes the entry point.
         /// </summary>
-        private void ExecuteEntryPoint(Application application) {
+        private void ExecuteEntryPoint(Application application, Assembly assembly) {
             var transactMain = application.TransactEntrypoint;
 
             // No need to keep track of this transaction. It will be cleaned up later.
@@ -547,7 +563,7 @@ namespace Starcounter.Hosting {
                 });
             }
 
-            var entrypoint = assembly_.EntryPoint;
+            var entrypoint = assembly.EntryPoint;
 
             try {
 
@@ -596,6 +612,8 @@ namespace Starcounter.Hosting {
         private void OnCleanClrMetadata() { Trace("CLR view meta-data were deleted on host start."); }
         private void OnPopulateClrMetadata() { Trace("CLR view meta-data were populated for the given types."); }
         private void OnPopulateMetadataDefs() { Trace("Properties and columns were populated for the given meta-types."); }
+        private void OnTargetAssemblyLoaded() { Trace("Target assembly loaded."); }
+        private void OnInputVerifiedAndAssemblyResolverUpdated() { Trace("Input verified and assembly resolver updated."); }
 
         [Conditional("TRACE")]
         private void Trace(string message)
