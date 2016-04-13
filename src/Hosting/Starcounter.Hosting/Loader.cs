@@ -23,19 +23,6 @@ using Starcounter.Logging;
 namespace StarcounterInternal.Hosting
 {
     /// <summary>
-    /// Class LoaderException
-    /// </summary>
-    public class LoaderException : Exception
-    {
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LoaderException" /> class.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        public LoaderException(string message) : base(message) { }
-    }
-
-    /// <summary>
     /// Class Loader
     /// </summary>
     public static class Loader
@@ -141,41 +128,17 @@ namespace StarcounterInternal.Hosting
             OnLoaderStarted();
 
             var application = new Application(appBase, DefaultHost.Current);
-
-            var filePath = application.HostedFilePath;
-            try {
-                filePath = filePath.Trim('\"', '\\');
-                filePath = Path.GetFullPath(filePath);
-            } catch (ArgumentException pathEx) {
-                throw new LoaderException(string.Format("{0} ({1})", pathEx.Message, filePath));
-            }
-
-            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) {
-                throw new LoaderException(string.Format("File not found: {0}.", filePath));
-            }
-
-            var inputFile = new FileInfo(filePath);
-
-            assemblyResolver.PrivateAssemblies.RegisterApplicationDirectory(inputFile.Directory);
-
-            OnInputVerifiedAndAssemblyResolverUpdated();
+            var inputFile = new FileInfo(application.HostedFilePath);
+            var appDir = new ApplicationDirectory(inputFile.Directory);
 
             var typeDefs = SchemaLoader.LoadAndConvertSchema(inputFile.Directory);
-
             OnSchemaVerifiedAndLoaded();
-
-            var assembly = assemblyResolver.ResolveApplication(inputFile.FullName);
-            if (assembly.EntryPoint == null) {
-                throw ErrorCode.ToException(Starcounter.Error.SCERRAPPLICATIONNOTANEXECUTABLE, string.Format("Failing application: {0}", inputFile.FullName));
-            }
-
-            OnTargetAssemblyLoaded();
 
             var package = new Package(
                 typeDefs.ToArray(),
                 stopwatch_,
-                assembly,
                 application,
+                appDir,
                 execEntryPointSynchronously
             );
 
@@ -223,9 +186,7 @@ namespace StarcounterInternal.Hosting
         }
         
         private static void OnLoaderStarted() { Trace("Loader started."); }
-        private static void OnInputVerifiedAndAssemblyResolverUpdated() { Trace("Input verified and assembly resolver updated."); }
         private static void OnSchemaVerifiedAndLoaded() { Trace("Schema verified and loaded."); }
-        private static void OnTargetAssemblyLoaded() { Trace("Target assembly loaded."); }
         private static void OnPackageCreated() { Trace("Package created."); }
         private static void OnPackageProcessed() { Trace("Package processed."); }
 

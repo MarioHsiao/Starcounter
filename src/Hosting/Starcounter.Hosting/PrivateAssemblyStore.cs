@@ -15,14 +15,11 @@ namespace Starcounter.Hosting {
     internal sealed class PrivateAssemblyStore {
         readonly List<string> applicationDirectories = new List<string>();
         readonly Dictionary<string, PrivateBinaryFile> fileToIdentity = new Dictionary<string, PrivateBinaryFile>(StringComparer.InvariantCultureIgnoreCase);
-        public void RegisterApplicationDirectory(DirectoryInfo dir) {
-            var binaries = new List<FileInfo>();
-            binaries.AddRange(dir.GetFiles("*.dll"));
-            binaries.AddRange(dir.GetFiles("*.exe"));
 
-            applicationDirectories.Add(dir.FullName);
-            foreach (var binary in binaries) {
-                fileToIdentity.Add(binary.FullName, new PrivateBinaryFile(binary.FullName));
+        public void RegisterApplicationDirectory(ApplicationDirectory dir) {
+            applicationDirectories.Add(dir.Path);
+            foreach (var binary in dir.Binaries) {
+                fileToIdentity.Add(binary.FilePath, binary);
             }
         }
 
