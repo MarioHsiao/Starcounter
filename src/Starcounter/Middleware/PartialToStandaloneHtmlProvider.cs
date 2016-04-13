@@ -19,9 +19,6 @@ namespace Starcounter {
     <meta charset=""utf-8"">
     <title>{0}</title>
 
-    <script src=""/sys/object.observe/dist/object-observe.min.js""></script>
-    <script src=""/sys/array.observe/array-observe.min.js""></script>
-
     <script src=""/sys/webcomponentsjs/webcomponents.js""></script>
     <script>
         window.Polymer = window.Polymer || {{}};
