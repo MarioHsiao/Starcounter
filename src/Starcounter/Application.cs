@@ -16,6 +16,7 @@ namespace Starcounter {
     public sealed class Application {
         readonly ICodeHost host;
         readonly ApplicationBase state;
+        readonly string resolvedHostFilePath;
         static object monitor = new object();
         static Dictionary<string, Application> indexName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
         static Dictionary<string, Application> indexLoadPath = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
@@ -122,11 +123,12 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// <see cref="ApplicationBase.HostedFilePath"/>
+        /// Gets the full path to the binary file that is actually hosted, i.e.
+        /// the weaved executable.
         /// </summary>
         internal string HostedFilePath {
             get {
-                return state.HostedFilePath;
+                return resolvedHostFilePath;
             }
         }
 
@@ -303,6 +305,20 @@ namespace Starcounter {
         internal Application(ApplicationBase appBase, ICodeHost host) {
             this.state = appBase;
             this.host = host;
+
+            var filePath = state.HostedFilePath;
+            try {
+                filePath = filePath.Trim('\"', '\\');
+                filePath = Path.GetFullPath(filePath);
+            } catch (ArgumentException pathEx) {
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, pathEx, string.Format("{0} ({1})", pathEx.Message, filePath));
+            }
+
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) {
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, string.Format("File not found: {0}.", filePath));
+            }
+
+            this.resolvedHostFilePath = filePath;
         }
 
         /// <summary>
