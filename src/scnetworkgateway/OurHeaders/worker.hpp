@@ -362,6 +362,8 @@ public:
     // Gets global lock.
     void WorkerEnterGlobalLock()
     {
+		GW_ASSERT(0 == worker_id_);
+
         worker_suspended_unsafe_ = true;
 
         // Entering global lock.
@@ -369,7 +371,7 @@ public:
     }
 
     // Releases global lock.
-    void LeaveGlobalLock()
+    void WorkerLeaveGlobalLock()
     {
         worker_suspended_unsafe_ = false;
 

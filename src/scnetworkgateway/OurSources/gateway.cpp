@@ -1552,7 +1552,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
         AppsUriProcessData);
 
     // Releasing global lock.
-    gw->LeaveGlobalLock();
+    gw->WorkerLeaveGlobalLock();
 
     // Reporting to server log if we are trying to register a handler duplicate.
     if (SCERRHANDLERALREADYREGISTERED == err_code) {
@@ -1641,7 +1641,7 @@ uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChu
 	}
 
 	// Releasing global lock.
-	gw->LeaveGlobalLock();
+	gw->WorkerLeaveGlobalLock();
 
 	if (err_code) {
 
@@ -1732,7 +1732,7 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
     }
 
     // Releasing global lock.
-    gw->LeaveGlobalLock();
+    gw->WorkerLeaveGlobalLock();
 
     if (err_code) {
 
@@ -1851,7 +1851,7 @@ uint32_t RegisterWsHandler(
     }
 
     // Releasing global lock.
-    gw->LeaveGlobalLock();
+    gw->WorkerLeaveGlobalLock();
 
     if (err_code) {
 
@@ -1903,7 +1903,7 @@ uint32_t Gateway::DeleteExistingCodehost(GatewayWorker *gw, const std::string co
 	}
 
 	// Leaving global lock.
-	gw->LeaveGlobalLock();
+	gw->WorkerLeaveGlobalLock();
 
 	return 0;
 }
@@ -1970,7 +1970,7 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 				num_dbs_slots_--;
 
 			// Leaving global lock.
-			gw->LeaveGlobalLock();
+			gw->WorkerLeaveGlobalLock();
 
 			db_init_failed = true;
 
@@ -1980,7 +1980,7 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 		if (err_code)
 		{
 			// Leaving global lock.
-			gw->LeaveGlobalLock();
+			gw->WorkerLeaveGlobalLock();
 
 			return err_code;
 		}
@@ -1996,7 +1996,7 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 	if (err_code)
 	{
 		// Leaving global lock.
-		gw->LeaveGlobalLock();
+		gw->WorkerLeaveGlobalLock();
 
 		return err_code;
 	}
@@ -2011,7 +2011,7 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 	}
 
 	// Leaving global lock.
-	gw->LeaveGlobalLock();
+	gw->WorkerLeaveGlobalLock();
 
 	return 0;
 }
@@ -2102,6 +2102,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 ActiveDatabase::ActiveDatabase()
 {
     num_holding_workers_ = 0;
+
     InitializeCriticalSection(&cs_db_checks_);
 
     StartDeletion();
@@ -2167,7 +2168,7 @@ bool ActiveDatabase::IsEmpty()
     EnterCriticalSection(&cs_db_checks_);
 
     // Checking if all chunks for this database were released.
-    is_empty_ = (num_holding_workers_ == 0) && IsReadyForCleanup();
+    is_empty_ = (0 == num_holding_workers_) && IsReadyForCleanup();
 
     LeaveCriticalSection(&cs_db_checks_);
 
@@ -2935,14 +2936,14 @@ int64_t Gateway::NumberOverflowChunksAllWorkers()
 // Waits for all workers to suspend.
 void Gateway::WaitAllWorkersSuspended()
 {
-    int32_t num_worker_locked = 0;
+    int32_t num_workers_locked = 0;
 
     // First waking up all workers.
     WakeUpAllWorkers();
 
     // Waiting for all workers to suspend.
 	int32_t max_tries = 300;
-    while (num_worker_locked < setting_num_workers_)
+    while (num_workers_locked < setting_num_workers_)
     {
         Sleep(10);
 		max_tries--;
@@ -2951,11 +2952,11 @@ void Gateway::WaitAllWorkersSuspended()
 			GW_ASSERT(!"Reached maximum number of tries in wait for suspended workers.");
 		}
 
-        num_worker_locked = 0;
+        num_workers_locked = 0;
         for (int32_t i = 0; i < setting_num_workers_; i++)
         {
             if (gw_workers_[i].worker_suspended())
-                num_worker_locked++;
+                num_workers_locked++;
         }
     }
 }

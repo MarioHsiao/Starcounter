@@ -975,7 +975,7 @@ class ActiveDatabase
     volatile bool is_ready_for_cleanup_;
 
     // Number of released workers.
-    int32_t num_holding_workers_;
+	volatile uint32_t num_holding_workers_;
 
     // Critical section for database checks.
     CRITICAL_SECTION cs_db_checks_;
@@ -994,7 +994,7 @@ public:
     // Releasing worker.
     void ReleaseHoldingWorker()
     {
-        num_holding_workers_--;
+		InterlockedDecrement(&num_holding_workers_);
     }
 
     // Spawns channels events monitor thread.
