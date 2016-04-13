@@ -164,9 +164,9 @@ namespace StarcounterInternal.Bootstrap {
                 // Initializing the BMX manager if network gateway is used.
                 if (!configuration.NoNetworkGateway) {
 
-                    HandleManagedDelegate man_delegate = GatewayHandlers.HandleManaged;
-                    GCHandle globally_allocated_handler = GCHandle.Alloc(man_delegate);
-                    IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(man_delegate);
+                    HandleManagedDelegate managed_delegate = GatewayHandlers.HandleManaged;
+                    GCHandle globally_allocated_handler = GCHandle.Alloc(managed_delegate);
+                    IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(managed_delegate);
 
                     bmx.sc_init_bmx_manager(pinned_delegate);
 

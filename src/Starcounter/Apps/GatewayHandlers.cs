@@ -61,47 +61,54 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* taskInfo,
             Boolean* isHandled) {
 
-            UInt16 handlerIndex = (UInt16) handlerInfo;
+            try {
 
-            ManagedHandlerInfo m = allHandlers_[handlerIndex];
+                UInt16 handlerIndex = (UInt16)handlerInfo;
 
-            // Checking if we are addressing the correct handler.
-            if (handlerInfo != m.HandlerInfo) {
+                ManagedHandlerInfo m = allHandlers_[handlerIndex];
 
-                bmx.sc_bmx_release_linked_chunks(&taskInfo->chunk_index);
-                *isHandled = false;
+                // Checking if we are addressing the correct handler.
+                if (handlerInfo != m.HandlerInfo) {
 
-                return 0;
-            }
-
-            switch (m.HandlerType) {
-
-                case HandlerTypes.NotRegistered: {
                     bmx.sc_bmx_release_linked_chunks(&taskInfo->chunk_index);
                     *isHandled = false;
 
                     return 0;
                 }
 
-                case HandlerTypes.TcpHandler: {
-                    return HandleTcpSocket(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
+                switch (m.HandlerType) {
+
+                    case HandlerTypes.NotRegistered: {
+                        bmx.sc_bmx_release_linked_chunks(&taskInfo->chunk_index);
+                        *isHandled = false;
+
+                        return 0;
+                    }
+
+                    case HandlerTypes.TcpHandler: {
+                        return HandleTcpSocket(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
+                    }
+
+                    case HandlerTypes.UdpHandler: {
+                        return HandleUdpSocket(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
+                    }
+
+                    case HandlerTypes.WebSocketHandler: {
+                        return HandleWebSocket(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
+                    }
+
+                    case HandlerTypes.HttpHandler: {
+                        return HandleHttpRequest(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
+                    }
                 }
 
-                case HandlerTypes.UdpHandler: {
-                    return HandleUdpSocket(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
-                }
+                *isHandled = false;
+                return 0;
 
-                case HandlerTypes.WebSocketHandler: {
-                    return HandleWebSocket(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
-                }
-
-                case HandlerTypes.HttpHandler: {
-                    return HandleHttpRequest(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
-                }
+            } catch (Exception exc) {
+                LogSources.Hosting.LogException(exc);
+                return Error.SCERRUNSPECIFIED;
             }
-
-            *isHandled = false;
-            return 0;
         }
 
         /// <summary>
