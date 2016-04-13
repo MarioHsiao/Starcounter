@@ -659,7 +659,7 @@ uint32_t HttpProto::HttpUriDispatcher(
                 }
 
                 // Releasing global lock.
-                gw->LeaveGlobalLock();
+                gw->WorkerLeaveGlobalLock();
 
                 if (err_code)
                     return err_code;
@@ -1168,7 +1168,7 @@ uint32_t GatewayUpdateConfiguration(HandlersList* hl, GatewayWorker *gw, SocketD
         err_code = g_gateway.UpdateReverseProxies();
     }
 
-    gw->LeaveGlobalLock();
+    gw->WorkerLeaveGlobalLock();
 
     if (0 == err_code) {
 
@@ -1207,7 +1207,7 @@ uint32_t GatewayProfilersInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChu
     std::string s = g_gateway.GetGlobalProfilersString(&resp_len_bytes);
     *is_handled = true;
 
-    gw->LeaveGlobalLock();
+    gw->WorkerLeaveGlobalLock();
 
     return gw->SendHttp200WithBody(sd, s.c_str(), resp_len_bytes);
 }

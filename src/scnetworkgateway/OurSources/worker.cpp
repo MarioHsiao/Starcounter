@@ -1885,13 +1885,21 @@ uint32_t GatewayWorker::ScanChannels(uint32_t* next_sleep_interval_ms)
                 // Checking that database is ready for deletion (i.e. no pending sockets and chunks).
                 if (g_gateway.GetDatabase(i)->IsReadyForCleanup())
                 {
-                    // Entering global lock.
-                    WorkerEnterGlobalLock();
+					// Checking if its the main worker thread.
+					if (0 == worker_id_) {
 
-                    // Deleting all ports that are empty from chunks, etc.
-                    g_gateway.CleanUpEmptyPorts();
+						// Entering global lock.
+						WorkerEnterGlobalLock();
 
-                    GW_ASSERT(true == g_gateway.GetDatabase(i)->IsReadyForCleanup());
+						// Deleting all ports that are empty from chunks, etc.
+						g_gateway.CleanUpEmptyPorts();
+
+						// Making sure the database is ready for clean up.
+						GW_ASSERT(true == g_gateway.GetDatabase(i)->IsReadyForCleanup());
+
+						// Leaving global lock.
+						WorkerLeaveGlobalLock();
+					}
 
                     // Finally completely deleting database object and closing shared memory.
                     DeleteInactiveDatabase(i);
@@ -1899,10 +1907,9 @@ uint32_t GatewayWorker::ScanChannels(uint32_t* next_sleep_interval_ms)
 #ifdef GW_DATABASES_DIAG
                     GW_PRINT_WORKER << "Deleted shared memory for db slot: " << i << GW_ENDL;
 #endif
+					// Releasing holding worker.
                     g_gateway.GetDatabase(i)->ReleaseHoldingWorker();
 
-                    // Leaving global lock.
-                    LeaveGlobalLock();
                 }
                 else
                 {
