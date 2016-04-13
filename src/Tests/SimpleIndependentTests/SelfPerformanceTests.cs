@@ -40,6 +40,10 @@ class TestSelfPerformance {
         CreateGetHandlers(uris);
 
         Int32 numSelfGets = 1000000;
+
+        // NOTE: Excluding first Self call because it does expensive code generation.
+        Self.GET<String>(uris[0]);
+
         Stopwatch sw = Stopwatch.StartNew();
 
         for (Int32 i = 0; i < numSelfGets; i++) {
