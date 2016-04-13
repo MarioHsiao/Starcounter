@@ -70,6 +70,8 @@ namespace Starcounter.XSON {
                 property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
             } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
                 throw ToGenerateBindingException(property, ex);
             }
 		}
@@ -97,6 +99,8 @@ namespace Starcounter.XSON {
                 property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
             } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
                 throw ToGenerateBindingException(property, ex);
             }
         }
@@ -124,6 +128,8 @@ namespace Starcounter.XSON {
                 property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
             } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
                 throw ToGenerateBindingException(property, ex);
             }
         }
@@ -151,6 +157,8 @@ namespace Starcounter.XSON {
                 property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
             } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
                 throw ToGenerateBindingException(property, ex);
             }
         }
@@ -215,6 +223,8 @@ namespace Starcounter.XSON {
                 else
                     property.isBoundToParent = bInfo.IsBoundToParent;
             } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
                 throw ToGenerateBindingException(property, ex);
             }
         }
@@ -262,6 +272,8 @@ namespace Starcounter.XSON {
 
                 property.isBoundToParent = bInfo.IsBoundToParent;
             } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
                 throw ToGenerateBindingException(property, ex);
             }
         }
@@ -310,6 +322,8 @@ namespace Starcounter.XSON {
 
                 property.isBoundToParent = bInfo.IsBoundToParent;
             } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
                 throw ToGenerateBindingException(property, ex);
             }
         }
@@ -679,7 +693,10 @@ namespace Starcounter.XSON {
                 // Object or IEnumerable types already have the correct conversion.
                 // To avoid double conversions and failure to create conditions later
                 // we skip this one. Assign itself to skip the code below.
-                newExpr = expr;
+                if (template.TemplateTypeId == TemplateTypeEnum.Object
+                    || template.TemplateTypeId == TemplateTypeEnum.Array) {
+                    newExpr = expr;
+                }
             }
             
 			if (newExpr == null) {
