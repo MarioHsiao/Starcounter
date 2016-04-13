@@ -675,6 +675,11 @@ namespace Starcounter.XSON {
                     newExpr = Expression.Call(null, mi, Expression.Constant(to), expr);
                     newExpr = Expression.Convert(newExpr, to);
                 }
+            } else if (to.Equals(typeof(object)) || to.Equals(typeof(IEnumerable))) {
+                // Object or IEnumerable types already have the correct conversion.
+                // To avoid double conversions and failure to create conditions later
+                // we skip this one. Assign itself to skip the code below.
+                newExpr = expr;
             }
             
 			if (newExpr == null) {
