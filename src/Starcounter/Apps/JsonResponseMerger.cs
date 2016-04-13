@@ -168,7 +168,7 @@ namespace Starcounter.Internal {
             }
 
             foreach (var hook in afterMergeCallbacks_) {
-                newSibling = hook.Invoke(request, request.HandlerAppName, list);
+                newSibling = hook.Invoke(request, callingAppName, list);
                 if (newSibling != null) {
                     newSibling._wrapInAppName = true;
                     list.Add(newSibling);
