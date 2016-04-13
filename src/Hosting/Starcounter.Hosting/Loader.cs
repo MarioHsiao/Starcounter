@@ -4,24 +4,20 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter;
 using Starcounter.Binding;
+using Starcounter.Hosting;
+using Starcounter.Internal;
+using Starcounter.Logging;
+using Starcounter.Metadata;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-
-using Sc.Server.Weaver.Schema;
-using Starcounter;
-using Starcounter.Hosting;
-using Starcounter.Internal;
-using Starcounter.Metadata;
 using System.Threading;
-using Starcounter.Logging;
 
-namespace StarcounterInternal.Hosting
-{
+namespace StarcounterInternal.Hosting {
     /// <summary>
     /// Class Loader
     /// </summary>

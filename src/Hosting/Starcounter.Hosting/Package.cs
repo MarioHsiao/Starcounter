@@ -6,18 +6,17 @@
 
 using Starcounter.Binding;
 using Starcounter.Internal;
+using Starcounter.Legacy;
+using Starcounter.Metadata;
 using Starcounter.Query;
+using Starcounter.SqlProcessor;
+using StarcounterInternal.Hosting;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.IO;
-using Starcounter.Metadata;
-using Starcounter.SqlProcessor;
-using System.Collections.Generic;
-using StarcounterInternal.Hosting;
-using Starcounter.Legacy;
 
 namespace Starcounter.Hosting {
 
@@ -159,12 +158,15 @@ namespace Starcounter.Hosting {
         }
 
         void ProcessWithinCurrentApplication(Application application, ApplicationDirectory applicationDir) {
-            var assembly = LoadMainAssembly(application, applicationDir);
+            Assembly assembly = null;
+            if (application != null) {
+                assembly = LoadMainAssembly(application, applicationDir);
+            }
 
             var unregisteredTypeDefinitions = GetUnregistered(typeDefinitions);
 
             if (application != null) {
-                Application.Index(application_);
+                Application.Index(application);
                 LegacyContext.Enter(application, typeDefinitions, unregisteredTypeDefinitions);
             }
 
