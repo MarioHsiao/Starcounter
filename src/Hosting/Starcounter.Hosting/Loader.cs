@@ -47,6 +47,12 @@ namespace StarcounterInternal.Hosting
         [ThreadStatic]
         private static Stopwatch stopwatch_;
 
+        internal static AssemblyResolver Resolver {
+            get {
+                return assemblyResolver;
+            }
+        }
+
         /// <summary>
         /// Resolves the assembly.
         /// </summary>
