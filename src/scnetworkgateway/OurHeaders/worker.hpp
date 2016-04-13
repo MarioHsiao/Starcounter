@@ -354,7 +354,7 @@ public:
     }
 
     // Gets worker suspend state.
-    bool worker_suspended()
+    bool is_worker_suspended()
     {
         return worker_suspended_unsafe_;
     }
@@ -362,8 +362,10 @@ public:
     // Gets global lock.
     void WorkerEnterGlobalLock()
     {
-		GW_ASSERT(0 == worker_id_);
+		// Making sure we don't enter lock already being in lock.
+		GW_ASSERT(false == worker_suspended_unsafe_);
 
+		// Already saying that this worker is suspended.
         worker_suspended_unsafe_ = true;
 
         // Entering global lock.

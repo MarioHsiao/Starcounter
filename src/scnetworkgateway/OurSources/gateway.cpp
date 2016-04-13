@@ -1824,8 +1824,13 @@ uint32_t RegisterWsHandler(
             0,
             OuterUriProcessData);
 
-        if (err_code)
-            return err_code;
+		if (err_code) {
+
+			// Releasing global lock.
+			gw->WorkerLeaveGlobalLock();
+
+			return err_code;
+		}
 
         server_port = g_gateway.FindServerPort(port);
 
@@ -1943,7 +1948,6 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 		num_dbs_slots_++;
 
 	// Adding to workers database interfaces.
-	bool db_init_failed = false;
 	uint32_t err_code = 0;
 	for (int32_t i = 0; i < setting_num_workers_; i++)
 	{
@@ -1959,8 +1963,9 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 			g_gateway.LogWriteWarning(temp_str.c_str());
 
 			// Deleting worker database parts.
-			for (int32_t i = 0; i < setting_num_workers_; i++)
-				gw_workers_[i].DeleteInactiveDatabase(empty_db_index);
+			for (int32_t k = 0; k < setting_num_workers_; k++) {
+				gw_workers_[k].DeleteInactiveDatabase(empty_db_index);
+			}
 
 			// Resetting newly created database.
 			active_databases_[empty_db_index].Reset(true);
@@ -1972,9 +1977,7 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 			// Leaving global lock.
 			gw->WorkerLeaveGlobalLock();
 
-			db_init_failed = true;
-
-			break;
+			return err_code;
 		}
 
 		if (err_code)
@@ -1984,11 +1987,6 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 
 			return err_code;
 		}
-	}
-
-	// Checking if any error occurred.
-	if (db_init_failed) {
-		return err_code;
 	}
 
 	// Spawning channels events monitor.
@@ -2955,8 +2953,9 @@ void Gateway::WaitAllWorkersSuspended()
         num_workers_locked = 0;
         for (int32_t i = 0; i < setting_num_workers_; i++)
         {
-            if (gw_workers_[i].worker_suspended())
-                num_workers_locked++;
+			if (gw_workers_[i].is_worker_suspended()) {
+				num_workers_locked++;
+			}
         }
     }
 }

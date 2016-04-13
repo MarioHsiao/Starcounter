@@ -2097,7 +2097,7 @@ public:
     void EnterGlobalLock()
     {
         // Checking if already locked.
-		int32_t max_tries = 300;
+		int32_t max_tries = 500;
 		while (global_lock_unsafe_) {
 			Sleep(10);
 
