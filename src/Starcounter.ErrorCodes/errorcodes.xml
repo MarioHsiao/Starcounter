@@ -432,6 +432,9 @@
     <code hex="0047" severity="Error" name="ScErrTestAssertionFailure">
       <message>Assertion used in a test application failed.</message>
     </code>
+    <code hex="0048" severity="Error" name="ScErrOperationPending">
+      <message>Operation completion pending.</message>
+    </code>
   </facility>
 
   <!--

@@ -33,7 +33,8 @@ namespace Starcounter.Hosting {
         public Assembly ResolveApplication(string applicationHostFile) {
             Trace("Resolving application: {0}", applicationHostFile);
 
-            var name = PrivateAssemblies.GetAssembly(applicationHostFile);
+            var store = PrivateAssemblies.Immutable;
+            var name = store.GetAssembly(applicationHostFile);
 
             var matches = GetAllWithName(AppDomain.CurrentDomain.GetAssemblies(), name);
             var resolved = MatchOne(name, applicationHostFile, matches);
@@ -56,6 +57,7 @@ namespace Starcounter.Hosting {
             Trace("Asked to resolve reference to {0}, requested by {1}", args.Name, args.RequestingAssembly == null ? "<unknown>" : args.RequestingAssembly.FullName);
             
             var name = new AssemblyName(args.Name);
+            var store = PrivateAssemblies.Immutable;
 
             // Always check first if we can find one loaded that has a signature
             // we consider a match. If we do, return that one.
@@ -74,17 +76,17 @@ namespace Starcounter.Hosting {
 
             var requesting = args.RequestingAssembly;
             var pick =  requesting != null ? 
-                ResolveApplicationReferenceScoped(name, requesting) : 
-                ResolveApplicationReferenceUnscoped(name);
+                ResolveApplicationReferenceScoped(name, requesting, store) : 
+                ResolveApplicationReferenceUnscoped(name, store);
 
             return pick == null ? null : Load(pick.Name, pick.FilePath);
         }
 
-        PrivateBinaryFile ResolveApplicationReferenceUnscoped(AssemblyName name) {
+        PrivateBinaryFile ResolveApplicationReferenceUnscoped(AssemblyName name, IPrivateAssemblyStore store) {
             // No requesting assembly usually means a bind failed from an
             // Assembly.Load() call, with a partial name.
             
-            var candidates = PrivateAssemblies.GetAssemblies(name.Name);
+            var candidates = store.GetAssemblies(name.Name);
             if (candidates.Length == 0) {
                 Trace("Failed resolving {0}: no such assemblies found among private assemblies", name.FullName);
                 return null;
@@ -99,10 +101,10 @@ namespace Starcounter.Hosting {
             return pick;
         }
 
-        PrivateBinaryFile ResolveApplicationReferenceScoped(AssemblyName name, Assembly requestingAssembly) {
+        PrivateBinaryFile ResolveApplicationReferenceScoped(AssemblyName name, Assembly requestingAssembly, IPrivateAssemblyStore store) {
             var scope = requestingAssembly.Location;
             var applicationDirectory = Path.GetDirectoryName(scope);
-            if (!PrivateAssemblies.IsApplicationDirectory(applicationDirectory)) {
+            if (!store.IsApplicationDirectory(applicationDirectory)) {
                 // We only resolve references between assemblies stored in any
                 // of the application directories.
                 Trace("Failed resolving {0}: requesting assembly not from a known path ({1})", name.FullName, scope);
@@ -114,7 +116,7 @@ namespace Starcounter.Hosting {
             // from another directory than the requestee. If we find several, we
             // need to determine which to load.
 
-            var candidates = PrivateAssemblies.GetAssemblies(name.Name);
+            var candidates = store.GetAssemblies(name.Name);
             if (candidates.Length == 0) {
                 Trace("Failed resolving {0}: no such assemblies found among private assemblies", name.FullName);
                 return null;

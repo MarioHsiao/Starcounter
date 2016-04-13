@@ -66,13 +66,16 @@
     <AssemblyOriginatorKeyFile>..\..\Starcounter.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ApplicationDirectory.cs" />
     <Compile Include="AssemblyResolver.cs" />
     <Compile Include="CodeHostError.cs" />
     <Compile Include="ExceptionManager.cs" />
+    <Compile Include="IPrivateAssemblyStore.cs" />
     <Compile Include="Loader.cs" />
     <Compile Include="orange.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="PrivateAssemblyStore.cs" />
+    <Compile Include="PrivateBinaryFile.cs" />
     <Compile Include="Processor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="sccoreapp.cs" />
