@@ -9,41 +9,12 @@ using System.Threading.Tasks;
 
 namespace Starcounter.Hosting {
     /// <summary>
-    /// Represents a binary file the host is aware of, possibly an
-    /// assembly, located in one of the application directories.
-    /// </summary>
-    internal sealed class PrivateBinaryFile {
-        public readonly string FilePath;
-        public readonly AssemblyName Name;
-        public readonly DateTime Resolved;
-
-        public PrivateBinaryFile(string path) {
-            FilePath = path;
-            Resolved = DateTime.Now;
-            try {
-                Name = AssemblyName.GetAssemblyName(path);
-            } catch (BadImageFormatException) { }
-        }
-
-        public bool IsAssembly {
-            get { return Name != null; }
-        }
-
-        public bool IsFromApplicaionDirectory(string dir) {
-            return PrivateAssemblyStore.EqualDirectories(
-                Path.GetDirectoryName(FilePath),
-                dir);
-        }
-    }
-
-    /// <summary>
     /// Represents the collection of private assemblies the code host is
     /// aware of, based on loaded applications.
     /// </summary>
     internal sealed class PrivateAssemblyStore {
         readonly List<string> applicationDirectories = new List<string>();
         readonly Dictionary<string, PrivateBinaryFile> fileToIdentity = new Dictionary<string, PrivateBinaryFile>(StringComparer.InvariantCultureIgnoreCase);
-        
         public void RegisterApplicationDirectory(DirectoryInfo dir) {
             var binaries = new List<FileInfo>();
             binaries.AddRange(dir.GetFiles("*.dll"));

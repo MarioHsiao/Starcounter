@@ -74,6 +74,7 @@
     <Compile Include="orange.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="PrivateAssemblyStore.cs" />
+    <Compile Include="PrivateBinaryFile.cs" />
     <Compile Include="Processor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="sccoreapp.cs" />
