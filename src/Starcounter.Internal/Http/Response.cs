@@ -806,7 +806,7 @@ namespace Starcounter
 
                 try {
 
-                    bytes = resource_.AsMimeType(mimetype, out mimetype);
+                    bytes = resource_.AsMimeType(mimetype, out mimetype, req);
 
                     // Checking if Content-Type header is set already.
                     if (null == ContentType) {
@@ -842,7 +842,7 @@ namespace Starcounter
 
                     while (bytes == null && secondaryChoices.MoveNext()) {
                         mimetype = secondaryChoices.Current;
-                        bytes = resource_.AsMimeType(mimetype, out mimetype);
+                        bytes = resource_.AsMimeType(mimetype, out mimetype, req);
                     }
 
                     if (bytes == null) {
