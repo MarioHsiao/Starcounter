@@ -26,6 +26,11 @@
 - Added possibility to register internal codehost handlers with `HandlerOptions.SelfOnly`. See [#3339](https://github.com/Starcounter/Starcounter/issues/3339)
 - Added overloads for `Db.Transact` that allows specifying delegates that take input and output parameters. See [#2822](https://github.com/Starcounter/Starcounter/issues/2822) and documentation on http://starcounter.io/guides/transactions/ 
 - Added property `Request.HandlerAppName` to know to which application this request belongs.
+- Changed signature of MIME providers, and gave them access to the Request. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Introduced support for multiple MIME providers / MIME type. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Redesigned MIME providers so that the are now chained, and responsible for invoking the "next" one. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Split up built-in provider HtmlFromJsonProvider into that, plus new PartialToStandaloneHtmlProvider. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Introduced new JsonAutoSessions MIME provider, supporting auto-creation of sessions as middleware. See [#3446](https://github.com/Starcounter/Starcounter/issues/3446)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
