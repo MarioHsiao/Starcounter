@@ -63,6 +63,7 @@
 - Fixed a nullreference exception when merging json. [#3485](https://github.com/Starcounter/Starcounter/issues/3485)
 - Redesigned code host app bootstrapper to work better when apps start in concert, see [#3460](https://github.com/Starcounter/Starcounter/issues/3460)
 - Fixed a bug and improved errormessage when generating binding between dataobject and TypedJson where the property in TypedJson was an object or array. [#3491](https://github.com/Starcounter/Starcounter/issues/3491)
+- Make sure the request is passed as a parameter when constructing a response from a resource, see [#3496](https://github.com/Starcounter/Starcounter/issues/3496)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
