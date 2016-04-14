@@ -26,6 +26,11 @@
 - Added possibility to register internal codehost handlers with `HandlerOptions.SelfOnly`. See [#3339](https://github.com/Starcounter/Starcounter/issues/3339)
 - Added overloads for `Db.Transact` that allows specifying delegates that take input and output parameters. See [#2822](https://github.com/Starcounter/Starcounter/issues/2822) and documentation on http://starcounter.io/guides/transactions/ 
 - Added property `Request.HandlerAppName` to know to which application this request belongs.
+- Changed signature of MIME providers, and gave them access to the Request. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Introduced support for multiple MIME providers / MIME type. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Redesigned MIME providers so that the are now chained, and responsible for invoking the "next" one. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Split up built-in provider HtmlFromJsonProvider into that, plus new PartialToStandaloneHtmlProvider. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Introduced new JsonAutoSessions MIME provider, supporting auto-creation of sessions as middleware. See [#3446](https://github.com/Starcounter/Starcounter/issues/3446)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
@@ -58,6 +63,8 @@
 - Fixed a nullreference exception when merging json. [#3485](https://github.com/Starcounter/Starcounter/issues/3485)
 - Redesigned code host app bootstrapper to work better when apps start in concert, see [#3460](https://github.com/Starcounter/Starcounter/issues/3460)
 - Fixed a bug and improved errormessage when generating binding between dataobject and TypedJson where the property in TypedJson was an object or array. [#3491](https://github.com/Starcounter/Starcounter/issues/3491)
+- Fixed a bug that it was not possible to use same class names as meta-tables, see [#3482](https://github.com/Starcounter/Starcounter/issues/3482).
+- Make sure the request is passed as a parameter when constructing a response from a resource, see [#3496](https://github.com/Starcounter/Starcounter/issues/3496)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
