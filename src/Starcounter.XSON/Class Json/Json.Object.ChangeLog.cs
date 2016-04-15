@@ -91,7 +91,7 @@ namespace Starcounter {
 			this.Template.VerifyProperty(prop);
 #endif
             if (this.trackChanges)
-                return (WasReplacedAt(prop.TemplateIndex));
+                return (IsDirty(prop.TemplateIndex));
             return false;
 		}
 
@@ -156,7 +156,7 @@ namespace Starcounter {
             } else {
                 for (int t = 0; t < this.valueList.Count; t++) {
                     var arrItem = ((Json)this.valueList[t]);
-                    if (this.WasReplacedAt(t)) { // A refresh of an existing row (that is not added or removed)
+                    if (this.IsDirty(t)) { // A refresh of an existing row (that is not added or removed)
                         changeLog.Add(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
                         this.CheckpointAt(t);
                     } else {
@@ -192,7 +192,7 @@ namespace Starcounter {
                     var exposed = ((TObject)template).Properties.ExposedProperties;
                     if (json.dirty) {
                         for (int t = 0; t < exposed.Count; t++) {
-                            if (json.WasReplacedAt(exposed[t].TemplateIndex)) {
+                            if (json.IsDirty(exposed[t].TemplateIndex)) {
                                 if (clog != null) {
                                     if (json.IsArray) {
                                         throw new NotImplementedException();
@@ -245,7 +245,7 @@ namespace Starcounter {
                     }
                 } else {
                     if (json.dirty) {
-                        if (json.WasReplacedAt(template.TemplateIndex)) {
+                        if (json.IsDirty(template.TemplateIndex)) {
                             if (clog != null)
                                 clog.UpdateValue(json, null);
                             json.CheckpointAt(template.TemplateIndex);

@@ -57,7 +57,7 @@ namespace Starcounter {
                 }
 
                 if (Parent != null) {
-                    return ((IndexInParent != -1) && (!Parent.WasReplacedAt(IndexInParent)));
+                    return ((IndexInParent != -1) && (!Parent.IsDirty(IndexInParent)));
                 } else {
                     var log = ChangeLog;
                     if (log == null) {
@@ -144,7 +144,7 @@ namespace Starcounter {
             value.SetDefaultValue(this);
         }
 
-        internal bool WasReplacedAt(int index) {
+        internal bool IsDirty(int index) {
             return ((stateFlags[index] & PropertyState.Dirty) == PropertyState.Dirty);
         }
 
