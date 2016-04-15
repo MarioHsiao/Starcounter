@@ -496,8 +496,8 @@ namespace Starcounter.Internal.XSON.Tests {
             stepSiblings.Add(p.ExtraInfo);
             stepSiblings.Add(ss);
 
-            p.ExtraInfo.StepSiblings = stepSiblings;
-            ss.StepSiblings = stepSiblings;
+            p.ExtraInfo.Siblings = stepSiblings;
+            ss.Siblings = stepSiblings;
 
             var session = new Session(SessionOptions.IncludeNamespaces);
             p.Session = session;
@@ -532,8 +532,8 @@ namespace Starcounter.Internal.XSON.Tests {
             stepSiblings.Add(p.ExtraInfo);
             stepSiblings.Add(ss);
 
-            p.ExtraInfo.StepSiblings = stepSiblings;
-            ss.StepSiblings = stepSiblings;
+            p.ExtraInfo.Siblings = stepSiblings;
+            ss.Siblings = stepSiblings;
 
             var session = new Session(SessionOptions.IncludeNamespaces);
             session.enableNamespaces = true;

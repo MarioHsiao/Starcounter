@@ -21,8 +21,8 @@ namespace Starcounter {
 			if (Parent != null)
 				Parent.Dirtyfy();
 
-            if (callStepSiblings == true && _stepSiblings != null) {
-                foreach (Json stepSibling in _stepSiblings) {
+            if (callStepSiblings == true && this.siblings != null) {
+                foreach (Json stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
                     stepSibling.Dirtyfy(false);
@@ -62,10 +62,10 @@ namespace Starcounter {
                         this,
                         (TValue)Template);
 
-                    if (callStepSiblings == true && this._stepSiblings != null) {
-                        for (int i = 0; i < _stepSiblings.Count; i++) {
-                            var sibling = _stepSiblings[i];
-                            _stepSiblings.MarkAsSent(i);
+                    if (callStepSiblings == true && this.siblings != null) {
+                        for (int i = 0; i < this.siblings.Count; i++) {
+                            var sibling = siblings[i];
+                            this.siblings.MarkAsSent(i);
 
                             if (sibling == this)
                                 continue;
@@ -255,18 +255,18 @@ namespace Starcounter {
                     }
                 }
 
-                if (css == true && json._stepSiblings != null) {
-                    for (int i = 0; i < _stepSiblings.Count; i++) {
-                        var sibling = _stepSiblings[i];
+                if (css == true && json.siblings != null) {
+                    for (int i = 0; i < json.siblings.Count; i++) {
+                        var sibling = json.siblings[i];
 
                         if (sibling == json)
                             continue;
 
-                        if (_stepSiblings.HasBeenSent(i)) {
+                        if (json.siblings.HasBeenSent(i)) {
                             sibling.LogValueChangesWithDatabase(clog, false);
                         } else {
                             clog.Add(Change.Update(sibling, null, true));
-                            _stepSiblings.MarkAsSent(i);
+                            json.siblings.MarkAsSent(i);
                         }
                     }
                 }
@@ -308,8 +308,8 @@ namespace Starcounter {
                         }
                     }
 
-                    if (callStepSiblings == true && json._stepSiblings != null) {
-                        foreach (var stepSibling in json._stepSiblings) {
+                    if (callStepSiblings == true && json.siblings != null) {
+                        foreach (var stepSibling in json.siblings) {
                             if (stepSibling == this)
                                 continue;
                             stepSibling.SetBoundValuesInTuple(false);
@@ -596,8 +596,8 @@ namespace Starcounter {
                 }
             }
 
-            if (callStepSiblings && _stepSiblings != null) {
-                foreach (var stepSibling in _stepSiblings) {
+            if (callStepSiblings && this.siblings != null) {
+                foreach (var stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
                     stepSibling.CleanupOldVersionLogs(version, toVersion, false);
@@ -610,8 +610,8 @@ namespace Starcounter {
         /// This method will be called on each childjson as well.
         /// </summary>
         private void OnAddedToViewmodel(bool callStepSiblings) {
-            if (callStepSiblings == true && this._stepSiblings != null) {
-                foreach (var stepSibling in this._stepSiblings) {
+            if (callStepSiblings == true && this.siblings != null) {
+                foreach (var stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
                     stepSibling.OnAddedToViewmodel(false);
@@ -706,8 +706,8 @@ namespace Starcounter {
                 }
             }
 
-            if (callStepSiblings == true && this._stepSiblings != null) {
-                foreach (var stepSibling in _stepSiblings) {
+            if (callStepSiblings == true && this.siblings != null) {
+                foreach (var stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
 
@@ -720,10 +720,10 @@ namespace Starcounter {
             }
         }
 
-        internal SiblingList StepSiblings {
-            get { return _stepSiblings; }
+        internal SiblingList Siblings {
+            get { return this.siblings; }
             set {
-                _stepSiblings = value;
+                this.siblings = value;
                 if (this.Session != null) {
                     // We just call OnAdd for this sibling since the list will be set on each one.
                     // If the sibling is already added the method will just return so no need to 

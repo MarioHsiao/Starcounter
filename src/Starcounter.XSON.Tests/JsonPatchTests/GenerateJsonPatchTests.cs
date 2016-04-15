@@ -143,10 +143,10 @@ namespace Starcounter.Internal.XSON.Tests {
                 stepSiblings.Add(json2);
                 Json real = json.Page;
                 real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.Siblings = stepSiblings;
                 real = json2;
                 real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.Siblings = stepSiblings;
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
@@ -178,10 +178,10 @@ namespace Starcounter.Internal.XSON.Tests {
                 stepSiblings.Add(json2);
                 real = json.Focused;
                 real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.Siblings = stepSiblings;
                 real = json2;
                 real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.Siblings = stepSiblings;
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch

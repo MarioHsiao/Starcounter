@@ -129,13 +129,13 @@ namespace Starcounter.XSON {
                     // If no stepsiblings exists (or only one) it is the current json. Otherwise we need to 
                     // find the correct sibling.
                     bool found = false;
-                    if (json.StepSiblings == null) {
+                    if (json.Siblings == null) {
                         if (json._appName == ptr.Current) {
                             ptr.MoveNext();
                             found = true;
                         }
                     } else {
-                        foreach (Json stepSibling in json.StepSiblings) {
+                        foreach (Json stepSibling in json.Siblings) {
                             if (stepSibling._appName == ptr.Current) {
                                 json = stepSibling;
                                 ptr.MoveNext();

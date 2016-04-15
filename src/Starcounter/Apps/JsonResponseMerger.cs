@@ -59,12 +59,12 @@ namespace Starcounter.Internal {
                 mainJson = resp.Resource as Json;
 
                 if (mainJson != null) {
-                    if (mainJson.StepSiblings != null) {
-                        if (mainJson.StepSiblings.HasBeenSent(mainJson.StepSiblings.IndexOf(mainJson))) {
+                    if (mainJson.Siblings != null) {
+                        if (mainJson.Siblings.HasBeenSent(mainJson.Siblings.IndexOf(mainJson))) {
                             stepSiblings = new SiblingList();
                             stepSiblings.Add(mainJson);
                             stepSiblings.MarkAsSent(0);
-                            mainJson.StepSiblings = stepSiblings;
+                            mainJson.Siblings = stepSiblings;
                         }
                     }
                     mainJson._appName = resp.AppName;
@@ -98,11 +98,11 @@ namespace Starcounter.Internal {
                 mainJson._appName = mainResponse.AppName;
                 mainJson._wrapInAppName = true;
                 
-                var oldSiblings = mainJson.StepSiblings;
+                var oldSiblings = mainJson.Siblings;
 
                 stepSiblings = new SiblingList();
                 stepSiblings.Add(mainJson);
-                mainJson.StepSiblings = stepSiblings;
+                mainJson.Siblings = stepSiblings;
 
                 if (responses.Count == 1) {
                     MarkExistingSiblingsAsSent(mainJson, oldSiblings);
@@ -129,12 +129,12 @@ namespace Starcounter.Internal {
                         siblingJson._appName = responses[i].AppName;
                         siblingJson._wrapInAppName = true;
 
-                        if (siblingJson.StepSiblings != null) {
+                        if (siblingJson.Siblings != null) {
                             // We have another set of step-siblings. Merge them into one list.
-                            foreach (var existingSibling in siblingJson.StepSiblings) {
+                            foreach (var existingSibling in siblingJson.Siblings) {
                                 if (!stepSiblings.Contains(existingSibling)) {
                                     stepSiblings.Add(existingSibling);
-                                    existingSibling.StepSiblings = stepSiblings;
+                                    existingSibling.Siblings = stepSiblings;
                                 }
                             }
                         }
@@ -142,7 +142,7 @@ namespace Starcounter.Internal {
                         if (!stepSiblings.Contains(siblingJson)) {
                             stepSiblings.Add(siblingJson);
                         }
-                        siblingJson.StepSiblings = stepSiblings;
+                        siblingJson.Siblings = stepSiblings;
                     }
                 }
 
@@ -161,7 +161,7 @@ namespace Starcounter.Internal {
             if (json == null || afterMergeCallbacks_.Count == 0)
                 return;
 
-            list = json.StepSiblings;
+            list = json.Siblings;
             if (list == null) {
                 list = new SiblingList();
                 list.Add(json);
@@ -172,12 +172,12 @@ namespace Starcounter.Internal {
                 if (newSibling != null) {
                     newSibling._wrapInAppName = true;
                     list.Add(newSibling);
-                    newSibling.StepSiblings = list;
+                    newSibling.Siblings = list;
                 }
             }
 
-            if (json.StepSiblings == null && list.Count > 1) {
-                json.StepSiblings = list;
+            if (json.Siblings == null && list.Count > 1) {
+                json.Siblings = list;
             }
         }
 
@@ -185,7 +185,7 @@ namespace Starcounter.Internal {
             SiblingList newSiblings;
 
             if (oldSiblings != null && mainJson.Parent != null) {
-                newSiblings = mainJson.StepSiblings;
+                newSiblings = mainJson.Siblings;
                 for (int i = 0; i < newSiblings.Count; i++) {
                     int index = oldSiblings.IndexOf(newSiblings[i]);
                     if (index != -1) {

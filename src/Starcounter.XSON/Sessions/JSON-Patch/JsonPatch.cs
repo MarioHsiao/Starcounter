@@ -342,8 +342,8 @@ namespace Starcounter.XSON {
 
             size = -1;
             totalSize = 0;
-            if (!calledFromStepSibling && json.StepSiblings != null) {
-                foreach (Json stepSibling in json.StepSiblings) {
+            if (!calledFromStepSibling && json.Siblings != null) {
+                foreach (Json stepSibling in json.Siblings) {
                     if (stepSibling == json)
                         continue;
                     size = EstimateSizeOfPath(stepSibling, includeNamespace, true);
@@ -404,8 +404,8 @@ namespace Starcounter.XSON {
                 return true;
 
             pathWritten = false;
-            if (!calledFromStepSibling && json.StepSiblings != null) {
-                foreach (Json stepSibling in json.StepSiblings) {
+            if (!calledFromStepSibling && json.Siblings != null) {
+                foreach (Json stepSibling in json.Siblings) {
                     if (stepSibling == json)
                         continue;
 

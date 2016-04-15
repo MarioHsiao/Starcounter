@@ -202,12 +202,12 @@ namespace Starcounter.Advanced.XSON {
                 
                 // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
                 // we check if we have more than one stepsibling.
-                if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
+                if (!json.calledFromStepSibling && json.Siblings != null && json.Siblings.Count != 1) {
                     // For comma.
                     sizeBytes++;
 
                     // Calculating the size for each step sibling.
-                    foreach (Json pp in json.StepSiblings) {
+                    foreach (Json pp in json.Siblings) {
                         if (pp == json)
                             continue;
 
@@ -431,12 +431,12 @@ namespace Starcounter.Advanced.XSON {
 
                     // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
                     // we check if we have more than one stepsibling.
-                    if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
+                    if (!json.calledFromStepSibling && json.Siblings != null && json.Siblings.Count != 1) {
                         bool addComma = true;
 
                         // Serializing every sibling first.
-                        for (int s = 0; s < json.StepSiblings.Count; s++) {
-                            var pp = json.StepSiblings[s];
+                        for (int s = 0; s < json.Siblings.Count; s++) {
+                            var pp = json.Siblings[s];
 
                             if (pp == json)
                                 continue;
@@ -468,7 +468,7 @@ namespace Starcounter.Advanced.XSON {
                                 pfrag += valueSize;
                                 used += valueSize;
 
-                                if ((s + 1) < json.StepSiblings.Count) {
+                                if ((s + 1) < json.Siblings.Count) {
                                     addComma = true;
                                 }
                             } finally {
