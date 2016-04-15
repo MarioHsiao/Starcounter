@@ -333,7 +333,7 @@ namespace Starcounter {
         /// entire template (for example to mark a property for all Obj instances as Editable).</remarks>
         // TODO:
         // Metadata has never been used. It should either be fixed or removed.
-        internal ObjMetadata<TObject, Json> Metadata { get { return _Metadata; } }
+        internal ObjMetadata<TObject, Json> Metadata { get { return metadata; } }
 
         /// <summary>
         /// Gets or sets the parent.

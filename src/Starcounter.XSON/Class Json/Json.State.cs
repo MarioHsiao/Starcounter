@@ -81,7 +81,7 @@ namespace Starcounter {
         /// <summary>
         /// Implementation field used to cache the Metadata property.
         /// </summary>
-        private ObjMetadata<TObject, Json> _Metadata = null;
+        private ObjMetadata<TObject, Json> metadata = null;
 
         /// <summary>
         /// The _ template
