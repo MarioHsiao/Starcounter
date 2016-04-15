@@ -14,7 +14,7 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void Dirtyfy(bool callStepSiblings = true) {
-            if (!_trackChanges)
+            if (!this.trackChanges)
                 return;
             
 			dirty = true;
@@ -34,7 +34,7 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void CheckpointChangeLog(bool callStepSiblings = true) {
-            if (!_trackChanges)
+            if (!this.trackChanges)
                 return;
 
 			if (this.IsArray) {
@@ -90,7 +90,7 @@ namespace Starcounter {
 #if DEBUG
 			this.Template.VerifyProperty(prop);
 #endif
-            if (_trackChanges)
+            if (this.trackChanges)
                 return (WasReplacedAt(prop.TemplateIndex));
             return false;
 		}
@@ -100,7 +100,7 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="changeLog">Log of changes</param>
 		internal void LogValueChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings) {
-            if (!_trackChanges)
+            if (!this.trackChanges)
                 return;
 
 			if (this.IsArray) {
@@ -641,7 +641,7 @@ namespace Starcounter {
                 this.transaction = Session.RegisterTransaction(transaction);
             }
             
-            _trackChanges = true;
+            this.trackChanges = true;
 
             if (this.IsArray) {
                 stateFlags = new List<PropertyState>(_list.Count);
@@ -685,7 +685,7 @@ namespace Starcounter {
                 Session.DeregisterTransaction(this.transaction);
             }
 
-            _trackChanges = false;
+            this.trackChanges = false;
 
             if (this.IsArray) {
                 foreach (Json item in _list) {

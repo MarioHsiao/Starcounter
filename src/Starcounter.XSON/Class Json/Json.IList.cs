@@ -49,7 +49,7 @@ namespace Starcounter {
         /// </summary>
         internal bool HasBeenSent {
             get {
-                if (!_trackChanges)
+                if (!this.trackChanges)
                     return false;
 
                 if (this.siblings != null) {
@@ -87,7 +87,7 @@ namespace Starcounter {
                             // even after instances have been created.
                             // For this reason, we need to allow the expansion of the 
                             // values.
-                            if (_trackChanges)
+                            if (this.trackChanges)
                                 stateFlags.Add(PropertyState.Default);
                             childIndex = _list.Count;
                             _list.Add(null);
@@ -106,7 +106,7 @@ namespace Starcounter {
         internal void InitializeCache() {
             if (IsArray) {
                 _list = new List<Json>();
-                if (_trackChanges)
+                if (this.trackChanges)
                     stateFlags = new List<PropertyState>();
             } else {
                 SetDefaultValues();
@@ -120,7 +120,7 @@ namespace Starcounter {
                 _list = new List<object>();
 
             dirty = false;
-            if (_trackChanges)
+            if (this.trackChanges)
                 stateFlags = new List<PropertyState>();
 
             if (this.template.IsPrimitive) {
@@ -138,7 +138,7 @@ namespace Starcounter {
             if (_list != null)
                 _list.Add(null);
 
-            if (_trackChanges)
+            if (this.trackChanges)
                 stateFlags.Add(PropertyState.Default);
 
             value.SetDefaultValue(this);
@@ -220,7 +220,7 @@ namespace Starcounter {
             j.cacheIndexInArr = index;
             j.Parent = this;
 
-            if (_trackChanges) {
+            if (this.trackChanges) {
                 stateFlags.Insert(index, PropertyState.Default);
                 MarkAsReplaced(index);
             }
@@ -303,7 +303,7 @@ namespace Starcounter {
             j.Parent = this;
             list[index] = j;
 
-            if (_trackChanges) {
+            if (this.trackChanges) {
                 MarkAsReplaced(index);
                 Dirtyfy();
             }
@@ -332,7 +332,7 @@ namespace Starcounter {
             j.cacheIndexInArr = index;
             j.Parent = this;
 
-            if (_trackChanges) {
+            if (this.trackChanges) {
                 stateFlags.Add(PropertyState.Dirty);
                 Dirtyfy();    
             }
@@ -407,7 +407,7 @@ namespace Starcounter {
             item.SetParent(null);
             item.cacheIndexInArr = -1;
 
-            if (_trackChanges)
+            if (this.trackChanges)
                 stateFlags.RemoveAt(index);
             
             if (IsArray) {
@@ -428,7 +428,7 @@ namespace Starcounter {
         void IList.Clear() {
             VerifyIsArray();
 
-            if (_trackChanges) {
+            if (this.trackChanges) {
                 Parent.MarkAsReplaced(Template);
                 stateFlags.Clear();
             }

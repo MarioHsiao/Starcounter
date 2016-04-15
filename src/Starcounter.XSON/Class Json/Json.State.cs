@@ -109,7 +109,7 @@ namespace Starcounter {
         /// If set to true, additional features for keeping track of changes and getting a log of changes 
         /// are initialized. If not needed this should not be enabled since the performance will be much worse.
         /// </summary>
-        private bool _trackChanges;
+        private bool trackChanges;
 
         /// <summary>
         /// If set to false, bound properties will not be updated automatically.

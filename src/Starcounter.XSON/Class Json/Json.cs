@@ -91,7 +91,7 @@ namespace Starcounter {
             cacheIndexInArr = -1;
             transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();
-            _trackChanges = false;
+            trackChanges = false;
             _checkBoundProperties = true;
             appName = StarcounterEnvironment.AppName;
             if (template == null) {
@@ -310,7 +310,7 @@ namespace Starcounter {
                     HasChanged(p);
                 }
             }
-            if (_trackChanges)
+            if (this.trackChanges)
                 MarkAsReplaced(property);
         }
 

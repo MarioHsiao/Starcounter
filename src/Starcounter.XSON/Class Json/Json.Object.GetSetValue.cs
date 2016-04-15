@@ -232,7 +232,7 @@ namespace Starcounter {
 		/// <param name="item"></param>
 		internal void CallHasAddedElement(int index, Json item) {
 			var tarr = (TObjArr)this.Template;
-			if (_trackChanges) {
+			if (this.trackChanges) {
 				if (ArrayAddsAndDeletes == null) {
 					ArrayAddsAndDeletes = new List<Change>();
 				}
@@ -252,7 +252,7 @@ namespace Starcounter {
         /// <param name="item"></param>
         internal void CallHasReplacedElement(int index, Json item) {
             var tarr = (TObjArr)this.Template;
-            if (_trackChanges) {
+            if (this.trackChanges) {
                 if (ArrayAddsAndDeletes == null) {
                     ArrayAddsAndDeletes = new List<Change>();
                 }
@@ -267,7 +267,7 @@ namespace Starcounter {
 
         internal void CallHasMovedElement(int fromIndex, int toIndex, Json item) {
             var tarr = (TObjArr)this.Template;
-            if (_trackChanges) {
+            if (this.trackChanges) {
                 if (ArrayAddsAndDeletes == null) {
                     ArrayAddsAndDeletes = new List<Change>();
                 }
@@ -287,7 +287,7 @@ namespace Starcounter {
 		/// <param name="item"></param>
 		internal void CallHasRemovedElement(int index, Json item) {
 			var tarr = (TObjArr)this.Template;
-            if (_trackChanges) {
+            if (this.trackChanges) {
 				if (ArrayAddsAndDeletes == null) {
 					ArrayAddsAndDeletes = new List<Change>();
 				}
@@ -304,7 +304,7 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="property"></param>
 		internal void CallHasChanged(TObjArr property, int index) {
-            if (_trackChanges)
+            if (this.trackChanges)
                 this.Dirtyfy();
 
             if (Parent != null)
@@ -316,7 +316,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         internal void CallHasChanged(TValue property) {
-            if (_trackChanges)
+            if (this.trackChanges)
                 this.Dirtyfy();
             this.HasChanged(property);
         }

@@ -104,7 +104,7 @@ namespace Starcounter {
 				sb.Append('"');
 				sb.Append(prop.PropertyName);
 				sb.Append("\":");
-				if (json._trackChanges && json.WasReplacedAt(prop.TemplateIndex)) {
+				if (json.trackChanges && json.WasReplacedAt(prop.TemplateIndex)) {
 					sb.Append("<changed>");
 				}
 
