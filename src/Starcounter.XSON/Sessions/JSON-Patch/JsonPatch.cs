@@ -383,7 +383,7 @@ namespace Starcounter.XSON {
             }
 
             if (includeNamespace && !calledFromStepSibling && json._wrapInAppName) {
-                totalSize += json._appName.Length + 1;
+                totalSize += json.appName.Length + 1;
             } 
 
             return totalSize;
@@ -446,7 +446,7 @@ namespace Starcounter.XSON {
 
             if (includeNamespace && !calledFromStepSibling && json._wrapInAppName) {
                 writer.Write('/');
-                writer.Write(json._appName);
+                writer.Write(json.appName);
             }
             return true;
         }

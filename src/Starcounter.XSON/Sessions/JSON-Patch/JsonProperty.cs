@@ -130,13 +130,13 @@ namespace Starcounter.XSON {
                     // find the correct sibling.
                     bool found = false;
                     if (json.Siblings == null) {
-                        if (json._appName == ptr.Current) {
+                        if (json.appName == ptr.Current) {
                             ptr.MoveNext();
                             found = true;
                         }
                     } else {
                         foreach (Json stepSibling in json.Siblings) {
-                            if (stepSibling._appName == ptr.Current) {
+                            if (stepSibling.appName == ptr.Current) {
                                 json = stepSibling;
                                 ptr.MoveNext();
                                 found = true;
@@ -154,7 +154,7 @@ namespace Starcounter.XSON {
                     }
 
                     // Setting the current name to the correct app after we found an attachpoint to another app.
-                    StarcounterEnvironment.AppName = json._appName;
+                    StarcounterEnvironment.AppName = json.appName;
                 } 
 
                 // Here we have moved to a stepsibling or no stepsiblings exists and the current token 

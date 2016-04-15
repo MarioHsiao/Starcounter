@@ -67,7 +67,7 @@ namespace Starcounter.Internal {
                             mainJson.Siblings = stepSiblings;
                         }
                     }
-                    mainJson._appName = resp.AppName;
+                    mainJson.appName = resp.AppName;
                     mainJson._wrapInAppName = true;
                 }
 
@@ -95,7 +95,7 @@ namespace Starcounter.Internal {
 
             if (mainJson != null) {
 
-                mainJson._appName = mainResponse.AppName;
+                mainJson.appName = mainResponse.AppName;
                 mainJson._wrapInAppName = true;
                 
                 var oldSiblings = mainJson.Siblings;
@@ -126,7 +126,7 @@ namespace Starcounter.Internal {
                         if (siblingJson == null)
                             continue;
 
-                        siblingJson._appName = responses[i].AppName;
+                        siblingJson.appName = responses[i].AppName;
                         siblingJson._wrapInAppName = true;
 
                         if (siblingJson.Siblings != null) {

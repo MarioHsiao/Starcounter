@@ -93,7 +93,7 @@ namespace Starcounter {
             AttachCurrentTransaction();
             _trackChanges = false;
             _checkBoundProperties = true;
-            _appName = StarcounterEnvironment.AppName;
+            appName = StarcounterEnvironment.AppName;
             if (template == null) {
                 Template = GetDefaultTemplate();
             }

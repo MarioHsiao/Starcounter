@@ -101,7 +101,7 @@ namespace Starcounter {
         /// </summary>
         private SiblingList siblings;
 
-        internal String _appName;
+        internal String appName;
 
         internal Boolean _wrapInAppName;
         

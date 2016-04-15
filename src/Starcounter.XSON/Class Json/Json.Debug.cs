@@ -45,8 +45,8 @@ namespace Starcounter {
 
         private static void WriteAdditionalInfo(Json json, StringBuilder sb) {
             sb.Append("<app: ");
-            if (json._appName != null)
-                sb.Append(json._appName);
+            if (json.appName != null)
+                sb.Append(json.appName);
             else 
                 sb.Append("<null>");
             
