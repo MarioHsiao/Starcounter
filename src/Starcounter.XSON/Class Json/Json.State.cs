@@ -11,7 +11,15 @@ namespace Starcounter {
         [Flags]
         protected enum PropertyState : byte {
             Default = 0,
+            /// <summary>
+            /// The property is considered dirty and value should be sent to client.
+            /// </summary>
             Dirty = 1,
+            /// <summary>
+            /// Set for bound properties. The bound value is cached and should be read from
+            /// the cache. Used to avoid changes in bound values while gathering changes and 
+            /// serializing since these parts are done in steps.
+            /// </summary>
             Cached = 2
         }
 
@@ -38,7 +46,7 @@ namespace Starcounter {
         internal bool pendingEnumeration;
 
         /// <summary>
-        /// For unbound values, we keep a list of flags to know which properties has changed.
+        /// A list containing state for each property. Will only be initialized if changes are tracked.
         /// </summary>
         protected List<PropertyState> stateFlags;
 
