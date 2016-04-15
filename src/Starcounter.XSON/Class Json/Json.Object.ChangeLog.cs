@@ -226,7 +226,7 @@ namespace Starcounter {
                             }
                         }
                         json.dirty = false;
-                    } else if (_checkBoundProperties) {
+                    } else if (this.checkBoundProperties) {
                         for (int t = 0; t < exposed.Count; t++) {
                             if (exposed[t] is TContainer) {
                                 var c = ((TContainer)exposed[t]).GetValue(json);
@@ -277,7 +277,7 @@ namespace Starcounter {
 		}
 
 		internal void SetBoundValuesInTuple(bool callStepSiblings = true) {
-            if (!_checkBoundProperties)
+            if (!this.checkBoundProperties)
                 return;
 
 			if (IsArray) {
@@ -734,8 +734,8 @@ namespace Starcounter {
         }
 
         public bool AutoRefreshBoundProperties {
-            get { return _checkBoundProperties; }
-            set { _checkBoundProperties = value; } 
+            get { return this.checkBoundProperties; }
+            set { this.checkBoundProperties = value; } 
         }
 	}
 }

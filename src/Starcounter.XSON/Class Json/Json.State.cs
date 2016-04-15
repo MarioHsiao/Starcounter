@@ -114,7 +114,7 @@ namespace Starcounter {
         /// <summary>
         /// If set to false, bound properties will not be updated automatically.
         /// </summary>
-        internal bool _checkBoundProperties;
+        internal bool checkBoundProperties;
  
         private bool _isArray;
 

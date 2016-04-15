@@ -59,9 +59,9 @@ namespace Starcounter.Advanced.XSON {
         }
 
         public override int Serialize(Json json, IntPtr dest, int destSize) {
-            bool oldValue = json._checkBoundProperties;
+            bool oldValue = json.checkBoundProperties;
             try {
-                json._checkBoundProperties = false;
+                json.checkBoundProperties = false;
                 int realSize = json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, IntPtr d, int ds) => {
                     if (j.Template != null) {
                         return serializePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null, d, ds);
@@ -78,14 +78,14 @@ namespace Starcounter.Advanced.XSON {
                 AssertWrittenSize(json, realSize, destSize);
                 return realSize;
             } finally {
-                json._checkBoundProperties = oldValue;
+                json.checkBoundProperties = oldValue;
             }
         }
 
         public override int Serialize(Json json, Template property, IntPtr dest, int destSize) {
-            bool oldValue = json._checkBoundProperties;
+            bool oldValue = json.checkBoundProperties;
             try {
-                json._checkBoundProperties = false;
+                json.checkBoundProperties = false;
                 int realSize = json.Scope<TypedJsonSerializer, Json, Template, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, Template t, IntPtr d, int ds) => {
                     return serializePerTemplate[(int)t.TemplateTypeId](tjs, j, t, d, ds);
                 },
@@ -98,7 +98,7 @@ namespace Starcounter.Advanced.XSON {
                 AssertWrittenSize(json, realSize, destSize);
                 return realSize;
             } finally {
-                json._checkBoundProperties = oldValue;
+                json.checkBoundProperties = oldValue;
             }
         }
         

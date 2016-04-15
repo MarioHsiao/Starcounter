@@ -94,7 +94,7 @@ namespace Starcounter.Templates {
 
 			Arr<OT> arr = UnboundGetter(parent);
 
-            if (parent._checkBoundProperties && UseBinding(parent)) {
+            if (parent.checkBoundProperties && UseBinding(parent)) {
 				var data = BoundGetter(parent);
 				arr.CheckBoundArray(data);
 			}
@@ -120,7 +120,7 @@ namespace Starcounter.Templates {
 		internal override Json GetValue(Json parent) {
 			var arr = UnboundGetter(parent);
 
-            if (parent._checkBoundProperties && UseBinding(parent)) {
+            if (parent.checkBoundProperties && UseBinding(parent)) {
 				arr.CheckBoundArray(BoundGetter(parent));
 			}
 

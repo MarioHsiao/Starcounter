@@ -29,7 +29,7 @@ namespace Starcounter {
         
         internal Json(Json parent, TObjArr templ) {
             trackChanges = false;
-            _checkBoundProperties = true;
+            checkBoundProperties = true;
             cacheIndexInArr = -1;
             transaction = TransactionHandle.Invalid;
             appName = StarcounterEnvironment.AppName;
@@ -45,7 +45,7 @@ namespace Starcounter {
         /// <param name="result">The data source</param>
         protected Json(IEnumerable result) {
             trackChanges = false;
-            _checkBoundProperties = true;
+            checkBoundProperties = true;
             cacheIndexInArr = -1;
             transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();
