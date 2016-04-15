@@ -132,7 +132,7 @@ namespace Starcounter {
                     }
                 }
                 
-                for (int i = 0; i < _list.Count; i++) {
+                for (int i = 0; i < this.valueList.Count; i++) {
                     // Skip all items we have already added to the changelog.
                     logChanges = true;
                     foreach (Change change in ArrayAddsAndDeletes) {
@@ -143,7 +143,7 @@ namespace Starcounter {
                     }
 
                     if (logChanges) {
-                        ((Json)_list[i]).LogValueChangesWithDatabase(changeLog, callStepSiblings);
+                        ((Json)this.valueList[i]).LogValueChangesWithDatabase(changeLog, callStepSiblings);
                      }
                 }
 
@@ -154,8 +154,8 @@ namespace Starcounter {
                 }
                 ArrayAddsAndDeletes = null;
             } else {
-                for (int t = 0; t < _list.Count; t++) {
-                    var arrItem = ((Json)_list[t]);
+                for (int t = 0; t < this.valueList.Count; t++) {
+                    var arrItem = ((Json)this.valueList[t]);
                     if (this.WasReplacedAt(t)) { // A refresh of an existing row (that is not added or removed)
                         changeLog.Add(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
                         this.CheckpointAt(t);
@@ -281,7 +281,7 @@ namespace Starcounter {
                 return;
 
 			if (IsArray) {
-				foreach (Json item in _list) {
+				foreach (Json item in this.valueList) {
 					item.SetBoundValuesInTuple();
 				}
 			} else {
@@ -347,14 +347,14 @@ namespace Starcounter {
             bool hasChanged = false;
 
             foreach (object value in boundValue) {
-                if (_list.Count <= index) {
+                if (this.valueList.Count <= index) {
                     newJson = (Json)tArr.ElementType.CreateInstance();
                     newJson.data = value;
                     ((IList)this).Add(newJson);
                     newJson.Data = value;
                     hasChanged = true;
                 } else {
-                    oldJson = (Json)_list[index];
+                    oldJson = (Json)this.valueList[index];
                     if (!CompareDataObjects(oldJson.Data, value)) {
                         newJson = (Json)tArr.ElementType.CreateInstance();
                         newJson.data = value;
@@ -367,7 +367,7 @@ namespace Starcounter {
                 index++;
             }
 
-            for (int i = _list.Count - 1; i >= index; i--) {
+            for (int i = this.valueList.Count - 1; i >= index; i--) {
                 ((IList)this).RemoveAt(i);
                 hasChanged = true;
             }
@@ -415,7 +415,7 @@ namespace Starcounter {
 
             int deleteCount = 0;
             
-            for (int i = _list.Count - 1; i >= index; i--) {
+            for (int i = this.valueList.Count - 1; i >= index; i--) {
                 jsonList.RemoveAt(i);
                 hasChanged = true;
                 deleteCount++;
@@ -579,7 +579,7 @@ namespace Starcounter {
             }
 
             if (IsArray) {
-                foreach (Json child in _list) {
+                foreach (Json child in this.valueList) {
                     child.CleanupOldVersionLogs(version, toVersion);
                 }
             } else {
@@ -644,8 +644,8 @@ namespace Starcounter {
             this.trackChanges = true;
 
             if (this.IsArray) {
-                stateFlags = new List<PropertyState>(_list.Count);
-                foreach (Json item in _list) {
+                stateFlags = new List<PropertyState>(this.valueList.Count);
+                foreach (Json item in this.valueList) {
                     stateFlags.Add(PropertyState.Default);
                     item.OnAddedToViewmodel(true);
                 }
@@ -688,7 +688,7 @@ namespace Starcounter {
             this.trackChanges = false;
 
             if (this.IsArray) {
-                foreach (Json item in _list) {
+                foreach (Json item in this.valueList) {
                     item.OnRemovedFromViewmodel(true);
                 }
             } else {

@@ -46,8 +46,12 @@ namespace Starcounter {
         protected List<PropertyState> stateFlags;
 
         /// <summary>
+        /// If this is a dynamic or a non-codegenerated jsonobject the list will contain the values 
+        /// for each property.
+        /// If this is an array, the list will contain the rows.
+        /// If none of the above the list is not used and will never be initialized.
         /// </summary>
-        private IList _list;
+        private IList valueList;
 
         /// <summary>
         /// Json instances (objects or arrays) can be values in a hosting object property or in a 

@@ -73,28 +73,28 @@ namespace Starcounter {
         /// </summary>
         protected IList list {
             get {
-                if (_list == null) {
+                if (this.valueList == null) {
                     return null;
                 }
                 if (IsArray) {
-                    return _list;
+                    return this.valueList;
                 } else {
                     int childIndex;
                     if (!Template.IsPrimitive) {
                         var template = (TObject)Template;
-                        while (_list.Count < template.Properties.Count) {
+                        while (this.valueList.Count < template.Properties.Count) {
                             // We allow adding new properties to dynamic templates
                             // even after instances have been created.
                             // For this reason, we need to allow the expansion of the 
                             // values.
                             if (this.trackChanges)
                                 stateFlags.Add(PropertyState.Default);
-                            childIndex = _list.Count;
-                            _list.Add(null);
+                            childIndex = this.valueList.Count;
+                            this.valueList.Add(null);
                             ((TValue)template.Properties[childIndex]).SetDefaultValue(this);
                         }
                     }
-                    return _list;
+                    return this.valueList;
                 }
             }
         }
@@ -105,7 +105,7 @@ namespace Starcounter {
         /// <param name="vc"></param>
         internal void InitializeCache() {
             if (IsArray) {
-                _list = new List<Json>();
+                this.valueList = new List<Json>();
                 if (this.trackChanges)
                     stateFlags = new List<PropertyState>();
             } else {
@@ -117,7 +117,7 @@ namespace Starcounter {
             TObject tobj;
 
             if (!IsCodegenerated)
-                _list = new List<object>();
+                this.valueList = new List<object>();
 
             dirty = false;
             if (this.trackChanges)
@@ -135,8 +135,8 @@ namespace Starcounter {
         }
 
         private void SetDefaultValue(TValue value) {
-            if (_list != null)
-                _list.Add(null);
+            if (valueList != null)
+                this.valueList.Add(null);
 
             if (this.trackChanges)
                 stateFlags.Add(PropertyState.Default);
@@ -415,7 +415,7 @@ namespace Starcounter {
                 var tarr = (TObjArr)Template;
                 CallHasRemovedElement(index, item);
                 for (Int32 i = index; i < list.Count; i++) {
-                    otherItem = (Json)_list[i];
+                    otherItem = (Json)this.valueList[i];
                     otherItem.cacheIndexInArr = i;
                 }
             }
