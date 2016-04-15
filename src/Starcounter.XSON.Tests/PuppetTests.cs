@@ -484,13 +484,13 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestSerializeWithNamespacesDisabled() {
             person p = new person();
             p.appName = "MainApp";
-            p._wrapInAppName = true;
+            p.wrapInAppName = true;
             p.ExtraInfo.appName = "MainApp";
-            p.ExtraInfo._wrapInAppName = true;
+            p.ExtraInfo.wrapInAppName = true;
 
             supersimple ss = new supersimple();
             ss.appName = "PartialApp";
-            ss._wrapInAppName = true;
+            ss.wrapInAppName = true;
 
             SiblingList stepSiblings = new SiblingList();
             stepSiblings.Add(p.ExtraInfo);
@@ -520,13 +520,13 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestSerializeWithNamespacesEnabled() {
             person p = new person();
             p.appName = "MainApp";
-            p._wrapInAppName = true;
+            p.wrapInAppName = true;
             p.ExtraInfo.appName = "MainApp";
-            p.ExtraInfo._wrapInAppName = true;
+            p.ExtraInfo.wrapInAppName = true;
 
             supersimple ss = new supersimple();
             ss.appName = "PartialApp";
-            ss._wrapInAppName = true;
+            ss.wrapInAppName = true;
 
             SiblingList stepSiblings = new SiblingList();
             stepSiblings.Add(p.ExtraInfo);

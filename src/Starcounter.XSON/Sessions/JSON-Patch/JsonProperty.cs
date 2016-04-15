@@ -124,7 +124,7 @@ namespace Starcounter.XSON {
                     throw new NotImplementedException();
                 }
 
-                if (json._wrapInAppName && Session.Current.PublicViewModel != json) {
+                if (json.wrapInAppName && Session.Current.PublicViewModel != json) {
                     // We have a possible attachpoint. The current token in pointer points to a stepsibling.
                     // If no stepsiblings exists (or only one) it is the current json. Otherwise we need to 
                     // find the correct sibling.

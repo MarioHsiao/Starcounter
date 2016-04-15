@@ -103,7 +103,7 @@ namespace Starcounter {
 
         internal String appName;
 
-        internal Boolean _wrapInAppName;
+        internal Boolean wrapInAppName;
         
         /// <summary>
         /// If set to true, additional features for keeping track of changes and getting a log of changes 

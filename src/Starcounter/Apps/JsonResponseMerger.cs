@@ -68,7 +68,7 @@ namespace Starcounter.Internal {
                         }
                     }
                     mainJson.appName = resp.AppName;
-                    mainJson._wrapInAppName = true;
+                    mainJson.wrapInAppName = true;
                 }
 
                 return resp;
@@ -96,7 +96,7 @@ namespace Starcounter.Internal {
             if (mainJson != null) {
 
                 mainJson.appName = mainResponse.AppName;
-                mainJson._wrapInAppName = true;
+                mainJson.wrapInAppName = true;
                 
                 var oldSiblings = mainJson.Siblings;
 
@@ -127,7 +127,7 @@ namespace Starcounter.Internal {
                             continue;
 
                         siblingJson.appName = responses[i].AppName;
-                        siblingJson._wrapInAppName = true;
+                        siblingJson.wrapInAppName = true;
 
                         if (siblingJson.Siblings != null) {
                             // We have another set of step-siblings. Merge them into one list.
@@ -170,7 +170,7 @@ namespace Starcounter.Internal {
             foreach (var hook in afterMergeCallbacks_) {
                 newSibling = hook.Invoke(request, callingAppName, list);
                 if (newSibling != null) {
-                    newSibling._wrapInAppName = true;
+                    newSibling.wrapInAppName = true;
                     list.Add(newSibling);
                     newSibling.Siblings = list;
                 }

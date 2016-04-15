@@ -50,7 +50,7 @@ namespace Starcounter {
             else 
                 sb.Append("<null>");
             
-            if (json._wrapInAppName)
+            if (json.wrapInAppName)
                 sb.Append(", addNamespaces");
 
             sb.Append('>');

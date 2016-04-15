@@ -575,7 +575,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="session"></param>
         /// <returns></returns>
         private static bool ShouldBeNamespaced(Json json, Session session) {
-            if (json._wrapInAppName
+            if (json.wrapInAppName
                 && session != null
                 && session.enableNamespaces
                 && session.CheckOption(SessionOptions.IncludeNamespaces)
