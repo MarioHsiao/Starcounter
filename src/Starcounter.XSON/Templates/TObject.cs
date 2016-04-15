@@ -5,10 +5,7 @@
 // ***********************************************************************
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using Starcounter.Advanced.XSON;
 using Starcounter.Internal;
 using Starcounter.XSON;
 
@@ -16,7 +13,7 @@ namespace Starcounter.Templates {
     /// <summary>
     /// Defines the properties of an App instance.
     /// </summary>
-    public partial class TObject : TContainer {
+    public class TObject : TContainer {
         // When a custom setter is used we need to add logic for setting parent.
         // The original setter is saved here, and the setter with added code (which uses)
         // this one is set as UnboundSetter (and maybe Setter)
@@ -33,11 +30,16 @@ namespace Starcounter.Templates {
 
 		private BindingStrategy bindChildren = BindingStrategy.Auto;
 		public bool HasAtLeastOneBoundProperty = true; // TODO!
-		
-		/// <summary>
-		/// Static constructor to automatically initialize XSON.
-		/// </summary>
-		static TObject() {
+
+        /// <summary>
+        /// For dynamic Json objects, templates pertain to only a single object.
+        /// </summary>
+        internal Json SingleInstance = null;
+
+        /// <summary>
+        /// Static constructor to automatically initialize XSON.
+        /// </summary>
+        static TObject() {
 			HelperFunctions.PreLoadCustomDependencies();
 		}
 
@@ -69,8 +71,8 @@ namespace Starcounter.Templates {
 			if (UnboundGetter == null)
 				TemplateDelegateGenerator.GenerateUnboundDelegates(this, false);
 		}
-
-		internal override void Checkpoint(Json parent) {
+        
+        internal override void Checkpoint(Json parent) {
 			var json = UnboundGetter(parent);
 			if (json != null)
 				json.CheckpointChangeLog();
@@ -145,8 +147,8 @@ namespace Starcounter.Templates {
 
 			parent.CallHasChanged(this);
 		}
-
-		internal override void CopyValueDelegates(Template toTemplate) {
+        
+        internal override void CopyValueDelegates(Template toTemplate) {
 			var p = toTemplate as TObject;
 			if (p != null) {
                 p.customSetter = customSetter;
@@ -368,6 +370,23 @@ namespace Starcounter.Templates {
 
         internal override TemplateTypeEnum TemplateTypeId {
             get { return TemplateTypeEnum.Object; }
+        }
+        
+        /// <summary>
+        /// Called when the user attempted to set a value on a dynamic obj without the object having
+        /// the property defined (in its template). In the TDynamicObj template, this method will
+        /// add the property to the template definition. The default behaviour in the implementation
+        /// with a strict schema template, a exception will be called.
+        /// </summary>
+        /// <param name="property">The name of the missing property</param>
+        /// <param name="Type">The type of the value being set</typeparam>
+        internal void OnSetUndefinedProperty(string propertyName, Type type) {
+            if (this.IsDynamic) {
+                TValue property = this.Add(type, propertyName);
+                this.SingleInstance.OnUndefinedPropertyAdded(property);
+            } else {
+                throw new Exception(String.Format("An attempt was made to set the property {0} to a {1} on an Obj object not having the property defined in the template.", propertyName, type.Name));
+            }
         }
     }
 }

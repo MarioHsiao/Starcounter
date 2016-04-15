@@ -61,7 +61,7 @@ namespace Starcounter {
 			sb.Append("[");
 			indentation += 3;
 			int t = 0;
-			var values = array.list;
+			var values = array.valueList;
 			foreach (var e in values) {
 				if (t > 0) {
 					sb.AppendLine(",");

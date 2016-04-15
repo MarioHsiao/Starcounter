@@ -5,8 +5,13 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Starcounter.Internal.XSON;
-using Starcounter.Templates;namespace Starcounter {        public partial class Json : IDynamicMetaObjectProvider {        DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(            Expression parameter) {            return new DynamicPropertyMetaObject(parameter, this);        }
-        /// <summary>
+using Starcounter.Templates;namespace Starcounter {        public partial class Json : IDynamicMetaObjectProvider {        internal void OnUndefinedPropertyAdded(TValue property) {
+            this.valueList.Add(null);
+            if (this.trackChanges)
+                stateFlags.Add(PropertyState.Default);
+            property.SetDefaultValue(this);
+        }                DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(            Expression parameter) {            return new DynamicPropertyMetaObject(parameter, this);        }
+                /// <summary>
         /// Provides late bound (dynamic) access to Json properties defined in the Template 
         /// of the Json object. Also supports data binding using the Json.Data property.
         /// </summary>        private class DynamicPropertyMetaObject : DynamicMetaObject {            internal DynamicPropertyMetaObject(System.Linq.Expressions.Expression parameter, Json value)                : base(parameter, BindingRestrictions.Empty, value) {            }            /// <summary>

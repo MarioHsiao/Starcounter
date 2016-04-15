@@ -36,44 +36,13 @@ namespace Starcounter {
         }
 
         internal object _GetAt(int index) {
-            return list[index];
+            return this.valueList[index];
         }
 
         internal void _SetAt(int index, object value) {
-            list[index] = value;
+            this.valueList[index] = value;
         }
-        
-        /// <summary>
-        /// Use this property to access the values internally
-        /// </summary>
-        protected IList list {
-            get {
-                if (this.valueList == null) {
-                    return null;
-                }
-                if (IsArray) {
-                    return this.valueList;
-                } else {
-                    int childIndex;
-                    if (!Template.IsPrimitive) {
-                        var template = (TObject)Template;
-                        while (this.valueList.Count < template.Properties.Count) {
-                            // We allow adding new properties to dynamic templates
-                            // even after instances have been created.
-                            // For this reason, we need to allow the expansion of the 
-                            // values.
-                            if (this.trackChanges)
-                                stateFlags.Add(PropertyState.Default);
-                            childIndex = this.valueList.Count;
-                            this.valueList.Add(null);
-                            ((TValue)template.Properties[childIndex]).SetDefaultValue(this);
-                        }
-                    }
-                    return this.valueList;
-                }
-            }
-        }
-
+       
         /// <summary>
         /// 
         /// </summary>
@@ -132,7 +101,7 @@ namespace Starcounter {
         /// <param name="array">The destination array.</param>
         /// <param name="arrayIndex">The start index in the source.</param>
         void ICollection.CopyTo(Array array, int arrayIndex) {
-            list.CopyTo(array, arrayIndex);
+            this.valueList.CopyTo(array, arrayIndex);
         }
 
         /// <summary>
@@ -143,7 +112,7 @@ namespace Starcounter {
         int ICollection.Count {
             get {
                 VerifyIsArray();
-                return list.Count;
+                return this.valueList.Count;
             }
         }
 
@@ -154,7 +123,7 @@ namespace Starcounter {
         /// <returns>System.Int32.</returns>
         int IList.IndexOf(object item) {
             VerifyIsArray();
-            return list.IndexOf((object)item);
+            return this.valueList.IndexOf((object)item);
         }
 
         /// <summary>
@@ -166,7 +135,7 @@ namespace Starcounter {
         void IList.Insert(int index, object item) {
             Json j = VerifyJsonForInserting(item);
 
-            list.Insert(index, j);
+            this.valueList.Insert(index, j);
             j.cacheIndexInArr = index;
             j.Parent = this;
 
@@ -176,8 +145,8 @@ namespace Starcounter {
             }
             
             Json otherItem;
-            for (Int32 i = index + 1; i < list.Count; i++) {
-                otherItem = (Json)list[i];
+            for (Int32 i = index + 1; i < this.valueList.Count; i++) {
+                otherItem = (Json)this.valueList[i];
                 otherItem.cacheIndexInArr = i;
             }
             CallHasAddedElement(index, j);
@@ -243,7 +212,7 @@ namespace Starcounter {
                 }
             }
 
-            var oldJson = (Json)list[index];
+            var oldJson = (Json)this.valueList[index];
             if (oldJson != null) {
                 oldJson.cacheIndexInArr = -1;
                 oldJson.SetParent(null);
@@ -251,7 +220,7 @@ namespace Starcounter {
 
             j.cacheIndexInArr = index;
             j.Parent = this;
-            list[index] = j;
+            this.valueList[index] = j;
 
             if (this.trackChanges) {
                 MarkAsDirty(index);
@@ -278,7 +247,7 @@ namespace Starcounter {
                 }
             }
 
-            var index = list.Add(j);
+            var index = this.valueList.Add(j);
             j.cacheIndexInArr = index;
             j.Parent = this;
 
@@ -286,7 +255,7 @@ namespace Starcounter {
                 stateFlags.Add(PropertyState.Dirty);
                 Dirtyfy();    
             }
-            CallHasAddedElement(list.Count - 1, j);
+            CallHasAddedElement(this.valueList.Count - 1, j);
             return index;
         }
 
@@ -309,16 +278,16 @@ namespace Starcounter {
             int index;
 
             item = VerifyJsonForRemoving(item);
-            index = list.IndexOf(item);
+            index = this.valueList.IndexOf(item);
             b = (index != -1);
             if (b) InternalRemove(item, index);
             return b;
         }
 
         private void Move(int fromIndex, int toIndex) {
-            Json item = (Json)list[fromIndex];
-            list.RemoveAt(fromIndex);
-            list.Insert(toIndex, item);
+            Json item = (Json)this.valueList[fromIndex];
+            this.valueList.RemoveAt(fromIndex);
+            this.valueList.Insert(toIndex, item);
             
             int start;
             int stop;
@@ -332,7 +301,7 @@ namespace Starcounter {
             }
 
             for (Int32 i = start; i <= stop; i++) {
-                ((Json)list[i]).cacheIndexInArr = i;
+                ((Json)this.valueList[i]).cacheIndexInArr = i;
             }
             CallHasMovedElement(fromIndex, toIndex, item);
         }
@@ -343,7 +312,7 @@ namespace Starcounter {
         /// <param name="index">The index.</param>
         /// <exception cref="System.NotImplementedException"></exception>
         void IList.RemoveAt(int index) {
-            Json item = VerifyJsonForRemoving(list[index]);
+            Json item = VerifyJsonForRemoving(this.valueList[index]);
             InternalRemove(item, index);
         }
 
@@ -353,7 +322,7 @@ namespace Starcounter {
         /// <param name="item"></param>
         /// <param name="index"></param>
         private void InternalRemove(Json item, int index) {
-            list.RemoveAt(index);
+            this.valueList.RemoveAt(index);
             item.SetParent(null);
             item.cacheIndexInArr = -1;
 
@@ -364,7 +333,7 @@ namespace Starcounter {
                 Json otherItem;
                 var tarr = (TObjArr)Template;
                 CallHasRemovedElement(index, item);
-                for (Int32 i = index; i < list.Count; i++) {
+                for (Int32 i = index; i < this.valueList.Count; i++) {
                     otherItem = (Json)this.valueList[i];
                     otherItem.cacheIndexInArr = i;
                 }
@@ -394,12 +363,12 @@ namespace Starcounter {
             int indexesToRemove;
             var app = this.Parent;
             TObjArr property = (TObjArr)Template;
-            indexesToRemove = list.Count;
+            indexesToRemove = this.valueList.Count;
             for (int i = (indexesToRemove - 1); i >= 0; i--) {
-                ((Json)list[i]).SetParent(null);
+                ((Json)this.valueList[i]).SetParent(null);
                 app.ChildArrayHasRemovedAnElement(property, i);
             }
-            list.Clear();
+            this.valueList.Clear();
         }
 
         /// <summary>
@@ -409,7 +378,7 @@ namespace Starcounter {
         /// <returns><c>true</c> if [contains] [the specified item]; otherwise, <c>false</c>.</returns>
         bool IList.Contains(object item) {
             VerifyIsArray();
-            return list.Contains(item);
+            return this.valueList.Contains(item);
         }
 
         /// <summary>
@@ -427,8 +396,8 @@ namespace Starcounter {
         /// <returns>An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.</returns>
         IEnumerator IEnumerable.GetEnumerator() {
             VerifyIsArray();
-            if (list != null)
-                return list.GetEnumerator();
+            if (this.valueList != null)
+                return this.valueList.GetEnumerator();
             return System.Linq.Enumerable.Empty<Json>().GetEnumerator();
         }
 
@@ -437,7 +406,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         internal List<Json> GetJsonArray() {
-            return (List<Json>)list;
+            return (List<Json>)this.valueList;
         }
 
         /// <summary>
