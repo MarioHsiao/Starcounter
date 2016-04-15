@@ -113,7 +113,24 @@ namespace Starcounter.Templates {
 				TemplateDelegateGenerator.GenerateUnboundDelegates(this, false);
 		}
 
-		internal override void Checkpoint(Json parent) {
+        /// <summary>
+        /// If the property is bound, it reads the bound value and stores it
+        /// using the unbound delegate and marks the property as cached. 
+        /// All reads after this will read the from the unbound delegate,
+        /// until the cache is resetted when checkpointing.
+        /// </summary>
+        /// <param name="json"></param>
+        internal void SetCachedReads(Json json) {
+            if (UseBinding(json)) {
+                Json value = UnboundGetter(json);
+                if (value != null && json.checkBoundProperties) {
+                    value.CheckBoundArray(BoundGetter(json));
+                }
+                json.MarkAsCached(this.TemplateIndex);
+            }
+        }
+
+        internal override void Checkpoint(Json parent) {
 			Json arr = UnboundGetter(parent);
 
 			for (int i = 0; i < ((IList)arr).Count; i++) {

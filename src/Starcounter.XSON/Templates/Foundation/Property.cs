@@ -36,8 +36,8 @@ namespace Starcounter.Templates {
 				return BoundGetter(parent);
 			return UnboundGetter(parent);
 		}
-
-		private void BoundOrUnboundSet(Json parent, T value) {
+        
+        private void BoundOrUnboundSet(Json parent, T value) {
 			if (UseBinding(parent)) {
 				if (BoundSetter != null)
 					BoundSetter(parent, value);
@@ -49,7 +49,7 @@ namespace Starcounter.Templates {
 
 			parent.CallHasChanged(this);
 		}
-
+        
         /// <summary>
         ///
         /// </summary>
@@ -150,13 +150,28 @@ namespace Starcounter.Templates {
 			Setter(parent, (T)value);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="parent"></param>
-		internal override void Checkpoint(Json parent) {
-			if (UseBinding(parent))
-				UnboundSetter(parent, BoundGetter(parent));
+        /// <summary>
+        /// If the property is bound, it reads the bound value and stores it
+        /// using the unbound delegate and marks the property as cached. 
+        /// All reads after this will read the from the unbound delegate,
+        /// until the cache is resetted when checkpointing.
+        /// </summary>
+        /// <param name="json"></param>
+        internal void SetCachedReads(Json json) {
+            if (UseBinding(json)) {
+                UnboundSetter(json, BoundGetter(json));
+                json.MarkAsCached(this.TemplateIndex);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parent"></param>
+        internal override void Checkpoint(Json parent) {
+            if (!parent.IsCached(this.TemplateIndex) && UseBinding(parent)) {
+                UnboundSetter(parent, BoundGetter(parent));
+            }
 			base.Checkpoint(parent);
 		}
 

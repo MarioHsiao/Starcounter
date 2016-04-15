@@ -31,43 +31,70 @@ namespace Starcounter {
 		}
 
         /// <summary>
-        /// Returns true if this property is dirty, i.e. if value have 
-        /// changed or property have been explicitly marked. 
+        /// Returns true if the property is marked as dirty.
         /// </summary>
-        /// <param name="prop"></param>
+        /// <param name="property"></param>
         /// <returns></returns>
-        public bool IsDirty(Template prop) {
+        public bool IsDirty(Template property) {
 #if DEBUG
-            this.Template.VerifyProperty(prop);
+            this.Template.VerifyProperty(property);
 #endif
             if (this.trackChanges)
-                return (IsDirty(prop.TemplateIndex));
+                return (IsDirty(property.TemplateIndex));
             return false;
         }
 
-        internal bool IsDirty(int index) {
-            return ((stateFlags[index] & PropertyState.Dirty) == PropertyState.Dirty);
-        }
-
-        internal void CheckpointAt(int index) {
-            stateFlags[index] = PropertyState.Default;
-        }
-
         /// <summary>
-        /// 
+        /// Returns true if the template with the specified index is marked as dirty.
         /// </summary>
-        /// <param name="template"></param>
-        internal void MarkAsDirty(Template template) {
-            this.MarkAsDirty(template.TemplateIndex);
+        /// <param name="templateIndex"></param>
+        /// <returns></returns>
+        internal bool IsDirty(int templateIndex) {
+            return ((stateFlags[templateIndex] & PropertyState.Dirty) == PropertyState.Dirty);
         }
 
         /// <summary>
-        /// 
+        /// Returns true if the template with the specified index is marked as cached.
+        /// </summary>
+        /// <param name="templateIndex"></param>
+        /// <returns></returns>
+        internal bool IsCached(int templateIndex) {
+            if (stateFlags != null && templateIndex != -1) 
+                return ((stateFlags[templateIndex] & PropertyState.Cached) == PropertyState.Cached);
+            return false;
+        }
+        
+        /// <summary>
+        /// Marks the specified property as dirty.
+        /// </summary>
+        /// <param name="property"></param>
+        internal void MarkAsDirty(Template property) {
+            this.MarkAsDirty(property.TemplateIndex);
+        }
+
+        /// <summary>
+        /// Marks the property with the specified index as dirty.
         /// </summary>
         /// <param name="index"></param>
-        internal void MarkAsDirty(int index) {
-            stateFlags[index] |= PropertyState.Dirty;
+        internal void MarkAsDirty(int templateIndex) {
+            stateFlags[templateIndex] |= PropertyState.Dirty;
             this.Dirtyfy();
+        }
+
+        /// <summary>
+        /// Marks the property with the specified index as cached.
+        /// </summary>
+        /// <param name="templateIndex"></param>
+        internal void MarkAsCached(int templateIndex) {
+            stateFlags[templateIndex] |= PropertyState.Cached;
+        }
+
+        /// <summary>
+        /// Resets the stateflags for the property with the specified index.
+        /// </summary>
+        /// <param name="templateIndex"></param>
+        internal void CheckpointAt(int templateIndex) {
+            stateFlags[templateIndex] = PropertyState.Default;
         }
 
         /// <summary>
@@ -150,7 +177,7 @@ namespace Starcounter {
 
                     changeLog.Add(change);
                     var index = change.Item.cacheIndexInArr;
-                    if (change.ChangeType != Change.REMOVE && index >= 0 && index < list.Count) {
+                    if (change.ChangeType != Change.REMOVE && index >= 0 && index < this.valueList.Count) {
                         CheckpointAt(index);
                         item = change.Item;
                         item.SetBoundValuesInTuple();
