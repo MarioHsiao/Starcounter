@@ -2940,10 +2940,9 @@ void Gateway::WaitAllWorkersSuspended()
     WakeUpAllWorkers();
 
     // Waiting for all workers to suspend.
-	int32_t max_tries = 300;
+	int32_t max_tries = GLOBAL_LOCK_SPIN_TIMES;
     while (num_workers_locked < setting_num_workers_)
     {
-        Sleep(10);
 		max_tries--;
 
 		if (0 == max_tries) {
