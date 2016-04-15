@@ -156,15 +156,15 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="template"></param>
-        internal void MarkAsReplaced(Template template) {
-            this.MarkAsReplaced(template.TemplateIndex);
+        internal void MarkAsDirty(Template template) {
+            this.MarkAsDirty(template.TemplateIndex);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="index"></param>
-        internal void MarkAsReplaced(int index) {
+        internal void MarkAsDirty(int index) {
             stateFlags[index] |= PropertyState.Dirty;
             this.Dirtyfy();
         }
@@ -222,7 +222,7 @@ namespace Starcounter {
 
             if (this.trackChanges) {
                 stateFlags.Insert(index, PropertyState.Default);
-                MarkAsReplaced(index);
+                MarkAsDirty(index);
             }
             
             Json otherItem;
@@ -304,7 +304,7 @@ namespace Starcounter {
             list[index] = j;
 
             if (this.trackChanges) {
-                MarkAsReplaced(index);
+                MarkAsDirty(index);
                 Dirtyfy();
             }
             CallHasReplacedElement(index, j);
@@ -429,7 +429,7 @@ namespace Starcounter {
             VerifyIsArray();
 
             if (this.trackChanges) {
-                Parent.MarkAsReplaced(Template);
+                Parent.MarkAsDirty(Template);
                 stateFlags.Clear();
             }
 

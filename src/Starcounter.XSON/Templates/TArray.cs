@@ -112,7 +112,7 @@ namespace Starcounter.Templates {
 			}
 
 			if (parent.HasBeenSent)
-				parent.MarkAsReplaced(TemplateIndex);
+				parent.MarkAsDirty(TemplateIndex);
 
 			parent.CallHasChanged(this);
 		}

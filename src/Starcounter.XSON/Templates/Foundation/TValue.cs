@@ -179,7 +179,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		internal virtual void OnPropertySet(Json parent) {
 			if (parent.HasBeenSent)
-				parent.MarkAsReplaced(TemplateIndex);
+				parent.MarkAsDirty(TemplateIndex);
 		}
 
 		/// <summary>

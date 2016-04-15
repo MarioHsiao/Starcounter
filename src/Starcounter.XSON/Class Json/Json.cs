@@ -311,7 +311,7 @@ namespace Starcounter {
                 }
             }
             if (this.trackChanges)
-                MarkAsReplaced(property);
+                MarkAsDirty(property);
         }
 
         /// <summary>

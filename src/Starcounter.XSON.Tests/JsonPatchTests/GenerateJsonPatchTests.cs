@@ -517,7 +517,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             json.Session.Use(() => {
                 var patch = jsonPatch.Generate(json, true, false);
-                json.MarkAsReplaced(save);
+                json.MarkAsDirty(save);
                 patch = jsonPatch.Generate(json, true, false);
 
                 Helper.ConsoleWriteLine(patch);

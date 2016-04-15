@@ -157,7 +157,7 @@ namespace Starcounter.Templates {
 			UnboundSetter(parent, newArr);
 
 			if (parent.HasBeenSent)
-				parent.MarkAsReplaced(TemplateIndex);
+				parent.MarkAsDirty(TemplateIndex);
 
 			parent.CallHasChanged(this);
 		}
@@ -213,7 +213,7 @@ namespace Starcounter.Templates {
 			}
 
 			if (parent.HasBeenSent)
-				parent.MarkAsReplaced(TemplateIndex);
+				parent.MarkAsDirty(TemplateIndex);
 
 			parent.CallHasChanged(this);
 		}

@@ -45,7 +45,7 @@ namespace Starcounter.Templates {
 				UnboundSetter(parent, value);
 
 			if (parent.HasBeenSent)
-				parent.MarkAsReplaced(TemplateIndex);
+				parent.MarkAsDirty(TemplateIndex);
 
 			parent.CallHasChanged(this);
 		}
@@ -255,7 +255,7 @@ namespace Starcounter.Templates {
                 } else {
                     Debug.WriteLine("Handler cancelled: " + value);
                     // Incoming value was cancelled. Mark as dirty so client gets the correct value.
-                    parent.MarkAsReplaced(this);
+                    parent.MarkAsDirty(this);
                 }
             } else {
                 if (BasedOn == null) {
