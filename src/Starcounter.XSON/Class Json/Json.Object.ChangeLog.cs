@@ -123,7 +123,7 @@ namespace Starcounter {
                     var change = ArrayAddsAndDeletes[i];
 
                     changeLog.Add(change);
-                    var index = change.Item._cacheIndexInArr;
+                    var index = change.Item.cacheIndexInArr;
                     if (change.ChangeType != Change.REMOVE && index >= 0 && index < list.Count) {
                         CheckpointAt(index);
                         item = change.Item;

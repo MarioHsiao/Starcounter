@@ -41,13 +41,13 @@ namespace Starcounter.Templates {
             if (newValue != null) {
                 if (newValue.Parent != parent)
                     newValue.Parent = parent;
-                newValue._cacheIndexInArr = TemplateIndex;
+                newValue.cacheIndexInArr = TemplateIndex;
             }
 
             var oldValue = (Json)GetUnboundValueAsObject(parent);
             if (oldValue != null) {
                 oldValue.SetParent(null);
-                oldValue._cacheIndexInArr = -1;
+                oldValue.cacheIndexInArr = -1;
             }
         }
     }

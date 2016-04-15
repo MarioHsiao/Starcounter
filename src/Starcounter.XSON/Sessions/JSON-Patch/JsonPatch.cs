@@ -366,15 +366,15 @@ namespace Starcounter.XSON {
             if (parent != null) {
                 totalSize++;
                 if (parent.IsArray) {
-                    if (json._cacheIndexInArr == -1)
+                    if (json.cacheIndexInArr == -1)
                         json.UpdateCachedIndex();
-                    totalSize += GetSizeOfIntAsUtf8(json._cacheIndexInArr);
+                    totalSize += GetSizeOfIntAsUtf8(json.cacheIndexInArr);
                 } else {
                     // We use the cacheIndexInArr to keep track of obj that is set
                     // in the parent as an untyped object since the template here is not
                     // the template in the parent (which we want).
-                    if (json._cacheIndexInArr != -1) {
-                        template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
+                    if (json.cacheIndexInArr != -1) {
+                        template = ((TObject)parent.Template).Properties[json.cacheIndexInArr];
                     } else {
                         template = json.Template;
                     }
@@ -426,16 +426,16 @@ namespace Starcounter.XSON {
 
             if (parent != null) {
                 if (parent.IsArray) {
-                    if (json._cacheIndexInArr == -1)
+                    if (json.cacheIndexInArr == -1)
                         json.UpdateCachedIndex();
                     writer.Write('/');
-                    writer.Write(json._cacheIndexInArr);
+                    writer.Write(json.cacheIndexInArr);
                 } else {
                     // We use the cacheIndexInArr to keep track of obj that is set
                     // in the parent as an untyped object since the template here is not
                     // the template in the parent (which we want).
-                    if (json._cacheIndexInArr != -1) {
-                        template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
+                    if (json.cacheIndexInArr != -1) {
+                        template = ((TObject)parent.Template).Properties[json.cacheIndexInArr];
                     } else {
                         template = json.Template;
                     }

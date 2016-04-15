@@ -24,7 +24,7 @@ namespace Starcounter {
         /// <summary>
         /// Cache element index if the parent of this Obj is an array (Arr).
         /// </summary>
-        internal int _cacheIndexInArr;
+        internal int cacheIndexInArr;
 
         /// <summary>
         /// Tells if any property value has changed on this container (if it is an object) or

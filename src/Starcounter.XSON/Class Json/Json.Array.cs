@@ -30,7 +30,7 @@ namespace Starcounter {
         internal Json(Json parent, TObjArr templ) {
             _trackChanges = false;
             _checkBoundProperties = true;
-            _cacheIndexInArr = -1;
+            cacheIndexInArr = -1;
             transaction = TransactionHandle.Invalid;
             _appName = StarcounterEnvironment.AppName;
             AttachCurrentTransaction();
@@ -46,7 +46,7 @@ namespace Starcounter {
         protected Json(IEnumerable result) {
             _trackChanges = false;
             _checkBoundProperties = true;
-            _cacheIndexInArr = -1;
+            cacheIndexInArr = -1;
             transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();
             _data = result;
@@ -101,7 +101,7 @@ namespace Starcounter {
         }
 
         internal void UpdateCachedIndex() {
-            _cacheIndexInArr = ((IList)Parent).IndexOf(this);
+            cacheIndexInArr = ((IList)Parent).IndexOf(this);
         }
 
         internal int TransformIndex(ViewModelVersion version, long fromVersion, int orgIndex) {

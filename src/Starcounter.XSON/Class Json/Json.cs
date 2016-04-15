@@ -88,7 +88,7 @@ namespace Starcounter {
         /// </summary>
         public Json()
             : base() {
-            _cacheIndexInArr = -1;
+            cacheIndexInArr = -1;
             transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();
             _trackChanges = false;

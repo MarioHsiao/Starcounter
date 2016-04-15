@@ -217,7 +217,7 @@ namespace Starcounter {
             Json j = VerifyJsonForInserting(item);
 
             list.Insert(index, j);
-            j._cacheIndexInArr = index;
+            j.cacheIndexInArr = index;
             j.Parent = this;
 
             if (_trackChanges) {
@@ -228,7 +228,7 @@ namespace Starcounter {
             Json otherItem;
             for (Int32 i = index + 1; i < list.Count; i++) {
                 otherItem = (Json)list[i];
-                otherItem._cacheIndexInArr = i;
+                otherItem.cacheIndexInArr = i;
             }
             CallHasAddedElement(index, j);
         }
@@ -295,11 +295,11 @@ namespace Starcounter {
 
             var oldJson = (Json)list[index];
             if (oldJson != null) {
-                oldJson._cacheIndexInArr = -1;
+                oldJson.cacheIndexInArr = -1;
                 oldJson.SetParent(null);
             }
 
-            j._cacheIndexInArr = index;
+            j.cacheIndexInArr = index;
             j.Parent = this;
             list[index] = j;
 
@@ -329,7 +329,7 @@ namespace Starcounter {
             }
 
             var index = list.Add(j);
-            j._cacheIndexInArr = index;
+            j.cacheIndexInArr = index;
             j.Parent = this;
 
             if (_trackChanges) {
@@ -382,7 +382,7 @@ namespace Starcounter {
             }
 
             for (Int32 i = start; i <= stop; i++) {
-                ((Json)list[i])._cacheIndexInArr = i;
+                ((Json)list[i]).cacheIndexInArr = i;
             }
             CallHasMovedElement(fromIndex, toIndex, item);
         }
@@ -405,7 +405,7 @@ namespace Starcounter {
         private void InternalRemove(Json item, int index) {
             list.RemoveAt(index);
             item.SetParent(null);
-            item._cacheIndexInArr = -1;
+            item.cacheIndexInArr = -1;
 
             if (_trackChanges)
                 stateFlags.RemoveAt(index);
@@ -416,7 +416,7 @@ namespace Starcounter {
                 CallHasRemovedElement(index, item);
                 for (Int32 i = index; i < list.Count; i++) {
                     otherItem = (Json)_list[i];
-                    otherItem._cacheIndexInArr = i;
+                    otherItem.cacheIndexInArr = i;
                 }
             }
         }
@@ -497,8 +497,8 @@ namespace Starcounter {
         /// </summary>
         public int IndexInParent {
             get {
-                if (_cacheIndexInArr != -1) {
-                    return _cacheIndexInArr;
+                if (cacheIndexInArr != -1) {
+                    return cacheIndexInArr;
                 } else {
                     return Template.TemplateIndex;
                 }
