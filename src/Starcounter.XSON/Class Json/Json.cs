@@ -218,7 +218,7 @@ namespace Starcounter {
         public Template Template {
             set {
                 this.template = value;
-                _isArray = (this.template is TObjArr);
+                this.isArray = (this.template is TObjArr);
 
                 if (this.template == null)
                     return;
@@ -378,7 +378,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        public bool IsArray { get { return _isArray; } }
+        public bool IsArray { get { return this.isArray; } }
 
         /// <summary>
         /// 

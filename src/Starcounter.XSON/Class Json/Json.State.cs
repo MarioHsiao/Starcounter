@@ -116,7 +116,7 @@ namespace Starcounter {
         /// </summary>
         internal bool checkBoundProperties;
  
-        private bool _isArray;
+        private bool isArray;
 
         /// <summary>
         /// If this json is a part of a stateful viewmodel (i.e. puppet) this field contains
