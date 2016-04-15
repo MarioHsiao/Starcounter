@@ -68,6 +68,7 @@
 - Fixed a bug and improved errormessage when generating binding between dataobject and TypedJson where the property in TypedJson was an object or array. [#3491](https://github.com/Starcounter/Starcounter/issues/3491)
 - Fixed a bug that it was not possible to use same class names as meta-tables, see [#3482](https://github.com/Starcounter/Starcounter/issues/3482).
 - Make sure the request is passed as a parameter when constructing a response from a resource, see [#3496](https://github.com/Starcounter/Starcounter/issues/3496)
+- Fixed bug in PrivateAssemblyStore, causing some path comparisons to use an unsupported comparison type, see [#3501](https://github.com/Starcounter/Starcounter/issues/3501)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
