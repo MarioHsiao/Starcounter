@@ -88,7 +88,7 @@ namespace Starcounter {
                             // For this reason, we need to allow the expansion of the 
                             // values.
                             if (_trackChanges)
-                                _SetFlag.Add(false);
+                                stateFlags.Add(PropertyState.Default);
                             childIndex = _list.Count;
                             _list.Add(null);
                             ((TValue)template.Properties[childIndex]).SetDefaultValue(this);
@@ -107,7 +107,7 @@ namespace Starcounter {
             if (IsArray) {
                 _list = new List<Json>();
                 if (_trackChanges)
-                    _SetFlag = new List<bool>();
+                    stateFlags = new List<PropertyState>();
             } else {
                 SetDefaultValues();
             }
@@ -121,7 +121,7 @@ namespace Starcounter {
 
             _Dirty = false;
             if (_trackChanges)
-                _SetFlag = new List<bool>();
+                stateFlags = new List<PropertyState>();
 
             if (_Template.IsPrimitive) {
                 SetDefaultValue((TValue)_Template);
@@ -139,17 +139,17 @@ namespace Starcounter {
                 _list.Add(null);
 
             if (_trackChanges)
-                _SetFlag.Add(false);
+                stateFlags.Add(PropertyState.Default);
 
             value.SetDefaultValue(this);
         }
 
         internal bool WasReplacedAt(int index) {
-            return _SetFlag[index];
+            return ((stateFlags[index] & PropertyState.Dirty) == PropertyState.Dirty);
         }
 
         internal void CheckpointAt(int index) {
-            _SetFlag[index] = false;
+            stateFlags[index] = PropertyState.Default;
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="index"></param>
         internal void MarkAsReplaced(int index) {
-            _SetFlag[index] = true;
+            stateFlags[index] |= PropertyState.Dirty;
             this.Dirtyfy();
         }
 
@@ -221,7 +221,7 @@ namespace Starcounter {
             j.Parent = this;
 
             if (_trackChanges) {
-                _SetFlag.Insert(index, false);
+                stateFlags.Insert(index, PropertyState.Default);
                 MarkAsReplaced(index);
             }
             
@@ -333,7 +333,7 @@ namespace Starcounter {
             j.Parent = this;
 
             if (_trackChanges) {
-                _SetFlag.Add(true);
+                stateFlags.Add(PropertyState.Dirty);
                 Dirtyfy();    
             }
             CallHasAddedElement(list.Count - 1, j);
@@ -408,7 +408,7 @@ namespace Starcounter {
             item._cacheIndexInArr = -1;
 
             if (_trackChanges)
-                _SetFlag.RemoveAt(index);
+                stateFlags.RemoveAt(index);
             
             if (IsArray) {
                 Json otherItem;
@@ -430,7 +430,7 @@ namespace Starcounter {
 
             if (_trackChanges) {
                 Parent.MarkAsReplaced(Template);
-                _SetFlag.Clear();
+                stateFlags.Clear();
             }
 
             InternalClear();

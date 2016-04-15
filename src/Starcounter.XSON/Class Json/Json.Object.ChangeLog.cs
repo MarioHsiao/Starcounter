@@ -644,18 +644,18 @@ namespace Starcounter {
             _trackChanges = true;
 
             if (this.IsArray) {
-                _SetFlag = new List<bool>(_list.Count);
+                stateFlags = new List<PropertyState>(_list.Count);
                 foreach (Json item in _list) {
-                    _SetFlag.Add(false);
+                    stateFlags.Add(PropertyState.Default);
                     item.OnAddedToViewmodel(true);
                 }
             } else {
                 if (Template != null) {
                     if (IsObject) {
                         var tobj = (TObject)Template;
-                        _SetFlag = new List<bool>(tobj.Properties.Count);
+                        stateFlags = new List<PropertyState>(tobj.Properties.Count);
                         foreach (Template tChild in tobj.Properties) {
-                            _SetFlag.Add(false);
+                            stateFlags.Add(PropertyState.Default);
                             var container = tChild as TContainer;
                             if (container != null) {
                                 var childJson = (Json)container.GetUnboundValueAsObject(this);
@@ -664,8 +664,8 @@ namespace Starcounter {
                             }
                         }
                     } else {
-                        _SetFlag = new List<bool>(1);
-                        _SetFlag.Add(false);
+                        stateFlags = new List<PropertyState>(1);
+                        stateFlags.Add(PropertyState.Default);
                     }
                 }
             }

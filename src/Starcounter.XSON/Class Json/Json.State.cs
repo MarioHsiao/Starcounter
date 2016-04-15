@@ -1,14 +1,19 @@
-﻿using Starcounter.Advanced;
-using Starcounter.Internal.XSON;
-using Starcounter.Templates;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Internal;
+using Starcounter.Internal.XSON;
+using Starcounter.Templates;
 using Starcounter.XSON;
 
 namespace Starcounter {
     partial class Json {
+        [Flags]
+        protected enum PropertyState : byte {
+            Default = 0,
+            Dirty = 1,
+            Cached = 2
+        }
 
         /// <summary>
         /// Backing field for the transaction applied to this instance (if any).
@@ -38,7 +43,7 @@ namespace Starcounter {
         /// <summary>
         /// For unbound values, we keep a list of flags to know which properties has changed.
         /// </summary>
-        protected List<bool> _SetFlag;
+        protected List<PropertyState> stateFlags;
 
         /// <summary>
         /// </summary>
