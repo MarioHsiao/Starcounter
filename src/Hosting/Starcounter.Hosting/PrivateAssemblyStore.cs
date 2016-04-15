@@ -17,19 +17,20 @@ namespace Starcounter.Hosting {
         /// by means of only using immutable state.
         /// </summary>
         private class ImmutableState : IPrivateAssemblyStore {
+            static StringComparer comparer = StringComparer.CurrentCultureIgnoreCase;
             readonly List<string> applicationDirectories;
-            readonly Dictionary<string, PrivateBinaryFile> fileToIdentity = new Dictionary<string, PrivateBinaryFile>(StringComparer.InvariantCultureIgnoreCase);
+            readonly Dictionary<string, PrivateBinaryFile> fileToIdentity;
 
             public static ImmutableState Empty = new ImmutableState() {};
 
             private ImmutableState() {
                 applicationDirectories = new List<string>();
-                fileToIdentity = new Dictionary<string, PrivateBinaryFile>();
+                fileToIdentity = new Dictionary<string, PrivateBinaryFile>(ImmutableState.comparer);
             }
 
             public ImmutableState(ImmutableState previous, ApplicationDirectory dir) {
                 applicationDirectories = new List<string>(previous.applicationDirectories.Count + 1);
-                fileToIdentity = new Dictionary<string, PrivateBinaryFile>(previous.fileToIdentity.Count + dir.Binaries.Length);
+                fileToIdentity = new Dictionary<string, PrivateBinaryFile>(previous.fileToIdentity.Count + dir.Binaries.Length, ImmutableState.comparer);
 
                 foreach (var appDir in previous.applicationDirectories) {
                     applicationDirectories.Add(appDir);
@@ -89,7 +90,7 @@ namespace Starcounter.Hosting {
         /// </summary>
         /// <param name="dir">The application directory</param>
         public void RegisterApplicationDirectory(ApplicationDirectory dir) {
-            var next = new ImmutableState(this.state, dir);
+            var next = new ImmutableState(state, dir);
             state = next;
         }
 
