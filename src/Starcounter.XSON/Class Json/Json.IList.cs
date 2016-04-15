@@ -123,10 +123,10 @@ namespace Starcounter {
             if (_trackChanges)
                 stateFlags = new List<PropertyState>();
 
-            if (_Template.IsPrimitive) {
-                SetDefaultValue((TValue)_Template);
+            if (this.template.IsPrimitive) {
+                SetDefaultValue((TValue)this.template);
             } else {
-                tobj = (TObject)_Template;
+                tobj = (TObject)this.template;
                 dirty = false;
                 for (int t = 0; t < tobj.Properties.Count; t++) {
                     SetDefaultValue((TValue)tobj.Properties[t]);
@@ -156,7 +156,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="template"></param>
-        internal void MarkAsReplaced(Templates.Template template) {
+        internal void MarkAsReplaced(Template template) {
             this.MarkAsReplaced(template.TemplateIndex);
         }
 
@@ -412,7 +412,7 @@ namespace Starcounter {
             
             if (IsArray) {
                 Json otherItem;
-                var tarr = (TObjArr)this.Template;
+                var tarr = (TObjArr)Template;
                 CallHasRemovedElement(index, item);
                 for (Int32 i = index; i < list.Count; i++) {
                     otherItem = (Json)_list[i];
@@ -434,7 +434,7 @@ namespace Starcounter {
             }
 
             InternalClear();
-            Parent.CallHasChanged((TContainer)this.Template);
+            Parent.CallHasChanged((TContainer)Template);
         }
 
         /// <summary>
@@ -443,7 +443,7 @@ namespace Starcounter {
         internal void InternalClear() {
             int indexesToRemove;
             var app = this.Parent;
-            TObjArr property = (TObjArr)this.Template;
+            TObjArr property = (TObjArr)Template;
             indexesToRemove = list.Count;
             for (int i = (indexesToRemove - 1); i >= 0; i--) {
                 ((Json)list[i]).SetParent(null);

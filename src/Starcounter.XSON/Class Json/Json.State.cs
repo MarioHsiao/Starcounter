@@ -84,9 +84,9 @@ namespace Starcounter {
         private ObjMetadata<TObject, Json> metadata = null;
 
         /// <summary>
-        /// The _ template
+        /// The template this object is based on.
         /// </summary>
-        internal Template _Template;
+        private Template template;
 
         /// <summary>
         /// An Json object or array can be bound to a data object. This makes the Json reflect the data in the

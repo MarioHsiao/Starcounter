@@ -66,8 +66,8 @@ namespace Starcounter {
             /// </summary>
             /// <typeparam name="TJson">The Json instance type described by this schema</typeparam>
             /// <typeparam name="TTemplate">The schema for the Json.</typeparam>
-            public class Metadata<TJson, TTemplate> : Starcounter.Templates.ValueMetadata<TJson, TTemplate>
-                where TTemplate : Starcounter.Templates.TValue
+            public class Metadata<TJson, TTemplate> : ValueMetadata<TJson, TTemplate>
+                where TTemplate : TValue
                 where TJson : Json {
 
                 public Metadata(TJson app, TTemplate template) : base(app, template) { }
@@ -94,7 +94,7 @@ namespace Starcounter {
             _trackChanges = false;
             _checkBoundProperties = true;
             _appName = StarcounterEnvironment.AppName;
-            if (_Template == null) {
+            if (template == null) {
                 Template = GetDefaultTemplate();
             }
         }
@@ -105,7 +105,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="jsonStr">The string containing proper JSON</param>
         public Json(string jsonStr) : this() {
-            Template = TObject.CreateFromJson(jsonStr);
+            this.Template = TObject.CreateFromJson(jsonStr);
             this.PopulateFromJson(jsonStr);
         }
 
@@ -217,24 +217,24 @@ namespace Starcounter {
         /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
         public Template Template {
             set {
-                _Template = value;
-                _isArray = (_Template is TObjArr);
+                this.template = value;
+                _isArray = (this.template is TObjArr);
 
-                if (_Template == null)
+                if (this.template == null)
                     return;
 
-                if (_Template is TObject && ((TObject)_Template).IsDynamic) {
-                    TObject t = (TObject)_Template;
+                if (this.template is TObject && ((TObject)this.template).IsDynamic) {
+                    TObject t = (TObject)this.template;
                     if (t.SingleInstance != null && t.SingleInstance != this) {
                         throw new Exception(String.Format("You cannot assign a Template ({0}) for a dynamic Json object (i.e. an Expando like object) to a new Json object ({0})", value, this));
                     }
-                    ((TObject)_Template).SingleInstance = (Json)this;
+                    ((TObject)this.template).SingleInstance = (Json)this;
                 } else {
-                    _Template.Sealed = true;
+                    this.template.Sealed = true;
 
-                    if (_Template.IsPrimitive) {
-                        _Template.TemplateIndex = 0;
-                        ((TValue)_Template).GenerateUnboundGetterAndSetter();
+                    if (this.template.IsPrimitive) {
+                        this.template.TemplateIndex = 0;
+                        ((TValue)this.template).GenerateUnboundGetterAndSetter();
                     }
                 }
 #if QUICKTUPLE
@@ -242,7 +242,7 @@ namespace Starcounter {
 #endif
             }
             get {
-                return _Template;
+                return this.template;
             }
         }
 
@@ -423,7 +423,7 @@ namespace Starcounter {
 
 		public object this[string key] {
 			get {
-				var template = (TObject)this.Template;
+				var template = (TObject)Template;
 				var prop = template.Properties[key];
 				if (prop == null) {
 					return null;
@@ -434,7 +434,7 @@ namespace Starcounter {
 				if (Template == null)
 					CreateDynamicTemplate();
 
-				var template = (TObject)this.Template;
+				var template = (TObject)Template;
 				var prop = template.Properties[key];
 				if (prop == null) {
 					Type type;
