@@ -18,7 +18,6 @@ namespace Starcounter {
         /// <summary>
         /// Backing field for the transaction applied to this instance (if any).
         /// </summary>
-//        private ITransaction _transaction;
         private TransactionHandle transaction;
 
         /// <summary>
@@ -32,9 +31,7 @@ namespace Starcounter {
         /// no changes to the JSON tree (but there can be changes to bound data objects).
         /// </summary>
         internal bool dirty = false;
-
-        //private bool __BrandNew_ = true;
-
+        
         /// <summary>
         /// 
         /// </summary>
