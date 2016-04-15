@@ -17,7 +17,7 @@ namespace Starcounter {
             if (!_trackChanges)
                 return;
             
-			_Dirty = true;
+			dirty = true;
 			if (Parent != null)
 				Parent.Dirtyfy();
 
@@ -78,7 +78,7 @@ namespace Starcounter {
                     }
 				}
 			}
-			_Dirty = false;
+			dirty = false;
 		}
 
 		/// <summary>
@@ -128,7 +128,7 @@ namespace Starcounter {
                         CheckpointAt(index);
                         item = change.Item;
                         item.SetBoundValuesInTuple();
-                        item._Dirty = false;
+                        item.dirty = false;
                     }
                 }
                 
@@ -190,7 +190,7 @@ namespace Starcounter {
 
                 if (json.IsObject) {
                     var exposed = ((TObject)template).Properties.ExposedProperties;
-                    if (json._Dirty) {
+                    if (json.dirty) {
                         for (int t = 0; t < exposed.Count; t++) {
                             if (json.WasReplacedAt(exposed[t].TemplateIndex)) {
                                 if (clog != null) {
@@ -225,7 +225,7 @@ namespace Starcounter {
                                 }
                             }
                         }
-                        json._Dirty = false;
+                        json.dirty = false;
                     } else if (_checkBoundProperties) {
                         for (int t = 0; t < exposed.Count; t++) {
                             if (exposed[t] is TContainer) {
@@ -244,7 +244,7 @@ namespace Starcounter {
                         }
                     }
                 } else {
-                    if (json._Dirty) {
+                    if (json.dirty) {
                         if (json.WasReplacedAt(template.TemplateIndex)) {
                             if (clog != null)
                                 clog.UpdateValue(json, null);

@@ -24,7 +24,7 @@ namespace Starcounter {
                 if (json.Data != null) {
                     sb.Append(" <data=" + json.Data.GetType().Name + ">");
                 }
-                if (json._Dirty) {
+                if (json.dirty) {
                     sb.Append(" <dirty>");
                 }
                 if (json.Parent != null) {

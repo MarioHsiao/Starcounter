@@ -119,7 +119,7 @@ namespace Starcounter {
             if (!IsCodegenerated)
                 _list = new List<object>();
 
-            _Dirty = false;
+            dirty = false;
             if (_trackChanges)
                 stateFlags = new List<PropertyState>();
 
@@ -127,7 +127,7 @@ namespace Starcounter {
                 SetDefaultValue((TValue)_Template);
             } else {
                 tobj = (TObject)_Template;
-                _Dirty = false;
+                dirty = false;
                 for (int t = 0; t < tobj.Properties.Count; t++) {
                     SetDefaultValue((TValue)tobj.Properties[t]);
                 }

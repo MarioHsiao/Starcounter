@@ -108,7 +108,7 @@ namespace Starcounter {
             int transformedIndex;
             long currentVersion;
             
-            if ((_Dirty == false) && (versionLog == null || versionLog.Count == 0))
+            if ((dirty == false) && (versionLog == null || versionLog.Count == 0))
                 return orgIndex;
 
             currentVersion = version.LocalVersion;

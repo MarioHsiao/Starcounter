@@ -31,7 +31,7 @@ namespace Starcounter {
         /// any of its children or grandchildren (recursivly). If this flag is true, there can be
         /// no changes to the JSON tree (but there can be changes to bound data objects).
         /// </summary>
-        internal bool _Dirty = false;
+        internal bool dirty = false;
 
         //private bool __BrandNew_ = true;
 

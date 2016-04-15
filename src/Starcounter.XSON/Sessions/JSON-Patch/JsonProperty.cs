@@ -102,7 +102,7 @@ namespace Starcounter.XSON {
                 Json list = tObjArr.Getter(json);
 
                 if (version != null) {
-                    if (version.RemoteLocalVersion != version.LocalVersion || (list._Dirty == true)) {
+                    if (version.RemoteLocalVersion != version.LocalVersion || (list.dirty == true)) {
                         if (!list.IsValidForVersion(version.RemoteLocalVersion))
                             throw new JsonPatchException("The array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
 

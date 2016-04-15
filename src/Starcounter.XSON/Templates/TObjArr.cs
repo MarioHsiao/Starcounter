@@ -122,7 +122,7 @@ namespace Starcounter.Templates {
 				arr.CheckpointAt(i);
 			}
 			arr.ArrayAddsAndDeletes = null;
-			arr._Dirty = false;
+			arr.dirty = false;
 			base.Checkpoint(parent);
 		}
 
