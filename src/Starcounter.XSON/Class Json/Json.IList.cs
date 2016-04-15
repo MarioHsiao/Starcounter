@@ -42,32 +42,7 @@ namespace Starcounter {
         internal void _SetAt(int index, object value) {
             list[index] = value;
         }
-
-        /// <summary>
-        /// If true, this object has been flushed from the change log (usually an
-        /// indication that the object has been sent to its client.
-        /// </summary>
-        internal bool HasBeenSent {
-            get {
-                if (!this.trackChanges)
-                    return false;
-
-                if (this.siblings != null) {
-                    return this.siblings.HasBeenSent(this.siblings.IndexOf(this));
-                }
-
-                if (Parent != null) {
-                    return ((IndexInParent != -1) && (!Parent.IsDirty(IndexInParent)));
-                } else {
-                    var log = ChangeLog;
-                    if (log == null) {
-                        return false;
-                    }
-                    return !log.BrandNew;
-                }
-            }
-        }
-
+        
         /// <summary>
         /// Use this property to access the values internally
         /// </summary>
@@ -143,32 +118,7 @@ namespace Starcounter {
 
             value.SetDefaultValue(this);
         }
-
-        internal bool IsDirty(int index) {
-            return ((stateFlags[index] & PropertyState.Dirty) == PropertyState.Dirty);
-        }
-
-        internal void CheckpointAt(int index) {
-            stateFlags[index] = PropertyState.Default;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="template"></param>
-        internal void MarkAsDirty(Template template) {
-            this.MarkAsDirty(template.TemplateIndex);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="index"></param>
-        internal void MarkAsDirty(int index) {
-            stateFlags[index] |= PropertyState.Dirty;
-            this.Dirtyfy();
-        }
-
+        
         internal Json NewItem() {
             var template = ((TObjArr)this.Template).ElementType;
             var item = (template != null) ? (Json)template.CreateInstance() : new Json();

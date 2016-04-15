@@ -30,10 +30,50 @@ namespace Starcounter {
             }
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		internal void CheckpointChangeLog(bool callStepSiblings = true) {
+        /// <summary>
+        /// Returns true if this property is dirty, i.e. if value have 
+        /// changed or property have been explicitly marked. 
+        /// </summary>
+        /// <param name="prop"></param>
+        /// <returns></returns>
+        public bool IsDirty(Template prop) {
+#if DEBUG
+            this.Template.VerifyProperty(prop);
+#endif
+            if (this.trackChanges)
+                return (IsDirty(prop.TemplateIndex));
+            return false;
+        }
+
+        internal bool IsDirty(int index) {
+            return ((stateFlags[index] & PropertyState.Dirty) == PropertyState.Dirty);
+        }
+
+        internal void CheckpointAt(int index) {
+            stateFlags[index] = PropertyState.Default;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="template"></param>
+        internal void MarkAsDirty(Template template) {
+            this.MarkAsDirty(template.TemplateIndex);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        internal void MarkAsDirty(int index) {
+            stateFlags[index] |= PropertyState.Dirty;
+            this.Dirtyfy();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal void CheckpointChangeLog(bool callStepSiblings = true) {
             if (!this.trackChanges)
                 return;
 
@@ -79,20 +119,6 @@ namespace Starcounter {
 				}
 			}
 			dirty = false;
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="prop"></param>
-		/// <returns></returns>
-		public bool IsDirty(Template prop) {
-#if DEBUG
-			this.Template.VerifyProperty(prop);
-#endif
-            if (this.trackChanges)
-                return (IsDirty(prop.TemplateIndex));
-            return false;
 		}
 
 		/// <summary>
@@ -737,5 +763,30 @@ namespace Starcounter {
             get { return this.checkBoundProperties; }
             set { this.checkBoundProperties = value; } 
         }
-	}
+
+        /// <summary>
+        /// If true, this object has been flushed from the change log (usually an
+        /// indication that the object has been sent to its client.
+        /// </summary>
+        internal bool HasBeenSent {
+            get {
+                if (!this.trackChanges)
+                    return false;
+
+                if (this.siblings != null) {
+                    return this.siblings.HasBeenSent(this.siblings.IndexOf(this));
+                }
+
+                if (Parent != null) {
+                    return ((IndexInParent != -1) && (!Parent.IsDirty(IndexInParent)));
+                } else {
+                    var log = ChangeLog;
+                    if (log == null) {
+                        return false;
+                    }
+                    return !log.BrandNew;
+                }
+            }
+        }
+    }
 }
