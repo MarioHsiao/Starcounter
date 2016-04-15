@@ -631,7 +631,7 @@ namespace Starcounter {
             // up in the tree we set it back to invalid. This will be useful later when
             // json will be stored in blobs.
             
-            if (_parent != null && this.transaction == _parent.GetTransactionHandle(true))
+            if (this.parent != null && this.transaction == this.parent.GetTransactionHandle(true))
                 this.transaction = TransactionHandle.Invalid;
             
             if (this.transaction != TransactionHandle.Invalid) {

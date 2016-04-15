@@ -342,10 +342,10 @@ namespace Starcounter {
         /// <exception cref="System.Exception">Cannot change parent in Apps</exception>
         public Json Parent {
             get {
-                return _parent;
+                return this.parent;
             }
             set {
-                if (_parent != null && _parent != value) {
+                if (this.parent != null && this.parent != value) {
                     throw new Exception("Cannot change parent of objects in Typed JSON trees");
                 }
                 SetParent(value);
@@ -363,13 +363,13 @@ namespace Starcounter {
             // all stateful info is correct.
 
             // Since we change parents we need to retrieve session twice.
-            if (isAddedToViewmodel && _parent != null) {
+            if (isAddedToViewmodel && this.parent != null) {
                 if (Session != null)
                     OnRemovedFromViewmodel(true);
             }
 
-            _parent = value;
-            if (_parent != null) {
+            this.parent = value;
+            if (this.parent != null) {
                 if (Session != null)
                     OnAddedToViewmodel(true);
             }

@@ -156,8 +156,8 @@ namespace Starcounter {
                 }
             }
 
-            if (_parent != null)
-                return _parent.GetTransactionHandle(true);
+            if (this.parent != null)
+                return this.parent.GetTransactionHandle(true);
 
             return TransactionHandle.Invalid;
         }
