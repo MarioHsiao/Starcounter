@@ -107,7 +107,7 @@ namespace Starcounter.Templates {
 			}
 			UnboundSetter(parent, value);
 
-			if (value._PendingEnumeration) {
+			if (value.pendingEnumeration) {
 				value.Array_InitializeAfterImplicitConversion(parent, this);
 			}
 

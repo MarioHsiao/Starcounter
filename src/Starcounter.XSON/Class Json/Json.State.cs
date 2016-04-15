@@ -38,7 +38,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        internal bool _PendingEnumeration;
+        internal bool pendingEnumeration;
 
         /// <summary>
         /// For unbound values, we keep a list of flags to know which properties has changed.

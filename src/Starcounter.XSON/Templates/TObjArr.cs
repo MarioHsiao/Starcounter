@@ -148,7 +148,7 @@ namespace Starcounter.Templates {
 				current.InternalClear();
 				current.SetParent(null);
 			}
-			newArr._PendingEnumeration = true;
+			newArr.pendingEnumeration = true;
 			newArr._data = value;
 			newArr.Array_InitializeAfterImplicitConversion(parent, this);
 
@@ -208,7 +208,7 @@ namespace Starcounter.Templates {
 			}
 			UnboundSetter(parent, value);
 
-			if (value._PendingEnumeration) {
+			if (value.pendingEnumeration) {
 				value.Array_InitializeAfterImplicitConversion(parent, this);
 			}
 

@@ -37,7 +37,7 @@ namespace Starcounter {
             set {
                 this.Scope<Json, object>((j, v) => {
                     if (j.IsArray) {
-                        j._PendingEnumeration = true;
+                        j.pendingEnumeration = true;
                         j._data = (IEnumerable)v;
                         j.Array_InitializeAfterImplicitConversion((Json)j.Parent, (TObjArr)j.Template);
                     } else {

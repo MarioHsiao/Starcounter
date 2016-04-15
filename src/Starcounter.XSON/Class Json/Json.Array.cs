@@ -50,7 +50,7 @@ namespace Starcounter {
             transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();
             _data = result;
-            _PendingEnumeration = true;
+            pendingEnumeration = true;
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Starcounter {
                 Parent = parent;
             }
 
-            if (_PendingEnumeration) {
+            if (this.pendingEnumeration) {
                 var notEnumeratedResult = (IEnumerable)_data;
                 var elementType = template.ElementType;
 
@@ -95,7 +95,7 @@ namespace Starcounter {
                         newApp.Data = entity;
                     }
                 }
-                _PendingEnumeration = false;
+                this.pendingEnumeration = false;
             }
             parent.CallHasChanged(template);
         }
