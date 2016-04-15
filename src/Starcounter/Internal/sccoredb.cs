@@ -20,6 +20,9 @@ namespace Starcounter.Internal
         /// </summary>
         [DllImport("synccommit.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern uint star_context_commit_sync(ulong handle, int free);
+
+        [DllImport("synccommit.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern void star_process_callback_messages(ulong hlogs);
     }
 
     /// <summary>

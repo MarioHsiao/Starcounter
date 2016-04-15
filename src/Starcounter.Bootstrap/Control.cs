@@ -504,13 +504,24 @@ namespace StarcounterInternal.Bootstrap {
             if (e != 0) throw ErrorCode.ToException(e);
         }
 
+        private static void ProcessCallbackMessagesThread(Object parameters) {
+            ulong hlogs = (ulong)parameters;
+            synccommit.star_process_callback_messages(hlogs);
+        }
+
         /// <summary>
         /// </summary>
         private unsafe void ConnectDatabase(uint instanceId, uint schedulerCount, ulong hlogs) {
-            uint e;
-
-            e = sccoredb.sccoredb_connect(instanceId, schedulerCount, hlogs);
+            uint e = sccoredb.sccoredb_connect(instanceId, schedulerCount, hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
+
+            // Start thread to process asynchronous messages from data manager. Required to handle
+            // synchronous commits, configuration change broadcasts and data manager failure
+            // detection.
+
+            var t = new System.Threading.Thread(ProcessCallbackMessagesThread);
+            t.IsBackground = true;
+            t.Start(hlogs);
         }
 
         private long ticksElapsedBetweenProcessStartAndMain_;
