@@ -38,7 +38,7 @@ namespace Starcounter {
                 return;
 
 			if (this.IsArray) {
-				this.ArrayAddsAndDeletes = null;
+				this.arrayAddsAndDeletes = null;
 				if (Template != null) {
 					var tjson = (TObjArr)Template;
 					tjson.Checkpoint(this.Parent);
@@ -118,9 +118,9 @@ namespace Starcounter {
             bool logChanges;
             Json item;
 
-            if (ArrayAddsAndDeletes != null && ArrayAddsAndDeletes.Count > 0) {
-                for (int i = 0; i < ArrayAddsAndDeletes.Count; i++) {
-                    var change = ArrayAddsAndDeletes[i];
+            if (this.arrayAddsAndDeletes != null && this.arrayAddsAndDeletes.Count > 0) {
+                for (int i = 0; i < this.arrayAddsAndDeletes.Count; i++) {
+                    var change = this.arrayAddsAndDeletes[i];
 
                     changeLog.Add(change);
                     var index = change.Item.cacheIndexInArr;
@@ -135,7 +135,7 @@ namespace Starcounter {
                 for (int i = 0; i < this.valueList.Count; i++) {
                     // Skip all items we have already added to the changelog.
                     logChanges = true;
-                    foreach (Change change in ArrayAddsAndDeletes) {
+                    foreach (Change change in this.arrayAddsAndDeletes) {
                         if (change.ChangeType != Change.REMOVE && change.Index == i) {
                             logChanges = false;
                             break;
@@ -150,9 +150,9 @@ namespace Starcounter {
                 if (changeLog.Version != null) {
                     if (versionLog == null)
                         versionLog = new List<ArrayVersionLog>();
-                    versionLog.Add(new ArrayVersionLog(changeLog.Version.LocalVersion, ArrayAddsAndDeletes));
+                    versionLog.Add(new ArrayVersionLog(changeLog.Version.LocalVersion, this.arrayAddsAndDeletes));
                 }
-                ArrayAddsAndDeletes = null;
+                this.arrayAddsAndDeletes = null;
             } else {
                 for (int t = 0; t < this.valueList.Count; t++) {
                     var arrItem = ((Json)this.valueList[t]);
@@ -384,7 +384,7 @@ namespace Starcounter {
             TObjArr tArr = Template as TObjArr;
             bool hasChanged = false;
             IList jsonList = (IList)this;
-            int offset = (this.ArrayAddsAndDeletes != null) ? this.ArrayAddsAndDeletes.Count : 0;
+            int offset = (this.arrayAddsAndDeletes != null) ? this.arrayAddsAndDeletes.Count : 0;
 
             if (boundValue != null) {
                 foreach (object value in boundValue) {
@@ -421,7 +421,7 @@ namespace Starcounter {
                 deleteCount++;
             }
 
-            ReduceArrayChanges(this.ArrayAddsAndDeletes, offset, deleteCount);
+            ReduceArrayChanges(this.arrayAddsAndDeletes, offset, deleteCount);
 
             if (hasChanged)
                 this.Parent.HasChanged(tArr);

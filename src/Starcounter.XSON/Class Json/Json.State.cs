@@ -70,7 +70,7 @@ namespace Starcounter {
         /// <summary>
         /// Keeps track on when we added/inserted or removed elements
         /// </summary>
-        internal List<Change> ArrayAddsAndDeletes = null;
+        internal List<Change> arrayAddsAndDeletes = null;
 
         /// <summary>
         /// 

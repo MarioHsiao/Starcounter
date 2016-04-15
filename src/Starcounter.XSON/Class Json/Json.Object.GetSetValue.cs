@@ -233,10 +233,10 @@ namespace Starcounter {
 		internal void CallHasAddedElement(int index, Json item) {
 			var tarr = (TObjArr)this.Template;
 			if (this.trackChanges) {
-				if (ArrayAddsAndDeletes == null) {
-					ArrayAddsAndDeletes = new List<Change>();
+				if (this.arrayAddsAndDeletes == null) {
+					this.arrayAddsAndDeletes = new List<Change>();
 				}
-				ArrayAddsAndDeletes.Add(Change.Add(this.Parent, tarr, index, item));
+				this.arrayAddsAndDeletes.Add(Change.Add(this.Parent, tarr, index, item));
 				Dirtyfy();
                 item.SetBoundValuesInTuple();
 			}
@@ -253,10 +253,10 @@ namespace Starcounter {
         internal void CallHasReplacedElement(int index, Json item) {
             var tarr = (TObjArr)this.Template;
             if (this.trackChanges) {
-                if (ArrayAddsAndDeletes == null) {
-                    ArrayAddsAndDeletes = new List<Change>();
+                if (this.arrayAddsAndDeletes == null) {
+                    this.arrayAddsAndDeletes = new List<Change>();
                 }
-                ArrayAddsAndDeletes.Add(Change.Update(this.Parent, tarr, index, item));
+                this.arrayAddsAndDeletes.Add(Change.Update(this.Parent, tarr, index, item));
                 Dirtyfy();
                 item.SetBoundValuesInTuple();
             }
@@ -268,10 +268,10 @@ namespace Starcounter {
         internal void CallHasMovedElement(int fromIndex, int toIndex, Json item) {
             var tarr = (TObjArr)this.Template;
             if (this.trackChanges) {
-                if (ArrayAddsAndDeletes == null) {
-                    ArrayAddsAndDeletes = new List<Change>();
+                if (this.arrayAddsAndDeletes == null) {
+                    this.arrayAddsAndDeletes = new List<Change>();
                 }
-                ArrayAddsAndDeletes.Add(Change.Move(this.Parent, tarr, fromIndex, toIndex, item));
+                this.arrayAddsAndDeletes.Add(Change.Move(this.Parent, tarr, fromIndex, toIndex, item));
                 Dirtyfy();
                 item.SetBoundValuesInTuple();
             }
@@ -288,10 +288,10 @@ namespace Starcounter {
 		internal void CallHasRemovedElement(int index, Json item) {
 			var tarr = (TObjArr)this.Template;
             if (this.trackChanges) {
-				if (ArrayAddsAndDeletes == null) {
-					ArrayAddsAndDeletes = new List<Change>();
+				if (this.arrayAddsAndDeletes == null) {
+					this.arrayAddsAndDeletes = new List<Change>();
 				}
-				ArrayAddsAndDeletes.Add(Change.Remove(this.Parent, tarr, index, item));
+				this.arrayAddsAndDeletes.Add(Change.Remove(this.Parent, tarr, index, item));
 				Dirtyfy();
 			}
 

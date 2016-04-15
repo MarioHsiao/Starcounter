@@ -121,7 +121,7 @@ namespace Starcounter.Templates {
 				row.CheckpointChangeLog();
 				arr.CheckpointAt(i);
 			}
-			arr.ArrayAddsAndDeletes = null;
+			arr.arrayAddsAndDeletes = null;
 			arr.dirty = false;
 			base.Checkpoint(parent);
 		}

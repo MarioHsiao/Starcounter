@@ -126,9 +126,9 @@ namespace Starcounter {
                 }
             }
 
-            if (transformedIndex != -1 && ArrayAddsAndDeletes != null) {
+            if (transformedIndex != -1 && this.arrayAddsAndDeletes != null) {
                 // There are current changes made that haven't been pushed to client yet.
-                transformedIndex = FindAndTransformIndex(ArrayAddsAndDeletes, transformedIndex);
+                transformedIndex = FindAndTransformIndex(this.arrayAddsAndDeletes, transformedIndex);
             }
             return transformedIndex;
         }
