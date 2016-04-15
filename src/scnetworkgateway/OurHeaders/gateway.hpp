@@ -251,6 +251,9 @@ const int32_t LISTENING_SOCKET_QUEUE_SIZE = 256;
 // Number of prepared UDP sockets.
 const int32_t NUM_PREPARED_UDP_SOCKETS_PER_WORKER = 256;
 
+// Number of times to spin when obtaining global lock.
+const int32_t GLOBAL_LOCK_SPIN_TIMES = 1000000;
+
 // Gateway mode.
 enum GatewayTestingMode
 {
@@ -2096,10 +2099,8 @@ public:
     void EnterGlobalLock()
     {
         // Checking if already locked.
-		int32_t max_tries = 500;
+		int32_t max_tries = GLOBAL_LOCK_SPIN_TIMES * 2;
 		while (global_lock_unsafe_) {
-			Sleep(10);
-
 			max_tries--;
 			if (0 == max_tries) {
 				GW_ASSERT(!"Reached maximum number of tries to obtain a global lock.");
