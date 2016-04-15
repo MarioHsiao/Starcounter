@@ -208,6 +208,8 @@ namespace Starcounter.Hosting {
 
                         // Adding this app as processed.
                         exportedSchemas_.Add(fullAppId, true);
+
+                        OnPrologSchemaInfoUpdated();
                     }
                 }
 
@@ -221,6 +223,8 @@ namespace Starcounter.Hosting {
                     foreach (var resourceDir in application.ResourceDirectories) {
                         AppsBootstrapper.AddStaticFileDirectory(resourceDir, port);
                     }
+
+                    OnStaticDirectoriesAdded();
                 }
 
                 // Initializing package for all executables.
@@ -601,6 +605,8 @@ namespace Starcounter.Hosting {
 
         private void OnProcessingStarted() { Trace("Package started."); }
         private void OnInternalHandlersRegistered() { Trace("Internal handlers were registered."); }
+        private void OnStaticDirectoriesAdded() { Trace("Static directories are added."); }
+        private void OnPrologSchemaInfoUpdated() { Trace("Prolog exported schema info."); }
         private void OnTypesCheckedAndUpdated() { Trace("Types of database schema checked and updated."); }
         private void OnColumnsCheckedAndUpdated() { Trace("Columns of database schema checked and updated."); }
         private void OnTypeDefsRegistered() { Trace("Type definitions registered."); }
