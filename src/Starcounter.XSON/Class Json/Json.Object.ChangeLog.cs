@@ -631,14 +631,14 @@ namespace Starcounter {
             // up in the tree we set it back to invalid. This will be useful later when
             // json will be stored in blobs.
             
-            if (_parent != null && this._transaction == _parent.GetTransactionHandle(true))
-                this._transaction = TransactionHandle.Invalid;
+            if (_parent != null && this.transaction == _parent.GetTransactionHandle(true))
+                this.transaction = TransactionHandle.Invalid;
             
-            if (this._transaction != TransactionHandle.Invalid) {
+            if (this.transaction != TransactionHandle.Invalid) {
                 // We have a transaction attached on this json. We register the transaction 
                 // on the session to keep track of it. This will also mean that the session
                 // is responsible for releasing it when noone uses it anymore.
-                _transaction = Session.RegisterTransaction(_transaction);
+                this.transaction = Session.RegisterTransaction(transaction);
             }
             
             _trackChanges = true;
@@ -681,8 +681,8 @@ namespace Starcounter {
 
             isAddedToViewmodel = false;
             addedInVersion = -1;
-            if (_transaction != TransactionHandle.Invalid) {
-                Session.DeregisterTransaction(_transaction);
+            if (this.transaction != TransactionHandle.Invalid) {
+                Session.DeregisterTransaction(this.transaction);
             }
 
             _trackChanges = false;

@@ -143,8 +143,8 @@ namespace Starcounter {
             TransactionHandle handle;
 
             // Returning first available transaction climbing up the tree starting from this node.
-            if (_transaction != TransactionHandle.Invalid)
-                return _transaction;
+            if (this.transaction != TransactionHandle.Invalid)
+                return this.transaction;
 
             if (lookInStepSiblings == true && _stepSiblings != null) {
                 foreach (Json stepSibling in _stepSiblings) {
@@ -171,12 +171,12 @@ namespace Starcounter {
                         // Need to register a reference directly here and properly deregister any existing 
                         // transaction.
                         var session = Session;
-                        if (_transaction != TransactionHandle.Invalid)
-                            session.DeregisterTransaction(_transaction);
+                        if (this.transaction != TransactionHandle.Invalid)
+                            session.DeregisterTransaction(this.transaction);
                         current = session.RegisterTransaction(current);
                     }
 
-                    _transaction = current;
+                    this.transaction = current;
                     StarcounterBase.TransactionManager.SetTemporaryRef(current);
                 }
             }
