@@ -644,7 +644,7 @@ namespace Starcounter.Internal {
             if (ThreadData.applyHooks_)
                 InvokeHooks();
 
-            uint r = sccoredb.star_context_commit(ThreadData.ContextHandle, free);
+            uint r = synccommit.star_context_commit_sync(ThreadData.ContextHandle, free);
             if (r != 0) throw ErrorCode.ToException(r);
         }
 

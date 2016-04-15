@@ -12,6 +12,17 @@ namespace Starcounter.Internal
 {
 
     /// <summary>
+    /// </summary>
+    [SuppressUnmanagedCodeSecurity]
+    internal static class synccommit {
+
+        /// <summary>
+        /// </summary>
+        [DllImport("synccommit.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern uint star_context_commit_sync(ulong handle, int free);
+    }
+
+    /// <summary>
     /// Class sccoredb
     /// </summary>
     [SuppressUnmanagedCodeSecurity]
@@ -74,8 +85,6 @@ namespace Starcounter.Internal
             public void* query_highmem_cond;
 
             public void *on_index_updated;
-
-            public void* on_datamanager_disconnected;
         }
 
         /// <summary>
@@ -295,11 +304,6 @@ namespace Starcounter.Internal
         /// </returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern uint star_transaction_reset(ulong handle);
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_commit(ulong handle, int free);
 
         /// <summary>
         /// </summary>
