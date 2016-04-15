@@ -94,7 +94,7 @@ namespace Starcounter {
         /// or view models are often associated with database objects. I.e. a person form might
         /// reflect a person database object.
         /// </summary>
-        internal object _data;
+        internal object data;
 
         /// <summary>
         /// List containing all stepsiblings that exists on this level.

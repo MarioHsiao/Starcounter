@@ -349,7 +349,7 @@ namespace Starcounter {
             foreach (object value in boundValue) {
                 if (_list.Count <= index) {
                     newJson = (Json)tArr.ElementType.CreateInstance();
-                    newJson._data = value;
+                    newJson.data = value;
                     ((IList)this).Add(newJson);
                     newJson.Data = value;
                     hasChanged = true;
@@ -357,7 +357,7 @@ namespace Starcounter {
                     oldJson = (Json)_list[index];
                     if (!CompareDataObjects(oldJson.Data, value)) {
                         newJson = (Json)tArr.ElementType.CreateInstance();
-                        newJson._data = value;
+                        newJson.data = value;
                         ((IList)this)[index] = newJson;
                         newJson.Data = value;
                         oldJson.SetParent(null);
@@ -390,7 +390,7 @@ namespace Starcounter {
                 foreach (object value in boundValue) {
                     if (jsonList.Count <= index) {
                         newJson = (Json)tArr.ElementType.CreateInstance();
-                        newJson._data = value;
+                        newJson.data = value;
                         jsonList.Add(newJson);
                         newJson.Data = value;
                         hasChanged = true;
@@ -400,7 +400,7 @@ namespace Starcounter {
                             itemIndex = IndexOf(jsonList, index + 1, value);
                             if (itemIndex == -1) {
                                 newJson = (Json)tArr.ElementType.CreateInstance();
-                                newJson._data = value;
+                                newJson.data = value;
                                 jsonList.Insert(index, newJson);
                                 newJson.Data = value;
                             } else {

@@ -149,7 +149,7 @@ namespace Starcounter.Templates {
 				current.SetParent(null);
 			}
 			newArr.pendingEnumeration = true;
-			newArr._data = value;
+			newArr.data = value;
 			newArr.Array_InitializeAfterImplicitConversion(parent, this);
 
 			if (UseBinding(parent))

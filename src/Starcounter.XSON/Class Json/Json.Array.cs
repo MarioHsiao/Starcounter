@@ -49,7 +49,7 @@ namespace Starcounter {
             cacheIndexInArr = -1;
             transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();
-            _data = result;
+            data = result;
             pendingEnumeration = true;
         }
 
@@ -72,7 +72,7 @@ namespace Starcounter {
             }
 
             if (this.pendingEnumeration) {
-                var notEnumeratedResult = (IEnumerable)_data;
+                var notEnumeratedResult = (IEnumerable)this.data;
                 var elementType = template.ElementType;
 
                 foreach (var entity in notEnumeratedResult) {
@@ -90,7 +90,7 @@ namespace Starcounter {
                         // Setting only the reference to the data first to allow bindings 
                         // and other stuff be handled then setting the property data after 
                         // the new item have been added to have the callback to usercode.
-                        newApp._data = entity;
+                        newApp.data = entity;
                         ((IList)this).Add(newApp);
                         newApp.Data = entity;
                     }

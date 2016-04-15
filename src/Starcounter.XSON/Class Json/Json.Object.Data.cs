@@ -20,7 +20,7 @@ namespace Starcounter {
         /// </summary>
         internal IBindable DataAsBindable {
             get {
-                return (IBindable)_data;
+                return (IBindable)this.data;
             }
         }
 
@@ -32,13 +32,13 @@ namespace Starcounter {
         /// <value>The bound data object (often a database Entity)</value>
         public object Data {
             get {
-                return _data;
+                return this.data;
             }
             set {
                 this.Scope<Json, object>((j, v) => {
                     if (j.IsArray) {
                         j.pendingEnumeration = true;
-                        j._data = (IEnumerable)v;
+                        j.data = (IEnumerable)v;
                         j.Array_InitializeAfterImplicitConversion((Json)j.Parent, (TObjArr)j.Template);
                     } else {
                         if (j.Template == null) {
@@ -75,7 +75,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
         protected virtual void InternalSetData(object data, TValue template, bool readOperation) {
-            this._data = data;
+            this.data = data;
 
             if (template == null)
                 return;
@@ -108,7 +108,7 @@ namespace Starcounter {
                 for (Int32 i = 0; i < tobj.Properties.Count; i++) {
                     child = tobj.Properties[i] as TObjArr;
                     if (child != null && child.BindingStrategy != BindingStrategy.Unbound) {
-                        if (_data != null) {
+                        if (this.data != null) {
                             if (child.UseBinding(this))
                                 Refresh(child);
                         } else {
