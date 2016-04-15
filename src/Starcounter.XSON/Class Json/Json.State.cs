@@ -61,7 +61,7 @@ namespace Starcounter {
         /// <summary>
         /// Json objects can be stored on the server between requests as session data.
         /// </summary>
-        internal Session _Session;
+        internal Session session;
 
         /// <summary>
         /// Keeps track on when we added/inserted or removed elements

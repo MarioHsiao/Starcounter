@@ -413,7 +413,7 @@ namespace Starcounter {
                     if (value.Parent != null)
                         throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
 
-                    if (value._Session != null && value._Session != this)
+                    if (value.session != null && value.session != this)
                         throw ErrorCode.ToException(Error.SCERRJSONSETONOTHERSESSION);
                 }
 
@@ -428,7 +428,7 @@ namespace Starcounter {
                     }
 
                     if (value != null) {
-                        value._Session = this;
+                        value.session = this;
 
                         if (publicViewModelIndex == -1)
                             publicViewModelIndex = stateIndex;

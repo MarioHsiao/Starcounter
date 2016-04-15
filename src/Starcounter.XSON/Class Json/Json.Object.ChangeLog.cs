@@ -713,7 +713,7 @@ namespace Starcounter {
 
                     // Check for stepsiblings that might be a part of a stateful viewmodel,
                     // and still be a sibling to another. In that case we don't do the call.
-                    if (stepSibling._Session != null || (stepSibling.Parent != null && stepSibling.Parent.isAddedToViewmodel))
+                    if (stepSibling.session != null || (stepSibling.Parent != null && stepSibling.Parent.isAddedToViewmodel))
                         continue;
                     stepSibling.OnRemovedFromViewmodel(false);
                 }

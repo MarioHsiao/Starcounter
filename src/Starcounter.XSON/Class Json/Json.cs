@@ -173,20 +173,20 @@ namespace Starcounter {
                 if (Parent != null)
                     throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
 
-                if (_Session != null) {
+                if (this.session != null) {
                     // This instance is already attached to a session. We need to remove the old
                     // before setting the new.
-                    _Session.Data = null;
+                    this.session.Data = null;
                 }
 
                 if (value != null)
                     value.Data = this;
-                _Session = value;
+                this.session = value;
             }
         }
 
         private Session GetSession(bool lookInStepSiblings) {
-            Session session = _Session;
+            Session session = this.session;
 
             if (session != null)
                 return session;
