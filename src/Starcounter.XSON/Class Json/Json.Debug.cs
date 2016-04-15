@@ -122,8 +122,8 @@ namespace Starcounter {
 			sb.Append(' ', i);
 			sb.Append("}");
 
-            if (includeStepsiblings && json._stepSiblings != null && json._stepSiblings.Count > 1) {
-                foreach (var stepSibling in json._stepSiblings) {
+            if (includeStepsiblings && json.siblings != null && json.siblings.Count > 1) {
+                foreach (var stepSibling in json.siblings) {
                     if (stepSibling == json)
                         continue;
                     sb.AppendLine();

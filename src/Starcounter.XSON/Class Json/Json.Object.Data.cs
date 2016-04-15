@@ -146,8 +146,8 @@ namespace Starcounter {
             if (this.transaction != TransactionHandle.Invalid)
                 return this.transaction;
 
-            if (lookInStepSiblings == true && _stepSiblings != null) {
-                foreach (Json stepSibling in _stepSiblings) {
+            if (lookInStepSiblings == true && this.siblings != null) {
+                foreach (Json stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
                     handle = stepSibling.GetTransactionHandle(false);
