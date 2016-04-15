@@ -334,6 +334,10 @@ sunflower.dll
 sunflower.exp
 sunflower.lib
 sunflower.pdb
+synccommit.dll
+synccommit.exp
+synccommit.lib
+synccommit.pdb
 testtemplate.html
 TurboText_en-GB_4.dll
 TurboText_en-GB_4.exp
