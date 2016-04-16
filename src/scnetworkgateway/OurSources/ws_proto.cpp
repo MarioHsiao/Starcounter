@@ -301,11 +301,6 @@ uint32_t WsProto::ProcessWsDataToDb(
 		// Remaining bytes to process.
 		int32_t num_remaining_bytes = num_accum_bytes - num_processed_bytes;
 
-		// Checking if we have payload size bigger than maximum allowed.
-		if (payload_len >= num_remaining_bytes) {
-			return SCERRGWMAXDATASIZEREACHED;
-		}
-
         // Checking if header is not complete.
         if (!complete_header) {
 
@@ -315,6 +310,11 @@ uint32_t WsProto::ProcessWsDataToDb(
             // Returning socket to receiving state.
             return gw->Receive(sd);
         }
+
+		// Checking if we have payload size bigger than maximum allowed.
+		if (payload_len >= MAX_SOCKET_DATA_SIZE) {
+			return SCERRGWMAXDATASIZEREACHED;
+		}
 
         int32_t header_plus_payload_bytes = header_len + static_cast<int32_t>(payload_len);
 
