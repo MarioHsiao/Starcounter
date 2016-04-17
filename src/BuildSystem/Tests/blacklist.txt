@@ -63,7 +63,6 @@ prepare_sqlregression_test.bat
 Level1\src\Samples\TransactionLogTest\transactionlog_test.bat
 Level1\src\Samples\OptimizedLogTest\optimizedlog_test.bat
 Level1\src\Samples\CommitHooksTest\commithooks2_test.bat
-SimpleIndependentTests_hosted_test.exe
 DropTableBug3387_test.bat
 
 # Level0 tests that has to be reenabled in future (they are not maintained at the moment).
