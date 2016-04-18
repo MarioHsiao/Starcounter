@@ -46,7 +46,7 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Starting database memory management process.
-START CMD /C "scdata.exe 1 %DB_NAME% %DB_OUT_DIR% %DB_NAME% %DB_DIR%"
+START CMD /C "scdata.exe -instid 1 "{ \"hostname\": \"%DB_NAME%\", \"eventlogdir\": \"%DB_OUT_DIR%\", \"databasename\": \"%DB_NAME%\", \"logdir\": \"%DB_DIR%\" }""
 
 :: Starting Prolog process.
 START CMD /C "32bitComponents\scsqlparser.exe 8066"

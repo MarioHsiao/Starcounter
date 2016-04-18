@@ -4,6 +4,9 @@ SET DB_OUT_DIR=%~dp0\..\..\.db.output
 SET DB_NAME=TRANSACTIONLOG
 SET TEST_NAME=TransactionLogTest
 
+SET DB_DIR_JSON=%DB_DIR:\=/%
+SET DB_OUT_DIR_JSON=%DB_OUT_DIR:\=/%
+
 :: Killing all SC processes.
 %~dp0\..\..\staradmin kill all
 
@@ -23,7 +26,7 @@ START CMD /C "%~dp0\..\..\scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
 SET TEST_WEAVED_ASSEMBLY=%~dp0\.starcounter\%TEST_NAME%.exe
 
 :: Starting database memory management process.
-START CMD /C "%~dp0\..\..\scdata.exe 1 %DB_NAME% %DB_OUT_DIR% %DB_NAME% %DB_DIR%"
+START CMD /C "%~dp0\..\..\scdata.exe -instid 1 "{ \"hostname\": \"%DB_NAME%\", \"eventlogdir\": \"%DB_OUT_DIR_JSON%\", \"databasename\": \"%DB_NAME%\", \"logdir\": \"%DB_DIR_JSON%\" }""
 
 :: Starting Prolog process.
 START CMD /C "%~dp0\..\..\32bitComponents\scsqlparser.exe 8066"
