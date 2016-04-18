@@ -115,10 +115,18 @@ namespace Starcounter.Templates {
 			return (BoundGetter != null);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		internal override void GenerateUnboundGetterAndSetter() {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        internal override bool HasBinding() {
+            return (BoundGetter != null);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal override void GenerateUnboundGetterAndSetter() {
 			if (UnboundGetter == null)
 				TemplateDelegateGenerator.GenerateUnboundDelegates<T>(this, false);
 		}

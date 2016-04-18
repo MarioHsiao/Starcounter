@@ -137,8 +137,12 @@ namespace Starcounter.Templates {
 		internal override void InvalidateBoundGetterAndSetter() {
 			base.InvalidateBoundGetterAndSetter();
 		}
+        
+        internal override bool HasBinding() {
+            return false;
+        }
 
-		internal override bool GenerateBoundGetterAndSetter(Json json) {
+        internal override bool GenerateBoundGetterAndSetter(Json json) {
 			return false;
 		}
 

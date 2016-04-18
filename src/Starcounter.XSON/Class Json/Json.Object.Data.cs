@@ -54,67 +54,72 @@ namespace Starcounter {
         internal void AttachData(object data) {
             InternalSetData(data, (TValue)Template, true);
         }
-
-        /// <summary>
-        /// For public API functions that does not operate on templates, this
-        /// method should be used instead of a simple type cast to provide a 
-        /// better error message for the developer.
-        /// </summary>
-        /// <returns>This as a Json object</returns>
-        private Json AssertIsObject() {
-            if (IsArray) {
-                throw new Exception("You cannot use named properties on array Json objects");
-            }
-            return this as Json;
-        }
-
+        
         /// <summary>
         /// Sets the underlying data object and refreshes all bound values.
         /// This function does not check for a valid transaction as the 
         /// public Data-property does.
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(object data, TValue template, bool readOperation) {
+        protected virtual void InternalSetData(object data, TValue template, bool updateBinding) {
+            TObject tobj;
+            TValue child;
+
             this._data = data;
 
             if (template == null)
                 return;
 
-			if (template.TemplateTypeId == TemplateTypeEnum.Object) {
-				if (template.BindingStrategy != BindingStrategy.Unbound) {
-					var parent = ((Json)this.Parent);
-					if (!readOperation && parent != null && template.UseBinding(parent)) {
-                        var tobj = (TObject)template;
-                        
-						if (tobj.BoundSetter != null) 
-						    tobj.BoundSetter(parent, data);
-					}
-				}
-            }
+            if (template.TemplateTypeId == TemplateTypeEnum.Object) {
+                tobj = (TObject)template;
 
-            InitBoundArrays(template);
-			
+                // Since dataobject is set we want to do a reverse update of the binding,
+                // i.e. if the template is bound we want to update the parents dataobject.
+                InitTemplateAfterData(template, false);
+                
+                if (template.BindingStrategy != BindingStrategy.Unbound) {
+                    var parent = ((Json)this.Parent);
+                    if (!updateBinding && parent != null && template.UseBinding(parent)) {
+                        if (tobj.BoundSetter != null)
+                            tobj.BoundSetter(parent, data);
+                    }
+                }
+                
+                for (Int32 i = 0; i < tobj.Properties.Count; i++) {
+                    child = tobj.Properties[i] as TValue;
+
+                    if (child == null)
+                        continue;
+
+                    InitTemplateAfterData(child, true);
+                }
+            } else {
+                InitTemplateAfterData(template, true);
+            }
+            
             OnData();
         }
         
-        /// <summary>
-        /// Initializes bound arrays when a new dataobject is set.
-        /// </summary>
-        private void InitBoundArrays(TValue template) {
-            TObjArr child;
+        private void InitTemplateAfterData(TValue template, bool updateBinding) {
+            if (template.BindingStrategy != BindingStrategy.Unbound) {
+                if (_data != null) {
+                    if (template.isVerifiedUnbound) {
+                        template.isVerifiedUnbound = template.VerifyBoundDataType(this._data.GetType(), template.dataTypeForBinding);
+                    }
 
-            if (template.TemplateTypeId == TemplateTypeEnum.Object) {
-                var tobj = (TObject)template;
-                for (Int32 i = 0; i < tobj.Properties.Count; i++) {
-                    child = tobj.Properties[i] as TObjArr;
-                    if (child != null && child.BindingStrategy != BindingStrategy.Unbound) {
-                        if (_data != null) {
-                            if (child.UseBinding(this))
-                                Refresh(child);
+                    if (updateBinding && (template.TemplateTypeId == TemplateTypeEnum.Object 
+                                            || template.TemplateTypeId == TemplateTypeEnum.Array)) {
+                        if (template.UseBinding(this))
+                            Refresh(template);
+                    }
+                } else {
+                    if (updateBinding && template.HasBinding()) {
+                        if (template.TemplateTypeId == TemplateTypeEnum.Object) {
+                            (((TObject)template).Getter(this)).Data = null;
                         } else {
-                            var thisj = AssertIsObject();
-                            var arr = (Json)child.Getter(thisj);
-                            ((IList)arr).Clear();
+                            // Template previously bound. Reset the unbound value in case
+                            // the dirtycheck have used it to cache old value.
+                            template.SetDefaultValue(this);
                         }
                     }
                 }
