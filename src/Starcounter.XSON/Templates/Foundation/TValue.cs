@@ -233,6 +233,9 @@ namespace Starcounter.Templates {
             if (forceGenerateBindings) {
                 GenerateBoundGetterAndSetter(parent);
                 forceGenerateBindings = false;
+
+                if (isVerifiedUnbound)
+                    return false;
             }
 
             if (isBoundToParent)
@@ -244,7 +247,7 @@ namespace Starcounter.Templates {
 
             boundType = dataTypeForBinding;
             if (boundType != null) {
-                if (VerifyBinding(data.GetType(), boundType))
+                if (VerifyBoundDataType(data.GetType(), boundType))
                     return true;
 
                 InvalidateBoundGetterAndSetter();
@@ -257,7 +260,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="dataType"></param>
 		/// <returns></returns>
-		private bool VerifyBinding(Type dataType, Type boundDataType) {
+		internal bool VerifyBoundDataType(Type dataType, Type boundDataType) {
 			if (dataType.Equals(boundDataType) || dataType.IsSubclassOf(boundDataType))
 				return true;
 			return false;
