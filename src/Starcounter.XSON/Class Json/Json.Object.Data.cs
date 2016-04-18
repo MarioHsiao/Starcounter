@@ -112,9 +112,16 @@ namespace Starcounter {
                         if (template.UseBinding(this))
                             Refresh(template);
                     }
-                } else if (template.TemplateTypeId == TemplateTypeEnum.Array) {
-                    Json arr = ((TObjArr)template).Getter(this);
-                    ((IList)arr).Clear();
+                } else {
+                    if (updateBinding && template.HasBinding()) {
+                        if (template.TemplateTypeId == TemplateTypeEnum.Object) {
+                            (((TObject)template).Getter(this)).Data = null;
+                        } else {
+                            // Template previously bound. Reset the unbound value in case
+                            // the dirtycheck have used it to cache old value.
+                            template.SetDefaultValue(this);
+                        }
+                    }
                 }
             }
         }
