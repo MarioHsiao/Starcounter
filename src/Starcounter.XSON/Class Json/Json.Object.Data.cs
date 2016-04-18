@@ -54,20 +54,7 @@ namespace Starcounter {
         internal void AttachData(object data) {
             InternalSetData(data, (TValue)Template, true);
         }
-
-        /// <summary>
-        /// For public API functions that does not operate on templates, this
-        /// method should be used instead of a simple type cast to provide a 
-        /// better error message for the developer.
-        /// </summary>
-        /// <returns>This as a Json object</returns>
-        private Json AssertIsObject() {
-            if (IsArray) {
-                throw new Exception("You cannot use named properties on array Json objects");
-            }
-            return this as Json;
-        }
-
+        
         /// <summary>
         /// Sets the underlying data object and refreshes all bound values.
         /// This function does not check for a valid transaction as the 
