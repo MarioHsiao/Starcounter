@@ -1,4 +1,10 @@
-## [Unreleased][unreleased]
+## [Unreleased] - Unreleased
+
+### Fixed
+
+- Fixed a bug in TypedJson where databinding for a property was not properly invalidated when a dataobject with a different type (including null) was set, [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
+
+## [2.2.1793] - 2016-04-18
 ### Added
 - New staradmin command `staradmin start server`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/).
 - New staradmin command `staradmin start database`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/). By default, this command also automatically create the specified database if it does not exist.
@@ -66,7 +72,6 @@
 - Fixed a bug that it was not possible to use same class names as meta-tables, see [#3482](https://github.com/Starcounter/Starcounter/issues/3482).
 - Make sure the request is passed as a parameter when constructing a response from a resource, see [#3496](https://github.com/Starcounter/Starcounter/issues/3496)
 - Fixed bug in PrivateAssemblyStore, causing some path comparisons to use an unsupported comparison type, see [#3501](https://github.com/Starcounter/Starcounter/issues/3501)
-- Fixed a bug in TypedJson where databinding for a property was not properly invalidated when a dataobject with a different type (including null) was set, [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
