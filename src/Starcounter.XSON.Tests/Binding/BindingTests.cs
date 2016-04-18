@@ -461,5 +461,50 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Template = new TString();
             json.Data = new Person();
         }
+
+        [Test]
+        public static void TestDataObjectsWithDifferentTypes() {
+            var dataObject1 = new Agent() {
+                ObjectNo = 1,
+                Name = "Agent"
+            };
+
+            var dataObject2 = new Address() {
+                ObjectNo = 2,
+                Street = "Street"
+            };
+
+            dynamic json = new Json();
+
+            // Create the wanted properties.
+            json.ObjectNo = 0;
+            json.Name = "";
+            json.Street = "";
+            json.Misc = "Misc";
+            
+            json.Data = dataObject1;
+            Assert.AreEqual(dataObject1.ObjectNo, json.ObjectNo);
+            Assert.AreEqual(dataObject1.Name, json.Name);
+            Assert.AreEqual("", json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+
+            json.Data = dataObject2;
+            Assert.AreEqual(dataObject2.ObjectNo, json.ObjectNo);
+            Assert.AreEqual("", json.Name);
+            Assert.AreEqual(dataObject2.Street, json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+
+            json.Data = dataObject1;
+            Assert.AreEqual(dataObject1.ObjectNo, json.ObjectNo);
+            Assert.AreEqual(dataObject1.Name, json.Name);
+            Assert.AreEqual("", json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+
+            json.Data = null;
+            Assert.AreEqual(0, json.ObjectNo);
+            Assert.AreEqual("", json.Name);
+            Assert.AreEqual("", json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+        }
     }
 }
