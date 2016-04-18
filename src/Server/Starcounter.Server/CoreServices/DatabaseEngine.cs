@@ -512,37 +512,68 @@ namespace Starcounter.Server {
             while (IsEngineProcessRunning(processControlEventName)) Thread.Sleep(1);
         }
 
+        private string JSONEncodePath(string path) {
+            const char BACK_SLASH = '\\';
+            const char SLASH = '/';
+            var output = new StringBuilder(path.Length);
+            foreach (char c in path) {
+                switch (c) {
+                case SLASH:
+                    output.AppendFormat("{0}{1}", BACK_SLASH, SLASH);
+                    break;
+                case BACK_SLASH:
+                    output.AppendFormat("{0}{0}", BACK_SLASH);
+                    break;
+                default:
+                    output.Append(c);
+                    break;
+                }
+            }
+            return output.ToString();
+        }
+
         ProcessStartInfo GetDatabaseStartInfo(Database database) {
             var arguments = new StringBuilder();
 
             // The syntax
-            // scdata.exe <installationId> <hostName> <eventLogDirPath> <databaseName> <logDirPath> [<logBufferSize>]
+            // scdata.exe [-instid <installationId>] <json>
 
+            arguments.Append("-instid ");
             arguments.Append(database.InstanceID.ToString());
             arguments.Append(' ');
 
+            arguments.Append("\"{");
+
             // What "host name" value should we use?
             // TODO:
-            
-            arguments.Append('\"');
+
+            arguments.Append("\\\"hostname\\\":");
+            arguments.Append("\\\"");
             arguments.Append(database.Uri);
             //arguments.Append(database.Name);
-            arguments.Append('\"');
-            arguments.Append(' ');
+            arguments.Append("\\\"");
+            arguments.Append(',');
 
-            arguments.Append('\"');
-            arguments.Append(database.Server.Configuration.LogDirectory.TrimEnd('\\'));
-            arguments.Append('\"');
-            arguments.Append(' ');
+            arguments.Append("\\\"eventlogdir\\\":");
+            arguments.Append("\\\"");
+            arguments.Append(JSONEncodePath(database.Server.Configuration.LogDirectory.TrimEnd('\\')));
+            arguments.Append("\\\"");
+            arguments.Append(',');
 
+            arguments.Append("\\\"databasename\\\":");
+            arguments.Append("\\\"");
             arguments.Append(database.Name.ToUpperInvariant());
-            arguments.Append(' ');
+            arguments.Append("\\\"");
+            arguments.Append(',');
 
             var runtimeConfig = database.Configuration.Runtime;
-            arguments.Append('\"');
-            arguments.Append(runtimeConfig.TransactionLogDirectory.TrimEnd('\\'));
-            arguments.Append('\"');
-            arguments.Append(' ');
+            arguments.Append("\\\"logdir\\\":");
+            arguments.Append("\\\"");
+            arguments.Append(JSONEncodePath(runtimeConfig.TransactionLogDirectory.TrimEnd('\\')));
+            arguments.Append("\\\"");
+            //arguments.Append(',');
+
+            arguments.Append("}\"");
 
             // Support optional log buffer size in configuration too
             // TODO:
