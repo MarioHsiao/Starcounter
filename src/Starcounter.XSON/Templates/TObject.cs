@@ -60,7 +60,15 @@ namespace Starcounter.Templates {
 			base.InvalidateBoundGetterAndSetter();
 		}
 
-		internal override bool GenerateBoundGetterAndSetter(Json parent) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        internal override bool HasBinding() {
+            return (BoundGetter != null);
+        }
+
+        internal override bool GenerateBoundGetterAndSetter(Json parent) {
 			TemplateDelegateGenerator.GenerateBoundDelegates(this, parent);
 			return (BoundGetter != null);
 		}
