@@ -465,6 +465,15 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestDataObjectsWithDifferentTypes() {
+            var schema = new TObject();
+            var tObjectNo = schema.Add<TLong>("ObjectNo");
+            var tName = schema.Add<TString>("Name");
+            var tStreet = schema.Add<TString>("Street");
+            var tMisc = schema.Add<TString>("Misc");
+            
+            tStreet.DefaultValue = "MyStreet";
+            tMisc.DefaultValue = "Misc";
+
             var dataObject1 = new Agent() {
                 ObjectNo = 1,
                 Name = "Agent"
@@ -475,18 +484,12 @@ namespace Starcounter.Internal.XSON.Tests {
                 Street = "Street"
             };
 
-            dynamic json = new Json();
-
-            // Create the wanted properties.
-            json.ObjectNo = 0;
-            json.Name = "";
-            json.Street = "";
-            json.Misc = "Misc";
+            dynamic json = new Json() { Template = schema };
             
             json.Data = dataObject1;
             Assert.AreEqual(dataObject1.ObjectNo, json.ObjectNo);
             Assert.AreEqual(dataObject1.Name, json.Name);
-            Assert.AreEqual("", json.Street);
+            Assert.AreEqual("MyStreet", json.Street);
             Assert.AreEqual("Misc", json.Misc);
 
             json.Data = dataObject2;
@@ -495,16 +498,22 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(dataObject2.Street, json.Street);
             Assert.AreEqual("Misc", json.Misc);
 
+            // Make sure values that are used for dirtychecking is resetted.
+            tStreet.CheckAndSetBoundValue(json, false);
+
             json.Data = dataObject1;
             Assert.AreEqual(dataObject1.ObjectNo, json.ObjectNo);
             Assert.AreEqual(dataObject1.Name, json.Name);
-            Assert.AreEqual("", json.Street);
+            Assert.AreEqual("MyStreet", json.Street);
             Assert.AreEqual("Misc", json.Misc);
+
+            // Make sure values that are used for dirtychecking is resetted.
+            tName.CheckAndSetBoundValue(json, false);
 
             json.Data = null;
             Assert.AreEqual(0, json.ObjectNo);
             Assert.AreEqual("", json.Name);
-            Assert.AreEqual("", json.Street);
+            Assert.AreEqual("MyStreet", json.Street);
             Assert.AreEqual("Misc", json.Misc);
         }
     }
