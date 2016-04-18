@@ -516,5 +516,31 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("MyStreet", json.Street);
             Assert.AreEqual("Misc", json.Misc);
         }
+
+        [Test]
+        public static void TestUnboundArrayWithDataObject() {
+            dynamic json = new Json();
+
+            json.Name = "";
+            json.UnboundItems = new List<Json>();
+
+            var data = new Agent() {
+                Name = "Agent"
+            };
+
+            dynamic item = new Json();
+            item.Header = "Item1";
+            json.UnboundItems.Add(item);
+
+            json.Data = data;
+            Assert.AreEqual(data.Name, json.Name);
+            Assert.AreEqual(1, json.UnboundItems.Count);
+            Assert.AreEqual(item, json.UnboundItems[0]);
+
+            json.Data = null;
+            Assert.AreEqual("", json.Name);
+            Assert.AreEqual(1, json.UnboundItems.Count);
+            Assert.AreEqual(item, json.UnboundItems[0]);
+        }
     }
 }
