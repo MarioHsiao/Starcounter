@@ -296,10 +296,11 @@ namespace Starcounter.Internal.XSON.Tests {
             var template = new BaseJson.JsonByExample.Schema();
             var json = new BaseJson() { Template = template };
             
-            json.Data = new Person() {
+            var person = new Person() {
                 FirstName = "John",
                 LastName = "Doe"
             };
+            json.Data = person;
             
             // Verify that the property SimpleValue is not bound and that it is verified as
             // unbound, meaning that the binding is not recreated each time.
@@ -310,7 +311,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Assert.IsTrue(template.SimpleValue.isVerifiedUnbound);
             Assert.IsFalse(template.SimpleValue.isBoundToParent);
-            Assert.IsNull(template.SimpleValue.dataTypeForBinding);
+            Assert.AreEqual(person.GetType(), template.SimpleValue.dataTypeForBinding);
 
             Assert.AreEqual("Base", value);
 
