@@ -105,6 +105,8 @@ namespace Starcounter {
                 if (_data != null) {
                     if (template.isVerifiedUnbound) {
                         template.isVerifiedUnbound = template.VerifyBoundDataType(this._data.GetType(), template.dataTypeForBinding);
+                        if (!template.isVerifiedUnbound)
+                            template.InvalidateBoundGetterAndSetter();
                     }
 
                     if (updateBinding && (template.TemplateTypeId == TemplateTypeEnum.Object 
