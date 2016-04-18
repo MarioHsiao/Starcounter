@@ -518,6 +518,37 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestAutoUnboundPropertyWithDifferentData() {
+            var schema = new TObject();
+            var tObjectNo = schema.Add<TLong>("ObjectNo");
+            var tName = schema.Add<TString>("Name");
+            var tStreet = schema.Add<TString>("Street");
+            var tMisc = schema.Add<TString>("Misc");
+
+            tStreet.DefaultValue = "MyStreet";
+            tMisc.DefaultValue = "Misc";
+
+            var dataObject1 = new Agent() {
+                ObjectNo = 1,
+                Name = "Agent"
+            };
+
+            var dataObject2 = new Address() {
+                ObjectNo = 2,
+                Street = "Street"
+            };
+
+            dynamic json = new Json() { Template = schema };
+
+            json.Data = dataObject1;
+            Assert.AreEqual("Misc", json.Misc);
+
+            json.Data = dataObject2;
+            json.Data = dataObject1;
+            Assert.AreEqual("Misc", json.Misc);
+        }
+
+        [Test]
         public static void TestUnboundArrayWithDataObject() {
             dynamic json = new Json();
 
