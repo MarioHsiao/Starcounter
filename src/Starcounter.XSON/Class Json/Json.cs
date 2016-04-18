@@ -302,7 +302,8 @@ namespace Starcounter {
             } else if (property is TObject) {
                 var at = (TObject)property;
                 if (at.UseBinding(this)) {
-                    CheckBoundObject(at.BoundGetter(this));
+                    Json childJson = at.UnboundGetter(this);
+                    childJson.CheckBoundObject(at.BoundGetter(this));
                 }
             } else {
                 TValue p = property as TValue;
