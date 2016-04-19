@@ -65,6 +65,7 @@ namespace Starcounter {
             TObject tobj;
             TValue child;
 
+            this.data = data;
 
             if (template == null)
                 return;
