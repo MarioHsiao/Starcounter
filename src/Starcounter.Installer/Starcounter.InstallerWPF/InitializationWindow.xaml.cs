@@ -64,9 +64,6 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         String CompareScVersions() {
 
-            // Setting version to default value.
-            String scVersion = "unknown";
-
             // Reading INSTALLED Starcounter version XML file.
             String installedVersion = null;
             String installDir = GetInstalledDirFromEnv();
@@ -92,8 +89,6 @@ namespace Starcounter.InstallerWPF {
             if ((installedVersion != null) && (installedVersion != currentVersion))
                 return installedVersion;
 
-            // Setting version value to embedded version value.
-            scVersion = currentVersion;
             return null;
         }
 
