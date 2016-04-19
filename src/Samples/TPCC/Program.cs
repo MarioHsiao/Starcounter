@@ -86,7 +86,7 @@ namespace tpcc
 
             var scheduler_opts = Enumerable.Range(1, schedulers_count).Select(s => new Dictionary<String, String> { { "SchedulerId", s.ToString() } }).ToArray();
 
-            AggregationClient aggrClient = new AggregationClient("localhost", 8080, 9191, 100000);
+            AggregationClient aggrClient = new AggregationClient("127.0.0.1", 8080, 9191, 100000);
             int total = transactions.Length*transactions[0].Length;
             int successfullResps_ = 0;
             int failedResps_ = 0;

@@ -211,10 +211,11 @@ namespace Starcounter.XSON {
 #endif
                     property.dataTypeForBinding = bInfo.BoundToType;
                 } else {
-                    if (json.Data != null)
+                    if (json.Data != null) {
                         property.isVerifiedUnbound = true; // Auto binding where property not match.
-
-                    property.dataTypeForBinding = null;
+                        property.dataTypeForBinding = json.Data.GetType();
+                    }
+                    
                 }
 
 
@@ -265,9 +266,10 @@ namespace Starcounter.XSON {
 
                     property.dataTypeForBinding = bInfo.BoundToType;
                 } else {
-                    if (json.Data != null)
+                    if (json.Data != null) {
                         property.isVerifiedUnbound = true; // Auto binding where property not match.
-                    property.dataTypeForBinding = null;
+                        property.dataTypeForBinding = json.Data.GetType();
+                    }
                 }
 
                 property.isBoundToParent = bInfo.IsBoundToParent;
@@ -289,8 +291,7 @@ namespace Starcounter.XSON {
 			bool throwException;
 			Expression<Func<Json, IEnumerable>> getLambda;
 			Expression<Action<Json, IEnumerable>> setLambda = null;
-			object dataObject = json.Data;
-
+			
             try {
                 var bind = property.Bind;
                 if (bind == null)
@@ -315,9 +316,10 @@ namespace Starcounter.XSON {
 #endif
                     property.dataTypeForBinding = bInfo.BoundToType;
                 } else {
-                    if (json.Data != null)
+                    if (json.Data != null) {
                         property.isVerifiedUnbound = true; // Auto binding where property not match.
-                    property.dataTypeForBinding = null;
+                        property.dataTypeForBinding = json.Data.GetType();
+                    }
                 }
 
                 property.isBoundToParent = bInfo.IsBoundToParent;

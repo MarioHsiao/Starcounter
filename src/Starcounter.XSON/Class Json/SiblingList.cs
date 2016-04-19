@@ -93,12 +93,12 @@ namespace Starcounter.XSON {
                 return (sibling.Json == item);
             });
         }
-        
-        //public Json Find(string appName) {
-        //    return list.Exists((Sibling sibling) => {
-        //        return (sibling.Json._appName == appName);
-        //    });
-        //}
+
+        internal bool ExistsForApp(string appName) {
+            return list.Exists((Sibling sibling) => {
+                return (sibling.Json._appName == appName);
+            });
+        }
 
         public IEnumerator<Json> GetEnumerator() {
             return new JsonEnumerator(this.list);

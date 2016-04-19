@@ -296,10 +296,11 @@ namespace Starcounter.Internal.XSON.Tests {
             var template = new BaseJson.JsonByExample.Schema();
             var json = new BaseJson() { Template = template };
             
-            json.Data = new Person() {
+            var person = new Person() {
                 FirstName = "John",
                 LastName = "Doe"
             };
+            json.Data = person;
             
             // Verify that the property SimpleValue is not bound and that it is verified as
             // unbound, meaning that the binding is not recreated each time.
@@ -310,7 +311,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Assert.IsTrue(template.SimpleValue.isVerifiedUnbound);
             Assert.IsFalse(template.SimpleValue.isBoundToParent);
-            Assert.IsNull(template.SimpleValue.dataTypeForBinding);
+            Assert.AreEqual(person.GetType(), template.SimpleValue.dataTypeForBinding);
 
             Assert.AreEqual("Base", value);
 
@@ -460,6 +461,117 @@ namespace Starcounter.Internal.XSON.Tests {
             Json json = new Json();
             json.Template = new TString();
             json.Data = new Person();
+        }
+
+        [Test]
+        public static void TestDataObjectsWithDifferentTypes() {
+            var schema = new TObject();
+            var tObjectNo = schema.Add<TLong>("ObjectNo");
+            var tName = schema.Add<TString>("Name");
+            var tStreet = schema.Add<TString>("Street");
+            var tMisc = schema.Add<TString>("Misc");
+            
+            tStreet.DefaultValue = "MyStreet";
+            tMisc.DefaultValue = "Misc";
+
+            var dataObject1 = new Agent() {
+                ObjectNo = 1,
+                Name = "Agent"
+            };
+
+            var dataObject2 = new Address() {
+                ObjectNo = 2,
+                Street = "Street"
+            };
+
+            dynamic json = new Json() { Template = schema };
+            
+            json.Data = dataObject1;
+            Assert.AreEqual(dataObject1.ObjectNo, json.ObjectNo);
+            Assert.AreEqual(dataObject1.Name, json.Name);
+            Assert.AreEqual("MyStreet", json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+
+            json.Data = dataObject2;
+            Assert.AreEqual(dataObject2.ObjectNo, json.ObjectNo);
+            Assert.AreEqual("", json.Name);
+            Assert.AreEqual(dataObject2.Street, json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+
+            // Make sure values that are used for dirtychecking is resetted.
+            tStreet.CheckAndSetBoundValue(json, false);
+
+            json.Data = dataObject1;
+            Assert.AreEqual(dataObject1.ObjectNo, json.ObjectNo);
+            Assert.AreEqual(dataObject1.Name, json.Name);
+            Assert.AreEqual("MyStreet", json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+
+            // Make sure values that are used for dirtychecking is resetted.
+            tName.CheckAndSetBoundValue(json, false);
+
+            json.Data = null;
+            Assert.AreEqual(0, json.ObjectNo);
+            Assert.AreEqual("", json.Name);
+            Assert.AreEqual("MyStreet", json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+        }
+
+        [Test]
+        public static void TestAutoUnboundPropertyWithDifferentData() {
+            var schema = new TObject();
+            var tObjectNo = schema.Add<TLong>("ObjectNo");
+            var tName = schema.Add<TString>("Name");
+            var tStreet = schema.Add<TString>("Street");
+            var tMisc = schema.Add<TString>("Misc");
+
+            tStreet.DefaultValue = "MyStreet";
+            tMisc.DefaultValue = "Misc";
+
+            var dataObject1 = new Agent() {
+                ObjectNo = 1,
+                Name = "Agent"
+            };
+
+            var dataObject2 = new Address() {
+                ObjectNo = 2,
+                Street = "Street"
+            };
+
+            dynamic json = new Json() { Template = schema };
+
+            json.Data = dataObject1;
+            Assert.AreEqual("Misc", json.Misc);
+
+            json.Data = dataObject2;
+            json.Data = dataObject1;
+            Assert.AreEqual("Misc", json.Misc);
+        }
+
+        [Test]
+        public static void TestUnboundArrayWithDataObject() {
+            dynamic json = new Json();
+
+            json.Name = "";
+            json.UnboundItems = new List<Json>();
+
+            var data = new Agent() {
+                Name = "Agent"
+            };
+
+            dynamic item = new Json();
+            item.Header = "Item1";
+            json.UnboundItems.Add(item);
+
+            json.Data = data;
+            Assert.AreEqual(data.Name, json.Name);
+            Assert.AreEqual(1, json.UnboundItems.Count);
+            Assert.AreEqual(item, json.UnboundItems[0]);
+
+            json.Data = null;
+            Assert.AreEqual("", json.Name);
+            Assert.AreEqual(1, json.UnboundItems.Count);
+            Assert.AreEqual(item, json.UnboundItems[0]);
         }
     }
 }

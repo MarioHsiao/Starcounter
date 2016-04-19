@@ -17,7 +17,6 @@ namespace Starcounter.Templates {
 		internal bool isVerifiedUnbound;
         internal bool isBoundToParent;
 		internal bool hasCustomAccessors;
-
         private bool codeGenStarted = false;
         private TypedJsonSerializer codegenStandardSerializer;
         private TypedJsonSerializer codegenFTJSerializer;
@@ -204,12 +203,15 @@ namespace Starcounter.Templates {
 			((TValue)toTemplate).Bind = Bind;
 		}
 
-        //public abstract string ToJson(Json json);
-        //public abstract byte[] ToJsonUtf8(Json json);
-        //public abstract int ToJsonUtf8(Json json, byte[] buffer, int offset);
-        //public abstract int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize);
-
-        //public abstract int EstimateUtf8SizeInBytes(Json json);
+        /// <summary>
+        /// Returns true if an existing databinding exists, false otherwise.
+        /// </summary>
+        /// <remarks>
+        /// This method tells if a binding exists, not if it should be used.
+        /// For example dataobject can be null or bind value changed.
+        /// </remarks>
+        /// <returns></returns>
+        internal abstract bool HasBinding();
 
         /// <summary>
         /// Checks, verifies and creates the binding.
@@ -233,6 +235,9 @@ namespace Starcounter.Templates {
             if (forceGenerateBindings) {
                 GenerateBoundGetterAndSetter(parent);
                 forceGenerateBindings = false;
+
+                if (isVerifiedUnbound)
+                    return false;
             }
 
             if (parent.IsCached(this.TemplateIndex))
@@ -247,9 +252,11 @@ namespace Starcounter.Templates {
 
             boundType = dataTypeForBinding;
             if (boundType != null) {
-                if (VerifyBinding(data.GetType(), boundType))
+                if (VerifyBoundDataType(data.GetType(), boundType))
                     return true;
 
+                if (this.HasBinding())
+                    this.SetDefaultValue(parent);
                 InvalidateBoundGetterAndSetter();
             }
             return GenerateBoundGetterAndSetter(parent);
@@ -260,7 +267,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="dataType"></param>
 		/// <returns></returns>
-		private bool VerifyBinding(Type dataType, Type boundDataType) {
+		internal bool VerifyBoundDataType(Type dataType, Type boundDataType) {
 			if (dataType.Equals(boundDataType) || dataType.IsSubclassOf(boundDataType))
 				return true;
 			return false;

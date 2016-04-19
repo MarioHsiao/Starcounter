@@ -56,11 +56,11 @@ namespace Starcounter.Internal.Tests
             Assert.IsTrue("/FTP/SCDev/BuildSystem/Logs/StatisticsEngine/default.htm" == relativeUri);
 
             Http.GetEndpointFromUri("/emails", out endpoint, out relativeUri);
-            Assert.IsTrue("localhost" == endpoint);
+            Assert.IsTrue("127.0.0.1" == endpoint);
             Assert.IsTrue("/emails" == relativeUri);
 
             Http.GetEndpointFromUri("/", out endpoint, out relativeUri);
-            Assert.IsTrue("localhost" == endpoint);
+            Assert.IsTrue("127.0.0.1" == endpoint);
             Assert.IsTrue("/" == relativeUri);
 
             Http.GetEndpointFromUri("123.456.789.000", out endpoint, out relativeUri);

@@ -24,9 +24,9 @@ sys#1.0.0 C:\www\Starcounter\starcounter\src\BuildSystem\ClientFiles
 ├─┬ starcounter-debug-aid#2.0.5
 │ ├─┬ juicy-jsoneditor#1.0.5
 │ │ ├── fast-json-patch#0.5.7
-│ │ ├── jsoneditor#4.2.1 (latest is 5.2.0)
+│ │ ├── jsoneditor#4.2.1 (latest is 5.5.1)
 │ │ └─┬ polymer#1.4.0 incompatible with ~1.1.4 (1.1.5 available, latest is 1.4.0)
-│ │   └── webcomponentsjs#0.7.21
+│ │   └── webcomponentsjs#0.7.22
 │ └── polymer#1.4.0 incompatible with ~1.1.4 (1.1.5 available, latest is 1.4.0)
 └─┬ starcounter-include#0.1.0
   └── imported-template#1.4.0
