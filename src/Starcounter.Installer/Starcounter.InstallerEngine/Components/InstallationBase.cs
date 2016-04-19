@@ -284,7 +284,7 @@ public class CInstallationBase : CComponentBase
         RegistryKey scRk = rk.CreateSubKey(ConstantsBank.SCProductName);
         scRk.SetValue("DisplayIcon", Path.Combine(ComponentPath, ConstantsBank.SCIconFilename));
         scRk.SetValue("DisplayName", ConstantsBank.SCProductName);
-        scRk.SetValue("DisplayVersion", InstallerMain.SCVersion);
+        scRk.SetValue("DisplayVersion", CurrentVersion.Version);
         scRk.SetValue("InstallLocation", ComponentPath);
         scRk.SetValue("Publisher", "Starcounter AB");
 
@@ -297,7 +297,7 @@ public class CInstallationBase : CComponentBase
         ChangeFirewallExceptions(true);
 
         // Adding public assemblies registry path.
-        RegistryKey refAsmRegistry = Utilities.CreateRegistryPathIfNeeded(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.5\AssemblyFoldersEx\" + ConstantsBank.SCProductName + InstallerMain.SCVersion, true);
+        RegistryKey refAsmRegistry = Utilities.CreateRegistryPathIfNeeded(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.5\AssemblyFoldersEx\" + ConstantsBank.SCProductName + CurrentVersion.Version, true);
         refAsmRegistry.SetValue(null, Path.Combine(InstallerMain.InstallationDir, ConstantsBank.SCPublicAssembliesDir));
 
         // Updating progress.
@@ -366,8 +366,8 @@ public class CInstallationBase : CComponentBase
 
         // Removing public assemblies registry path.
         RegistryKey refAsmRegistry = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.5\AssemblyFoldersEx", true);
-        if ((refAsmRegistry != null) && (refAsmRegistry.OpenSubKey(ConstantsBank.SCProductName + InstallerMain.SCVersion) != null))
-            refAsmRegistry.DeleteSubKeyTree(ConstantsBank.SCProductName + InstallerMain.SCVersion);
+        if ((refAsmRegistry != null) && (refAsmRegistry.OpenSubKey(ConstantsBank.SCProductName + CurrentVersion.Version) != null))
+            refAsmRegistry.DeleteSubKeyTree(ConstantsBank.SCProductName + CurrentVersion.Version);
     }
 
     /// <summary>
