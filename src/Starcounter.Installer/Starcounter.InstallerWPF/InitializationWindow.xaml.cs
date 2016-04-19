@@ -206,8 +206,12 @@ namespace Starcounter.InstallerWPF {
             var serverConfig = ServerConfiguration.Load(serverConfigPath);
 
             foreach (var databaseConfig in DatabaseConfiguration.LoadAll(serverConfig)) {
-
+                
                 var image = ImageFile.Read(databaseConfig.Runtime.ImageDirectory, databaseConfig.Name);
+
+                // Checking if image files not found.
+                if (null == image)
+                    continue;
 
                 if (image.Version != ImageFile.GetRuntimeImageVersion()) {
                     dbListToUnload.Add(databaseConfig.Name);
