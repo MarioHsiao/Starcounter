@@ -2211,12 +2211,12 @@ uint32_t Gateway::Init()
 	worker_suspend_events_ = GwNewArray(HANDLE, setting_num_workers_);
 
     // Filling up worker parameters.
-    for (int i = 0; i < setting_num_workers_; i++)
+    for (int32_t i = 0; i < setting_num_workers_; i++)
     {
 		// Creating auto-reset events for all workers.
 		worker_suspend_events_[i] = CreateEvent(
 			NULL,   // default security attributes
-			FALSE,  // auto-reset event object
+			TRUE,  // manual-reset event object
 			FALSE,  // initial state is nonsignaled
 			NULL);  // unnamed object
 
