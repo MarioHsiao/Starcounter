@@ -132,6 +132,15 @@ namespace Starcounter.Internal {
                         if (siblingJson.StepSiblings != null) {
                             // We have another set of step-siblings. Merge them into one list.
                             foreach (var existingSibling in siblingJson.StepSiblings) {
+                                // TODO:
+                                // Filtering out existing siblings that comes from the same app.
+                                // This is a hack to avoid having multiple layouts from the launcher
+                                // that gets merged, since the merger gets called a lot.
+                                // Proper solution needs to be investigated.
+                                // Issue: https://github.com/Starcounter/Starcounter/issues/3470
+                                if (stepSiblings.ExistsForApp(existingSibling._appName))
+                                    continue;
+                                
                                 if (!stepSiblings.Contains(existingSibling)) {
                                     stepSiblings.Add(existingSibling);
                                     existingSibling.StepSiblings = stepSiblings;
