@@ -96,7 +96,7 @@ namespace Starcounter.XSON {
 
         internal bool ExistsForApp(string appName) {
             return list.Exists((Sibling sibling) => {
-                return (sibling.Json._appName == appName);
+                return (sibling.Json.appName == appName);
             });
         }
 

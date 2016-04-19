@@ -138,7 +138,7 @@ namespace Starcounter.Internal {
                                 // that gets merged, since the merger gets called a lot.
                                 // Proper solution needs to be investigated.
                                 // Issue: https://github.com/Starcounter/Starcounter/issues/3470
-                                if (stepSiblings.ExistsForApp(existingSibling._appName))
+                                if (stepSiblings.ExistsForApp(existingSibling.appName))
                                     continue;
                                 
                                 if (!stepSiblings.Contains(existingSibling)) {
