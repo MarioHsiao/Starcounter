@@ -75,7 +75,7 @@ namespace Starcounter {
 
                 // Since dataobject is set we want to do a reverse update of the binding,
                 // i.e. if the template is bound we want to update the parents dataobject.
-                InitTemplateAfterData(template, false);
+                InitTemplateAfterData(data, template, false);
                 
                 if (template.BindingStrategy != BindingStrategy.Unbound) {
                     var parent = ((Json)this.Parent);
@@ -91,21 +91,20 @@ namespace Starcounter {
                     if (child == null)
                         continue;
 
-                    InitTemplateAfterData(child, true);
+                    InitTemplateAfterData(data, child, true);
                 }
             } else {
-                InitTemplateAfterData(template, true);
+                InitTemplateAfterData(data, template, true);
             }
             
             OnData();
         }
         
-        private void InitTemplateAfterData(TValue template, bool updateBinding) {
+        private void InitTemplateAfterData(object data, TValue template, bool updateBinding) {
             if (template.BindingStrategy != BindingStrategy.Unbound) {
-                if (_data != null) {
+                if (data != null) {
                     if (template.isVerifiedUnbound) {
-                        template.isVerifiedUnbound = template.VerifyBoundDataType(this._data.GetType(), template.dataTypeForBinding);
-                        if (!template.isVerifiedUnbound)
+                        if (!template.VerifyBoundDataType(data.GetType(), template.dataTypeForBinding))
                             template.InvalidateBoundGetterAndSetter();
                     }
 
