@@ -3,7 +3,7 @@
 <NetworkGateway>
     
   <!-- Number of worker threads -->
-  <WorkersNumber>1</WorkersNumber>
+  <WorkersNumber>2</WorkersNumber>
   
   <!-- Maximum number of connections -->
   <MaxConnectionsPerWorker>10000</MaxConnectionsPerWorker>

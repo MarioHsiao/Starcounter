@@ -251,9 +251,6 @@ const int32_t LISTENING_SOCKET_QUEUE_SIZE = 256;
 // Number of prepared UDP sockets.
 const int32_t NUM_PREPARED_UDP_SOCKETS_PER_WORKER = 256;
 
-// Number of times to spin when obtaining global lock.
-const int32_t GLOBAL_LOCK_SPIN_TIMES = 100000000;
-
 // Gateway mode.
 enum GatewayTestingMode
 {
@@ -1552,6 +1549,9 @@ class Gateway
     // Worker thread handles.
     HANDLE* worker_thread_handles_;
 
+	// Workers suspend events.
+	HANDLE* worker_suspend_events_;
+
 #ifdef USE_OLD_IPC_MONITOR
 
     // Active databases monitor thread handle.
@@ -1586,7 +1586,7 @@ class Gateway
     CRITICAL_SECTION cs_global_lock_;
 
     // Global lock.
-    volatile bool global_lock_unsafe_;
+    volatile bool global_lock_flag_;
 
     ////////////////////////
     // OTHER STUFF
@@ -1985,6 +1985,12 @@ public:
         return worker_thread_handles_[worker_id];
     }
 
+	// Getting specific worker suspend handle.
+	HANDLE get_worker_suspend_handle(worker_id_type worker_id)
+	{
+		return worker_suspend_events_[worker_id];
+	}
+
     // Checks if certain server port exists.
     ServerPort* FindServerPort(uint16_t port_num)
     {
@@ -2098,20 +2104,11 @@ public:
     // Enters global lock and waits for workers.
     void EnterGlobalLock()
     {
-        // Checking if already locked.
-		int32_t max_tries = GLOBAL_LOCK_SPIN_TIMES * 2;
-		while (global_lock_unsafe_) {
-			max_tries--;
-			if (0 == max_tries) {
-				GW_ASSERT(!"Reached maximum number of tries to obtain a global lock.");
-			}
-		}
-
         // Entering the critical section.
         EnterCriticalSection(&cs_global_lock_);
 
         // Setting the global lock key.
-        global_lock_unsafe_ = true;
+        global_lock_flag_ = true;
 
         // Waiting until all workers reach the safe point and freeze there.
         WaitAllWorkersSuspended();
@@ -2141,16 +2138,16 @@ public:
     // Releases global lock.
     void LeaveGlobalLock()
     {
-        global_lock_unsafe_ = false;
+        global_lock_flag_ = false;
 
         // Leaving critical section.
         LeaveCriticalSection(&cs_global_lock_);
     }
 
     // Gets global lock value.
-    bool global_lock()
+    bool is_global_lock_set()
     {
-        return global_lock_unsafe_;
+        return global_lock_flag_;
     }
 
     // Returns active database on this slot index.
