@@ -303,6 +303,50 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestSuppressingInputChangeSetterNotChangingValue() {
+            var schema = new TObject();
+            var tName = schema.Add<TString>("Name");
+            var tName2 = schema.Add<TString>("Name2");
+
+            tName.SetCustomAccessors(
+                (parent) => { return "Static"; },
+                (parent, value) => { }
+            );
+
+            tName2.SetCustomAccessors(
+                (parent) => { return "Static2"; },
+                (parent, value) => { }
+            );
+
+            tName2.AddHandler(
+                Helper.CreateInput<string>,
+                (Json pup, Starcounter.Input<string> input) => {
+                    // Do nothing, simply accept value.                    
+                }
+            );
+            
+            Json json = (Json)schema.CreateInstance();
+            var session = new Session();
+            session.Data = json;
+
+            json.ChangeLog.Generate(true);
+
+            // No inputhandler, value will simply be set.
+            tName.ProcessInput(json, "ClientValue");
+            Change[] changes = json.ChangeLog.Generate(true);
+
+            Assert.AreEqual(1, changes.Length);
+            Assert.AreEqual(tName, changes[0].Property);
+
+            // Have an inputhandler, will call that one first and then set value.
+            tName2.ProcessInput(json, "ClientValue");
+            changes = json.ChangeLog.Generate(true);
+
+            Assert.AreEqual(1, changes.Length);
+            Assert.AreEqual(tName2, changes[0].Property);
+        }
+
+        [Test]
         public static void TestCancellingInputChange() {
             TObject schema;
 
