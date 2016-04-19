@@ -43,8 +43,6 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     GW_ASSERT(rebalance_accept_sockets_);
     InitializeSListHead(rebalance_accept_sockets_);
 
-    worker_suspended_unsafe_ = false;
-
     worker_stats_bytes_received_ = 0;
     worker_stats_bytes_sent_ = 0;
     worker_stats_sent_num_ = 0;
@@ -1595,7 +1593,7 @@ uint32_t GatewayWorker::WorkerRoutine()
     uint32_t num_fetched_ovls = 0;
     uint32_t err_code = 0;
     uint32_t oper_num_bytes = 0, flags = 0, oldTimeMs = timeGetTime();
-    uint32_t next_sleep_interval_ms = INFINITE;
+    uint32_t next_sleep_interval_ms = 1000;
 
 #ifdef WORKER_NO_SLEEP
     next_sleep_interval_ms = 0;
@@ -1603,7 +1601,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 
     sd_receive_clone_ = NULL;
 
-    // Starting worker infinite loop.
+    // Starting worker loop.
     while (TRUE)
     {
         // Checking if there no work.
@@ -1651,8 +1649,9 @@ uint32_t GatewayWorker::WorkerRoutine()
         }
 
         // Check if global lock is set.
-        if (g_gateway.global_lock())
-            g_gateway.SuspendWorker(this);
+		if (g_gateway.is_global_lock_set()) {
+			g_gateway.SuspendWorker(this);
+		}
 
         // Checking if operation successfully completed.
         if (TRUE == compl_status)
@@ -1808,8 +1807,8 @@ uint32_t GatewayWorker::WorkerRoutine()
             GW_ASSERT((STATUS_USER_APC == err_code) || (STATUS_TIMEOUT == err_code));
         }
 
-        // Setting gateway to wait infinitely for network events.
-        next_sleep_interval_ms = INFINITE;
+        // Setting gateway to wait 1 second for network and other IOCP events.
+        next_sleep_interval_ms = 1000;
 
         // Checking if we have aggregation.
         if (INVALID_PORT_NUMBER != g_gateway.setting_aggregation_port())
