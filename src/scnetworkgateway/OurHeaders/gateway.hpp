@@ -252,7 +252,7 @@ const int32_t LISTENING_SOCKET_QUEUE_SIZE = 256;
 const int32_t NUM_PREPARED_UDP_SOCKETS_PER_WORKER = 256;
 
 // Number of times to spin when obtaining global lock.
-const int32_t GLOBAL_LOCK_SPIN_TIMES = 1000000;
+const int32_t GLOBAL_LOCK_SPIN_TIMES = 50000000;
 
 // Gateway mode.
 enum GatewayTestingMode
