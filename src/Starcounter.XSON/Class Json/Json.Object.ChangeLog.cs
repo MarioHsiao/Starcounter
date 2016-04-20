@@ -14,7 +14,7 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void Dirtyfy(bool callStepSiblings = true) {
-            if (!_trackChanges)
+            if (!_trackChanges || (_Dirty == true))
                 return;
             
 			_Dirty = true;
@@ -218,10 +218,13 @@ namespace Starcounter {
                                     if (c != null)
                                         c.LogValueChangesWithDatabase(clog, true);
                                 } else {
-                                    if (json.IsArray)
+                                    if (json.IsArray) {
                                         throw new NotImplementedException();
-                                    else
+                                    } else {
                                         ((TValue)p).CheckAndSetBoundValue(json, true);
+                                        if (json.WasReplacedAt(p.TemplateIndex))
+                                            clog.UpdateValue(json, (TValue)p);
+                                    }
                                 }
                             }
                         }
@@ -238,6 +241,8 @@ namespace Starcounter {
                                 } else {
                                     var p = exposed[t] as TValue;
                                     p.CheckAndSetBoundValue(json, true);
+                                    if (json.WasReplacedAt(p.TemplateIndex))
+                                        clog.UpdateValue(json, p);
                                 }
                             }
 
@@ -251,6 +256,8 @@ namespace Starcounter {
                             json.CheckpointAt(template.TemplateIndex);
                         } else {
                             template.CheckAndSetBoundValue(json, true);
+                            if (json.WasReplacedAt(template.TemplateIndex))
+                                clog.UpdateValue(json, template);
                         }
                     }
                 }
