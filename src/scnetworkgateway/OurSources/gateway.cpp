@@ -1058,6 +1058,13 @@ uint32_t Gateway::LoadSettings()
             g_gateway.LogWriteCritical(L"Gateway XML: Unsupported WorkersNumber value.");
             return SCERRBADGATEWAYCONFIG;
         }
+
+		// NOTE: Checking if we have a special env var to set number of gateway workers for testing only.
+		char temp_str[8];
+		int32_t num_chars = GetEnvironmentVariableA("SC_GW_WORKERS_NUMBER", temp_str, 8);
+		if ((num_chars > 0) && (num_chars < 8)) {
+			setting_num_workers_ = atoi(temp_str);
+		}
         
         // Getting maximum connection number.
         node_elem = root_elem->first_node("MaxConnectionsPerWorker");
@@ -2211,12 +2218,12 @@ uint32_t Gateway::Init()
 	worker_suspend_events_ = GwNewArray(HANDLE, setting_num_workers_);
 
     // Filling up worker parameters.
-    for (int i = 0; i < setting_num_workers_; i++)
+    for (int32_t i = 0; i < setting_num_workers_; i++)
     {
 		// Creating auto-reset events for all workers.
 		worker_suspend_events_[i] = CreateEvent(
 			NULL,   // default security attributes
-			FALSE,  // auto-reset event object
+			TRUE,  // manual-reset event object
 			FALSE,  // initial state is nonsignaled
 			NULL);  // unnamed object
 

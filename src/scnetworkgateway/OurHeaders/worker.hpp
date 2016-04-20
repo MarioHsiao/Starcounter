@@ -359,6 +359,11 @@ public:
     // Releases global lock.
     void WorkerLeaveGlobalLock()
     {
+		// This should work as a barrier.
+		if (!ResetEvent(g_gateway.get_worker_suspend_handle(worker_id_))) {
+			GW_ASSERT(!"Can't reset worker suspend event.");
+		}
+
         // Leaving global lock.
         g_gateway.LeaveGlobalLock();
     }

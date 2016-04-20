@@ -600,5 +600,90 @@ namespace Starcounter.Internal.XSON.Tests {
                 session.enableNamespaces = false;
             }
         }
+
+        [Test]
+        public static void TestDirtyCheckWithDataObjectsWithDifferentTypes() {
+            var schema = new TObject();
+            var tObjectNo = schema.Add<TLong>("ObjectNo");
+            var tName = schema.Add<TString>("Name");
+            var tStreet = schema.Add<TString>("Street");
+            var tMisc = schema.Add<TString>("Misc");
+
+            tStreet.DefaultValue = "MyStreet";
+            tMisc.DefaultValue = "Misc";
+
+            var dataObject1 = new Agent() {
+                ObjectNo = 1,
+                Name = "Agent"
+            };
+
+            var dataObject2 = new Address() {
+                ObjectNo = 2,
+                Street = "Street"
+            };
+
+            var json = new Json() { Template = schema };
+            var session = new Session();
+
+            session.Data = json;
+
+            Change[] changes;
+            
+            session.Use(() => {
+                changes = json.ChangeLog.Generate(true);
+                
+                // Bound properties: ObjectNo, Name
+                // Unbound properties: Street, Misc
+                // Changes should be ObjectNo, Name
+                json.Data = dataObject1;
+                changes = json.ChangeLog.Generate(true);
+                json.ChangeLog.Checkpoint();
+                
+                Assert.AreEqual(2, changes.Length);
+                Assert.AreEqual(tObjectNo, changes[0].Property);
+                Assert.AreEqual(tName, changes[1].Property);
+
+                // Bound properties: ObjectNo, Street
+                // Unbound properties: Name, Misc
+                // Changes should be ObjectNo, Name, Street
+                json.Data = dataObject2;
+                changes = json.ChangeLog.Generate(true);
+                json.ChangeLog.Checkpoint();
+
+                Assert.AreEqual(3, changes.Length);
+                Assert.AreEqual(tObjectNo, changes[0].Property);
+                Assert.AreEqual(tName, changes[1].Property);
+                Assert.AreEqual(tStreet, changes[2].Property);
+
+                // Make sure values that are used for dirtychecking is resetted.
+                //                tStreet.CheckAndSetBoundValue(json, false);
+
+                // Bound properties: ObjectNo, Name
+                // Unbound properties: Street, Misc
+                // Changes should be ObjectNo, Name, Street, 
+                json.Data = dataObject1;
+                changes = json.ChangeLog.Generate(true);
+                json.ChangeLog.Checkpoint();
+
+                Assert.AreEqual(3, changes.Length);
+                Assert.AreEqual(tObjectNo, changes[0].Property);
+                Assert.AreEqual(tName, changes[1].Property);
+                Assert.AreEqual(tStreet, changes[2].Property);
+
+                // Make sure values that are used for dirtychecking is resetted.
+                //tName.CheckAndSetBoundValue(json, false);
+
+                // Bound properties: 
+                // Unbound properties: ObjectNo, Name, Street, Misc
+                // Changes should be ObjectNo, Name
+                json.Data = null;
+                changes = json.ChangeLog.Generate(true);
+                json.ChangeLog.Checkpoint();
+
+                Assert.AreEqual(2, changes.Length);
+                Assert.AreEqual(tObjectNo, changes[0].Property);
+                Assert.AreEqual(tName, changes[1].Property);
+            });
+        }
     }
 }

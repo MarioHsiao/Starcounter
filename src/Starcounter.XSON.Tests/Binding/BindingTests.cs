@@ -498,17 +498,11 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(dataObject2.Street, json.Street);
             Assert.AreEqual("Misc", json.Misc);
 
-            // Make sure values that are used for dirtychecking is resetted.
-            tStreet.CheckAndSetBoundValue(json, false);
-
             json.Data = dataObject1;
             Assert.AreEqual(dataObject1.ObjectNo, json.ObjectNo);
             Assert.AreEqual(dataObject1.Name, json.Name);
             Assert.AreEqual("MyStreet", json.Street);
             Assert.AreEqual("Misc", json.Misc);
-
-            // Make sure values that are used for dirtychecking is resetted.
-            tName.CheckAndSetBoundValue(json, false);
 
             json.Data = null;
             Assert.AreEqual(0, json.ObjectNo);
