@@ -50,7 +50,7 @@ namespace Starcounter.Templates {
 			Setter = BoundOrUnboundSet;
 		}
 
-		internal override void SetDefaultValue(Json parent) {
+		internal override void SetDefaultValue(Json parent, bool markAsReplaced = false) {
 			UnboundSetter(parent, (Json)CreateInstance(parent));
 		}
 
