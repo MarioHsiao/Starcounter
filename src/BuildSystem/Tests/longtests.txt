@@ -1,4 +1,4 @@
-# Here we specify durations for long tests that run longer that 1 minute.
+# Here we specify durations for long tests that run longer than 5 minutes.
 # Duration is specified in seconds, 60 means one minute.
 
 loadandlatency_test.bat 20000
