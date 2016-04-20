@@ -155,7 +155,7 @@ namespace Starcounter.Templates {
 		/// 
 		/// </summary>
 		/// <param name="parent"></param>
-		internal abstract void SetDefaultValue(Json parent);
+		internal abstract void SetDefaultValue(Json parent, bool markAsReplaced = false);
 
 		/// <summary>
 		/// 
@@ -253,7 +253,7 @@ namespace Starcounter.Templates {
                     return true;
 
                 if (this.HasBinding())
-                    this.SetDefaultValue(parent);
+                    this.SetDefaultValue(parent, true);
                 InvalidateBoundGetterAndSetter();
             }
             return GenerateBoundGetterAndSetter(parent);

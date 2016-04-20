@@ -28,5 +28,9 @@ namespace Starcounter.Templates {
         internal override TemplateTypeEnum TemplateTypeId {
             get { return TemplateTypeEnum.Decimal; }
         }
+
+        protected override bool ValueEquals(decimal value1, decimal value2) {
+            return (value1 == value2);
+        }
     }
 }

@@ -131,7 +131,7 @@ namespace Starcounter.Templates {
             }
         }
 
-		internal override void SetDefaultValue(Json parent) {
+		internal override void SetDefaultValue(Json parent, bool markAsReplaced = false) {
 		}
 
 		internal override void InvalidateBoundGetterAndSetter() {
