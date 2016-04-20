@@ -1059,7 +1059,7 @@ uint32_t Gateway::LoadSettings()
             return SCERRBADGATEWAYCONFIG;
         }
 
-		// Reading special env variable for number of workers.
+		// NOTE: Checking if we have a special env var to set number of gateway workers for testing only.
 		char temp_str[8];
 		int32_t num_chars = GetEnvironmentVariableA("SC_GW_WORKERS_NUMBER", temp_str, 8);
 		if ((num_chars > 0) && (num_chars < 8)) {
