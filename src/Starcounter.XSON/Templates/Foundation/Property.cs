@@ -267,7 +267,8 @@ namespace Starcounter.Templates {
                     Debug.WriteLine("Setting value after custom handler: " + input.Value);
                     Setter(parent, input.Value);
 
-                    if (!input.ValueChanged) // Incoming value have not been changed. Remove the dirtyflag.
+                    // Check if incoming value is set without change. If so remove the dirtyflag.
+                    if (!input.ValueChanged && this.ValueEquals(input.Value, Getter(parent))) 
                         this.Checkpoint(parent);
                 } else {
                     Debug.WriteLine("Handler cancelled: " + value);
@@ -278,7 +279,10 @@ namespace Starcounter.Templates {
                 if (BasedOn == null) {
                     Debug.WriteLine("Setting value after no handler: " + value);
                     Setter(parent, value);
-                    this.Checkpoint(parent); // Incoming value have not been changed. Remove the dirtyflag.
+                    
+                    // Check if incoming value is set without change. If so remove the dirtyflag.
+                    if (this.ValueEquals(value, Getter(parent)))
+                        this.Checkpoint(parent); 
                 } else {
                     // This is an inherited template with no inputhandler, lets 
                     // see if the base-template has a registered handler.
