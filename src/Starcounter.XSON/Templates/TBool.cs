@@ -28,5 +28,9 @@ namespace Starcounter.Templates {
         internal override TemplateTypeEnum TemplateTypeId {
             get { return TemplateTypeEnum.Bool; }
         }
+
+        protected override bool ValueEquals(bool value1, bool value2) {
+            return value1 == value2;
+        }
     }
 }
