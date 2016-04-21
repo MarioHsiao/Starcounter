@@ -135,14 +135,15 @@ namespace Administrator.Server.Managers {
         /// <param name="sourceUrl"></param>
         /// <param name="completionCallback"></param>
         /// <param name="errorCallback"></param>
-        internal static void Download(string sourceUrl, Database database, Action<DatabaseApplication> completionCallback = null, Action<string> errorCallback = null) {
+        internal static void Download(string sourceUrl, Database database, bool throwErrorIfExist, Action<DatabaseApplication> completionCallback = null, Action<string> errorCallback = null) {
 
             DeployManager.DownloadPackage(sourceUrl, (data) => {
+
+                DeployedConfigFile config = null;
 
                 try {
 
                     using (MemoryStream packageZip = new MemoryStream(data)) {
-                        DeployedConfigFile config;
 
                         string imageResourceFolder = System.IO.Path.Combine(Program.ResourceFolder, DeployManager.GetAppImagesFolder());
 
@@ -156,6 +157,23 @@ namespace Administrator.Server.Managers {
                         if (completionCallback != null) {
                             completionCallback(deployedApplication);
                         }
+                    }
+                }
+                catch (InvalidOperationException e) {
+
+                    if (throwErrorIfExist == false && config != null) {
+                        // Find app
+                        DatabaseApplication existingApplication = database.GetApplication(config.Namespace, config.Channel, config.Version);
+                        if (existingApplication != null) {
+                            if (completionCallback != null) {
+                                completionCallback(existingApplication);
+                            }
+                            return;
+                        }
+                    }
+
+                    if (errorCallback != null) {
+                        errorCallback(e.Message);
                     }
                 }
                 catch (Exception e) {
@@ -285,7 +303,7 @@ namespace Administrator.Server.Managers {
                         errorCallback(response.StatusCode, response.Body);
                     }
                 }
-            },  3600, opt);
+            }, 3600, opt);
         }
     }
 }
