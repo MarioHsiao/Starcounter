@@ -547,7 +547,7 @@ namespace Starcounter.Server {
             // What "host name" value should we use?
             // TODO:
 
-            arguments.Append("\\\"hostname\\\":");
+            arguments.Append("\\\"eventloghost\\\":");
             arguments.Append("\\\"");
             arguments.Append(database.Uri);
             //arguments.Append(database.Name);
@@ -567,7 +567,7 @@ namespace Starcounter.Server {
             arguments.Append(',');
 
             var runtimeConfig = database.Configuration.Runtime;
-            arguments.Append("\\\"logdir\\\":");
+            arguments.Append("\\\"databasedir\\\":");
             arguments.Append("\\\"");
             arguments.Append(JSONEncodePath(runtimeConfig.TransactionLogDirectory.TrimEnd('\\')));
             arguments.Append("\\\"");
