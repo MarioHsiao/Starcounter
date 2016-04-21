@@ -1058,6 +1058,13 @@ uint32_t Gateway::LoadSettings()
             g_gateway.LogWriteCritical(L"Gateway XML: Unsupported WorkersNumber value.");
             return SCERRBADGATEWAYCONFIG;
         }
+
+		// NOTE: Checking if we have a special env var to set number of gateway workers for testing only.
+		char temp_str[8];
+		int32_t num_chars = GetEnvironmentVariableA("SC_GW_WORKERS_NUMBER", temp_str, 8);
+		if ((num_chars > 0) && (num_chars < 8)) {
+			setting_num_workers_ = atoi(temp_str);
+		}
         
         // Getting maximum connection number.
         node_elem = root_elem->first_node("MaxConnectionsPerWorker");
@@ -2208,10 +2215,21 @@ uint32_t Gateway::Init()
     // Allocating workers data.
     gw_workers_ = GwNewArray(GatewayWorker, setting_num_workers_);
     worker_thread_handles_ = GwNewArray(HANDLE, setting_num_workers_);
+	worker_suspend_events_ = GwNewArray(HANDLE, setting_num_workers_);
 
     // Filling up worker parameters.
-    for (int i = 0; i < setting_num_workers_; i++)
+    for (int32_t i = 0; i < setting_num_workers_; i++)
     {
+		// Creating auto-reset events for all workers.
+		worker_suspend_events_[i] = CreateEvent(
+			NULL,   // default security attributes
+			TRUE,  // manual-reset event object
+			FALSE,  // initial state is nonsignaled
+			NULL);  // unnamed object
+
+		if (NULL == worker_suspend_events_[i])
+			GW_ASSERT(!"Can't create workers suspend events.");
+
         int32_t err_code = gw_workers_[i].Init(i);
         if (err_code)
             return err_code;
@@ -2854,13 +2872,19 @@ std::string Gateway::GetGatewayStatisticsString()
 // Check and wait for global lock.
 void Gateway::SuspendWorker(GatewayWorker* gw)
 {
-    gw->set_worker_suspended(true);
+	// Signalling that worker is in wait state.
+	if (!SetEvent(g_gateway.get_worker_suspend_handle(gw->get_worker_id()))) {
+		GW_ASSERT(!"Can't set worker suspend event.");
+	}
 
     // Entering the critical section.
     EnterCriticalSection(&cs_global_lock_);
-
-    gw->set_worker_suspended(false);
         
+	// This should work as a barrier.
+	if (!ResetEvent(g_gateway.get_worker_suspend_handle(gw->get_worker_id()))) {
+		GW_ASSERT(!"Can't reset worker suspend event.");
+	}
+
     // Leaving the critical section.
     LeaveCriticalSection(&cs_global_lock_);
 }
@@ -2934,29 +2958,19 @@ int64_t Gateway::NumberOverflowChunksAllWorkers()
 // Waits for all workers to suspend.
 void Gateway::WaitAllWorkersSuspended()
 {
-    int32_t num_workers_locked = 0;
-
     // First waking up all workers.
     WakeUpAllWorkers();
 
     // Waiting for all workers to suspend.
-	int32_t max_tries = GLOBAL_LOCK_SPIN_TIMES;
-    while (num_workers_locked < setting_num_workers_)
-    {
-		max_tries--;
+	DWORD ev = WaitForMultipleObjects(
+		setting_num_workers_,           // number of objects in array
+		worker_suspend_events_,     // array of objects
+		TRUE,       // wait for all objects
+		15000);       // fifteen-seconds wait
 
-		if (0 == max_tries) {
-			GW_ASSERT(!"Reached maximum number of tries in wait for suspended workers.");
-		}
-
-        num_workers_locked = 0;
-        for (int32_t i = 0; i < setting_num_workers_; i++)
-        {
-			if (gw_workers_[i].is_worker_suspended()) {
-				num_workers_locked++;
-			}
-        }
-    }
+	if (ev != WAIT_OBJECT_0) {
+		GW_ASSERT(!"Can't get all workers suspended within 15 seconds.");
+	}
 }
 
 // Waking up all workers if they are sleeping.
@@ -3241,9 +3255,6 @@ uint32_t Gateway::GatewayMonitor()
             // Checking if alive.
             if (!WaitForSingleObject(worker_thread_handles_[i], 0))
             {
-                // Stating explicitly that this worker is dead.
-                gw_workers_[i].set_worker_suspended(true);
-
                 // Printing diagnostics.
                 GW_COUT << "Worker " << i << " is dead." << GW_ENDL;
 

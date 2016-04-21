@@ -64,9 +64,6 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         String CompareScVersions() {
 
-            // Setting version to default value.
-            String scVersion = "unknown";
-
             // Reading INSTALLED Starcounter version XML file.
             String installedVersion = null;
             String installDir = GetInstalledDirFromEnv();
@@ -92,8 +89,6 @@ namespace Starcounter.InstallerWPF {
             if ((installedVersion != null) && (installedVersion != currentVersion))
                 return installedVersion;
 
-            // Setting version value to embedded version value.
-            scVersion = currentVersion;
             return null;
         }
 
@@ -211,8 +206,12 @@ namespace Starcounter.InstallerWPF {
             var serverConfig = ServerConfiguration.Load(serverConfigPath);
 
             foreach (var databaseConfig in DatabaseConfiguration.LoadAll(serverConfig)) {
-
+                
                 var image = ImageFile.Read(databaseConfig.Runtime.ImageDirectory, databaseConfig.Name);
+
+                // Checking if image files not found.
+                if (null == image)
+                    continue;
 
                 if (image.Version != ImageFile.GetRuntimeImageVersion()) {
                     dbListToUnload.Add(databaseConfig.Name);

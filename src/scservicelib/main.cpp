@@ -267,6 +267,13 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 
     if (r) goto log_scerr;
 
+	// NOTE: Checking if we have a special env var to set number of gateway workers for testing only.
+	wchar_t temp_env_var_gw_workers_num[8];
+	int32_t num_chars = GetEnvironmentVariable(L"SC_GW_WORKERS_NUMBER", temp_env_var_gw_workers_num, 8);
+	if ((num_chars > 0) && (num_chars < 8)) {
+		gateway_workers_number = temp_env_var_gw_workers_num;
+	}
+
 	if(logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Config file %s read", server_cfg_path);
 		LogVerboseMessage(logmessagebuffer);

@@ -60,6 +60,7 @@ ipc_test.bat
 node_test_loop.bat
 node_looped_proxy_test.bat
 prepare_sqlregression_test.bat
+CountQueryInheritedOpt3447_test.bat
 Level1\src\Samples\TransactionLogTest\transactionlog_test.bat
 Level1\src\Samples\OptimizedLogTest\optimizedlog_test.bat
 Level1\src\Samples\CommitHooksTest\commithooks2_test.bat

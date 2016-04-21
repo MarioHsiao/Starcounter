@@ -148,9 +148,6 @@ class GatewayWorker
     // All actively connected databases.
     WorkerDbInterface* worker_dbs_[MAX_ACTIVE_DATABASES];
 
-    // Worker suspend state.
-    volatile bool worker_suspended_unsafe_;
-
     // Some worker temporary data.
     char method_space_uri_space_worker_buf_[MixedCodeConstants::MAX_URI_STRING_LEN];
 
@@ -347,26 +344,13 @@ public:
     // Adds new active database.
     uint32_t AddNewDatabase(db_index_type db_index);
 
-    // Sets worker suspend state.
-    void set_worker_suspended(bool value)
-    {
-        worker_suspended_unsafe_ = value;
-    }
-
-    // Gets worker suspend state.
-    bool is_worker_suspended()
-    {
-        return worker_suspended_unsafe_;
-    }
-
     // Gets global lock.
     void WorkerEnterGlobalLock()
     {
-		// Making sure we don't enter lock already being in lock.
-		GW_ASSERT(false == worker_suspended_unsafe_);
-
-		// Already saying that this worker is suspended.
-        worker_suspended_unsafe_ = true;
+		// Signalling that worker is in wait state.
+		if (!SetEvent(g_gateway.get_worker_suspend_handle(worker_id_))) {
+			GW_ASSERT(!"Can't set worker suspend event.");
+		}
 
         // Entering global lock.
         g_gateway.EnterGlobalLock();
@@ -375,7 +359,10 @@ public:
     // Releases global lock.
     void WorkerLeaveGlobalLock()
     {
-        worker_suspended_unsafe_ = false;
+		// This should work as a barrier.
+		if (!ResetEvent(g_gateway.get_worker_suspend_handle(worker_id_))) {
+			GW_ASSERT(!"Can't reset worker suspend event.");
+		}
 
         // Leaving global lock.
         g_gateway.LeaveGlobalLock();

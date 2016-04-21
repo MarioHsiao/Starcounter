@@ -121,47 +121,6 @@ namespace Starcounter.InstallerEngine
         }
 
         /// <summary>
-        /// Compares installed and current running Starcounter versions.
-        /// Returns installed version string if versions are different.
-        /// If versions are the same returns NULL.
-        /// </summary>
-        public static String CompareScVersions()
-        {
-            // Setting version to default value.
-            scVersion = "unknown";
-
-            // Reading INSTALLED Starcounter version XML file.
-            String installedVersion = null;
-            String installDir = CInstallationBase.GetInstalledDirFromEnv();
-            if (installDir != null)
-            {
-                XmlDocument versionXML = new XmlDocument();
-                String versionInfoFilePath = Path.Combine(installDir, ConstantsBank.SCVersionFileName);
-
-                // Checking that version file exists and loading it.
-                try
-                {
-                    versionXML.Load(versionInfoFilePath);
-
-                    // NOTE: We are getting only first element.
-                    installedVersion = (versionXML.GetElementsByTagName("Version"))[0].InnerText;
-                }
-                catch {}
-            }
-
-            // Reading CURRENT embedded Starcounter version XML file.
-            String currentVersion = CurrentVersion.Version;
-
-            // Checking if versions are not the same.
-            if ((installedVersion != null) && (installedVersion != currentVersion))
-                return installedVersion;
-
-            // Setting version value to embedded version value.
-            scVersion = currentVersion;
-            return null;
-        }
-
-        /// <summary>
         /// Check if another instance of setup is running.
         /// </summary>
         public static Boolean AnotherSetupRunning(Int32 parentPID)
@@ -344,16 +303,6 @@ namespace Starcounter.InstallerEngine
             scInstDir = Environment.GetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
                                                            EnvironmentVariableTarget.Machine);
             return scInstDir;
-        }
-
-        // Publicly accessible Starcounter version.
-        static String scVersion = "unknown";
-        internal static String SCVersion
-        {
-            get
-            {
-                return scVersion;
-            }
         }
 
         // Indicates if user wants only command line based setup.
