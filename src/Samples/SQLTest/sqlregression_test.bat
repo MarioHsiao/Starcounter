@@ -29,7 +29,7 @@ IF %ERRORLEVEL% NEQ 0 (
 :: start servers
 ::START scipcmonitor.exe PERSONAL .db.output
 START scdata.exe 1 SQLTEST .db.output SqlTest .db
-START scdata.exe -instid 1 "{ \"hostname\": \"SQLTEST\", \"eventlogdir\": \".db.output\", \"databasename\": \"SqlTest\", \"logdir\": \".db\" }"
+START scdata.exe -instid 1 "{ \"eventloghost\": \"SQLTEST\", \"eventlogdir\": \".db.output\", \"databasename\": \"SqlTest\", \"databasedir\": \".db\" }"
 START 32bitComponents\scsqlparser.exe 8066
 
 :: Sleeping some time using ping.
