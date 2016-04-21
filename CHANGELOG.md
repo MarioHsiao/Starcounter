@@ -6,6 +6,7 @@
 - Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
 - Checking value after input is received and handled from client before skipping sending patch back to make sure that value is actually set [#3518](https://github.com/Starcounter/Starcounter/issues/3518)
 - Fixed a potential deadlock when `Session.ScheduleTask` was used with the same session that currently is used [#3522](https://github.com/Starcounter/Starcounter/issues/3522)
+- Setting transaction to none when a TypedJson object is removed from a stateful viewmodel to avoid usage of disposed transactions. [#3525](https://github.com/Starcounter/Starcounter/issues/3525)
 
 ### Changed
 
