@@ -690,6 +690,7 @@ namespace Starcounter {
             addedInVersion = -1;
             if (_transaction != TransactionHandle.Invalid) {
                 Session.DeregisterTransaction(_transaction);
+                _transaction = TransactionHandle.Invalid;
             }
 
             _trackChanges = false;
