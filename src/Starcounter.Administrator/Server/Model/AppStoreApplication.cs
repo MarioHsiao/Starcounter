@@ -376,7 +376,7 @@ namespace Administrator.Server.Model {
             this.DeployError = false;
             this.Status |= ApplicationStatus.Installing;
 
-            DeployManager.Download(this.SourceUrl, this.Database, (application) => {
+            DeployManager.Download(this.SourceUrl, this.Database, true, (application) => {
 
                 this.Status &= ~ApplicationStatus.Installing;
 
