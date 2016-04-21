@@ -257,6 +257,11 @@ namespace Starcounter {
 
             Session savedCurrentSession = Session.Current;
             try {
+                if (savedCurrentSession != null && savedCurrentSession.ToAsciiString().Equals(sessionId)) {
+                    // Trying to schedule a task on the current session. Execute the task directly.
+                    task(savedCurrentSession, sessionId);
+                    return;
+                }
 
                 // Checking if we already have a current session.
                 if (null != savedCurrentSession) {
