@@ -290,7 +290,7 @@ uint32_t WsProto::ProcessWsDataToDb(
         uint8_t* cur_data_ptr = orig_data_ptr + num_processed_bytes;
 
         // Payload size after all parsing.
-        uint32_t payload_len;
+        uint64_t payload_len;
 
         // Header length.
         uint8_t header_len;
@@ -298,18 +298,25 @@ uint32_t WsProto::ProcessWsDataToDb(
         // Obtaining frame info.
         bool complete_header = ParseFrameInfo(cur_data_ptr, orig_data_ptr + num_accum_bytes, &mask, &payload_len, &header_len);
 
+		// Remaining bytes to process.
+		int32_t num_remaining_bytes = num_accum_bytes - num_processed_bytes;
+
         // Checking if header is not complete.
         if (!complete_header) {
 
             // Checking if we need to move current data up.
-            cur_data_ptr = sd->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes);
+            cur_data_ptr = sd->MoveDataToTopAndContinueReceive(cur_data_ptr, num_remaining_bytes);
 
             // Returning socket to receiving state.
             return gw->Receive(sd);
         }
 
-        int32_t num_remaining_bytes = num_accum_bytes - num_processed_bytes;
-        int32_t header_plus_payload_bytes = header_len + payload_len;
+		// Checking if we have payload size bigger than maximum allowed.
+		if (payload_len >= MAX_SOCKET_DATA_SIZE) {
+			return SCERRGWMAXDATASIZEREACHED;
+		}
+
+        int32_t header_plus_payload_bytes = header_len + static_cast<int32_t>(payload_len);
 
         // Checking if complete frame does not fit in current accumulated data.
         if (header_plus_payload_bytes > num_remaining_bytes) {
@@ -333,7 +340,7 @@ uint32_t WsProto::ProcessWsDataToDb(
         uint8_t* payload = cur_data_ptr + header_len;
 
         // Setting size and offset of user data.
-        sd->SetUserData(payload, payload_len);
+        sd->SetUserData(payload, static_cast<uint32_t>(payload_len));
 
         // Adding whole frame as processed.
         num_processed_bytes += header_plus_payload_bytes;
@@ -614,7 +621,7 @@ bool WsProto::ParseFrameInfo(
     uint8_t* data,
     uint8_t* limit,
     uint32_t* out_mask, 
-    uint32_t* out_payload_len,
+    uint64_t* out_payload_len,
     uint8_t* out_header_len)
 {
     uint8_t* data_orig = data;

@@ -1,4 +1,14 @@
-## [Unreleased][unreleased]
+## [Unreleased] - Unreleased
+
+### Added
+
+### Fixed
+- Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
+- Checking value after input is received and handled from client before skipping sending patch back to make sure that value is actually set [#3518](https://github.com/Starcounter/Starcounter/issues/3518)
+
+### Changed
+
+## [2.2.1834] - 2016-04-19
 ### Added
 - New staradmin command `staradmin start server`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/).
 - New staradmin command `staradmin start database`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/). By default, this command also automatically create the specified database if it does not exist.
@@ -26,6 +36,11 @@
 - Added possibility to register internal codehost handlers with `HandlerOptions.SelfOnly`. See [#3339](https://github.com/Starcounter/Starcounter/issues/3339)
 - Added overloads for `Db.Transact` that allows specifying delegates that take input and output parameters. See [#2822](https://github.com/Starcounter/Starcounter/issues/2822) and documentation on http://starcounter.io/guides/transactions/ 
 - Added property `Request.HandlerAppName` to know to which application this request belongs.
+- Changed signature of MIME providers, and gave them access to the Request. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Introduced support for multiple MIME providers / MIME type. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Redesigned MIME providers so that the are now chained, and responsible for invoking the "next" one. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Split up built-in provider HtmlFromJsonProvider into that, plus new PartialToStandaloneHtmlProvider. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
+- Introduced new JsonAutoSessions MIME provider, supporting auto-creation of sessions as middleware. See [#3446](https://github.com/Starcounter/Starcounter/issues/3446)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
@@ -58,6 +73,11 @@
 - Fixed a nullreference exception when merging json. [#3485](https://github.com/Starcounter/Starcounter/issues/3485)
 - Redesigned code host app bootstrapper to work better when apps start in concert, see [#3460](https://github.com/Starcounter/Starcounter/issues/3460)
 - Fixed a bug and improved errormessage when generating binding between dataobject and TypedJson where the property in TypedJson was an object or array. [#3491](https://github.com/Starcounter/Starcounter/issues/3491)
+- Fixed a bug that it was not possible to use same class names as meta-tables, see [#3482](https://github.com/Starcounter/Starcounter/issues/3482).
+- Make sure the request is passed as a parameter when constructing a response from a resource, see [#3496](https://github.com/Starcounter/Starcounter/issues/3496)
+- Fixed bug in PrivateAssemblyStore, causing some path comparisons to use an unsupported comparison type, see [#3501](https://github.com/Starcounter/Starcounter/issues/3501)
+- Fixed a bug in TypedJson where databinding for a property was not properly invalidated when a dataobject with a different type (including null) was set, [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
+- Fixed gateway getting timeout waiting for workers to suspend [#3515](https://github.com/Starcounter/Starcounter/issues/3515)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.

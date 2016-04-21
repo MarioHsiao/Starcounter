@@ -93,7 +93,7 @@ namespace Starcounter.Templates {
 			}
 		}
 
-		internal override void SetDefaultValue(Json parent) {
+		internal override void SetDefaultValue(Json parent, bool markAsReplaced = false) {
 			UnboundSetter(parent, new Arr<Json>(parent, this));
 		}
 
@@ -103,7 +103,15 @@ namespace Starcounter.Templates {
 			base.InvalidateBoundGetterAndSetter();
 		}
 
-		internal override bool GenerateBoundGetterAndSetter(Json json) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        internal override bool HasBinding() {
+            return (BoundGetter != null);
+        }
+
+        internal override bool GenerateBoundGetterAndSetter(Json json) {
 			TemplateDelegateGenerator.GenerateBoundDelegates(this, json);
 			return (BoundGetter != null);
 		}

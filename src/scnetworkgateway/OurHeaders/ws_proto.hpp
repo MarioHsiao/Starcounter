@@ -85,7 +85,7 @@ public:
         uint8_t* data,
         uint8_t* limit,
         uint32_t* out_mask, 
-        uint32_t* out_payload_len,
+        uint64_t* out_payload_len,
         uint8_t* out_header_len);
 };
 

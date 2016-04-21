@@ -265,7 +265,7 @@ namespace Starcounter.InstallerEngine.VsSetup {
                 // as we expect.
                 process = RunVSIXInstaller(installerEnginePath, arguments);
                 result = process.ExitCode;
-                if (result != 2003) {
+                if (result != 2003 && result != 1002) {
                     throw ErrorCode.ToException(Error.SCERRVSIXENGINEFAILED,
                         string.Format(
                         "Process exit code={0}, Engine path={1}, Arguments={2}",
