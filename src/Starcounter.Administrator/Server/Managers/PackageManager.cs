@@ -62,6 +62,7 @@ namespace Administrator.Server.Managers {
                         try {
 
                             if (Directory.Exists(destinationFolder)) {
+                                config = GetInstalledApp(destinationFolder);
                                 throw new InvalidOperationException("Application already installed.", new InvalidOperationException(string.Format("Destination folder exists, {0}", destinationFolder)));
                             }
 
@@ -530,7 +531,6 @@ namespace Administrator.Server.Managers {
                     catch (Exception e) {
                         // TODO: Recreate the config file from the package config file if possible
                         LogSources.Hosting.LogException(e, string.Format("Invalid application configuration file {0}", file));
-//                        throw new Exception(string.Format("Invalid application configuration file {0}, {1}", file, e.Message));
                     }
                 }
 

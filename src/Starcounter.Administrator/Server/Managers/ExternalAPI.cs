@@ -344,7 +344,7 @@ namespace Administrator.Server.Managers {
             // Create TaskItem
             Task taskItem = new Task();
 
-            DeployManager.Download(task.SourceUrl, database, (deployedApplication) => {
+            DeployManager.Download(task.SourceUrl, database, false, (deployedApplication) => {
 
                 // Success
                 #region Install Application
