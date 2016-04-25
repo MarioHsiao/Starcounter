@@ -7,10 +7,13 @@ namespace Starcounter.Internal.XSON {
     /// A change of either a value, added or removed item in an json-tree.
     /// </summary>
     public struct Change {
+        public const byte INVALID = 0;
         public const byte REMOVE = 1;
         public const byte REPLACE = 2;
         public const byte ADD = 3;
         public const byte MOVE = 4;
+
+        public static Change Invalid = new Change(Change.INVALID, null, null, -1, null, -1, false);
 
         /// <summary>
         /// The type of change.
