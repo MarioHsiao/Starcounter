@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -566,6 +567,50 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("", json.Name);
             Assert.AreEqual(1, json.UnboundItems.Count);
             Assert.AreEqual(item, json.UnboundItems[0]);
+        }
+
+        [Test]
+        public static void TestAutoBindingToUntypedArray() {
+            var schema = new TObject();
+            var tName = schema.Add<TString>("Name");
+            var tArr = schema.Add<TObjArr>("Recursives");
+
+            var json = (Json)schema.CreateInstance();
+            var data = new Recursive();
+            data.Name = "Head";
+            data.Recursives.Add(new Recursive() { Name = "Item" });
+
+            json.Data = data;
+
+            Assert.AreEqual(data.Name, json.Get(tName));
+
+            var arr = (IList)json.Get(tArr);
+
+            Assert.AreEqual(0, arr.Count);
+            Assert.IsNull(tArr.BoundGetter);
+            Assert.IsTrue(tArr.isVerifiedUnbound);
+            Assert.AreEqual(typeof(Recursive), tArr.dataTypeForBinding);
+        }
+
+        [Test]
+        public static void TestBoundBindingToUntypedArray() {
+            var schema = new TObject();
+            var tName = schema.Add<TString>("Name");
+            var tArr = schema.Add<TObjArr>("Recursives");
+            tArr.BindingStrategy = BindingStrategy.Bound;
+
+            var json = (Json)schema.CreateInstance();
+            var data = new Recursive();
+            data.Name = "Head";
+            data.Recursives.Add(new Recursive() { Name = "Item" });
+
+            Exception ex = Assert.Throws<Exception>(() => {
+                json.Data = data;
+            });
+
+            uint ec;
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out ec));
+            Assert.AreEqual(ec, Error.SCERRCREATEDATABINDINGFORJSON);
         }
     }
 }
