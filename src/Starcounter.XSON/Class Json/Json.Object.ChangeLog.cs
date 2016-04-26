@@ -274,6 +274,7 @@ namespace Starcounter {
                         } else {
                             clog.Add(Change.Update(sibling, null, true));
                             _stepSiblings.MarkAsSent(i);
+                            sibling.CheckpointChangeLog(false);
                         }
                     }
                 }
