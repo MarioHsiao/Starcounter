@@ -20,9 +20,10 @@ namespace Starcounter.XSON {
 		
 		private static string propNotCompatible = "Incompatible types for binding. Json property '{0}.{1}' ({2}), data property '{3}.{4}' ({5}).";
         private static string generateBindingFailed = "Unable to generate binding. Json property '{0}.{1}' ({2}), binding '{3}'.";
+        private static string untypedArrayBindingFailed = "Unable to create binding for untyped array. Json property '{0}.{1}'.";
 
 #if DEBUG
-		private static MethodInfo debugView = typeof(Expression).GetMethod("get_DebugView", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static MethodInfo debugView = typeof(Expression).GetMethod("get_DebugView", BindingFlags.Instance | BindingFlags.NonPublic);
 #endif
 
 		/// <summary>
@@ -72,7 +73,7 @@ namespace Starcounter.XSON {
             } catch (Exception ex) {
                 if (ErrorCode.IsFromErrorCode(ex))
                     throw; // Already is scerror, simply rethrow it.
-                throw ToGenerateBindingException(property, ex);
+                throw CreateGenerateBindingException(property, ex);
             }
 		}
 
@@ -101,7 +102,7 @@ namespace Starcounter.XSON {
             } catch (Exception ex) {
                 if (ErrorCode.IsFromErrorCode(ex))
                     throw; // Already is scerror, simply rethrow it.
-                throw ToGenerateBindingException(property, ex);
+                throw CreateGenerateBindingException(property, ex);
             }
         }
 
@@ -130,7 +131,7 @@ namespace Starcounter.XSON {
             } catch (Exception ex) {
                 if (ErrorCode.IsFromErrorCode(ex))
                     throw; // Already is scerror, simply rethrow it.
-                throw ToGenerateBindingException(property, ex);
+                throw CreateGenerateBindingException(property, ex);
             }
         }
 
@@ -159,7 +160,7 @@ namespace Starcounter.XSON {
             } catch (Exception ex) {
                 if (ErrorCode.IsFromErrorCode(ex))
                     throw; // Already is scerror, simply rethrow it.
-                throw ToGenerateBindingException(property, ex);
+                throw CreateGenerateBindingException(property, ex);
             }
         }
 
@@ -226,7 +227,7 @@ namespace Starcounter.XSON {
             } catch (Exception ex) {
                 if (ErrorCode.IsFromErrorCode(ex))
                     throw; // Already is scerror, simply rethrow it.
-                throw ToGenerateBindingException(property, ex);
+                throw CreateGenerateBindingException(property, ex);
             }
         }
 
@@ -276,7 +277,7 @@ namespace Starcounter.XSON {
             } catch (Exception ex) {
                 if (ErrorCode.IsFromErrorCode(ex))
                     throw; // Already is scerror, simply rethrow it.
-                throw ToGenerateBindingException(property, ex);
+                throw CreateGenerateBindingException(property, ex);
             }
         }
 
@@ -299,6 +300,13 @@ namespace Starcounter.XSON {
 
                 throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
                 bInfo = DataBindingHelper.SearchForBinding(json, bind, property, throwException);
+
+                if (property.ElementType == null) {
+                    if (bInfo.Member != null && throwException)
+                        throw CreateUntypedArrayBindingException(property);
+                    bInfo.Member = null;
+                }
+                
                 if (bInfo.Member != null) {
                     getLambda = GenerateBoundGetExpression<IEnumerable>(bInfo, property);
                     property.BoundGetter = getLambda.Compile();
@@ -326,7 +334,7 @@ namespace Starcounter.XSON {
             } catch (Exception ex) {
                 if (ErrorCode.IsFromErrorCode(ex))
                     throw; // Already is scerror, simply rethrow it.
-                throw ToGenerateBindingException(property, ex);
+                throw CreateGenerateBindingException(property, ex);
             }
         }
 
@@ -705,13 +713,13 @@ namespace Starcounter.XSON {
 				try {
 					newExpr = Expression.Convert(expr, to);
 				} catch (Exception ex) {
-                    throw ToPropNotCompatibleException(template, to, from, bindTo, ex);
+                    throw CreatePropNotCompatibleException(template, to, from, bindTo, ex);
 				}
 			}
 			return newExpr;
 		}
 
-        private static Exception ToPropNotCompatibleException(Template property, Type to, Type from, MemberInfo member, Exception inner) {
+        private static Exception CreatePropNotCompatibleException(Template property, Type to, Type from, MemberInfo member, Exception inner) {
             var msg = string.Format(propNotCompatible,
                                     DataBindingHelper.GetParentClassName(property),
                                     property.TemplateName,
@@ -723,7 +731,7 @@ namespace Starcounter.XSON {
             return ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON, inner, msg);
         }
 
-        private static Exception ToGenerateBindingException(TValue property, Exception inner) {
+        private static Exception CreateGenerateBindingException(TValue property, Exception inner) {
             var msg = string.Format(generateBindingFailed,
                                     DataBindingHelper.GetParentClassName(property),
                                     property.TemplateName,
@@ -731,6 +739,14 @@ namespace Starcounter.XSON {
                                     property.Bind);
 
             return ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON, inner, msg);
+        }
+
+        private static Exception CreateUntypedArrayBindingException(TValue property) {
+            var msg = string.Format(untypedArrayBindingFailed,
+                                    DataBindingHelper.GetParentClassName(property),
+                                    property.TemplateName);
+
+            return ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON, null, msg);
         }
     }
 }
