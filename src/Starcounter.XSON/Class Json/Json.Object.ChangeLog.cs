@@ -9,7 +9,13 @@ using Starcounter.Templates;
 using Starcounter.XSON;
 
 namespace Starcounter {
-	partial class Json {
+    partial class Json {
+        internal bool IsTrackingChanges {
+            get {
+                return this.trackChanges;
+            }
+        }
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -53,6 +59,13 @@ namespace Starcounter {
             return ((stateFlags[templateIndex] & PropertyState.Dirty) == PropertyState.Dirty);
         }
 
+        internal bool IsCached(Template template) {
+#if DEBUG
+            this.Template.VerifyProperty(template);
+#endif
+            return IsCached(template.TemplateIndex);
+        }
+
         /// <summary>
         /// Returns true if the template with the specified index is marked as cached.
         /// </summary>
@@ -79,6 +92,10 @@ namespace Starcounter {
         internal void MarkAsDirty(int templateIndex) {
             stateFlags[templateIndex] |= PropertyState.Dirty;
             this.Dirtyfy();
+        }
+
+        private void MarkAsNonDirty(int templateIndex) {
+            stateFlags[templateIndex] ^= PropertyState.Dirty;
         }
 
         /// <summary>
@@ -178,7 +195,8 @@ namespace Starcounter {
                     changeLog.Add(change);
                     var index = change.Item.cacheIndexInArr;
                     if (change.ChangeType != Change.REMOVE && index >= 0 && index < this.valueList.Count) {
-                        CheckpointAt(index);
+                        //CheckpointAt(index);
+                        this.MarkAsNonDirty(index);
                         item = change.Item;
                         item.SetBoundValuesInTuple();
                         item.dirty = false;
@@ -211,7 +229,8 @@ namespace Starcounter {
                     var arrItem = ((Json)this.valueList[t]);
                     if (this.IsDirty(t)) { // A refresh of an existing row (that is not added or removed)
                         changeLog.Add(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
-                        this.CheckpointAt(t);
+//                        this.CheckpointAt(t);
+                        this.MarkAsNonDirty(t);
                     } else {
                         arrItem.LogValueChangesWithDatabase(changeLog, callStepSiblings);
                     }
@@ -263,7 +282,8 @@ namespace Starcounter {
                                         }
                                     }
                                 }
-                                json.CheckpointAt(exposed[t].TemplateIndex);
+                                //json.CheckpointAt(exposed[t].TemplateIndex);
+                                json.MarkAsNonDirty(exposed[t].TemplateIndex);
                             } else {
                                 var p = exposed[t];
                                 if (p is TContainer) {
@@ -275,7 +295,7 @@ namespace Starcounter {
                                         throw new NotImplementedException();
                                     } else {
                                         ((TValue)p).CheckAndSetBoundValue(json, true);
-                                        if (json.WasReplacedAt(p.TemplateIndex))
+                                        if (json.IsDirty(p.TemplateIndex))
                                             clog.UpdateValue(json, (TValue)p);
                                     }
                                 }
@@ -294,7 +314,7 @@ namespace Starcounter {
                                 } else {
                                     var p = exposed[t] as TValue;
                                     p.CheckAndSetBoundValue(json, true);
-                                    if (json.WasReplacedAt(p.TemplateIndex))
+                                    if (json.IsDirty(p.TemplateIndex))
                                         clog.UpdateValue(json, p);
                                 }
                             }
@@ -306,10 +326,11 @@ namespace Starcounter {
                         if (json.IsDirty(template.TemplateIndex)) {
                             if (clog != null)
                                 clog.UpdateValue(json, null);
-                            json.CheckpointAt(template.TemplateIndex);
+                            //json.CheckpointAt(template.TemplateIndex);
+                            json.MarkAsNonDirty(template.TemplateIndex);
                         } else {
                             template.CheckAndSetBoundValue(json, true);
-                            if (json.WasReplacedAt(template.TemplateIndex))
+                            if (json.IsDirty(template.TemplateIndex))
                                 clog.UpdateValue(json, template);
                         }
                     }
@@ -327,7 +348,7 @@ namespace Starcounter {
                         } else {
                             clog.Add(Change.Update(sibling, null, true));
                             json.siblings.MarkAsSent(i);
-                            sibling.CheckpointChangeLog(false);
+                            //sibling.CheckpointChangeLog(false);
                         }
                     }
                 }
@@ -744,7 +765,7 @@ namespace Starcounter {
             addedInVersion = -1;
             if (this.transaction != TransactionHandle.Invalid) {
                 Session.DeregisterTransaction(this.transaction);
-                _transaction = TransactionHandle.Invalid;
+                this.transaction = TransactionHandle.Invalid;
             }
 
             this.trackChanges = false;

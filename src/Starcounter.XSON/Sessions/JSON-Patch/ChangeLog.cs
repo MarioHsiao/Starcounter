@@ -38,10 +38,7 @@ namespace Starcounter.XSON {
         /// <param name="property">The property to update</param>
         internal void UpdateValue(Json obj, TValue property) {
             VerifyChange(obj, property);
-
             changes.Add(Change.Update(obj, property));
-            if (property != null)
-                property.Checkpoint(obj);
         }
 
         /// <summary>
@@ -50,7 +47,6 @@ namespace Starcounter.XSON {
         /// <param name="toAdd"></param>
         internal void Add(Change change) {
             VerifyChange(change);
-
             changes.Add(change);
         }
 
@@ -95,8 +91,10 @@ namespace Starcounter.XSON {
 
             var arr = changes.ToArray();
 
-            if (flushLog)
+            if (flushLog) {
                 changes.Clear();
+                Checkpoint();
+            }
             return arr;
         }
 

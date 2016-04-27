@@ -39,7 +39,7 @@ namespace Starcounter.Advanced.XSON {
         public override int EstimateSizeBytes(Json json) {
             return json.Scope<TypedJsonSerializer, Json, int>((TypedJsonSerializer tjs, Json j) => {
                 if (j.Template != null) {
-                    return estimatePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null);
+                    return estimatePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, j.Template);
                 } else {
                     // No template defined. Assuming object.
                     return EstimateObject(this, j);
@@ -64,7 +64,7 @@ namespace Starcounter.Advanced.XSON {
                 json.checkBoundProperties = false;
                 int realSize = json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, IntPtr d, int ds) => {
                     if (j.Template != null) {
-                        return serializePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null, d, ds);
+                        return serializePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, j.Template, d, ds);
                     } else {
                         // No template defined. Assuming object.
                         return SerializeObject(this, j, d, ds);
@@ -116,28 +116,29 @@ namespace Starcounter.Advanced.XSON {
         }
 
         private static int EstimateBool(TypedJsonSerializer serializer, Json json, Template template) {
+            ((TBool)template).SetCachedReads(json);
             return 5;
         }
 
         private static int EstimateDecimal(TypedJsonSerializer serializer, Json json, Template template) {
+            ((TDecimal)template).SetCachedReads(json);
             return 32;
         }
 
         private static int EstimateDouble(TypedJsonSerializer serializer, Json json, Template template) {
+            ((TDouble)template).SetCachedReads(json);
             return 32;
         }
 
         private static int EstimateLong(TypedJsonSerializer serializer, Json json, Template template) {
+            ((TLong)template).SetCachedReads(json);
             return 32;
         }
 
         private static int EstimateString(TypedJsonSerializer serializer, Json json, Template template) {
-            if (template == null) {
-                // This is a root. Take template from json.
-                template = json.Template;
-            }
-
-            string value = ((TString)template).Getter(json);
+            TString strTemplate = (TString)template;
+            strTemplate.SetCachedReads(json);
+            string value = strTemplate.Getter(json);
 
             if (value != null)
                 return value.Length * 2 + 2;
@@ -145,13 +146,20 @@ namespace Starcounter.Advanced.XSON {
         }
 
         private static int ScopeAndEstimateObject(TypedJsonSerializer serializer, Json json, Template template) {
-            if (template != null) {
-                // Not a root. Get correct value from template getter.
-                json = ((TObject)template).Getter(json);
+            Json parent = json;
+            if (template != json.Template) {
+                // Template points to a property in the specified jsonobject. Get correct value from template getter.
+                json = ((TObject)template).Getter(parent);
             }
 
             if (json != null) {
-                return json.Scope<TypedJsonSerializer, Json, int>(EstimateObject, serializer, json);
+                bool oldCachedSetting = json.cachedReadsEnabled;
+                try {
+                    json.cachedReadsEnabled = parent.cachedReadsEnabled;
+                    return json.Scope<TypedJsonSerializer, Json, int>(EstimateObject, serializer, json);
+                } finally {
+                    json.cachedReadsEnabled = oldCachedSetting;
+                }
             } else {
                 return 2;
             }
@@ -166,7 +174,7 @@ namespace Starcounter.Advanced.XSON {
                 sizeBytes = 2; // 2 for "{}".
                 return sizeBytes;
             }
-
+            
             // Checking if application name should wrap the JSON.
             bool wrapInAppName = ShouldBeNamespaced(json, session);
 
@@ -244,13 +252,21 @@ namespace Starcounter.Advanced.XSON {
         }
 
         private static int ScopeAndEstimateArray(TypedJsonSerializer serializer, Json json, Template template) {
-            if (template != null) {
+            Json parent = json;
+
+            if (template != parent.Template) {
                 // Not a root. Get correct value from getter.
-                json = ((TObjArr)template).Getter(json);
+                json = ((TObjArr)template).Getter(parent);
             }
 
             if (json != null) {
-                return json.Scope<TypedJsonSerializer, Json, int>(EstimateArray, serializer, json);
+                bool oldCacheSetting = json.cachedReadsEnabled;
+                try {
+                    json.cachedReadsEnabled = parent.cachedReadsEnabled;
+                    return json.Scope<TypedJsonSerializer, Json, int>(EstimateArray, serializer, json);
+                } finally {
+                    json.cachedReadsEnabled = oldCacheSetting;
+                }
             } else {
                 return 2;
             }
@@ -262,7 +278,18 @@ namespace Starcounter.Advanced.XSON {
 
             for (int i = 0; i < arrList.Count; i++) {
                 var rowJson = (Json)arrList[i];
-                sizeBytes += serializer.EstimateSizeBytes(rowJson) + 1;
+
+                if (rowJson != null) {
+                    bool oldCachedSetting = rowJson.cachedReadsEnabled;
+                    try {
+                        rowJson.cachedReadsEnabled = json.cachedReadsEnabled;
+                        sizeBytes += serializer.EstimateSizeBytes(rowJson) + 1;
+                    } finally {
+                        rowJson.cachedReadsEnabled = oldCachedSetting;
+                    }
+                } else {
+                    sizeBytes += serializer.EstimateSizeBytes(rowJson) + 1;
+                }
             }
             return sizeBytes;
         }
@@ -316,11 +343,19 @@ namespace Starcounter.Advanced.XSON {
         }
 
         private static int ScopeAndSerializeObject(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
-            if (template != null)
+            Json parent = json;
+
+            if (template != parent.Template)
                 json = ((TObject)template).Getter(json);
 
             if (json != null) {
-                return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeObject, serializer, json, dest, destSize);
+                bool oldCacheSetting = json.cachedReadsEnabled;
+                try {
+                    json.cachedReadsEnabled = parent.cachedReadsEnabled;
+                    return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeObject, serializer, json, dest, destSize);
+                } finally {
+                    json.cachedReadsEnabled = oldCacheSetting;
+                }
             } else {
                 unsafe {
                     byte* pdest = (byte*)dest;
@@ -513,11 +548,19 @@ namespace Starcounter.Advanced.XSON {
         }
 
         private static int ScopeAndSerializeArray(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
-            if (template != null)
+            Json parent = json;
+
+            if (template != parent.Template)
                 json = ((TObjArr)template).Getter(json);
 
             if (json != null) {
-                return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeArray, serializer, json, dest, destSize);
+                bool oldCacheSetting = json.cachedReadsEnabled;
+                try {
+                    json.cachedReadsEnabled = parent.cachedReadsEnabled;
+                    return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeArray, serializer, json, dest, destSize);
+                } finally {
+                    json.cachedReadsEnabled = oldCacheSetting;
+                }
             } else {
                 unsafe {
                     byte* pdest = (byte*)dest;
@@ -532,6 +575,7 @@ namespace Starcounter.Advanced.XSON {
             int used = 0;
             int valueSize;
             IList arrList;
+            Json arrItem;
             
             unsafe {
                 byte* pfrag = (byte*)dest;
@@ -542,7 +586,23 @@ namespace Starcounter.Advanced.XSON {
 
                 arrList = (IList)json;
                 for (int i = 0; i < arrList.Count; i++) {
-                    valueSize = ((Json)arrList[i]).ToJsonUtf8((IntPtr)pfrag, destSize - used);
+                    arrItem = (Json)arrList[i];
+
+                    if (arrItem != null) {
+                        bool oldCacheSetting = arrItem.cachedReadsEnabled;
+                        try {
+                            arrItem.cachedReadsEnabled = json.cachedReadsEnabled;
+                            valueSize = arrItem.ToJsonUtf8((IntPtr)pfrag, destSize - used);
+                        } finally {
+                            arrItem.cachedReadsEnabled = oldCacheSetting;
+                        }
+                    } else {
+                        // TODO:
+                        // Handle nullvalues.
+                        *pfrag++ = (byte)'{';
+                        *pfrag++ = (byte)'}';
+                        valueSize = 2;
+                    }
 
                     pfrag += valueSize;
                     used += valueSize;

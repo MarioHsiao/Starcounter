@@ -66,7 +66,7 @@ namespace Starcounter.Templates {
 
                 if (hasChanged) {
                     if (parent.HasBeenSent)
-                        parent.MarkAsReplaced(this.TemplateIndex);
+                        parent.MarkAsDirty(this.TemplateIndex);
                     parent.CallHasChanged(this);
                 }
             } else {
@@ -178,7 +178,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="json"></param>
         internal void SetCachedReads(Json json) {
-            if (UseBinding(json)) {
+            if (json.IsTrackingChanges && !json.IsCached(this.TemplateIndex) && UseBinding(json)) {
                 UnboundSetter(json, BoundGetter(json));
                 json.MarkAsCached(this.TemplateIndex);
             }

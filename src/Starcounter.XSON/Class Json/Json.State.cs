@@ -140,5 +140,7 @@ namespace Starcounter {
         internal bool calledFromStepSibling;
 
         private bool isAddedToViewmodel;
+
+        public bool cachedReadsEnabled;
     }   
 }
