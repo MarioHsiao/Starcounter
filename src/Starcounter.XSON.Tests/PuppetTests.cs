@@ -704,20 +704,81 @@ namespace Starcounter.Internal.XSON.Tests {
             siblings.Add(page);
             siblings.Add(sibling);
 
-            ((Json)page).StepSiblings = siblings;
-            ((Json)sibling).StepSiblings = siblings;
+            ((Json)page).Siblings = siblings;
+            ((Json)sibling).Siblings = siblings;
 
             sibling.Name = "Sibling";
             
-            Assert.IsTrue(sibling._Dirty);
+            Assert.IsTrue(sibling.dirty);
             Assert.IsFalse(sibling.HasBeenSent);
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
             
             changes = root.ChangeLog.Generate(true);
 
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0]));
-            Assert.IsFalse(sibling._Dirty);
+            Assert.IsFalse(sibling.dirty);
             Assert.IsTrue(sibling.HasBeenSent);
+        }
+
+        [Test]
+        public void TestAccessToBoundProperties() {
+            var schema = new TObject();
+            var tName = schema.Add<TString>("Name");
+            var data = new PropertyAccessCounter();
+            
+            Json json = (Json)schema.CreateInstance();
+            json.Data = data;
+
+            data.Name = "JohnDoe";
+            data.ResetCount();
+
+            // First test simple serialization. 
+            string str = json.ToJson();
+
+            // No caching should be enabled. Each property is accessed twice (estimate, serialize)
+            Assert.AreEqual(2, data.GetNameCount);
+            Assert.AreEqual(0, data.SetNameCount);
+            
+            json.Set(tName, "Nils Nilsson");
+            Assert.AreEqual(2, data.GetNameCount);
+            Assert.AreEqual(1, data.SetNameCount);
+            Assert.AreEqual("Nils Nilsson", data.NameSkipCounter);
+
+            data.ResetCount();
+
+            // Adding a Session (i.e. json will be stateful and propertyaccess during serialization cached).
+            var session = new Session();
+            session.Data = json;
+
+            str = json.ToJson();
+
+            Assert.AreEqual(1, data.GetNameCount);
+            Assert.AreEqual(0, data.SetNameCount);
+
+            // Verifying that name is cached in unbound storage.
+            Assert.AreEqual(data.NameSkipCounter, tName.UnboundGetter(json));
+
+            // Resetting cached value.
+            tName.UnboundSetter(json, "");
+
+            data.ResetCount();
+            session.Use(() => {
+                var jsonPatch = new JsonPatch();
+                str = jsonPatch.Generate(json, true, false);
+                json.Set(tName, "Arne Anka");
+
+                data.ResetCount();
+
+                str = jsonPatch.Generate(json, true, false);
+                json.ChangeLog.Checkpoint();
+            });
+
+            Assert.AreEqual(1, data.GetNameCount);
+            Assert.AreEqual(0, data.SetNameCount);
+            Assert.IsFalse(json.IsCached(tName));
+            
+            // Verifying that name is cached in unbound storage.
+            Assert.AreEqual(data.NameSkipCounter, tName.UnboundGetter(json));
         }
     }
 }
