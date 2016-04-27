@@ -14,10 +14,10 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void Dirtyfy(bool callStepSiblings = true) {
-            if (!this.trackChanges)
+            if (!this.trackChanges || (this.dirty == true))
                 return;
             
-			dirty = true;
+			this.dirty = true;
 			if (Parent != null)
 				Parent.Dirtyfy();
 
@@ -271,10 +271,13 @@ namespace Starcounter {
                                     if (c != null)
                                         c.LogValueChangesWithDatabase(clog, true);
                                 } else {
-                                    if (json.IsArray)
+                                    if (json.IsArray) {
                                         throw new NotImplementedException();
-                                    else
+                                    } else {
                                         ((TValue)p).CheckAndSetBoundValue(json, true);
+                                        if (json.WasReplacedAt(p.TemplateIndex))
+                                            clog.UpdateValue(json, (TValue)p);
+                                    }
                                 }
                             }
                         }
@@ -291,6 +294,8 @@ namespace Starcounter {
                                 } else {
                                     var p = exposed[t] as TValue;
                                     p.CheckAndSetBoundValue(json, true);
+                                    if (json.WasReplacedAt(p.TemplateIndex))
+                                        clog.UpdateValue(json, p);
                                 }
                             }
 
@@ -304,6 +309,8 @@ namespace Starcounter {
                             json.CheckpointAt(template.TemplateIndex);
                         } else {
                             template.CheckAndSetBoundValue(json, true);
+                            if (json.WasReplacedAt(template.TemplateIndex))
+                                clog.UpdateValue(json, template);
                         }
                     }
                 }
@@ -320,6 +327,7 @@ namespace Starcounter {
                         } else {
                             clog.Add(Change.Update(sibling, null, true));
                             json.siblings.MarkAsSent(i);
+                            sibling.CheckpointChangeLog(false);
                         }
                     }
                 }
@@ -736,6 +744,7 @@ namespace Starcounter {
             addedInVersion = -1;
             if (this.transaction != TransactionHandle.Invalid) {
                 Session.DeregisterTransaction(this.transaction);
+                _transaction = TransactionHandle.Invalid;
             }
 
             this.trackChanges = false;

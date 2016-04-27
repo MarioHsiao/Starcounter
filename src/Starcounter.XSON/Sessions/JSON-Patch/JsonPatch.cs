@@ -131,8 +131,11 @@ namespace Starcounter.XSON {
             int patchSize;
             for (int i = 0; i < changes.Length; i++) {
                 patchSize = EstimateSizeOfPatch(changes[i], includeNamespace);
-                if (patchSize == -1)
+                if (patchSize == -1) { // This change is no longer valid.
+                    changes[i] = Change.Invalid;
                     continue;
+                }
+                    
                 size += patchSize;
             }
 
@@ -167,6 +170,9 @@ namespace Starcounter.XSON {
 
                     for (int i = 0; i < changes.Length; i++) {
                         var change = changes[i];
+                        if (change.ChangeType == Change.INVALID)
+                            continue;
+
                         WritePatch(change, ref writer, includeNamespace);
 
                         if (change.Property != null) {
@@ -330,6 +336,7 @@ namespace Starcounter.XSON {
             int totalSize;
             Json parent;
             Template template;
+            Session session;
 
             // TODO:
             // Evaluate all possible paths and create patches for all valid ones. 
@@ -337,7 +344,11 @@ namespace Starcounter.XSON {
             if (json == null)
                 return -1;
 
-            if (json == json.Session.PublicViewModel) // Valid path.
+            session = json.Session;
+            if (session == null) // No session, this can't be the correct path.
+                return -1;
+
+            if (json == session.PublicViewModel) // Valid path.
                 return 0;
 
             size = -1;
@@ -393,6 +404,7 @@ namespace Starcounter.XSON {
             bool pathWritten;
             Json parent;
             Template template;
+            Session session;
 
             // TODO:
             // Evaluate all possible paths and create patches for all valid ones. 
@@ -400,7 +412,11 @@ namespace Starcounter.XSON {
             if (json == null)
                 return false;
 
-            if (json == json.Session.PublicViewModel) // Valid path.
+            session = json.Session;
+            if (session == null)
+                return false;
+
+            if (json == session.PublicViewModel) // Valid path.
                 return true;
 
             pathWritten = false;

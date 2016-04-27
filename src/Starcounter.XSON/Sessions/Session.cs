@@ -1,4 +1,4 @@
-﻿ ﻿// ***********************************************************************
+﻿// ***********************************************************************
 // <copyright file="SessionDictionary.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Threading;
 using Starcounter.Advanced;
 using Starcounter.Internal;
+using Starcounter.Logging;
 using Starcounter.XSON;
 
 namespace Starcounter {
@@ -44,6 +45,8 @@ namespace Starcounter {
         private static Session _current;
 
         private static JsonPatch jsonPatch_ = new JsonPatch();
+
+        private static LogSource log = new LogSource("Starcounter");
 
         /// <summary>
         /// To which scheduler this session belongs.
@@ -257,6 +260,11 @@ namespace Starcounter {
 
             Session savedCurrentSession = Session.Current;
             try {
+                if (savedCurrentSession != null && savedCurrentSession.ToAsciiString().Equals(sessionId)) {
+                    // Trying to schedule a task on the current session. Execute the task directly.
+                    task(savedCurrentSession, sessionId);
+                    return;
+                }
 
                 // Checking if we already have a current session.
                 if (null != savedCurrentSession) {
@@ -519,10 +527,23 @@ namespace Starcounter {
                 throw ErrorCode.ToException(Error.SCERRANOTHERSESSIONACTIVE);
             }
 
-            if (!waitObj.WaitOne(60 * 1000)) {
-                throw ErrorCode.ToException(Error.SCERRACQUIRESESSIONTIMEOUT);
+            int count = 0;
+            int noRetries = 3;
+            while (true) {
+                if (!waitObj.WaitOne(60 * 1000)) {
+                    if (count++ < noRetries) {
+                        log.LogWarning("Exclusive access to the session with id {0} could "
+                                       +"not be obtained within the allotted time. Trying again ({1}/{2}).",
+                                       this.ToAsciiString(),
+                                       count,
+                                       noRetries);
+                        continue;
+                    }
+                    throw ErrorCode.ToException(Error.SCERRACQUIRESESSIONTIMEOUT, "Id: " + this.ToAsciiString());
+                }
+                break;
             }
-
+            
             _isInUse = true;
             Session._current = this;
             return true;

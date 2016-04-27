@@ -120,7 +120,7 @@ namespace Starcounter {
                         } else {
                             // Template previously bound. Reset the unbound value in case
                             // the dirtycheck have used it to cache old value.
-                            template.SetDefaultValue(this);
+                            template.SetDefaultValue(this, true);
                         }
                     }
                 }

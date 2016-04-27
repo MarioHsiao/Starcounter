@@ -3,10 +3,17 @@
 ### Added
 
 ### Fixed
+- Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
+- Checking value after input is received and handled from client before skipping sending patch back to make sure that value is actually set [#3518](https://github.com/Starcounter/Starcounter/issues/3518)
+- Fixed a potential deadlock when `Session.ScheduleTask` was used with the same session that currently is used [#3522](https://github.com/Starcounter/Starcounter/issues/3522)
+- Setting transaction to none when a TypedJson object is removed from a stateful viewmodel to avoid usage of disposed transactions. [#3525](https://github.com/Starcounter/Starcounter/issues/3525)
+- Changed handling of obtaining exclusive access to a session to try a few times and log a warning instead of failing directly.
+- Fixed a bug where parts of the viewmodel was not properly checkpointed after generating changes. [#3533](https://github.com/Starcounter/Starcounter/issues/3533)
+- Fixed a nullreference when databinding was (incorrectly) used for an untyped array, [#3526](https://github.com/Starcounter/Starcounter/issues/3526)
 
 ### Changed
 
-## [2.2.1811] - 2016-04-18
+## [2.2.1834] - 2016-04-19
 ### Added
 - New staradmin command `staradmin start server`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/).
 - New staradmin command `staradmin start database`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/). By default, this command also automatically create the specified database if it does not exist.
@@ -75,6 +82,7 @@
 - Make sure the request is passed as a parameter when constructing a response from a resource, see [#3496](https://github.com/Starcounter/Starcounter/issues/3496)
 - Fixed bug in PrivateAssemblyStore, causing some path comparisons to use an unsupported comparison type, see [#3501](https://github.com/Starcounter/Starcounter/issues/3501)
 - Fixed a bug in TypedJson where databinding for a property was not properly invalidated when a dataobject with a different type (including null) was set, [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
+- Fixed gateway getting timeout waiting for workers to suspend [#3515](https://github.com/Starcounter/Starcounter/issues/3515)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.

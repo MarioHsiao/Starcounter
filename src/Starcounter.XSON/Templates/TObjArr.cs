@@ -93,7 +93,7 @@ namespace Starcounter.Templates {
 			}
 		}
 
-		internal override void SetDefaultValue(Json parent) {
+		internal override void SetDefaultValue(Json parent, bool markAsReplaced = false) {
 			UnboundSetter(parent, new Arr<Json>(parent, this));
 		}
 

@@ -32,6 +32,12 @@ namespace Starcounter.Server {
         /// image file of the given database.</returns>
         public static ImageFile Read(string directory, string databaseName) {
             var imageFiles = DatabaseStorageService.GetImageFiles(directory, databaseName);
+
+            // If image files not found - returning null.
+            if (imageFiles.Length < 1) {
+                return null;
+            }
+
             var size = Marshal.SizeOf(typeof(KernelAPI.NativeStructImageHeader));
             var data = new byte[size];
 

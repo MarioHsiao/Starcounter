@@ -20,11 +20,7 @@ namespace Starcounter.Templates {
         public override Type MetadataType {
             get { return typeof(StringMetadata<Json>); }
         }
-
-        internal override void SetDefaultValue(Json parent) {
-            UnboundSetter(parent, DefaultValue);
-        }
-
+        
         /// <summary>
         /// The .NET type of the instance represented by this template.
         /// </summary>
@@ -33,27 +29,12 @@ namespace Starcounter.Templates {
             get { return typeof(string); }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="parent"></param>
-		/// <param name="addToChangeLog"></param>
-		internal override void CheckAndSetBoundValue(Json parent, bool addToChangeLog) {
-			if (UseBinding(parent)) {
-				string boundValue = BoundGetter(parent);
-				string oldValue = UnboundGetter(parent);
-
-				if ((boundValue == null && oldValue != null) 
-					|| (boundValue != null && !boundValue.Equals(oldValue))) {
-					UnboundSetter(parent, boundValue);
-					if (addToChangeLog)
-						parent.ChangeLog.UpdateValue(parent, this);
-				}
-			}	
-		}
-
         internal override TemplateTypeEnum TemplateTypeId {
             get { return TemplateTypeEnum.String; }
+        }
+
+        protected override bool ValueEquals(string value1, string value2) {
+            return string.Equals(value1, value2);
         }
     }
 }
