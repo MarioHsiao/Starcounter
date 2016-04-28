@@ -80,60 +80,62 @@ namespace Starcounter {
                     inStmt.Append(QuotePath(tbl.UniqueIdentifier));
                     inStmt.Append("(__id");
                     selectObjs.Append("SELECT __o as __id");
-                    foreach (Column col in Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)) {
-                        if (col.Name != "__id") {
-                            inStmt.Append(",");
-                            inStmt.Append(QuoteName(col.Name));
-                            selectObjs.Append(",");
-                            selectObjs.Append(QuoteName(GetPropertyName(col)));
+                        foreach (Column col in Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)) {
+                            if (col.Name != "__id") {
+                                inStmt.Append(",");
+                                inStmt.Append(QuoteName(col.Name));
+                                selectObjs.Append(",");
+                                selectObjs.Append(QuoteName(GetPropertyName(col)));
+                            }
                         }
-                    }
                     inStmt.Append(")");
                     inStmt.Append("VALUES");
                     insertHeader = inStmt.ToString();
                     selectObjs.Append(" FROM ");
                     selectObjs.Append(QuotePath(tbl.FullName));
                     selectObjs.Append(" __o");
-                    using (SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator()) {
-                        Debug.Assert(selectEnum.TypeBinding != null);
-                        while (selectEnum.MoveNext()) {
-                            IObjectView val = selectEnum.Current;
-                            string valTypeName = null;
-                            if (selectEnum.PropertyBinding == null) {
-                                Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
-                                Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
-                                valTypeName = val.GetObject(0).GetType().ToString();
-                            }
-                            else
-                                valTypeName = val.GetType().ToString();
-                            Debug.Assert(valTypeName != null);
-                            if (valTypeName == tbl.FullName) {
-                                if (tblNrObj == 0)
-                                    inStmt.Append("(");
-                                else
-                                    inStmt.Append(",(");
-                                if (selectEnum.PropertyBinding == null)
-                                    inStmt.Append("object " + (val.GetObject(0).GetObjectNo() + shiftId).ToString()); // Value __id
-                                else
-                                    inStmt.Append("object " + (val.GetObjectNo() + shiftId).ToString()); // Value __id
-                                for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
-                                    inStmt.Append(",");
-                                    inStmt.Append(GetString(val, i, shiftId));
-                                }
-                                inStmt.Append(")");
-                                tblNrObj++;
-                                if (tblNrObj == 1000) {
-                                    using (StreamWriter file = new StreamWriter(fileName, true)) {
-                                        file.WriteLine(inStmt.ToString());
+                    StarcounterEnvironment.RunWithinApplication(null, () => {
+                        using (SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator()) {
+                            Debug.Assert(selectEnum.TypeBinding != null);
+                            while (selectEnum.MoveNext()) {
+                                IObjectView val = selectEnum.Current;
+                                string valTypeName = null;
+                                if (selectEnum.PropertyBinding == null) {
+                                    Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
+                                    Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
+                                    valTypeName = val.GetObject(0).GetType().ToString();
+                                } else
+                                    valTypeName = val.GetType().ToString();
+                                Debug.Assert(valTypeName != null);
+                                if (valTypeName == tbl.FullName) {
+                                    if (tblNrObj == 0)
+                                        inStmt.Append("(");
+                                    else
+                                        inStmt.Append(",(");
+                                    if (selectEnum.PropertyBinding == null)
+                                        inStmt.Append("object " + (val.GetObject(0).GetObjectNo() + shiftId).ToString()); // Value __id
+                                    else
+                                        inStmt.Append("object " + (val.GetObjectNo() + shiftId).ToString()); // Value __id
+                                    for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
+                                        inStmt.Append(",");
+                                        inStmt.Append(GetString(val, i, shiftId));
                                     }
-                                    totalNrObj += tblNrObj;
-                                    tblNrObj = 0;
-                                    inStmt = new StringBuilder();
-                                    inStmt.Append(insertHeader);
+                                    inStmt.Append(")");
+                                    tblNrObj++;
+                                    if (tblNrObj == 1000) {
+                                        using (StreamWriter file = new StreamWriter(fileName, true)) {
+                                            file.WriteLine(inStmt.ToString());
+                                        }
+                                        totalNrObj += tblNrObj;
+                                        tblNrObj = 0;
+                                        inStmt = new StringBuilder();
+                                        inStmt.Append(insertHeader);
+                                    }
                                 }
                             }
                         }
-                    }
+                    });
+
                     if (tblNrObj > 0)
                         using (StreamWriter file = new StreamWriter(fileName, true)) {
                             file.WriteLine(inStmt.ToString());
