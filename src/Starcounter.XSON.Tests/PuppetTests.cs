@@ -770,7 +770,6 @@ namespace Starcounter.Internal.XSON.Tests {
                 data.ResetCount();
 
                 str = jsonPatch.Generate(json, true, false);
-                json.ChangeLog.Checkpoint();
             });
 
             Assert.AreEqual(1, data.GetNameCount);
