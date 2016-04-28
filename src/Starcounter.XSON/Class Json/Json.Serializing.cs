@@ -30,24 +30,18 @@ namespace Starcounter {
                 return "{}";
             }
             
-            bool oldCachedSetting = this.cachedReadsEnabled;
-            try {
-                this.cachedReadsEnabled = true;
-                var serializer = ((TValue)Template).JsonSerializer;
-                int estimatedSize = serializer.EstimateSizeBytes(this);
-                buffer = new byte[estimatedSize];
+            var serializer = ((TValue)Template).JsonSerializer;
+            int estimatedSize = serializer.EstimateSizeBytes(this);
+            buffer = new byte[estimatedSize];
                 
-                unsafe
+            unsafe
+            {
+                fixed (byte* pdest = buffer)
                 {
-                    fixed (byte* pdest = buffer)
-                    {
-                        exactSize = serializer.Serialize(this, (IntPtr)pdest, buffer.Length);
-                    }
+                    exactSize = serializer.Serialize(this, (IntPtr)pdest, buffer.Length);
                 }
-            } finally {
-                this.cachedReadsEnabled = oldCachedSetting;
             }
-
+            
             return Encoding.UTF8.GetString(buffer, 0, exactSize);
         }
 
@@ -62,30 +56,24 @@ namespace Starcounter {
                 return new byte[] { (byte)'{', (byte)'}' };
             }
 
-            bool oldCachedSetting = this.cachedReadsEnabled;
-            try {
-                var serializer = ((TValue)Template).JsonSerializer;
-                int estimatedSize = serializer.EstimateSizeBytes(this);
-                buffer = new byte[estimatedSize];
-                int exactSize;
+            var serializer = ((TValue)Template).JsonSerializer;
+            int estimatedSize = serializer.EstimateSizeBytes(this);
+            buffer = new byte[estimatedSize];
+            int exactSize;
 
-                unsafe
+            unsafe
+            {
+                fixed (byte* pdest = buffer)
                 {
-                    fixed (byte* pdest = buffer)
-                    {
-                        exactSize = serializer.Serialize(this, (IntPtr)pdest, buffer.Length);
-                    }
+                    exactSize = serializer.Serialize(this, (IntPtr)pdest, buffer.Length);
                 }
-
-                if (exactSize != estimatedSize) {
-                    byte[] tmp = new byte[exactSize];
-                    Buffer.BlockCopy(buffer, 0, tmp, 0, exactSize);
-                    buffer = tmp;
-                }
-            } finally {
-                this.cachedReadsEnabled = oldCachedSetting;
             }
 
+            if (exactSize != estimatedSize) {
+                byte[] tmp = new byte[exactSize];
+                Buffer.BlockCopy(buffer, 0, tmp, 0, exactSize);
+                buffer = tmp;
+            }
             return buffer;
         }
 

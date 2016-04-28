@@ -153,13 +153,7 @@ namespace Starcounter.Advanced.XSON {
             }
 
             if (json != null) {
-                bool oldCachedSetting = json.cachedReadsEnabled;
-                try {
-                    json.cachedReadsEnabled = parent.cachedReadsEnabled;
-                    return json.Scope<TypedJsonSerializer, Json, int>(EstimateObject, serializer, json);
-                } finally {
-                    json.cachedReadsEnabled = oldCachedSetting;
-                }
+                return json.Scope<TypedJsonSerializer, Json, int>(EstimateObject, serializer, json);
             } else {
                 return 2;
             }
@@ -260,13 +254,7 @@ namespace Starcounter.Advanced.XSON {
             }
 
             if (json != null) {
-                bool oldCacheSetting = json.cachedReadsEnabled;
-                try {
-                    json.cachedReadsEnabled = parent.cachedReadsEnabled;
-                    return json.Scope<TypedJsonSerializer, Json, int>(EstimateArray, serializer, json);
-                } finally {
-                    json.cachedReadsEnabled = oldCacheSetting;
-                }
+                return json.Scope<TypedJsonSerializer, Json, int>(EstimateArray, serializer, json);
             } else {
                 return 2;
             }
@@ -278,18 +266,7 @@ namespace Starcounter.Advanced.XSON {
 
             for (int i = 0; i < arrList.Count; i++) {
                 var rowJson = (Json)arrList[i];
-
-                if (rowJson != null) {
-                    bool oldCachedSetting = rowJson.cachedReadsEnabled;
-                    try {
-                        rowJson.cachedReadsEnabled = json.cachedReadsEnabled;
-                        sizeBytes += serializer.EstimateSizeBytes(rowJson) + 1;
-                    } finally {
-                        rowJson.cachedReadsEnabled = oldCachedSetting;
-                    }
-                } else {
-                    sizeBytes += serializer.EstimateSizeBytes(rowJson) + 1;
-                }
+                sizeBytes += serializer.EstimateSizeBytes(rowJson) + 1;
             }
             return sizeBytes;
         }
@@ -349,13 +326,7 @@ namespace Starcounter.Advanced.XSON {
                 json = ((TObject)template).Getter(json);
 
             if (json != null) {
-                bool oldCacheSetting = json.cachedReadsEnabled;
-                try {
-                    json.cachedReadsEnabled = parent.cachedReadsEnabled;
-                    return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeObject, serializer, json, dest, destSize);
-                } finally {
-                    json.cachedReadsEnabled = oldCacheSetting;
-                }
+                return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeObject, serializer, json, dest, destSize);
             } else {
                 unsafe {
                     byte* pdest = (byte*)dest;
@@ -554,13 +525,7 @@ namespace Starcounter.Advanced.XSON {
                 json = ((TObjArr)template).Getter(json);
 
             if (json != null) {
-                bool oldCacheSetting = json.cachedReadsEnabled;
-                try {
-                    json.cachedReadsEnabled = parent.cachedReadsEnabled;
-                    return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeArray, serializer, json, dest, destSize);
-                } finally {
-                    json.cachedReadsEnabled = oldCacheSetting;
-                }
+                return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeArray, serializer, json, dest, destSize);
             } else {
                 unsafe {
                     byte* pdest = (byte*)dest;
@@ -589,13 +554,7 @@ namespace Starcounter.Advanced.XSON {
                     arrItem = (Json)arrList[i];
 
                     if (arrItem != null) {
-                        bool oldCacheSetting = arrItem.cachedReadsEnabled;
-                        try {
-                            arrItem.cachedReadsEnabled = json.cachedReadsEnabled;
-                            valueSize = arrItem.ToJsonUtf8((IntPtr)pfrag, destSize - used);
-                        } finally {
-                            arrItem.cachedReadsEnabled = oldCacheSetting;
-                        }
+                        valueSize = arrItem.ToJsonUtf8((IntPtr)pfrag, destSize - used);
                     } else {
                         // TODO:
                         // Handle nullvalues.
