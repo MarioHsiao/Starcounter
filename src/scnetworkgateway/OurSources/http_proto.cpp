@@ -20,13 +20,6 @@ const char* const kHttpGatewayPongResponse =
 
 const int32_t kHttpGatewayPongResponseLength = static_cast<int32_t> (strlen(kHttpGatewayPongResponse));
 
-const char* const kHttpServiceUnavailable =
-    "HTTP/1.1 503 Service Unavailable\r\n"
-    "Content-Length: 0\r\n"
-    "\r\n";
-
-const int32_t kHttpServiceUnavailableLength = static_cast<int32_t> (strlen(kHttpServiceUnavailable));
-
 const char* const kHttpTooBigUpload =
     "HTTP/1.1 413 Request Entity Too Large\r\n"
     "Content-Type: text/html; charset=UTF-8\r\n"

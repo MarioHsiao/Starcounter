@@ -103,7 +103,6 @@ enum GatewayErrorCodes
     SCERRGWSOCKETCLOSEDBYPEER,
     SCERRGWFAILEDACCEPTEX,
     SCERRGWFAILEDWSASEND,
-    SCERRGWDISCONNECTAFTERSENDFLAG,
     SCERRGWDISCONNECTFLAG,
     SCERRGWWEBSOCKETUNKNOWNOPCODE,
     SCERRGWPORTNOTHANDLED,
@@ -820,6 +819,18 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
+
+	// Shutting down sending on socket.
+	void ShutdownSend() {
+
+		shutdown(socket_, SD_SEND);
+	}
+
+	// Shutting down receiving on socket.
+	void ShutdownReceive() {
+
+		shutdown(socket_, SD_RECEIVE);
+	}
 
     // Disconnecting given socket handle.
     void DisconnectSocket() {
