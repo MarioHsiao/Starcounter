@@ -175,13 +175,6 @@ namespace Starcounter.XSON {
 
                         WritePatch(change, ref writer, includeNamespace);
 
-                        if (change.Property != null) {
-                            Json parent = change.Parent;
-                            parent.Scope<Json, TValue>((p, t) => {
-                                t.Checkpoint(p);
-                            }, parent, change.Property);
-                        }
-
                         if ((i + 1) < changes.Length)
                             writer.Write(',');
                     }
@@ -264,6 +257,10 @@ namespace Starcounter.XSON {
                         size = serializer.Serialize(change.Item, (IntPtr)writer.Buffer, int.MaxValue);
                     } else {
                         size = change.Property.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
+                        
+                        change.Parent.Scope<Json, TValue>((p, t) => {
+                            t.Checkpoint(p);
+                        }, change.Parent, change.Property);
                     }
                     writer.Skip(size);
                 }
