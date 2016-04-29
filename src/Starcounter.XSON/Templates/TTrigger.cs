@@ -88,7 +88,7 @@ namespace Starcounter.Templates {
             // Setting the application name of the input handler owner.
             String savedAppName = StarcounterEnvironment.AppName;
             try {
-                StarcounterEnvironment.AppName = obj.appName;
+                StarcounterEnvironment.AppName = obj._appName;
                 return _inputEventCreator.Invoke(obj, this);
             } finally {
                 StarcounterEnvironment.AppName = savedAppName;

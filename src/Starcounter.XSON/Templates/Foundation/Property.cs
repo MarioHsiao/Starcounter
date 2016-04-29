@@ -236,7 +236,7 @@ namespace Starcounter.Templates {
             // Setting the application name of the input handler owner.
             String savedAppName = StarcounterEnvironment.AppName;
             try {
-                StarcounterEnvironment.AppName = parent.appName;
+                StarcounterEnvironment.AppName = parent._appName;
                 _inputHandler.Invoke(parent, input);
             } finally {
                 StarcounterEnvironment.AppName = savedAppName;
