@@ -98,6 +98,26 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestDirtyCheckForNewRootObject() {
+            dynamic json = new Json();
+            var session = new Session();
+            var jsonPatch = new JsonPatch();
+
+            session.Data = json;
+            json.Header = "Test";
+
+            Assert.IsFalse(json.HasBeenSent);
+            Assert.IsTrue(json.dirty);
+            Assert.IsTrue(json.ChangeLog.BrandNew);
+
+            string patch = jsonPatch.Generate(json, true, false);
+
+            Assert.IsTrue(json.HasBeenSent);
+            Assert.IsFalse(json.dirty);
+            Assert.IsFalse(json.ChangeLog.BrandNew);
+        }
+
+        [Test]
         public static void TestDirtyCheckForSingleValue() {
             Person data = new Person();
             data.FirstName = "Hans";
@@ -754,6 +774,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Assert.AreEqual(1, data.GetNameCount);
             Assert.AreEqual(0, data.SetNameCount);
+
+            json.VerifyCheckpoint();
 
             // Verifying that name is cached in unbound storage.
             Assert.AreEqual(data.NameSkipCounter, tName.UnboundGetter(json));
