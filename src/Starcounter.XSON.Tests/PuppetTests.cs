@@ -775,7 +775,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(1, data.GetNameCount);
             Assert.AreEqual(0, data.SetNameCount);
 
-            json.VerifyCheckpoint();
+            json.VerifyDirtyFlags();
 
             // Verifying that name is cached in unbound storage.
             Assert.AreEqual(data.NameSkipCounter, tName.UnboundGetter(json));

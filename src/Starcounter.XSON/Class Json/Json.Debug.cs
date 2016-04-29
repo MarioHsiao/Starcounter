@@ -162,34 +162,31 @@ namespace Starcounter {
                 }
             }
 		}
-
-        [Conditional("DEBUG")]
-        internal void VerifyCheckpoint() {
+        
+        internal void VerifyDirtyFlags() {
             if (!this.trackChanges)
                 return;
 
             switch (this.Template.TemplateTypeId) {
                 case TemplateTypeEnum.Object:
-                    VerifyCheckpointForObject();
+                    VerifyDirtyFlagsForObject();
                     break;
                 case TemplateTypeEnum.Array:
-                    VerifyCheckpointForArray();
+                    VerifyDirtyFlagsForArray();
                     break;
                 default: // Single value
-                    VerifyCheckpointForSingleValue();
+                    VerifyDirtyFlagsForSingleValue();
                     break;
             }
         }
 
-        [Conditional("DEBUG")]
-        private void VerifyCheckpointForSingleValue() {
+        private void VerifyDirtyFlagsForSingleValue() {
             AssertOrThrow((this.stateFlags.Count == 1), this.Template);
             AssertOrThrow((this.stateFlags[0] == PropertyState.Default), this.Template);
             AssertOrThrow((this.dirty == false), this.Template);
         }
 
-        [Conditional("DEBUG")]
-        private void VerifyCheckpointForArray() {
+        private void VerifyDirtyFlagsForArray() {
             Json row;
             var tArr = (TObjArr)this.Template;
 
@@ -200,12 +197,11 @@ namespace Starcounter {
 
                 row = (Json)this.valueList[i];
                 if (row != null) 
-                    row.VerifyCheckpoint();
+                    row.VerifyDirtyFlags();
             }
         }
-
-        [Conditional("DEBUG")]
-        private void VerifyCheckpointForObject() {
+        
+        private void VerifyDirtyFlagsForObject() {
             Json child;
             TContainer tCon;
             var tObj = (TObject)this.Template;
@@ -218,12 +214,11 @@ namespace Starcounter {
                 if (tCon != null) {
                     child = tCon.GetValue(this);
                     if (child != null)
-                        child.VerifyCheckpoint();
+                        child.VerifyDirtyFlags();
                 }
             }
         }
-
-        [Conditional("DEBUG")]
+        
         private void AssertOrThrow(bool expression, Template template) {
             if (!expression)
                 throw new Exception("Verification of checkpoint failed for " + GetTemplateName(template));
