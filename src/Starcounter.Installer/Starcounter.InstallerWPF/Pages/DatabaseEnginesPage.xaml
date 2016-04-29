@@ -121,6 +121,7 @@
                                                     <Binding Path="Path" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
                                                         <Binding.ValidationRules>
                                                             <rules:IsLocalPathRule ValidatesOnTargetUpdated="True"/>
+                                                            <rules:UserPersonalDirectoryRule UseWarning="True" ValidatesOnTargetUpdated="True"/>
                                                             <rules:DatabaseRepositoryFolderRule UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>
                                                             <rules:DuplicatPathCheckRule Type="{x:Static rules:DuplicatPathCheckRule+SelfType.SystemServerPath}" ValidatesOnTargetUpdated="True"/>
                                                         </Binding.ValidationRules>

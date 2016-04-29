@@ -291,17 +291,6 @@ public class CPersonalServer : CComponentBase
         // Logging event.
         Utilities.ReportSetupEvent("Installing server...");
 
-        // Checking that server path is in user's personal directory.
-        if (!Utilities.ParentChildDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "\\..", serverOuterDir))
-        {
-            if (!Utilities.RunningOnBuildServer())
-            {
-                Utilities.MessageBoxWarning("You are installing Personal Server not in user directory."
-                    + " Make sure you have read/write access rights to the directory: " +
-                    serverOuterDir, "Personal server installation in non-user directory...");
-            }
-        }
-
         // Creating new server repository.
         RepositorySetup setup = RepositorySetup.NewDefault(serverOuterDir, StarcounterEnvironment.ServerNames.PersonalServer);
 
