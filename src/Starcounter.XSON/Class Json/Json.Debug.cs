@@ -8,6 +8,7 @@ using Starcounter.Templates;
 using System;
 using System.Text;
 using Starcounter.Advanced.XSON;
+using System.Diagnostics;
 
 namespace Starcounter {
 	public partial class Json {
@@ -161,5 +162,93 @@ namespace Starcounter {
                 }
             }
 		}
-	}
+
+        [Conditional("DEBUG")]
+        internal void VerifyCheckpoint() {
+            if (!this.trackChanges)
+                return;
+
+            switch (this.Template.TemplateTypeId) {
+                case TemplateTypeEnum.Object:
+                    VerifyCheckpointForObject();
+                    break;
+                case TemplateTypeEnum.Array:
+                    VerifyCheckpointForArray();
+                    break;
+                default: // Single value
+                    VerifyCheckpointForSingleValue();
+                    break;
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private void VerifyCheckpointForSingleValue() {
+            AssertOrThrow((this.stateFlags.Count == 1), this.Template);
+            AssertOrThrow((this.stateFlags[0] == PropertyState.Default), this.Template);
+            AssertOrThrow((this.dirty == false), this.Template);
+        }
+
+        [Conditional("DEBUG")]
+        private void VerifyCheckpointForArray() {
+            Json row;
+            var tArr = (TObjArr)this.Template;
+
+            AssertOrThrow((this.dirty == false), tArr);
+            AssertOrThrow((this.stateFlags.Count == this.valueList.Count), tArr);
+            for (int i = 0; i < this.stateFlags.Count; i++) {
+                AssertOrThrow((this.stateFlags[i] == PropertyState.Default), tArr);
+
+                row = (Json)this.valueList[i];
+                if (row != null) 
+                    row.VerifyCheckpoint();
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private void VerifyCheckpointForObject() {
+            Json child;
+            TContainer tCon;
+            var tObj = (TObject)this.Template;
+
+            AssertOrThrow((this.stateFlags.Count == tObj.Properties.Count), tObj);
+            for (int i = 0; i < this.stateFlags.Count; i++) {
+                AssertOrThrow((this.stateFlags[i] == PropertyState.Default), tObj);
+
+                tCon = tObj.Properties[i] as TContainer;
+                if (tCon != null) {
+                    child = tCon.GetValue(this);
+                    if (child != null)
+                        child.VerifyCheckpoint();
+                }
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertOrThrow(bool expression, Template template) {
+            if (!expression)
+                throw new Exception("Verification of checkpoint failed for " + GetTemplateName(template));
+        }
+        
+        private string GetTemplateName(Template template) {
+            var sb = new StringBuilder();
+            BuildNamePath(this, template, sb);
+            return sb.ToString();
+        }
+
+        private static void BuildNamePath(Json json, Template template, StringBuilder sb) {
+            if (json.Parent != null)
+                BuildNamePath(json.Parent, json.Parent.Template, sb);
+            
+            if (sb.Length > 0)
+                sb.Append('.');
+
+            string name = template.TemplateName;
+            if (name == null)
+                name = template.ClassName;
+            if (name == null)
+                name = "(anonymous)";
+
+            sb.Append(name);
+        }
+    }
 }
