@@ -37,6 +37,14 @@ namespace Starcounter {
 		}
 
         /// <summary>
+        /// Returns true if any property is marked as dirty.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsDirty() {
+            return trackChanges && this.dirty;
+        }
+
+        /// <summary>
         /// Returns true if the property is marked as dirty.
         /// </summary>
         /// <param name="property"></param>
@@ -95,7 +103,7 @@ namespace Starcounter {
         }
 
         private void MarkAsNonDirty(int templateIndex) {
-            stateFlags[templateIndex] ^= PropertyState.Dirty;
+            stateFlags[templateIndex] &= ~PropertyState.Dirty;
         }
 
         /// <summary>
@@ -104,6 +112,17 @@ namespace Starcounter {
         /// <param name="templateIndex"></param>
         internal void MarkAsCached(int templateIndex) {
             stateFlags[templateIndex] |= PropertyState.Cached;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void ResetCachedFlags() {
+            if (stateFlags != null) {
+                for (int i = 0; i < stateFlags.Count; i++) {
+                    stateFlags[i] &= ~PropertyState.Cached;
+                }
+            }
         }
 
         /// <summary>
@@ -236,6 +255,7 @@ namespace Starcounter {
                     }
                 }
             }
+            this.dirty = false;
 		}
 
 		/// <summary>
@@ -348,7 +368,7 @@ namespace Starcounter {
                         } else {
                             clog.Add(Change.Update(sibling, null, true));
                             json.siblings.MarkAsSent(i);
-                            //sibling.CheckpointChangeLog(false);
+                            sibling.dirty = false;
                         }
                     }
                 }
