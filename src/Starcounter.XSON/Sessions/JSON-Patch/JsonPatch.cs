@@ -92,7 +92,9 @@ namespace Starcounter.XSON {
                 if (session != null)
                     session.enableNamespaces = false;
             }
-            
+
+            json.VerifyCheckpoint(); // Conditional: Debug
+
             return patchSize;
         }
 
@@ -191,7 +193,7 @@ namespace Starcounter.XSON {
                 errMsg += "Buffer (w/o data out of bounds): " + System.Text.Encoding.UTF8.GetString(buffer);
                 throw new Exception(errMsg);
             }
-
+            
             patches = buffer;
             return size;
         }
@@ -249,12 +251,14 @@ namespace Starcounter.XSON {
                         try {
                             serializer = ((TValue)change.Parent.Template).JsonSerializer;
                             size = serializer.Serialize(change.Parent, (IntPtr)writer.Buffer, int.MaxValue);
+                            change.Parent.CheckpointChangeLog(false);
                         } finally {
                             change.Parent.calledFromStepSibling = false;
                         }
                     } else if (change.Index != -1) {
                         serializer = ((TValue)change.Item.Template).JsonSerializer;
                         size = serializer.Serialize(change.Item, (IntPtr)writer.Buffer, int.MaxValue);
+                        change.Item.CheckpointChangeLog(false);
                     } else {
                         size = change.Property.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
                         
