@@ -131,7 +131,7 @@ namespace Starcounter.InstallerWPF.Rules {
 
                 bool bDirectoryContainsFiles = MainWindow.DirectoryContainsFiles(folder, true);
                 if (bDirectoryContainsFiles) {
-                    return new ValidationResult(false, new ErrorObject() { IsError = !UseWarning, Message = "Directory contains files (" + folder+")" });
+                    return new ValidationResult(false, new ErrorObject() { IsError = !UseWarning, Message = "Directory contains files (" + folder + ")" });
                 }
             }
             catch (System.UnauthorizedAccessException e) {
@@ -240,6 +240,31 @@ namespace Starcounter.InstallerWPF.Rules {
 
             return new ValidationResult(true, null);
 
+        }
+    }
+
+    public class UserPersonalDirectoryRule : ValidationRule {
+
+        public bool UseWarning { get; set; }
+
+        public override ValidationResult Validate(object value, CultureInfo cultureInfo) {
+
+            try {
+
+                if (value != null && value is String) {
+                    // Checking that server path is in user's personal directory.
+                    if (!Utilities.ParentChildDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "\\..", (string)value)) {
+                        return new ValidationResult(false, new ErrorObject() {
+                            IsError = !UseWarning,
+                            Message = "Personal server installation in non-user directory." + Environment.NewLine + "You are installing Personal Server not in user directory." + Environment.NewLine + "Make sure you have read/write access rights to the directory: " + value
+                        });
+                    }
+                }
+            }
+            catch (Exception e) {
+                return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path" + Environment.NewLine + e.Message });
+            }
+            return new ValidationResult(true, null);
         }
     }
 

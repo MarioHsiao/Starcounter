@@ -664,9 +664,6 @@ namespace Starcounter.Controls
 
         public static WpfMessageBoxResult Show(string messageBoxText, string caption, WpfMessageBoxButton button, WpfMessageBoxImage icon, WpfMessageBoxResult defaultResult)
         {
-
-//            WpfMessageBox win = new WpfMessageBox() { Owner = System.Windows.Application.Current.MainWindow };
-
             WpfMessageBox win = new WpfMessageBox();
 
             // Fix so the window doesn't own itself
@@ -678,36 +675,14 @@ namespace Starcounter.Controls
             win.Caption = caption;
             win.Button = button;
             win.ShowInTaskbar = false;
+            win.Topmost = true;
             win.Icon = icon;
-
-
-            //// Get screen size
-            //PresentationSource source = PresentationSource.FromVisual(System.Windows.Application.Current.MainWindow);
-            //Matrix m = source.CompositionTarget.TransformToDevice;
-
-            //WindowInteropHelper windowInteropHelper = new WindowInteropHelper(System.Windows.Application.Current.MainWindow);
-            //Screen screen = System.Windows.Forms.Screen.FromHandle(windowInteropHelper.Handle);
-
-            //double ScreenHeight = screen.Bounds.Height * m.M11;
-            //double ScreenWidth = screen.Bounds.Width * m.M22;
-            ////win.MaxWidth = ScreenWidth - 100;
-            ////win.MaxHeight = ScreenHeight - 100;
-
-            //win.MaxWidth = ScreenWidth * 0.6;
-            //win.MaxHeight = ScreenHeight * 0.9;
-            //
-
-            //Size maxSize = win.GetMaxSize();
-            //win.MaxHeight = maxSize.Height;
-            //win.MaxWidth = maxSize.Width;
-
 
             win.SizeToContent = SizeToContent.WidthAndHeight;
             win.DefaultResult = defaultResult;
             win.WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             win.ShowDialog();
-
 
             return win.MessageBoxResult;
         }
@@ -724,13 +699,9 @@ namespace Starcounter.Controls
 
             double ScreenHeight = screen.Bounds.Height * m.M11;
             double ScreenWidth = screen.Bounds.Width * m.M22;
-            //win.MaxWidth = ScreenWidth - 100;
-            //win.MaxHeight = ScreenHeight - 100;
 
             size.Width = ScreenWidth * 0.6;
             size.Height = ScreenHeight * 0.9;
-
-
 
             return size;
         }
@@ -764,15 +735,12 @@ namespace Starcounter.Controls
 
             fontSize = (double)this.GetValue(TextElement.FontSizeProperty);
 
-
-
             FormattedText ft = new FormattedText(text, CultureInfo.CurrentCulture, System.Windows.FlowDirection.LeftToRight, typeface, fontSize, Brushes.Black);
 
             size.Width = ft.Width * m.M22;
             size.Height = ft.Height * m.M11;
             return size;
         }
-
 
         /// <summary>
         /// Sets the icon.
@@ -850,7 +818,6 @@ namespace Starcounter.Controls
             return bs;
 
         }
-
 
         #region Message handling
 
