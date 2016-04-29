@@ -178,7 +178,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="json"></param>
         internal void SetCachedReads(Json json) {
-            if (json.IsTrackingChanges && !json.IsCached(this.TemplateIndex) && UseBinding(json)) {
+            if (json.IsTrackingChanges && UseBinding(json)) {
                 UnboundSetter(json, BoundGetter(json));
                 json.MarkAsCached(this.TemplateIndex);
             }
