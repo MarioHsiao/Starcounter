@@ -93,7 +93,9 @@ namespace Starcounter.XSON {
                     session.enableNamespaces = false;
             }
 
-            json.VerifyCheckpoint(); // Conditional: Debug
+//#if DEBUG
+            json.VerifyDirtyFlags();
+//#endif
 
             return patchSize;
         }
