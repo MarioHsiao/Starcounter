@@ -875,7 +875,14 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
     // Checking disconnect state.
     if (sd->get_disconnect_after_send_flag()) {
-        return SCERRGWDISCONNECTAFTERSENDFLAG;
+
+		// NOTE: We can't shutdown the socket because the last
+		// message is not delivered even we do SHUTDOWN with blocking
+		// either receives or sends. So instead we wait until client
+		// closes the socket or inactive socket timeout is reached.
+
+		//sd->get_socket_info()->ShutdownSend();
+		//sd->get_socket_info()->ShutdownReceive(); 
     }
 
     // If we received 0 bytes, the remote side has close the connection.
