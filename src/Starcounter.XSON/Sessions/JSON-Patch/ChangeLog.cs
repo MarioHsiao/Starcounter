@@ -71,18 +71,9 @@ namespace Starcounter.XSON {
 
             if (brandNew) {
                 changes.Add(Change.Add(employer));
-                employer.CheckpointChangeLog();
                 brandNew = false;
             } else {
-                // TODO:
-                // Since we dont want to have session here, this property should probably be moved 
-                // somewhere else but since it currently always returns true we just ingore it for now.
-
-//                if (DatabaseHasBeenUpdatedInCurrentTask) {
-                    employer.LogValueChangesWithDatabase(this, true);
-//                } else {
-//                    employer.LogValueChangesWithoutDatabase(this, true);
-//                }
+                employer.LogValueChangesWithDatabase(this, true);
             }
 
             // TODO:
@@ -93,7 +84,6 @@ namespace Starcounter.XSON {
 
             if (flushLog) {
                 changes.Clear();
-                Checkpoint();
             }
             return arr;
         }
