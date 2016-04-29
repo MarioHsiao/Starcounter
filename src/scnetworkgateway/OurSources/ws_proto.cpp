@@ -312,7 +312,13 @@ uint32_t WsProto::ProcessWsDataToDb(
         }
 
 		// Checking if we have payload size bigger than maximum allowed.
-		if (payload_len >= MAX_SOCKET_DATA_SIZE) {
+		if (payload_len > g_gateway.setting_maximum_receive_content_length()) {
+
+			wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+			wsprintf(temp, L"Attempt to upload a WebSocket frame of more than %d bytes. Closing socket connection.",
+				g_gateway.setting_maximum_receive_content_length());
+			g_gateway.LogWriteWarning(temp);
+
 			return SCERRGWMAXDATASIZEREACHED;
 		}
 
