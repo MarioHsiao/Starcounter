@@ -24,7 +24,6 @@ namespace Starcounter.Templates {
 
         private Func<Json, TValue, Input> _inputEventCreator;
         private Action<Json, Input> _inputHandler;
-        private String _appName; // To which application this input handler belongs.
 
         /// <summary>
         /// 
@@ -77,7 +76,6 @@ namespace Starcounter.Templates {
                                Action<Json, Input> handler) {
             _inputEventCreator = createInputEvent;
             _inputHandler = handler;
-            _appName = StarcounterEnvironment.AppName;
         }
 
         /// <summary>
@@ -90,7 +88,7 @@ namespace Starcounter.Templates {
             // Setting the application name of the input handler owner.
             String savedAppName = StarcounterEnvironment.AppName;
             try {
-                StarcounterEnvironment.AppName = _appName;
+                StarcounterEnvironment.AppName = obj.appName;
                 return _inputEventCreator.Invoke(obj, this);
             } finally {
                 StarcounterEnvironment.AppName = savedAppName;

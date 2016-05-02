@@ -939,6 +939,11 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                         // Handled successfully.
                         *is_handled = true;
 
+						wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+						wsprintf(temp, L"Attempt to HTTP upload of more than %d bytes. Closing socket connection.", 
+							g_gateway.setting_maximum_receive_content_length());
+						g_gateway.LogWriteWarning(temp);
+
 						// Checking if its a socket representer.
 						if (sd->get_socket_representer_flag()) {
 
