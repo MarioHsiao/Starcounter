@@ -149,6 +149,7 @@ namespace Starcounter.Advanced.XSON {
             Json parent = json;
             if (template != json.Template) {
                 // Template points to a property in the specified jsonobject. Get correct value from template getter.
+                ((TObject)template).SetCachedReads(json);
                 json = ((TObject)template).Getter(parent);
             }
 
@@ -250,6 +251,7 @@ namespace Starcounter.Advanced.XSON {
 
             if (template != parent.Template) {
                 // Not a root. Get correct value from getter.
+                ((TObjArr)template).SetCachedReads(json);
                 json = ((TObjArr)template).Getter(parent);
             }
 

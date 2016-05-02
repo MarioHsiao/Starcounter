@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Internal;
 using Starcounter.Internal.XSON;
+using Starcounter.Logging;
 using Starcounter.Templates;
 using Starcounter.XSON;
 
@@ -22,6 +23,8 @@ namespace Starcounter {
             /// </summary>
             Cached = 2
         }
+
+        private static LogSource logSource = new LogSource("Starcounter.XSON");
 
         /// <summary>
         /// Backing field for the transaction applied to this instance (if any).

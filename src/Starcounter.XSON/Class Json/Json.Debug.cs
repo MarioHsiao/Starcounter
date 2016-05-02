@@ -4,14 +4,13 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Templates;
-using System;
+using System.Diagnostics;
 using System.Text;
 using Starcounter.Advanced.XSON;
-using System.Diagnostics;
+using Starcounter.Templates;
 
 namespace Starcounter {
-	public partial class Json {
+    public partial class Json {
         internal string DebugString {
             get {
                 var sb = new StringBuilder();
@@ -163,7 +162,7 @@ namespace Starcounter {
             }
 		}
         
-        internal void VerifyDirtyFlags() {
+        internal void VerifyDirtyFlags(bool verifySiblings = true) {
             if (!this.trackChanges)
                 return;
 
@@ -177,6 +176,14 @@ namespace Starcounter {
                 default: // Single value
                     VerifyDirtyFlagsForSingleValue();
                     break;
+            }
+
+            if (verifySiblings && this.siblings != null) {
+                foreach (var sibling in this.siblings) {
+                    if (this.Equals(sibling))
+                        continue;
+                    sibling.VerifyDirtyFlags(false);
+                }
             }
         }
 
@@ -212,7 +219,7 @@ namespace Starcounter {
 
                 tCon = tObj.Properties[i] as TContainer;
                 if (tCon != null) {
-                    child = tCon.GetValue(this);
+                    child = (Json)tCon.GetUnboundValueAsObject(this);
                     if (child != null)
                         child.VerifyDirtyFlags();
                 }
@@ -220,8 +227,10 @@ namespace Starcounter {
         }
         
         private void AssertOrThrow(bool expression, Template template) {
-            if (!expression)
-                throw new Exception("Verification of checkpoint failed for " + GetTemplateName(template));
+            if (!expression) {
+                Json.logSource.LogWarning("Verification of dirtyflags failed for " + GetTemplateName(template) + "\n" + (new StackTrace(true)).ToString());
+//                throw new Exception("Verification of checkpoint failed for " + GetTemplateName(template));
+            }
         }
         
         private string GetTemplateName(Template template) {

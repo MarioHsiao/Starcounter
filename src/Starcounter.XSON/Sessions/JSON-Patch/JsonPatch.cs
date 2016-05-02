@@ -92,11 +92,6 @@ namespace Starcounter.XSON {
                 if (session != null)
                     session.enableNamespaces = false;
             }
-
-//#if DEBUG
-            json.VerifyDirtyFlags();
-//#endif
-
             return patchSize;
         }
 
@@ -253,14 +248,19 @@ namespace Starcounter.XSON {
                         try {
                             serializer = ((TValue)change.Parent.Template).JsonSerializer;
                             size = serializer.Serialize(change.Parent, (IntPtr)writer.Buffer, int.MaxValue);
-                            change.Parent.CheckpointChangeLog(false);
+                            change.Parent.CheckpointChangeLog(!change.SuppressNamespace);
                         } finally {
                             change.Parent.calledFromStepSibling = false;
                         }
                     } else if (change.Index != -1) {
-                        serializer = ((TValue)change.Item.Template).JsonSerializer;
-                        size = serializer.Serialize(change.Item, (IntPtr)writer.Buffer, int.MaxValue);
-                        change.Item.CheckpointChangeLog(false);
+                        change.Item.calledFromStepSibling = change.SuppressNamespace;
+                        try {
+                            serializer = ((TValue)change.Item.Template).JsonSerializer;
+                            size = serializer.Serialize(change.Item, (IntPtr)writer.Buffer, int.MaxValue);
+                            change.Item.CheckpointChangeLog(!change.SuppressNamespace);
+                        } finally {
+                            change.Parent.calledFromStepSibling = false;
+                        }
                     } else {
                         size = change.Property.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
                         

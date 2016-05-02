@@ -9,7 +9,6 @@ using System.Collections.Generic;
 namespace Starcounter.XSON {
     internal static class DataBindingHelper {
         internal static bool ThrowExceptionOnBindindRecreation = false;
-        private static LogSource logSource = new LogSource("json");
         private static string propNotFound = "Property '{2}' was not found in type '{3}' (or baseclass). Json property: '{0}.{1}'.";
 
         /// <summary>
