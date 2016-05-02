@@ -542,6 +542,8 @@ uint32_t HttpProto::HttpUriDispatcher(
         if (sd->is_web_socket())
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
+		GW_ASSERT(sd->get_accumulated_len_bytes() == (sd->get_cur_network_buf_ptr() - sd->get_data_blob_start()));
+
         // Obtaining method and URI.
         char* method_space_uri_space = (char*) sd->get_data_blob_start();
         uint32_t method_space_uri_space_len, uri_offset;

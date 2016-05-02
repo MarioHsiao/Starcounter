@@ -95,6 +95,10 @@ class SocketDataChunk
 
 public:
 
+	uint8_t* get_cur_network_buf_ptr() {
+		return cur_network_buf_ptr_;
+	}
+
 	ScSocketInfoStruct* get_socket_info() {
 		return socket_info_;
 	}
@@ -140,12 +144,9 @@ public:
     }
 
     // Initializes accumulative buffer.
-    void SetAccumulation(
-        uint32_t buf_total_len_bytes,
-        uint32_t orig_buf_ptr_shift_bytes)
+    void SetAccumulation(uint32_t buf_total_len_bytes)
     {
-        num_available_network_bytes_ -= orig_buf_ptr_shift_bytes;
-        cur_network_buf_ptr_ = get_data_blob_start() + orig_buf_ptr_shift_bytes;
+        cur_network_buf_ptr_ = get_data_blob_start();
         accumulated_len_bytes_ = buf_total_len_bytes;
 
         GW_ASSERT(accumulated_len_bytes_ <= get_data_blob_size());
