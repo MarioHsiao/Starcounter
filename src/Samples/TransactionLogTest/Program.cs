@@ -152,16 +152,6 @@ namespace TransactionLogTest
         static void check_update_entry()
         {
             // ARRANGE
-            TestClass t = null;
-            Db.Transact(() =>
-            {
-                t = new TestClass
-                {
-                    null_str_field = "str",
-                    null_long_field = 42
-                };
-            });
-
             ILogManager log_manager = new LogManager();
 
             using (ILogReader log_reader = log_manager.OpenLog(Starcounter.Db.Environment.DatabaseName, Starcounter.Db.Environment.DatabaseLogDir))
@@ -176,6 +166,17 @@ namespace TransactionLogTest
                 }
                 while (lr != null);
 
+                TestClass t = null;
+                Db.Transact(() =>
+                {
+                    t = new TestClass
+                    {
+                        null_str_field = "str",
+                        null_long_field = 42
+                    };
+                });
+
+
                 Db.Transact(() =>
                 {
                     t.null_str_field = null;
@@ -183,7 +184,9 @@ namespace TransactionLogTest
                 });
 
                 // ACT
-                lr = log_reader.ReadAsync(cts.Token).Result;
+                log_reader.ReadAsync(cts.Token).Wait(); //skip creating transaction
+                lr = log_reader.ReadAsync(cts.Token).Result; //deal with update transaction
+
 
                 //CHECK
                 var update_entry = lr.transaction_data.updates.Single();
