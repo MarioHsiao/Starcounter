@@ -358,6 +358,7 @@ namespace Starcounter {
                 return _stateList[stateIndex];
             }
             set {
+                Json oldJson = null;
 
                 // Checking if on the owning scheduler.
                 CheckCorrectScheduler();
@@ -380,6 +381,7 @@ namespace Starcounter {
                         _stateList.Add(value);
                         _indexPerApplication.Add(appName, stateIndex);
                     } else {
+                        oldJson = _stateList[stateIndex];
                         _stateList[stateIndex] = value;
                     }
 
@@ -391,10 +393,16 @@ namespace Starcounter {
 
                         if (stateIndex == publicViewModelIndex) {
                             ViewModelVersion version = null;
-                            if (CheckOption(SessionOptions.PatchVersioning)) {
-                                version = new ViewModelVersion();
+
+                            if (oldJson != null) {
+                                // Existing public viewmodel exists. ChangeLog should be reused.
+                                oldJson.ChangeLog.ChangeEmployer(value);
+                            } else {
+                                if (CheckOption(SessionOptions.PatchVersioning)) {
+                                    version = new ViewModelVersion();
+                                }
+                                value.ChangeLog = new ChangeLog(value, version);
                             }
-                            value.ChangeLog = new ChangeLog(value, version);
                         }
 
                         value.OnSessionSet();
