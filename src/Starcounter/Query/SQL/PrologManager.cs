@@ -108,7 +108,7 @@ namespace Starcounter.Query.Sql
             }
             catch (Exception exception)
             {
-                String errMessage = "Failed to load SQL schema info from file: " + schemaFilePath;
+                String errMessage = "Failed to load SQL schema info from file: " + schemaFilePath + ". Error message: " + exception.Message;
                 // TODO: New error code SCERRSQLLOADSCHEMAFAILED
                 throw ErrorCode.ToException(Error.SCERRSQLEXPORTSCHEMAFAILED, exception, errMessage);
             }
