@@ -11,6 +11,7 @@
 - Fixed a bug where parts of the viewmodel was not properly checkpointed after generating changes. [#3533](https://github.com/Starcounter/Starcounter/issues/3533)
 - Fixed a nullreference when databinding was (incorrectly) used for an untyped array, [#3526](https://github.com/Starcounter/Starcounter/issues/3526)
 - Fixed a bug that caused the wrong appname being used in some cases when a TypedJson inputhandler was called [#3548](https://github.com/Starcounter/Starcounter/issues/3548)
+- Removing existing items in an array when a new dataobject is set in TypedJSON [#3458](https://github.com/Starcounter/Starcounter/issues/3458) 
 
 ### Changed
 
