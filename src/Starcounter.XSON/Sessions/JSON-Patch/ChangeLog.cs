@@ -20,7 +20,7 @@ namespace Starcounter.XSON {
         public ChangeLog(Json employer, ViewModelVersion version) : this(employer) {
             this.version = version;
         }
-
+        
         [Conditional("DEBUG")]
         private void VerifyChange(Json json, TValue property) {
 
@@ -29,6 +29,13 @@ namespace Starcounter.XSON {
         [Conditional("DEBUG")]
         private void VerifyChange(Change change) {
 
+        }
+
+        internal void ChangeEmployer(Json newEmployer) {
+            this.employer.ChangeLog = null;
+            this.employer = newEmployer;
+            newEmployer.ChangeLog = this;
+            this.brandNew = true;
         }
 
         /// <summary>
