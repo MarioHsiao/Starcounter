@@ -228,8 +228,8 @@ namespace Starcounter {
         
         private void AssertOrThrow(bool expression, Template template) {
             if (!expression) {
-                Json.logSource.LogWarning("Verification of dirtyflags failed for " + GetTemplateName(template) + "\n" + (new StackTrace(true)).ToString());
-//                throw new Exception("Verification of checkpoint failed for " + GetTemplateName(template));
+//                Json.logSource.LogWarning("Verification of dirtyflags failed for " + GetTemplateName(template) + "\n" + (new StackTrace(true)).ToString());
+                throw new System.Exception("Verification of dirtyflags failed for " + GetTemplateName(template));
             }
         }
         
