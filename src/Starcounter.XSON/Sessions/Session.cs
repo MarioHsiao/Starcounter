@@ -242,8 +242,7 @@ namespace Starcounter {
 
                 Byte schedId = i;
 
-                Scheduling.ScheduleTask(
-                    () => { RunForSessionsOnCurrentScheduler(task); },
+                Scheduling.ScheduleTask(() => { RunForSessionsOnCurrentScheduler(task); },
                     waitForCompletion,
                     schedId);
             }
@@ -258,73 +257,22 @@ namespace Starcounter {
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
         public static void ScheduleTask(String sessionId, SessionTask task, Boolean waitForCompletion = false) {
 
-            Session savedCurrentSession = Session.Current;
-            try {
-                if (savedCurrentSession != null && savedCurrentSession.ToAsciiString().Equals(sessionId)) {
-                    // Trying to schedule a task on the current session. Execute the task directly.
-                    task(savedCurrentSession, sessionId);
-                    return;
-                }
+            // Getting session structure from string.
+            ScSessionStruct ss = new ScSessionStruct();
+            ss.ParseFromString(sessionId);
 
-                // Checking if we already have a current session.
-                if (null != savedCurrentSession) {
-                    savedCurrentSession.StopUsing();
-                }
+            Scheduling.ScheduleTask(() => {
 
-                // Getting session structure from string.
-                ScSessionStruct ss = new ScSessionStruct();
-                ss.ParseFromString(sessionId);
+                Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
 
-                // Checking if we are on the same scheduler.
-                if (ss.schedulerId_ == StarcounterEnvironment.CurrentSchedulerId) {
-                    TransactionHandle oldTrans = TransactionHandle.Invalid;
-
-                    if (StarcounterBase._DB != null && StarcounterBase._DB.HasDatabase) {
-                        // Since we are running the task on the same scheduler (i.e no scheduling, just 
-                        // executing the task) we need to set the current active transaction to avoid 
-                        // sharing transactions between sessions.
-                        oldTrans = StarcounterBase.TransactionManager.CurrentTransaction;
-                        StarcounterBase.TransactionManager.CreateImplicitAndSetCurrent();
-                    }
-
-                    try {
-                        Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
-
-                        // Checking if session is dead.
-                        if (null != s) {
-                            s.Use(task, sessionId);
-                        } else {
-                            task(null, sessionId);
-                        }
-                    } finally {
-                        if (StarcounterBase._DB != null && StarcounterBase._DB.HasDatabase) {
-                            StarcounterBase.TransactionManager.CurrentTransaction = oldTrans;
-                        }
-                    }
-
+                // Checking if session is dead.
+                if (null != s) {
+                    s.Use(task, sessionId);
                 } else {
-
-                    Scheduling.ScheduleTask(() => {
-
-                        Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
-
-                        // Checking if session is dead.
-                        if (null != s) {
-                            s.Use(task, sessionId);
-                        } else {
-                            task(null, sessionId);
-                        }
-
-                    }, waitForCompletion, ss.schedulerId_);
+                    task(null, sessionId);
                 }
 
-            } finally {
-
-                // Checking if we need to restore current session.
-                if (null != savedCurrentSession) {
-                    savedCurrentSession.StartUsing();
-                }
-            }
+            }, waitForCompletion, ss.schedulerId_);
         }
 
         /// <summary>
@@ -410,6 +358,7 @@ namespace Starcounter {
                 return _stateList[stateIndex];
             }
             set {
+                Json oldJson = null;
 
                 // Checking if on the owning scheduler.
                 CheckCorrectScheduler();
@@ -432,6 +381,7 @@ namespace Starcounter {
                         _stateList.Add(value);
                         _indexPerApplication.Add(appName, stateIndex);
                     } else {
+                        oldJson = _stateList[stateIndex];
                         _stateList[stateIndex] = value;
                     }
 
@@ -443,10 +393,16 @@ namespace Starcounter {
 
                         if (stateIndex == publicViewModelIndex) {
                             ViewModelVersion version = null;
-                            if (CheckOption(SessionOptions.PatchVersioning)) {
-                                version = new ViewModelVersion();
+
+                            if (oldJson != null) {
+                                // Existing public viewmodel exists. ChangeLog should be reused.
+                                oldJson.ChangeLog.ChangeEmployer(value);
+                            } else {
+                                if (CheckOption(SessionOptions.PatchVersioning)) {
+                                    version = new ViewModelVersion();
+                                }
+                                value.ChangeLog = new ChangeLog(value, version);
                             }
-                            value.ChangeLog = new ChangeLog(value, version);
                         }
 
                         value.OnSessionSet();

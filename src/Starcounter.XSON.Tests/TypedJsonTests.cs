@@ -900,5 +900,33 @@ namespace Starcounter.Internal.XSON.Tests {
                 () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
             );   
         }
+
+        [Test]
+        public static void TestSettingDataOnUnboundArray_3548() {
+            dynamic json = new Json();
+            dynamic data = new object[] {
+                new { Name = "One" },
+                new { Name = "Two" }
+            };
+
+            json.Items = new List<Json>();
+            json.Items.Data = data;
+
+            Assert.AreEqual(2, json.Items.Count);
+            Assert.AreEqual(data[0].Name, json.Items[0].Name);
+            Assert.AreEqual(data[1].Name, json.Items[1].Name);
+
+            data = new object[] {
+                new { Name = "Three" },
+                new { Name = "Four" },
+                new { Name = "Five" }
+            };
+            json.Items.Data = data;
+
+            Assert.AreEqual(3, json.Items.Count);
+            Assert.AreEqual(data[0].Name, json.Items[0].Name);
+            Assert.AreEqual(data[1].Name, json.Items[1].Name);
+            Assert.AreEqual(data[2].Name, json.Items[2].Name);
+        }
     }
 }

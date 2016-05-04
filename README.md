@@ -11,7 +11,19 @@ This repository is reserved for the public Starcounter bits.
 ## Developer samples and prefabs
 
 * [GitHub.com/StarcounterSamples](https://github.com/StarcounterSamples)
+ * [Simplified](https://github.com/StarcounterSamples/Simplified) - Simplified data model used by all demo apps.
+ * [KitchenSink](https://github.com/StarcounterSamples/KitchenSink) - Shows how to model different UI patterns in JSON.
+ * [SignIn](https://github.com/StarcounterSamples/SignIn) - Authenticate users with a username and password.
+ * [UserAdmin](https://github.com/StarcounterSamples/UserAdmin) - Sample user administration.
+ * [People](https://github.com/StarcounterSamples/People) - Sample address book.
+ * [Products](https://github.com/StarcounterSamples/Products) - Sample product information management.
+ * [Images](https://github.com/StarcounterSamples/Images) - Sample micro app that can put an image on anything.
+ * [Barcodes](https://github.com/StarcounterSamples/Barcodes) - Sample micro app that can put a barcode on anything.
+ * [Procurement](https://github.com/StarcounterSamples/Procurement) - Sample purchase order placing.
+ * [Chatter](https://github.com/StarcounterSamples/Chatter) - Sample app to chat about anything.
 * [GitHub.com/StarcounterPrefabs](https://github.com/StarcounterPrefabs)
+ * [Launcher](https://github.com/StarcounterPrefabs/Launcher) - A launcher is an app that gives a common UI feeling to multiple apps running simultaneously.
+ * [LogStreamer](https://github.com/StarcounterPrefabs/LogStreamer) - This is a sample log streamer application for Starcounter.
 * [Tutorials](http://starcounter.io/tutorials/)
 
 ## Download installer

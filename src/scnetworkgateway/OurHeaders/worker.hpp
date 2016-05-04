@@ -249,9 +249,6 @@ public:
     // Returns given socket data chunk to private chunk pool.
     void ReturnSocketDataChunksToPool(SocketDataChunkRef sd);
 
-    // Adds socket data chunk to aggregation queue.
-    void AddToAggregation(SocketDataChunkRef sd);
-
     // Processes all aggregated chunks.
     uint32_t SendAggregatedChunks();
 
@@ -262,10 +259,15 @@ public:
         sd->set_accumulating_flag();
 
         // Checking if the host accumulation should be involved.
-        if (total_desired_bytes > static_cast<uint32_t>(MAX_SOCKET_DATA_SIZE))
+        if (total_desired_bytes > g_gateway.setting_maximum_receive_content_length())
         {
             // We need to accumulate on host.
             sd->set_on_host_accumulation_flag();
+
+			wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+			wsprintf(temp, L"Attempt to upload of more than %d bytes on the socket. Closing socket connection.", 
+				g_gateway.setting_maximum_receive_content_length());
+			g_gateway.LogWriteWarning(temp);
 
             return SCERRGWMAXDATASIZEREACHED;
         }

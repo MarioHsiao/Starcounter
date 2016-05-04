@@ -719,5 +719,36 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsFalse(sibling._Dirty);
             Assert.IsTrue(sibling.HasBeenSent);
         }
+
+        [Test]
+        public static void TestReplaceSessionDataWithVersioning_3418() {
+            dynamic json = new Json();
+            json.Name = "First";
+
+            var session = new Session(SessionOptions.PatchVersioning);
+            session.Data = json;
+
+            ChangeLog changeLog = json.ChangeLog;
+
+            changeLog.Generate(true);
+            changeLog.Generate(true);
+
+            Assert.AreEqual(2, changeLog.Version.LocalVersion);
+
+            dynamic json2 = new Json();
+            json2.Name = "Second";
+
+            session.Data = json2;
+            changeLog = json2.ChangeLog;
+
+            Assert.AreEqual(2, changeLog.Version.LocalVersion);
+
+            Change[] changes = changeLog.Generate(true);
+
+            Assert.AreEqual(3, changeLog.Version.LocalVersion);
+            Assert.AreEqual(1, changes.Length);
+            Assert.IsNull(changes[0].Property);
+            Assert.AreEqual(json2, changes[0].Parent);
+        }
     }
 }
