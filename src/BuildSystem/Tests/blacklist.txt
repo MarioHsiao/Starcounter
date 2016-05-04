@@ -65,6 +65,7 @@ Level1\src\Samples\TransactionLogTest\transactionlog_test.bat
 Level1\src\Samples\OptimizedLogTest\optimizedlog_test.bat
 Level1\src\Samples\CommitHooksTest\commithooks2_test.bat
 DropTableBug3387_test.bat
+OffsetkeyEmptyBug3502_test.bat
 
 # Level0 tests that has to be reenabled in future (they are not maintained at the moment).
 
