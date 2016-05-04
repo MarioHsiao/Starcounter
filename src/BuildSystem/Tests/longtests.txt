@@ -10,7 +10,7 @@ pokerdemo_test.bat 900
 hostlooper_test.bat 300
 apps_test.bat 300
 urls_test.bat 300
-websockets_test.bat 600
+websockets_test.bat 900
 schema_upgrade_test.bat 180
 udp_test.bat 100
 HttpStreams_test.exe 900
