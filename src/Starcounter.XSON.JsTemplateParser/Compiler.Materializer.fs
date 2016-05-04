@@ -19,8 +19,6 @@ type IObjectTemplate =
 type ITemplateFactory =
     interface
         abstract AddAppProperty : obj * string * string * DebugInfo -> obj               // Name
-//        abstract AddObjectProperty : obj * string * DebugInfo -> obj               // Name
-        abstract AddAppElement : obj * DebugInfo-> obj                           // Name
         abstract AddTString : obj * string * string * string * DebugInfo -> obj        // Name, value
         abstract AddIntegerProperty : obj * string * string * int * DebugInfo -> obj        // Name, value
         abstract AddTDecimal : obj * string * string * decimal * DebugInfo -> obj        // Name, value
@@ -123,7 +121,7 @@ module public Materializer =
                     failedExpectation1 ".Unbound() adorner function does not take any parameters." parameters
             | _ -> failedExpectation1 "Adorner function Class, Include, Namespace, Editable, Bind, Unbound or OnUpdate" identifier
 
-        let createPrimitiveTemplateObject (parent:obj) (name:string) (ast:Ast.Tree) (factory:ITemplateFactory)  =
+        let createTemplate (parent:obj) (name:string) (ast:Ast.Tree) (factory:ITemplateFactory)  =
             let dollarPrefix = if (name = null) then 
                                    false
                                else
@@ -189,23 +187,6 @@ module public Materializer =
                 if ( considerEditable && dollarSuffix ) then factory.SetEditableProperty( newObj, true, debugInfo );
                 newObj
 
-        let createTemplateObject (parent:obj) (parentAst:Ast.Tree) (name:string) (ast:Ast.Tree) (factory:ITemplateFactory)  =
-//           Console.WriteLine( ast );
-               begin
-                  match parentAst with
-                  | Ast.Tree.Array (_) ->
-                     match ast with
-                     | Ast.Tree.Array (_) ->
-                        failedExpectation1 "Object, string, boolean, event, number" ast
-                     | Ast.Tree.Object (_,debugInfo) ->
-//                        Console.WriteLine( "Creating object element" );
-                        (factory.AddAppElement(parent,debugInfo) )
-                     | _ ->
-                        createPrimitiveTemplateObject parent name ast factory
-                  | _ ->
-                     createPrimitiveTemplateObject parent name ast factory
-               end
-
         let rec materializePropertyOfParent (parent:obj) (parentAst:Ast.Tree) (name:string) (ast:Ast.Tree) (factory:ITemplateFactory) : obj = 
 //            Console.WriteLine("KWH");
             match ast with
@@ -218,13 +199,8 @@ module public Materializer =
                 | _ ->
                     failedExpectation1 "Property" prop
             | _ ->
-//               let parentStr = 
-//                   begin
-//                       match parent with
-//                       | null -> "null"
-//                       | _ -> parent.ToString()
-//                   end
-               let newObj = createTemplateObject parent parentAst name ast factory
+
+               let newObj = createTemplate parent name ast factory
 //               Console.WriteLine( "Created property " + parentStr + "." + name + "=" + newObj.GetType().Name + " (ast=" + ast.ToString() + ")" );
 
                match ast with
