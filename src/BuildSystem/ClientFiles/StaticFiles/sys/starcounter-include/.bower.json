@@ -29,14 +29,15 @@
     "web-component-tester": "Polymer/web-component-tester#>=4.2.2",
     "polymer": "^1.3.1"
   },
-  "version": "0.1.0",
-  "_release": "0.1.0",
+  "version": "0.2.0",
+  "_release": "0.2.0",
   "_resolution": {
     "type": "version",
-    "tag": "0.1.0",
-    "commit": "769cf445e1d936b31d99387cee0624202abcc882"
+    "tag": "0.2.0",
+    "commit": "3e732b81861f9ef8f30ae2c65bf4ca0fabbb924e"
   },
-  "_source": "git://github.com/StarcounterSamples/starcounter-include.git",
-  "_target": "~0.1.0",
-  "_originalSource": "StarcounterSamples/starcounter-include"
+  "_source": "https://github.com/Starcounter/starcounter-include.git",
+  "_target": "^0.2.0",
+  "_originalSource": "starcounter-include",
+  "_direct": true
 }
