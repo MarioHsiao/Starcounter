@@ -586,14 +586,14 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 // No namespaces.
                 var jsonStr = ss.ToJson();
-                Assert.AreEqual(@"{""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""MainApp"":{""Text"":""1asf32""},""Html"":""""}", jsonStr);
+                Assert.AreEqual(@"{""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""MainApp"":{""Text"":""1asf32""}}", jsonStr);
 
                 jsonStr = p.ExtraInfo.ToJson();
-                Assert.AreEqual(@"{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""Html"":""""}", jsonStr);
+                Assert.AreEqual(@"{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""}}", jsonStr);
 
                 jsonStr = p.ToJson();
                 Assert.AreEqual(
-                    @"{""FirstName$"":""Arne"",""LastName"":""Anka"",""Age"":19,""Stats"":23.987,""Fields"":[],""ExtraInfo"":{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""Html"":""""}}",
+                    @"{""FirstName$"":""Arne"",""LastName"":""Anka"",""Age"":19,""Stats"":23.987,""Fields"":[],""ExtraInfo"":{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""}}}",
                     jsonStr
                 );
             } finally {
