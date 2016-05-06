@@ -160,8 +160,7 @@ namespace Starcounter.Advanced.XSON {
         private static int EstimateObject(TypedJsonSerializer serializer, Json json) {
             Session session = json.Session;
             int sizeBytes = 0;
-            string htmlUriMerged = null;
-
+         
             if (json.Template == null) {
                 sizeBytes = 2; // 2 for "{}".
                 return sizeBytes;
@@ -194,12 +193,7 @@ namespace Starcounter.Advanced.XSON {
 
             if (wrapInAppName) {
                 sizeBytes += json._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
-                
-                // Checking if there is any partial Html provided.
-                if (!String.IsNullOrEmpty(json.GetHtmlPartialUrl())) {
-                    htmlUriMerged = json._appName + "=" + json.GetHtmlPartialUrl();
-                }
-                
+               
                 // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
                 // we check if we have more than one stepsibling.
                 if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
@@ -213,14 +207,6 @@ namespace Starcounter.Advanced.XSON {
 
                         pp.calledFromStepSibling = true;
                         try {
-                            // Checking if there is any partial Html provided.
-                            if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
-                                if (htmlUriMerged != null)
-                                    htmlUriMerged += "&";
-
-                                htmlUriMerged += pp._appName + "=" + pp.GetHtmlPartialUrl();
-                            }
-
                             sizeBytes += pp._appName.Length + 1; // 1 for ":".
                             sizeBytes += serializer.EstimateSizeBytes(pp) + 2; // 2 for ",".
                         } finally {
@@ -231,12 +217,6 @@ namespace Starcounter.Advanced.XSON {
 
                 // ,"Html":"" is 10 characters
                 sizeBytes += 10;
-
-                // Checking if merging Html URI was constructed.
-                if (htmlUriMerged != null) {
-                    htmlUriMerged = StarcounterConstants.HtmlMergerPrefix + htmlUriMerged;
-                    sizeBytes += htmlUriMerged.Length;
-                }
             }
 
             sizeBytes += 1; // 1 for "}".
@@ -335,7 +315,6 @@ namespace Starcounter.Advanced.XSON {
             int valueSize;
             int used = 0;
             List<Template> exposedProperties;
-            string htmlUriMerged = null;
             Session session = json.Session;
 
             // Checking if application name should wrap the JSON.
@@ -354,11 +333,6 @@ namespace Starcounter.Advanced.XSON {
                 }
 
                 if (wrapInAppName) {   
-                    // Checking if there is any partial Html provided.
-                    if (!String.IsNullOrEmpty(json.GetHtmlPartialUrl())) {
-                        htmlUriMerged = json._appName + "=" + json.GetHtmlPartialUrl();
-                    }
-
                     valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, json._appName);
                     pfrag += valueSize;
                     used += valueSize;
@@ -449,14 +423,6 @@ namespace Starcounter.Advanced.XSON {
 
                             pp.calledFromStepSibling = true;
                             try {
-                                // Checking if there is any partial Html provided.
-                                if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
-                                    if (htmlUriMerged != null)
-                                        htmlUriMerged += "&";
-
-                                    htmlUriMerged += pp._appName + "=" + pp.GetHtmlPartialUrl();
-                                }
-
                                 valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, pp._appName);
                                 used += valueSize;
                                 pfrag += valueSize;
@@ -475,33 +441,6 @@ namespace Starcounter.Advanced.XSON {
                                 pp.calledFromStepSibling = false;
                             }
                         }
-                    }
-
-                    // Adding Html property.
-                    *pfrag++ = (byte)',';
-                    used++;
-
-                    // Adding Html property to outer level.
-                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, "Html");
-                    used += valueSize;
-                    pfrag += valueSize;
-
-                    *pfrag++ = (byte)':';
-                    used++;
-
-                    // Checking if merging Html URI was constructed.
-                    if (null != htmlUriMerged) {
-                        htmlUriMerged = StarcounterConstants.HtmlMergerPrefix + htmlUriMerged;
-
-                        valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, htmlUriMerged);
-                        used += valueSize;
-                        pfrag += valueSize;
-                    } else {
-                        // Inserting an empty string.
-                        *pfrag++ = (byte)'\"';
-                        used++;
-                        *pfrag++ = (byte)'\"';
-                        used++;
                     }
                 }
 

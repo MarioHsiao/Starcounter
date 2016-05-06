@@ -94,11 +94,11 @@ namespace Starcounter.Internal.JsonTemplate {
                         }
 
                         CopyReplaceableTemplateValues(rt, newTemplate);
-                        arrParent.ElementType = (TValue)newTemplate;
                     }
-                } else {
-                    arrParent.ElementType = (TValue)newTemplate;
                 }
+                
+                arrParent.ElementType = (TValue)newTemplate;
+                newTemplate.Parent = arrParent;
             } 
             return newTemplate;
         }
@@ -413,29 +413,12 @@ namespace Starcounter.Internal.JsonTemplate {
             newTemplate = new TObject();
             if (parent != null) {
                 newTemplate.TemplateName = name;
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent as TObject, debugInfo);
+                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, debugInfo);
             }
             SetCompilerOrigin(newTemplate, debugInfo);
             return newTemplate;
         }
-
-        /// <summary>
-        /// Adds the app element.
-        /// </summary>
-        /// <param name="array">The array.</param>
-        /// <param name="debugInfo">The debug info.</param>
-        /// <returns>System.Object.</returns>
-        object ITemplateFactory.AddAppElement(object array, DebugInfo debugInfo) {
-            var newTemplate = new TObject(); // The type of the type array (an TApp)
-            newTemplate.Parent = (TContainer)array;
-
-            var arr = ((TObjArr)array);
-            arr.ElementType = newTemplate;
-            newTemplate.Parent = arr;
-            SetCompilerOrigin(newTemplate, debugInfo);
-            return newTemplate;
-        }
-
+        
         /// <summary>
         /// Adds the cargo property.
         /// </summary>

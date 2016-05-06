@@ -18,7 +18,7 @@ namespace FileTestClient {
             Int32 exitCode = -1;
             try {
                 Console.WriteLine("Starting server side code...");
-                exitCode = Diagnostics.StartProcessAndWaitForExit("star.exe", "..\\..\\..\\StreamBodyTestServer.cs", 30000);
+                exitCode = Diagnostics.StartProcessAndWaitForExit("star.exe", "..\\..\\..\\StreamBodyTestServer.cs", 60000);
             } catch (Exception exc) {
                 Console.WriteLine(exc.ToString());
             }

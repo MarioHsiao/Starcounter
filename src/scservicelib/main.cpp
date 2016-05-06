@@ -793,13 +793,9 @@ log_scerr:
 			// Logging to log file.
 			LogWriteError(error_msg_buf);
 
-            if ((process_exit_code > 0) && (process_exit_code != MAXDWORD)) {
-                if (exit_code_is_scerr && process_exit_code > 1) 
-                    FormatStarcounterErrorMessage(process_exit_code, error_msg_buf, 4096);
-                else 
-                    swprintf(error_msg_buf, 100, L"Process exitcode: %i", process_exit_code);
-                LogWriteError(error_msg_buf);
-            }
+			// Now writing the process exit code.
+			swprintf(error_msg_buf, 100, L"Process exitcode: %i", process_exit_code);
+			LogWriteError(error_msg_buf);
 		}
 	}
     goto end;

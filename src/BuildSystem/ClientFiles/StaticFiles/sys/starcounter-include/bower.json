@@ -10,7 +10,8 @@
     "template",
     "partial",
     "starcounter",
-    "imported-template"
+    "imported-template",
+    "web-components"
   ],
   "license": "MIT",
   "ignore": [

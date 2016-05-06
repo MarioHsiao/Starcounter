@@ -586,14 +586,14 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 // No namespaces.
                 var jsonStr = ss.ToJson();
-                Assert.AreEqual(@"{""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""MainApp"":{""Text"":""1asf32""},""Html"":""""}", jsonStr);
+                Assert.AreEqual(@"{""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""MainApp"":{""Text"":""1asf32""}}", jsonStr);
 
                 jsonStr = p.ExtraInfo.ToJson();
-                Assert.AreEqual(@"{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""Html"":""""}", jsonStr);
+                Assert.AreEqual(@"{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""}}", jsonStr);
 
                 jsonStr = p.ToJson();
                 Assert.AreEqual(
-                    @"{""FirstName$"":""Arne"",""LastName"":""Anka"",""Age"":19,""Stats"":23.987,""Fields"":[],""ExtraInfo"":{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""Html"":""""}}",
+                    @"{""FirstName$"":""Arne"",""LastName"":""Anka"",""Age"":19,""Stats"":23.987,""Fields"":[],""ExtraInfo"":{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""}}}",
                     jsonStr
                 );
             } finally {
@@ -718,6 +718,37 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0]));
             Assert.IsFalse(sibling._Dirty);
             Assert.IsTrue(sibling.HasBeenSent);
+        }
+
+        [Test]
+        public static void TestReplaceSessionDataWithVersioning_3418() {
+            dynamic json = new Json();
+            json.Name = "First";
+
+            var session = new Session(SessionOptions.PatchVersioning);
+            session.Data = json;
+
+            ChangeLog changeLog = json.ChangeLog;
+
+            changeLog.Generate(true);
+            changeLog.Generate(true);
+
+            Assert.AreEqual(2, changeLog.Version.LocalVersion);
+
+            dynamic json2 = new Json();
+            json2.Name = "Second";
+
+            session.Data = json2;
+            changeLog = json2.ChangeLog;
+
+            Assert.AreEqual(2, changeLog.Version.LocalVersion);
+
+            Change[] changes = changeLog.Generate(true);
+
+            Assert.AreEqual(3, changeLog.Version.LocalVersion);
+            Assert.AreEqual(1, changes.Length);
+            Assert.IsNull(changes[0].Property);
+            Assert.AreEqual(json2, changes[0].Parent);
         }
     }
 }
