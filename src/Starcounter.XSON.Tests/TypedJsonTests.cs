@@ -928,5 +928,19 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(data[1].Name, json.Items[1].Name);
             Assert.AreEqual(data[2].Name, json.Items[2].Name);
         }
+
+        [Test]
+        public static void TestArrayInArray_3554() {
+            var jsonStr = @"{""Items"": [ [ 3 ] ] }";
+
+            TObject schema = (TObject)TObject.CreateFromMarkup(jsonStr);
+
+            Assert.AreEqual(1, schema.Properties.Count);
+            Assert.IsInstanceOf(typeof(TObjArr), schema.Properties[0]);
+            TObjArr tArr = (TObjArr)schema.Properties[0];
+            Assert.IsInstanceOf(typeof(TObjArr), tArr.ElementType);
+            TObjArr tSubArr = (TObjArr)tArr.ElementType;
+            Assert.IsInstanceOf(typeof(TLong), tSubArr.ElementType);
+        }
     }
 }

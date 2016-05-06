@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Web;
 
 namespace Starcounter {
 
@@ -1002,8 +1003,8 @@ namespace Starcounter {
                     String[] a = appNamePlusPartialUrl.Split(new char[] { '=' });
                     if (String.IsNullOrEmpty(a[1]))
                         continue;
-
-                    Response resp = Self.GET(a[1]);
+                    
+                    Response resp = Self.GET(HttpUtility.UrlDecode(a[1]));
                     sb.Append("<imported-template-scope scope=\"" + a[0] + "\">");
                     sb.Append(resp.Body);
                     sb.Append("</imported-template-scope>");
