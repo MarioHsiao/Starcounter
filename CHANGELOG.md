@@ -12,6 +12,8 @@
 - Fixed a bug that caused the wrong appname being used in some cases when a TypedJson inputhandler was called [#3548](https://github.com/Starcounter/Starcounter/issues/3548)
 - Removing existing items in an array when a new dataobject is set in TypedJSON [#3458](https://github.com/Starcounter/Starcounter/issues/3458)
 - Viewmodel versioning (if enabled) is no longer reset when the public viewmodel on a session is changed [#3418](https://github.com/Starcounter/Starcounter/issues/3418)
+- Removed temporary solution for htmlmerger from Json serializer and marked `IResource.GetHtmlPartialUrl` as obsolete [#3541](https://github.com/Starcounter/Starcounter/issues/3541)
+- Decoding partial urls:s before calling `Self.GET` to allow url:s with parameters [#3527](https://github.com/Starcounter/Starcounter/issues/3527)
 
 ### Changed
 
