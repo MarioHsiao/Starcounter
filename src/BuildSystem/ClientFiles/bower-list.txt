@@ -28,5 +28,5 @@ sys#1.0.0 C:\www\Starcounter\starcounter\src\BuildSystem\ClientFiles
 │ │ └─┬ polymer#1.4.0 incompatible with ~1.1.4 (1.1.5 available, latest is 1.4.0)
 │ │   └── webcomponentsjs#0.7.22
 │ └── polymer#1.4.0 incompatible with ~1.1.4 (1.1.5 available, latest is 1.4.0)
-└─┬ starcounter-include#0.2.0
+└─┬ starcounter-include#0.2.1
   └── imported-template#1.4.1
