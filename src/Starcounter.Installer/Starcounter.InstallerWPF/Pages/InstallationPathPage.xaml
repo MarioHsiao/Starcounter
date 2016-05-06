@@ -59,7 +59,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    
+
                                     <Label Padding="0" Target="{Binding ElementName=tb_MainInstallationPath}" Margin="0,0,0,5"  Content="_Installation folder"   />
                                     <TextBlock Grid.Column="1" Padding="0"  Margin="5,0,0,5"  Text="{Binding Path, StringFormat={}({0})}" Foreground="#ffa0a0a0" TextWrapping="Wrap"   />
                                 </Grid>
@@ -70,12 +70,16 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
                                     <TextBox x:Name="tb_MainInstallationPath" Margin="0" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent"  Validation.Error="Validation_OnError" VerticalAlignment="Top">
                                         <TextBox.Text>
                                             <Binding Path="BasePath" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
                                                 <Binding.ValidationRules>
-                                                    <rules:InstallationFolderRule UseWarning="True" CheckEmptyString="True"  ValidatesOnTargetUpdated="True"/>
-                                                    <rules:DirectoryContainsFilesRule AddStarcounter="True"  UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>
+                                                    <rules:InstallationFolderRule CheckEmptyString="True"  ValidatesOnTargetUpdated="True"/>
                                                     <rules:DuplicatPathCheckRule Type="{x:Static rules:DuplicatPathCheckRule+SelfType.InstallationPath}" ValidatesOnTargetUpdated="True"/>
                                                 </Binding.ValidationRules>
                                             </Binding>
@@ -85,11 +89,9 @@
                                     <Button MinWidth="0" Content="_Change"  Grid.Column="1" Margin="5,0,0,0" Command="ApplicationCommands.Open" CommandParameter="Please select a directory where Starcounter will be installed" CommandTarget="{Binding ElementName=tb_MainInstallationPath}"  >
                                         <!--<Image Stretch="None" Source="..\resources\16x16\Folder.png"/>-->
                                     </Button>
-                                    
-                                    
+
+                                    <TextBlock Grid.Row="1" Margin="0,5,0,0" Foreground="#FFFFD700" Grid.ColumnSpan="2" TextWrapping="Wrap" Text="Directory contains files" Visibility="{Binding Path=DirectoryContainsFiles, Converter={StaticResource booleanToVisibilityConverter}}" ></TextBlock>
                                 </Grid>
-
-
 
                             </StackPanel>
 

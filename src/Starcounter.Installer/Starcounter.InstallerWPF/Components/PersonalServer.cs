@@ -9,20 +9,25 @@ using Starcounter.Internal;
 using System.Globalization;
 using System.Windows.Controls;
 using Starcounter.InstallerWPF.Rules;
+using System.IO;
 
 namespace Starcounter.InstallerWPF.Components {
     public class PersonalServer : BaseComponent {
 
         public const string Identifier = "PersonalServer";
 
-        public override string ComponentIdentifier {
-            get {
+        public override string ComponentIdentifier
+        {
+            get
+            {
                 return PersonalServer.Identifier;
             }
         }
 
-        public override string Name {
-            get {
+        public override string Name
+        {
+            get
+            {
                 return "Server";
             }
         }
@@ -40,8 +45,10 @@ namespace Starcounter.InstallerWPF.Components {
         //}
 
         private readonly string[] _Dependencys = new string[] { InstallationBase.Identifier };
-        public override string[] Dependencys {
-            get {
+        public override string[] Dependencys
+        {
+            get
+            {
                 return this._Dependencys;
             }
         }
@@ -78,31 +85,72 @@ namespace Starcounter.InstallerWPF.Components {
             }
         }
 
-        public bool HasPath {
-            get {
+        public bool HasPath
+        {
+            get
+            {
                 return !string.IsNullOrEmpty(this.Path);
             }
         }
 
         private string _Path;
-        public string Path {
-            get {
+        public string Path
+        {
+            get
+            {
                 return this._Path;
             }
-            set {
+            set
+            {
                 if (string.Compare(this._Path, value) == 0) return;
                 this._Path = value;
                 this.OnPropertyChanged("Path");
+                this.OnPropertyChanged("NotUserPersonalDirectory");
+                this.OnPropertyChanged("InvalidFolder");
+            }
+        }
+
+        public bool NotUserPersonalDirectory
+        {
+            get
+            {
+                if (this.Path != null && this.Path is String) {
+                    // Checking that server path is in user's personal directory.
+                    try {
+                        return !Utilities.ParentChildDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + "\\..", (string)this.Path);
+                    }
+                    catch { }
+                }
+                return false;
+            }
+        }
+
+        public bool InvalidFolder
+        {
+            get
+            {
+                if (this.Path != null && this.Path is String) {
+                    string config = System.IO.Path.Combine(System.IO.Path.Combine(this.Path, "Personal"), "Personal.server.config");
+                    if (File.Exists(config)) {
+                        return false;
+                    }
+
+                    return MainWindow.DirectoryContainsFiles(this.Path, true);
+                }
+                return false;
             }
         }
 
         private UInt16 _DefaultUserHttpPort;
-        public UInt16 DefaultUserHttpPort {
-            get {
+        public UInt16 DefaultUserHttpPort
+        {
+            get
+            {
                 return _DefaultUserHttpPort;
             }
 
-            set {
+            set
+            {
                 if (_DefaultUserHttpPort == value)
                     return;
 
@@ -112,12 +160,15 @@ namespace Starcounter.InstallerWPF.Components {
         }
 
         private UInt16 _DefaultSystemHttpPort;
-        public UInt16 DefaultSystemHttpPort {
-            get {
+        public UInt16 DefaultSystemHttpPort
+        {
+            get
+            {
                 return _DefaultSystemHttpPort;
             }
 
-            set {
+            set
+            {
                 if (_DefaultSystemHttpPort == value)
                     return;
 
@@ -127,12 +178,15 @@ namespace Starcounter.InstallerWPF.Components {
         }
 
         private UInt16 _DefaultAggregationPort;
-        public UInt16 DefaultAggregationPort {
-            get {
+        public UInt16 DefaultAggregationPort
+        {
+            get
+            {
                 return _DefaultAggregationPort;
             }
 
-            set {
+            set
+            {
                 if (_DefaultAggregationPort == value)
                     return;
 
@@ -142,12 +196,15 @@ namespace Starcounter.InstallerWPF.Components {
         }
 
         private UInt16 _DefaultPrologSqlProcessPort;
-        public UInt16 DefaultPrologSqlProcessPort {
-            get {
+        public UInt16 DefaultPrologSqlProcessPort
+        {
+            get
+            {
                 return _DefaultPrologSqlProcessPort;
             }
 
-            set {
+            set
+            {
                 if (_DefaultPrologSqlProcessPort == value)
                     return;
 
@@ -176,7 +233,6 @@ namespace Starcounter.InstallerWPF.Components {
             if (pathRule.Validate(this.Path, CultureInfo.CurrentCulture).IsValid == false) return false;
 
             DatabaseRepositoryFolderRule r = new DatabaseRepositoryFolderRule();
-            r.UseWarning = true;
             r.CheckEmptyString = true;
             if (r.Validate(this.Path, CultureInfo.CurrentCulture).IsValid == false) return false;
 
