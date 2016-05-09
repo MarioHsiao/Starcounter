@@ -38,16 +38,17 @@ namespace Starcounter.Templates {
         public abstract IEnumerable<Template> Children { get; }
 
         internal void UpdateParentAndIndex(Json parent, Json newValue) {
-            if (newValue != null) {
-                if (newValue.Parent != parent)
-                    newValue.Parent = parent;
-                newValue._cacheIndexInArr = TemplateIndex;
-            }
-
             var oldValue = (Json)GetUnboundValueAsObject(parent);
             if (oldValue != null) {
                 oldValue.SetParent(null);
                 oldValue._cacheIndexInArr = -1;
+                oldValue.CheckAndUpdateSibling(newValue);
+            }
+
+            if (newValue != null) {
+                if (newValue.Parent != parent)
+                    newValue.Parent = parent;
+                newValue._cacheIndexInArr = TemplateIndex;
             }
         }
     }
