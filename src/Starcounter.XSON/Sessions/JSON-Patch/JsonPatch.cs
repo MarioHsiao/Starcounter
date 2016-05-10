@@ -254,16 +254,16 @@ namespace Starcounter.XSON {
                     if (change.Property == null) {
                         change.Parent.calledFromStepSibling = change.SuppressNamespace;
                         try {
-                            serializer = ((TValue)change.Parent.Template).JsonSerializer;
+                            serializer = change.Parent.JsonSerializer;
                             size = serializer.Serialize(change.Parent, (IntPtr)writer.Buffer, int.MaxValue);
                         } finally {
                             change.Parent.calledFromStepSibling = false;
                         }
                     } else if (change.Index != -1) {
-                        serializer = ((TValue)change.Item.Template).JsonSerializer;
+                        serializer = change.Item.JsonSerializer;
                         size = serializer.Serialize(change.Item, (IntPtr)writer.Buffer, int.MaxValue);
                     } else {
-                        size = change.Property.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
+                        size = change.Parent.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
                     }
                     writer.Skip(size);
                 }
@@ -316,16 +316,16 @@ namespace Starcounter.XSON {
                 if (change.Property == null) {
                     change.Parent.calledFromStepSibling = change.SuppressNamespace;
                     try {
-                        serializer = ((TValue)change.Parent.Template).JsonSerializer;
+                        serializer = change.Parent.JsonSerializer;
                         size += serializer.EstimateSizeBytes(change.Parent);
                     } finally {
                         change.Parent.calledFromStepSibling = false;
                     }
                 } else if (change.Index != -1) {
-                    serializer = ((TValue)change.Item.Template).JsonSerializer;
+                    serializer = change.Item.JsonSerializer;
                     size += serializer.EstimateSizeBytes(change.Item);
                 } else {
-                    size += change.Property.JsonSerializer.EstimateSizeBytes(change.Parent, change.Property);
+                    size += change.Parent.JsonSerializer.EstimateSizeBytes(change.Parent, change.Property);
                 }
             }
             return size;
@@ -349,7 +349,7 @@ namespace Starcounter.XSON {
                 return -1;
 
             if (json == session.PublicViewModel) // Valid path.
-                return 0;
+                return 1;
 
             size = -1;
             totalSize = 0;

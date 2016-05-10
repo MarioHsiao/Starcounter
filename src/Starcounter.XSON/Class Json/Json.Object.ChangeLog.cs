@@ -746,5 +746,20 @@ namespace Starcounter {
             get { return _checkBoundProperties; }
             set { _checkBoundProperties = value; } 
         }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newValue"></param>
+        internal void CheckAndUpdateSibling(Json newValue) {
+            if (this._stepSiblings != null) {
+                int index = this._stepSiblings.IndexOf(this);
+
+                if (index != -1) {
+                    this._stepSiblings[index] = newValue;                    
+                    this._stepSiblings = null;
+                }
+            }
+        }
 	}
 }

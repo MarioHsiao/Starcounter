@@ -750,5 +750,48 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsNull(changes[0].Property);
             Assert.AreEqual(json2, changes[0].Parent);
         }
+
+        [Test]
+        public static void TestDirtyCheckForReplacingStatefulSibling_3583() {
+            dynamic root = new Json();
+            dynamic page = new Json();
+
+            var session = new Session();
+
+            page.Title = "Page";
+            root.Page = page;
+            session.Data = root;
+
+            Change[] changes = root.ChangeLog.Generate(true);
+
+            dynamic siblingRoot = new Json();
+            dynamic sibling = new Json();
+            siblingRoot.Current = sibling;
+
+            SiblingList siblings = new SiblingList();
+            siblings.Add(page);
+            siblings.Add(sibling);
+
+            ((Json)page).StepSiblings = siblings;
+            ((Json)sibling).StepSiblings = siblings;
+
+            sibling.Name = "Sibling";
+
+            Assert.IsTrue(sibling._Dirty);
+            Assert.IsFalse(sibling.HasBeenSent);
+            Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
+
+            changes = root.ChangeLog.Generate(true);
+
+            sibling = new Json();
+            sibling.Header = "New sibling";
+            siblingRoot.Current = sibling;
+
+            changes = root.ChangeLog.Generate(true);
+
+            Assert.AreEqual(1, changes.Length);
+            Assert.AreEqual(sibling, changes[0].Parent);
+            Assert.IsNull(changes[0].Property);
+        }
     }
 }
