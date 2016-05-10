@@ -79,6 +79,7 @@ namespace Starcounter.Server {
                 "http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/codehost", reqBody, null);
 
             if (!r.IsSuccessStatusCode) {
+                Trace("UnregisterCodehostInGateway: raising an exception in process event handler");
 
                 String errCodeStr = r.Headers[MixedCodeConstants.ScErrorCodeHttpHeader];
 
@@ -136,6 +137,13 @@ namespace Starcounter.Server {
             }
 
             Monitor.ResetInternalAndPublicState(server.DatabaseEngine, database, process);
+        }
+
+        [Conditional("TRACE")]
+        static void Trace(string message, bool restartWatch = false, params object[] args)
+        {
+            message = string.Format(message, args);
+            Diagnostics.WriteTimeStamp(ServerLogSources.Commands.Source, message);
         }
     }
 }
