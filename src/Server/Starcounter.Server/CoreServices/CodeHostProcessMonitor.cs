@@ -91,6 +91,9 @@ namespace Starcounter.Server {
         }
 
         public void CodeHostExited(object sender, EventArgs args) {
+            // Unregistering codehost in gateway.
+            UnregisterCodehostInGateway(DatabaseName);
+
             var server = this.Monitor.Server;
             var cmd = new ActionCommand<Process>(this.Monitor.Server, Process, sender as Process, WorkDescription);
             server.CurrentPublicModel.Execute(cmd);
@@ -131,10 +134,7 @@ namespace Starcounter.Server {
                     boundProcess.Id);
                 return;
             }
-
-            // Unregistering codehost in gateway.
-            UnregisterCodehostInGateway(DatabaseName);
-
+            
             Monitor.ResetInternalAndPublicState(server.DatabaseEngine, database, process);
         }
 

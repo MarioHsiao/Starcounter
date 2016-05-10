@@ -4,10 +4,12 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Internal;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 
@@ -185,6 +187,7 @@ namespace Starcounter.Server.Commands {
             Boolean first = false;
 
             lock (_syncRoot) {
+                Trace("Enqueueing {0} from thread {1}", command.Description, Thread.CurrentThread.ManagedThreadId);
                 if (_lists.CurrentProc == null) {
                     _lists.CurrentProc = cp;
                     _lists.CurrentInfo = ci;
@@ -207,9 +210,9 @@ namespace Starcounter.Server.Commands {
             return (CommandProcessor)_constructors[command.GetType()].Invoke(new object[] { _engine, command });
         }
 
-#if DEBUG
+//#if DEBUG
         private Int32 _commmandProcessorThreadId = -1;
-#endif
+//#endif
 
         private void ProcessCommands(Object alwaysNull) {
             NotifyCommandStatusChangedCallback notifyCallback;
@@ -217,9 +220,9 @@ namespace Starcounter.Server.Commands {
 
             notifyCallback = new NotifyCommandStatusChangedCallback(OnNotifyCommandStatusChangedCallback);
 
-#if DEBUG
+//#if DEBUG
             _commmandProcessorThreadId = Thread.CurrentThread.ManagedThreadId;
-#endif
+//#endif
             try {
                 cp = _lists.CurrentProc;
                 for (; ; ) {
@@ -242,22 +245,34 @@ namespace Starcounter.Server.Commands {
 
                     if (cp == null) break;
                 }
-            } finally {
-#if DEBUG
+            } catch (Exception e)
+            {
+                Trace("Exception here: {0}", e.ToString());
+                throw;
+            }
+            finally {
+//#if DEBUG
                 _commmandProcessorThreadId = -1;
-#endif
+//#endif
             }
         }
 
+        [Conditional("TRACE")]
+        static void Trace(string message, params object[] args)
+        {
+            message = string.Format(message, args);
+            Diagnostics.WriteTimeStamp(ServerLogSources.Commands.Source, message);
+        }
+
         private void OnNotifyCommandStatusChangedCallback(CommandInfo commandInfo) {
-#if DEBUG
+//#if DEBUG
             if (_commmandProcessorThreadId != Thread.CurrentThread.ManagedThreadId)
                 throw new InvalidOperationException("_commmandProcessorThreadId != Thread.CurrentThread.ManagedThreadId");
             if (_lists.CurrentInfo == null)
                 throw new InvalidOperationException("_lists.CurrentInfo == null");
             if (_lists.CurrentInfo.Id != commandInfo.Id)
                 throw new InvalidOperationException("_lists.CurrentInfo.Id != commandInfo.Id");
-#endif
+//#endif
             _lists.CurrentInfo = commandInfo;
         }
 
