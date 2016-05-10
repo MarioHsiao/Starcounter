@@ -53,7 +53,7 @@ adminModule.filter('truncateversion', function () {
         var truncated = "";
         var partlist = text.split(".");
 
-        for ( i = 0; i < parts && i < partlist.length; i++) {
+        for (i = 0; i < parts && i < partlist.length; i++) {
             if (i > 0) {
                 truncated += ".";
             }
@@ -98,8 +98,21 @@ adminModule.filter('semver', function () {
             angular.forEach(item.Dependencies, function (dep) {
 
                 if (dep.Key == "Starcounter") {
-                    if (semver.satisfies(scversion, dep.Value)) {
-                        filtered.push(item);
+                    var starcounterVersion = scversion;
+                    var appCompability = dep.Value;
+                    var scFormat = (scversion.split(".").length - 1);
+                    var appFormat = (appCompability.split(".").length - 1);
+                    if (scFormat == appFormat) {
+                        var dots = (scversion.split(".").length - 1);
+                        if (dots >= 3) {
+                            var p1 = scversion.indexOf(".");
+                            var p2 = appCompability.indexOf(".");
+                            starcounterVersion = scversion.slice(0, p1) + scversion.slice(p1 + 1);
+                            appCompability = appCompability.slice(0, p2) + appCompability.slice(p2 + 1);
+                        }
+                        if (semver.satisfies(starcounterVersion, appCompability)) {
+                            filtered.push(item);
+                        }
                     }
                 }
             });
@@ -111,14 +124,14 @@ adminModule.filter('semver', function () {
 adminModule.filter('visibleStores', function () {
     return function (items, visibleStores) {
         var filtered = [];
-		
-		angular.forEach(items, function (item) {
+
+        angular.forEach(items, function (item) {
             if (visibleStores.indexOf(item.DisplayName) > -1) {
                 filtered.push(item);
             };
         });
-		
-		return filtered;
+
+        return filtered;
     };
 });
 

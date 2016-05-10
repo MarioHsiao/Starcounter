@@ -62,6 +62,16 @@ namespace Starcounter.XSON {
                     return sibling.Json;
                 return null;
             }
+            internal set {
+                Sibling sibling = list[index];
+
+                if (value != null) {
+                    value._wrapInAppName = true;
+                    value.StepSiblings = this;
+                }
+                sibling.Json = value;
+                sibling.HasBeenSent = false;
+            }
         }
         
         public void Add(Json sibling) {

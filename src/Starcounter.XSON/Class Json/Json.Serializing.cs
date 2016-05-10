@@ -5,10 +5,10 @@
 // ***********************************************************************
 
 using System;
-using Starcounter.Internal;
-using Starcounter.Templates;
 using System.Text;
-using System.Collections.Generic;
+using Starcounter.Advanced.XSON;
+using Starcounter.Templates;
+using Module = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter {
     /// <summary>
@@ -158,5 +158,16 @@ namespace Starcounter {
             Template = t; // IMPORTANT! It is important that the dynamic flag is set _before_ it is assigned to the Template property.
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        internal TypedJsonSerializer JsonSerializer {
+            get {
+                TValue tv = Template as TValue;
+                if (tv != null)
+                    return tv.JsonSerializer;
+                return Module.GetJsonSerializer(Module.StandardJsonSerializerId);
+            }
+        }
     }
 }
