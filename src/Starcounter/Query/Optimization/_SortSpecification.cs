@@ -149,7 +149,7 @@ internal class SortSpecification
         for (var i = 0; i < indexInfos.Length; i++) {
             var indexInfo = indexInfos[i];
 
-            if (indexInfo.AttributeCount != sortSpecs.Length) continue;
+            if (indexInfo.AttributeCount < sortSpecs.Length) continue;
 
             for (var s = 0; s < sortSpecs.Length; s++) {
                 var sortSpec = sortSpecs[s];

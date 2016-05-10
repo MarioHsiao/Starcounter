@@ -470,6 +470,14 @@ namespace QueryProcessingTest {
             var qEnum = query.GetEnumerator();
             String enumStr = qEnum.ToString();
             Trace.Assert(!enumStr.Contains("ComparisonString"));
+
+            // Issue #3437
+            Db.SQL("create index WebPageValueIndx on WebPage (PageValue, PersonalPageValue)");
+            var webPageEnum = (SqlEnumerator<WebPage>)Db.SQL<WebPage>("select w from webpage w order by PageValue, PersonalPageValue").GetEnumerator();
+            Trace.Assert(webPageEnum.subEnumerator is Starcounter.Query.Execution.IndexScan);
+            webPageEnum = (SqlEnumerator<WebPage>)Db.SQL<WebPage>("select w from webpage w order by PageValue").GetEnumerator();
+            Trace.Assert(webPageEnum.subEnumerator is Starcounter.Query.Execution.IndexScan);
+            Db.SQL("drop index WebPageValueIndx on WebPage");
             HelpMethods.LogEvent("Finished testing query optimization with indexes");
         }
 
