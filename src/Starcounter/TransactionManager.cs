@@ -52,7 +52,7 @@ namespace Starcounter.Internal {
             ulong verify;
             uint ec;
 
-            uint flags = detectConflicts ? 0 : TransactionHandle.FLAG_MERGING_WRITES;
+            uint flags = TransactionHandle.FLAG_LONG_RUNNING;
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
@@ -119,7 +119,7 @@ namespace Starcounter.Internal {
             ulong verify;
             uint ec;
 
-            uint flags = detectConflicts ? 0 : TransactionHandle.FLAG_MERGING_WRITES;
+            uint flags = TransactionHandle.FLAG_LONG_RUNNING;
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 

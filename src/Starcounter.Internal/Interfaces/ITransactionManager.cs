@@ -33,7 +33,7 @@ namespace Starcounter.Internal {
 
     public struct TransactionHandle {
         public const byte INVALID_VERIFY = 0xFF;
-        internal const uint FLAG_MERGING_WRITES = 0x0004;
+        internal const uint FLAG_LONG_RUNNING = 0x0004;
         internal const uint FLAG_TRANSCREATE_READ_ONLY = 0x0008;
         internal const uint FLAG_IMPLICIT = 0x2000;
         private const uint FLAG_CLAIMED = 0x4000;
