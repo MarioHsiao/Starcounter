@@ -445,6 +445,8 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
         opcode_ = WS_OPCODE_CLOSE;
     }
 
+	GW_ASSERT((opcode_ == WS_OPCODE_TEXT) || (opcode_ == WS_OPCODE_BINARY) || (opcode_ == WS_OPCODE_CLOSE));
+
     // Place where masked data should be written.
     payload = WritePayload(gw, sd, opcode_, false, WS_FRAME_SINGLE, total_payload_len, payload, cur_payload_len);
 
