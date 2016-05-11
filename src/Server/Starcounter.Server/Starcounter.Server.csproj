@@ -102,7 +102,6 @@
     <Compile Include="CoreServices\DeletedDatabaseFile.cs" />
     <Compile Include="CoreServices\ExecutableService.cs" />
     <Compile Include="CoreServices\GatewayService.cs" />
-    <Compile Include="CoreServices\SharedMemoryMonitor.cs" />
     <Compile Include="CoreServices\WeaverService.cs" />
     <Compile Include="DatabaseApplication.cs" />
     <Compile Include="ImageFile.cs" />
