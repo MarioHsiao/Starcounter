@@ -539,8 +539,11 @@ uint32_t HttpProto::HttpUriDispatcher(
     if (sd->get_to_database_direction_flag())
     {
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->is_web_socket())
-            return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
+		if (sd->is_web_socket()) {
+			return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
+		}
+
+		GW_ASSERT(sd->get_accumulated_len_bytes() == (sd->get_cur_network_buf_ptr() - sd->get_data_blob_start()));
 
         // Obtaining method and URI.
         char* method_space_uri_space = (char*) sd->get_data_blob_start();
