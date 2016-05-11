@@ -270,7 +270,7 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        public const uint MDB_TRANSCREATE_MERGING_WRITES = 0x0004;
+        public const uint MDB_TRANSCREATE_LONG_RUNNING = 0x0004;
 
         /// <summary>
         /// </summary>
@@ -279,9 +279,9 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_create_transaction(
-          ulong handle, uint flags, out ulong transaction_handle
-          );
+        internal static extern uint star_create_transaction(
+            uint flags, ulong auto_context_handle, out ulong ptransaction_handle
+            );
 
         /// <summary>
         /// Frees transaction.
@@ -541,16 +541,15 @@ namespace Starcounter.Internal
         /// and the current transaction of context must be the transaction the iterator belongs to.
         /// </remarks>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        private static extern unsafe uint star_iterator_next(
-            ulong handle, ulong* precord_id, ulong* precord_ref
+        private static extern unsafe uint star_context_read_iterator(
+            ulong handle, ulong iterator_handle, ulong* precord_id, ulong* precord_ref
             );
 
-        internal static unsafe uint star_iterator_next(
-            ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
+        internal static unsafe uint star_context_read_iterator(
+            ulong handle, ulong iterator_handle, ulong* precord_id, ulong* precord_ref, ulong verify
             ) {
-            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
             if (verify == ThreadData.ObjectVerify)
-                return star_iterator_next(handle, precord_id, precord_ref);
+                return star_context_read_iterator(handle, iterator_handle, precord_id, precord_ref);
             return Error.SCERRITERATORNOTOWNED;
         }
 
@@ -592,16 +591,17 @@ namespace Starcounter.Internal
         /// Calling thread must be the owning thread of the context where the iterator resides.
         /// </remarks>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        private static extern unsafe uint star_filter_iterator_next(
-            ulong handle, ulong* precord_id, ulong* precord_ref
+        private static extern unsafe uint star_context_read_filter_iterator(
+            ulong handle, ulong iterator_handle, ulong* precord_id, ulong* precord_ref
             );
 
-        internal static unsafe uint star_filter_iterator_next(
-            ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
+        internal static unsafe uint star_context_read_filter_iterator(
+            ulong handle, ulong iterator_handle, ulong* precord_id, ulong* precord_ref, ulong verify
             ) {
-            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
             if (verify == ThreadData.ObjectVerify)
-                return star_filter_iterator_next(handle, precord_id, precord_ref);
+                return star_context_read_filter_iterator(
+                    handle, iterator_handle, precord_id, precord_ref
+                    );
             return Error.SCERRITERATORNOTOWNED;
         }
 

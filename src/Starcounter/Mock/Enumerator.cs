@@ -209,8 +209,9 @@ namespace Starcounter
             Boolean newIterator = _handle == 0;
             unsafe
             {
-                ir = sccoredb.star_iterator_next(
-                    _handle, &currentRef.ObjectID, &currentRef.ETI, _verify
+                ir = sccoredb.star_context_read_iterator(
+                    ThreadData.ContextHandle, _handle, &currentRef.ObjectID, &currentRef.ETI,
+                    _verify
                     );
             }
             //Application.Profiler.Stop(2);
@@ -485,8 +486,9 @@ namespace Starcounter
             //Application.Profiler.Start("filter_iterator_next", 2);
             Boolean newIterator = _handle == 0;
             unsafe {
-                ir = sccoredb.star_filter_iterator_next(
-                    _handle, &currentRef.ObjectID, &currentRef.ETI, _verify
+                ir = sccoredb.star_context_read_filter_iterator(
+                    ThreadData.ContextHandle, _handle, &currentRef.ObjectID, &currentRef.ETI,
+                    _verify
                     );
             }
             //Application.Profiler.Stop(2);

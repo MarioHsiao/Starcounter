@@ -56,7 +56,7 @@ namespace Starcounter.Internal {
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
-            ec = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
+            ec = sccoredb.star_create_transaction(flags, 0, out handle);
             if (ec == 0) {
                 verify = ThreadData.ObjectVerify;
                 try {
@@ -123,11 +123,11 @@ namespace Starcounter.Internal {
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
-            ec = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
+            ec = sccoredb.star_create_transaction(flags, 0, out handle);
             if (ec == 0) {
                 verify = ThreadData.ObjectVerify;
                 try {
-                    // Can not fail.
+                    // Can not fail (only fails if transaction is already bound to context).
                     sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
 
                     TransactionHandle th = new TransactionHandle(handle, verify, flags, index, applyHooks);
@@ -674,7 +674,9 @@ namespace Starcounter.Internal {
                         ulong recordId, recordRef;
                         unsafe
                         {
-                            r = sccoredb.star_iterator_next(hi, &recordId, &recordRef, vi);
+                            r = sccoredb.star_context_read_iterator(
+                                ThreadData.ContextHandle, hi, &recordId, &recordRef, vi
+                                );
                         }
                         if (r != 0) throw ErrorCode.ToException(r);
                         if (recordId == 0) break;
