@@ -493,7 +493,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 Helper.ConsoleWriteLine("Dirty status");
                 Helper.ConsoleWriteLine("============");
-                debugString = j.DebugString;
+                debugString = JsonDebugHelper.ToFullString(j);
                 Helper.ConsoleWriteLine(debugString);
 
                 string patch = jsonPatch.Generate(j, true, false);
