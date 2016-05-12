@@ -145,7 +145,7 @@ namespace Starcounter
                 }
             }
         }
-
+        
         /// <summary>
         /// Accessor to response headers.
         /// </summary>
@@ -176,7 +176,7 @@ namespace Starcounter
             Byte* response_buf,
             UInt32 response_size_bytes,
             Byte* out_http_response);
-
+        
         /// <summary>
         /// Application name this response came from.
         /// </summary>
@@ -869,6 +869,16 @@ namespace Starcounter
 
             Int32 estimatedNumBytes = EstimateNeededSize(bytes);
 
+            if (estimatedNumBytes > StarcounterConstants.NetworkConstants.MaxResponseSize) {
+                throw new Exception(
+                    BuildExceptionInfoString(req, 
+                        "Estimated size (" 
+                        + estimatedNumBytes 
+                        + ") is larger than allowed maximum size for a response (" 
+                        + StarcounterConstants.NetworkConstants.MaxResponseSize  
+                        + ")."));
+            }
+
             // Checking if we have a given buffer.
             if (givenBuffer != null) {
 
@@ -1025,10 +1035,59 @@ namespace Starcounter
             responseSizeBytes_ = writer.Written;
 
             if (responseSizeBytes_ > estimatedNumBytes) {
-                throw new ArgumentOutOfRangeException("Terrible situation: responseSizeBytes_ > estimatedNumBytes");
+                throw new Exception(
+                   BuildExceptionInfoString(req, "Written size (" + responseSizeBytes_ + ") is larger than estimated size (" + estimatedNumBytes + ")"));
             }
 
             customFields_ = false;
+        }
+
+        private string BuildExceptionInfoString(Request request, string prefix) {
+            string tmp;
+            var sb = new StringBuilder();
+
+            sb.AppendLine(prefix);
+            if (request != null) {
+                sb.AppendLine("REQUEST {");
+                sb.Append("URI: ");
+                sb.AppendLine(request.Uri);
+
+                tmp = request.GetAllHeaders();
+                if (!string.IsNullOrEmpty(tmp)) {
+                    sb.AppendLine("HEADERS");
+                    sb.AppendLine();
+                }
+                sb.AppendLine("}");
+            }
+
+            sb.AppendLine("RESPONSE {");
+
+            tmp = this.GetAllHeaders();
+            if (!string.IsNullOrEmpty(tmp)) {
+                sb.AppendLine("HEADERS");
+                sb.AppendLine(tmp);
+            }
+
+            if (this.Cookies != null && this.Cookies.Count > 0) {
+                sb.AppendLine("COOKIES");
+                foreach (string cookie in this.Cookies) {
+                    sb.AppendLine(cookie);
+                }
+            }
+
+            if (this.Resource != null) {
+                sb.AppendLine("RESOURCE");
+                sb.Append(this.Resource.ToString());
+                sb.Append(" {");
+                sb.Append(this.Resource.GetType().FullName);
+                sb.AppendLine("}");
+            } else if (this.bodyString_ != null) {
+                sb.AppendLine("BODY");
+                sb.AppendLine(this.bodyString_);
+            }
+            sb.AppendLine("}");
+
+            return sb.ToString();
         }
 
         /// <summary>
