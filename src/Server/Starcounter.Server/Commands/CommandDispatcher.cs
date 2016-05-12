@@ -72,7 +72,7 @@ namespace Starcounter.Server.Commands {
 
             Trace("CommandDispatcher: Trying to get single recent command");
             lock (_syncRoot) {
-                Trace("CommandDispatcher: Trying to get single recent command");
+                Trace("CommandDispatcher: Getting single recent command");
 
                 if (match(_lists.CurrentInfo))
                     return _lists.CurrentInfo;

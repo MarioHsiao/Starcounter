@@ -11,6 +11,7 @@ using Starcounter.Server.PublicModel.Commands;
 using System.Threading;
 using Starcounter.Advanced.Configuration;
 using Starcounter.Internal;
+using System.Diagnostics;
 
 namespace Starcounter.Server {
 
@@ -124,6 +125,8 @@ namespace Starcounter.Server {
             if (info.IsCompleted)
                 return info;
 
+            Trace("IServerRuntime: Begin wait for {0} in thread {1}", info.Id.Value, Thread.CurrentThread.ManagedThreadId);
+
             if (info.CompletedEvent == null) {
                 // The command doesn't support waiting using a waitable
                 // construct, i.e it was created w/ the EnableWaiting flag
@@ -134,6 +137,9 @@ namespace Starcounter.Server {
             }
 
             info.CompletedEvent.Wait();
+
+            Trace("IServerRuntime: End wait for {0} in thread {1}", info.Id.Value, Thread.CurrentThread.ManagedThreadId);
+
             return this.engine.Dispatcher.GetRecentCommand(info.Id);
         }
 
@@ -143,6 +149,8 @@ namespace Starcounter.Server {
         /// to use events in a future versions.</remarks>
         public CommandInfo Wait(CommandId id) {
             CommandInfo cmd;
+
+            Trace("IServerRuntime: Begin (loop) wait for {0} in thread {1}", id.Value, Thread.CurrentThread.ManagedThreadId);
 
             while (true) {
                 cmd = this.engine.Dispatcher.GetRecentCommand(id);
@@ -156,6 +164,7 @@ namespace Starcounter.Server {
                 Thread.Sleep(100);
             };
 
+            Trace("IServerRuntime: End (loop) wait for {0} in thread {1}", id.Value, Thread.CurrentThread.ManagedThreadId);
             return cmd;
         }
 
@@ -212,6 +221,13 @@ namespace Starcounter.Server {
                 return database.Configuration;
             }
             return null;
+        }
+
+        [Conditional("TRACE")]
+        void Trace(string message, params object[] args)
+        {
+            message = string.Format(message, args);
+            Diagnostics.WriteTimeStamp(ServerLogSources.Default.Source, message);
         }
     }
 }
