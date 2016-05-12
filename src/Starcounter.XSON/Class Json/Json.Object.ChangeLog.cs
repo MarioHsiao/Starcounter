@@ -29,21 +29,22 @@ namespace Starcounter {
                 }
             }
 		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		internal void CheckpointChangeLog(bool callStepSiblings = true) {
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        internal void CheckpointChangeLog(bool callStepSiblings = true) {
             if (!_trackChanges)
                 return;
 
 			if (this.IsArray) {
-				this.ArrayAddsAndDeletes = null;
-				if (Template != null) {
-					var tjson = (TObjArr)Template;
-					tjson.Checkpoint(this.Parent);
-				}
-			} else {
+                this.ArrayAddsAndDeletes = null;
+                for (int i = 0; i < ((IList)this).Count; i++) {
+                    var row = (Json)this._GetAt(i);
+                    row.CheckpointChangeLog();
+                    this.CheckpointAt(i);
+                }
+            } else {
 				if (Template != null) {
                     this.Scope<Json, TValue>( 
                         (parent, tjson) => {
@@ -61,25 +62,25 @@ namespace Starcounter {
                         },
                         this,
                         (TValue)Template);
-
-                    if (callStepSiblings == true && this._stepSiblings != null) {
-                        for (int i = 0; i < _stepSiblings.Count; i++) {
-                            var sibling = _stepSiblings[i];
-                            _stepSiblings.MarkAsSent(i);
-
-                            if (sibling == this)
-                                continue;
-                            
-                            sibling.CheckpointChangeLog(false);
-                            if (sibling.Parent != null) {
-                                sibling.Parent.CheckpointAt(sibling.IndexInParent);
-                            }
-                        }
-                    }
 				}
 			}
 			_Dirty = false;
-		}
+
+            if (callStepSiblings == true && this._stepSiblings != null) {
+                for (int i = 0; i < _stepSiblings.Count; i++) {
+                    var sibling = _stepSiblings[i];
+                    _stepSiblings.MarkAsSent(i);
+
+                    if (sibling == this)
+                        continue;
+
+                    sibling.CheckpointChangeLog(false);
+                    if (sibling.Parent != null) {
+                        sibling.Parent.CheckpointAt(sibling.IndexInParent);
+                    }
+                }
+            }
+        }
 
 		/// <summary>
 		/// 
