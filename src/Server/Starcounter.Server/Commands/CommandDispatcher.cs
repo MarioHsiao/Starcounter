@@ -70,7 +70,9 @@ namespace Starcounter.Server.Commands {
                 return candidate != null && candidate.Id.Equals(id);
             };
 
+            Trace("CommandDispatcher: Trying to get single recent command");
             lock (_syncRoot) {
+                Trace("CommandDispatcher: Trying to get single recent command");
 
                 if (match(_lists.CurrentInfo))
                     return _lists.CurrentInfo;
@@ -110,7 +112,9 @@ namespace Starcounter.Server.Commands {
         internal CommandInfo[] GetRecentCommands() {
             List<CommandInfo> commands = new List<CommandInfo>();
 
+            Trace("CommandDispatcher: Trying to get recent commands");
             lock (_syncRoot) {
+                Trace("Getting recent commands");
                 if (_lists.CurrentInfo != null) commands.Add(_lists.CurrentInfo);
 
                 if (_lists.PendingInfo.Count != 0) {
@@ -186,6 +190,7 @@ namespace Starcounter.Server.Commands {
 
             Boolean first = false;
 
+            Trace("CommandDispatcher: Trying to enque {0} from thread {1}", command.Description, Thread.CurrentThread.ManagedThreadId);
             lock (_syncRoot) {
                 Trace("Enqueueing {0} from thread {1}", command.Description, Thread.CurrentThread.ManagedThreadId);
                 if (_lists.CurrentProc == null) {
@@ -232,7 +237,9 @@ namespace Starcounter.Server.Commands {
                     cp.ProcessCommand(notifyCallback); // Fatal error on exception here!
                     commandsProcessed++;
 
+                    Trace("CommandDispatcher: Trying to get next command");
                     lock (_syncRoot) {
+                        Trace("CommandDispatcher: Getting next command");
                         if (_lists.CurrentInfo != null)
                             _lists.ProcessedInfo.AddLast(_lists.CurrentInfo);
 

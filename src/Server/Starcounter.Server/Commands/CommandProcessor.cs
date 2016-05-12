@@ -714,10 +714,6 @@ namespace Starcounter.Server.Commands {
         }
 
         private void SignalCompletion() {
-            if (CompletionCallback != null) {
-                CompletionCallback(this.Id);
-            }
-
             // NOTE:
             // Don't dispose this event here; clients might still access it
             // through the reference copy in CommandInfo. The disposal of
@@ -727,11 +723,19 @@ namespace Starcounter.Server.Commands {
             if (this.completedEvent != null) {
                 this.completedEvent.Set();
             }
+
+            if (CompletionCallback != null) {
+                Trace("CommandProcessor: Invoking completion callback");
+                CompletionCallback(this.Id);
+                Trace("CommandProcessor: Completion callback finished");
+            }
         }
 
         private void NotifyStatusChanged() {
             if (_notifyStatusChangedCallback != null) {
+                Trace("CommandProcessor: Notifying status changed");
                 _notifyStatusChangedCallback(ToPublicModel());
+                Trace("CommandProcessor: Status changed notified");
             }
         }
 
