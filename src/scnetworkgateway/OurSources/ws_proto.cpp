@@ -15,17 +15,9 @@ namespace network {
 const char *kSecWebSocketKey = "Sec-WebSocket-Key";
 const int32_t kSecWebSocketKeyLen = static_cast<int32_t> (strlen(kSecWebSocketKey));
 
-// Server response security field.
-const char *kSecWebSocketAccept = "Sec-WebSocket-Accept";
-const int32_t kSecWebSocketAcceptLen = static_cast<int32_t> (strlen(kSecWebSocketAccept));
-
 // Should be 13.
 const char *kSecWebSocketVersion = "Sec-WebSocket-Version";
 const int32_t kSecWebSocketVersionLen = static_cast<int32_t> (strlen(kSecWebSocketVersion));
-
-// Which protocols the client would like to speak.
-const char *kSecWebSocketProtocol = "Sec-WebSocket-Protocol";
-const int32_t kSecWebSocketProtocolLen = static_cast<int32_t> (strlen(kSecWebSocketProtocol));
 
 const char *kWsGuid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const int32_t kWsGuidLen = static_cast<int32_t> (strlen(kWsGuid));
@@ -35,10 +27,9 @@ const int32_t kWsGuidLen = static_cast<int32_t> (strlen(kWsGuid));
 // A client MUST close a connection if it detects a masked frame.
 
 const char *kWsHsResponseStaticPart =
-    "HTTP/1.1 101 Switching Protocols\r\n"
-    "Upgrade: websocket\r\n"
-    "Connection: Upgrade\r\n"
-    "Server: SC\r\n";
+	"HTTP/1.1 101 Switching Protocols\r\n"
+	"Upgrade: websocket\r\n"
+	"Connection: Upgrade\r\n";
 
 const int32_t kWsHsResponseStaticPartLen = static_cast<int32_t> (strlen(kWsHsResponseStaticPart));
 

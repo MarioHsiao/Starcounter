@@ -886,6 +886,7 @@ namespace Starcounter
                 fixed (byte* p = buf) {
                     writer = new Utf8Writer(p);
 
+                    // Checking if we don't have WebSocket upgrade response.
                     if (wsHandshakeResp_ == null) {
 
                         writer.Write(HttpHeadersUtf8.Http11);
@@ -915,11 +916,12 @@ namespace Starcounter
                             }
                             writer.Write(HttpHeadersUtf8.CRLF);
                         }
+
+                        writer.Write(HttpHeadersUtf8.ServerSc);
+
                     } else {
                         writer.Write(wsHandshakeResp_);
                     }
-
-                    writer.Write(HttpHeadersUtf8.ServerSc);
 
                     Boolean addSetCookie = true;
                     Boolean cacheControl = false;
@@ -939,13 +941,17 @@ namespace Starcounter
                         }
                     }
 
-                    Byte[] date = currentDateHeaderBytes_;
-                    if (date != null) {
-                        writer.Write(date);
-                    }
+                    // NOTE: WebSocket upgrade should not have these headers.
+                    if (wsHandshakeResp_ == null) {
 
-                    if (!cacheControl) {
-                        writer.Write(HttpHeadersUtf8.CacheControlNoCache);
+                        Byte[] date = currentDateHeaderBytes_;
+                        if (date != null) {
+                            writer.Write(date);
+                        }
+
+                        if (!cacheControl) {
+                            writer.Write(HttpHeadersUtf8.CacheControlNoCache);
+                        }
                     }
 
                     // Checking if session is defined.
