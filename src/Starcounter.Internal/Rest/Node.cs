@@ -589,9 +589,13 @@ namespace Starcounter
             HandlerOptions handlerOptions,
             Request req = null)
         {
+            bool isStarExe = Process.GetCurrentProcess().ProcessName == "star";
             try
             {
-                Trace("Performing {0} on {1}", method, relativeUri);
+                if (isStarExe)
+                {
+                    Trace("Performing {0} on {1}", method, relativeUri);
+                }
 
                 // Checking if handler options is defined.
                 if (handlerOptions == null)
@@ -645,7 +649,10 @@ namespace Starcounter
             }
             finally
             {
-                Trace("Done performing {0} on {1}", method, relativeUri);
+                if (isStarExe)
+                {
+                    Trace("Done performing {0} on {1}", method, relativeUri);
+                }
             }
         }
 
