@@ -589,49 +589,71 @@ namespace Starcounter
             HandlerOptions handlerOptions,
             Request req = null)
         {
-            // Checking if handler options is defined.
-            if (handlerOptions == null) {
-                handlerOptions = new HandlerOptions();
+            try
+            {
+                Trace("Performing {0} on {1}", method, relativeUri);
+
+                // Checking if handler options is defined.
+                if (handlerOptions == null)
+                {
+                    handlerOptions = new HandlerOptions();
+                }
+
+                // Setting application name.
+                handlerOptions.CallingAppName = StarcounterEnvironment.AppName;
+
+                // Creating the request object if it does not exist.
+                if (req == null)
+                {
+
+                    req = new Request()
+                    {
+
+                        Method = method,
+                        Uri = relativeUri,
+                        BodyBytes = bodyBytes,
+                        HeadersDictionary = headersDictionary,
+                        Host = Endpoint
+                    };
+                }
+
+                // Setting the receive timeout.
+                if (0 == receiveTimeoutSeconds)
+                {
+                    receiveTimeoutSeconds = DefaultReceiveTimeoutSeconds;
+                }
+
+                // Checking if user has supplied a delegate to be called.
+                if (null != userDelegate)
+                {
+
+                    // Trying to perform an async request.
+                    DoAsyncTransfer(req, userDelegate, receiveTimeoutSeconds);
+
+                    return null;
+                }
+
+                lock (finished_async_tasks_)
+                {
+
+                    // Initializing connection.
+                    syncTaskInfo_.ResetButKeepSocket(req, null, receiveTimeoutSeconds, 0);
+
+                    // Doing synchronous request and returning response.
+                    return syncTaskInfo_.PerformSyncRequest();
+                }
             }
-
-            // Setting application name.
-            handlerOptions.CallingAppName = StarcounterEnvironment.AppName;
-
-            // Creating the request object if it does not exist.
-            if (req == null) {
-
-                req = new Request() {
-
-                    Method = method,
-                    Uri = relativeUri,
-                    BodyBytes = bodyBytes,
-                    HeadersDictionary = headersDictionary,
-                    Host = Endpoint
-                };
+            finally
+            {
+                Trace("Done performing {0} on {1}", method, relativeUri);
             }
+        }
 
-            // Setting the receive timeout.
-            if (0 == receiveTimeoutSeconds) {
-                receiveTimeoutSeconds = DefaultReceiveTimeoutSeconds;
-            }
-
-            // Checking if user has supplied a delegate to be called.
-            if (null != userDelegate) {
-
-                // Trying to perform an async request.
-                DoAsyncTransfer(req, userDelegate, receiveTimeoutSeconds);
-
-                return null;
-            }
-
-            lock (finished_async_tasks_) {
-
-                // Initializing connection.
-                syncTaskInfo_.ResetButKeepSocket(req, null, receiveTimeoutSeconds, 0);
-
-                // Doing synchronous request and returning response.
-                return syncTaskInfo_.PerformSyncRequest();
-            }
+        [Conditional("TRACE")]
+        void Trace(string message, params object[] args)
+        {
+            message = string.Format(message, args);
+            Diagnostics.WriteTimeStamp("Starcounter.Node", message);
         }
     }
 }
