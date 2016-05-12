@@ -181,7 +181,7 @@ namespace StarcounterInternal.Bootstrap {
 
                         // Register console output handlers (Except for the Administrator)
                         if (!StarcounterEnvironment.IsAdministratorApp) {
-                            ConsoleOuputRestHandler.Register(configuration.DefaultUserHttpPort, configuration.DefaultSystemHttpPort);
+                            // ConsoleOuputRestHandler.Register(configuration.DefaultUserHttpPort, configuration.DefaultSystemHttpPort);
                             Profiler.SetupHandler(configuration.DefaultSystemHttpPort, Db.Environment.DatabaseNameLower);
                         }
                     });
