@@ -10,6 +10,10 @@ using Starcounter.XSON;
 
 namespace Starcounter {
 	partial class Json {
+        internal bool IsTrackingChanges {
+            get { return _trackChanges; }
+        }
+
 		/// <summary>
 		/// 
 		/// </summary>

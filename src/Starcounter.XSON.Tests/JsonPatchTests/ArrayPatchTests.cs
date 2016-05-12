@@ -24,14 +24,14 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Session = session;
 
             session.Use(() => {
-                var before = ((Json)j).DebugString;
+                var before = JsonDebugHelper.ToFullString((Json)j);
                 jsonPatch.Generate(j, true, false);
 
                 var x = j.Friends.Add();
                 x.FirstName = "Henrik";
                 x.LastName = "Boman";
 
-                var after = ((Json)j).DebugString;
+                var after = JsonDebugHelper.ToFullString((Json)j);
                 string result = jsonPatch.Generate(j, true, false);
 
                 Helper.ConsoleWriteLine("Before");
