@@ -31,6 +31,10 @@ namespace Starcounter.XSON {
 
         }
 
+        internal Json Employer {
+            get { return employer; }
+        }
+
         internal void ChangeEmployer(Json newEmployer) {
             this.employer.ChangeLog = null;
             this.employer = newEmployer;
