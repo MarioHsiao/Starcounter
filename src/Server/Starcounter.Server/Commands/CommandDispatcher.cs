@@ -217,6 +217,9 @@ namespace Starcounter.Server.Commands {
         private void ProcessCommands(Object alwaysNull) {
             NotifyCommandStatusChangedCallback notifyCallback;
             CommandProcessor cp;
+            int commandsProcessed = 0;
+
+            Trace("CommandDispatcher: Entering thread {0}", Thread.CurrentThread.ManagedThreadId);
 
             notifyCallback = new NotifyCommandStatusChangedCallback(OnNotifyCommandStatusChangedCallback);
 
@@ -227,6 +230,7 @@ namespace Starcounter.Server.Commands {
                 cp = _lists.CurrentProc;
                 for (; ; ) {
                     cp.ProcessCommand(notifyCallback); // Fatal error on exception here!
+                    commandsProcessed++;
 
                     lock (_syncRoot) {
                         if (_lists.CurrentInfo != null)
@@ -255,6 +259,8 @@ namespace Starcounter.Server.Commands {
                 _commmandProcessorThreadId = -1;
 //#endif
             }
+
+            Trace("CommandDispatcher: Returning thread {0}; commands processed {1}", Thread.CurrentThread.ManagedThreadId, commandsProcessed);
         }
 
         [Conditional("TRACE")]
