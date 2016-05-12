@@ -1,6 +1,10 @@
 ﻿{
-  "$": { Namespace: "Administrator.Server.Model" },
+  "$": { "Namespace": "Administrator.Server.Model" },
   "ID": "",
+  "Namespace": "",
+  "Channel": "",
+  "Version": "",
+  "VersionDate": "",
   "Status": 0,
   "ResourceUri": "",
   "ResourceID": "",
