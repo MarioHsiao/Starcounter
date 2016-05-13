@@ -674,9 +674,7 @@ namespace Starcounter.Internal {
                         ulong recordId, recordRef;
                         unsafe
                         {
-                            r = sccoredb.star_context_read_iterator(
-                                ThreadData.ContextHandle, hi, &recordId, &recordRef, vi
-                                );
+                            r = sccoredb.star_iterator_next(hi, &recordId, &recordRef, vi);
                         }
                         if (r != 0) throw ErrorCode.ToException(r);
                         if (recordId == 0) break;

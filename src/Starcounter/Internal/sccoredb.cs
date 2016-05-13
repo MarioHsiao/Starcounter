@@ -541,15 +541,15 @@ namespace Starcounter.Internal
         /// and the current transaction of context must be the transaction the iterator belongs to.
         /// </remarks>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        private static extern unsafe uint star_context_read_iterator(
-            ulong handle, ulong iterator_handle, ulong* precord_id, ulong* precord_ref
+        private static extern unsafe uint star_iterator_next(
+            ulong handle, ulong* precord_id, ulong* precord_ref
             );
 
-        internal static unsafe uint star_context_read_iterator(
-            ulong handle, ulong iterator_handle, ulong* precord_id, ulong* precord_ref, ulong verify
+        internal static unsafe uint star_iterator_next(
+            ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
             ) {
             if (verify == ThreadData.ObjectVerify)
-                return star_context_read_iterator(handle, iterator_handle, precord_id, precord_ref);
+                return star_iterator_next(handle, precord_id, precord_ref);
             return Error.SCERRITERATORNOTOWNED;
         }
 
@@ -591,17 +591,15 @@ namespace Starcounter.Internal
         /// Calling thread must be the owning thread of the context where the iterator resides.
         /// </remarks>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        private static extern unsafe uint star_context_read_filter_iterator(
-            ulong handle, ulong iterator_handle, ulong* precord_id, ulong* precord_ref
+        private static extern unsafe uint star_filter_iterator_next(
+            ulong handle, ulong* precord_id, ulong* precord_ref
             );
 
-        internal static unsafe uint star_context_read_filter_iterator(
-            ulong handle, ulong iterator_handle, ulong* precord_id, ulong* precord_ref, ulong verify
+        internal static unsafe uint star_filter_iterator_next(
+            ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
             ) {
             if (verify == ThreadData.ObjectVerify)
-                return star_context_read_filter_iterator(
-                    handle, iterator_handle, precord_id, precord_ref
-                    );
+                return star_filter_iterator_next(handle, precord_id, precord_ref);
             return Error.SCERRITERATORNOTOWNED;
         }
 
