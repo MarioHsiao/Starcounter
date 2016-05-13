@@ -251,13 +251,15 @@ namespace Starcounter.CLI {
                 exe.ResourceDirectories.Add().StringValue = resDir;
             }
 
-            var responded = new ManualResetEvent(false);
-            node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, (resp) => {
-                response = resp;
-                responded.Set();
-            });
-            AwaitExecutableStartup(databaseName, exe.Name, responded);
-            
+            //var responded = new ManualResetEvent(false);
+            //node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, (resp) => {
+            //    response = resp;
+            //    responded.Set();
+            //});
+            //AwaitExecutableStartup(databaseName, exe.Name, responded);
+
+            response = node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null);
+
             response.FailIfNotSuccess();
             exe.PopulateFromJson(response.Body);
         }
