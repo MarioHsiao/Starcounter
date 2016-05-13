@@ -133,7 +133,7 @@ finish:
 
 #if 0 // No need to do this here. Current transaction will be reset on task completion.
 		// Resetting current transaction.
-    star_context_set_current_transaction(context_handle, 0);
+    star_context_set_transaction(context_handle, 0);
 #endif
 
 		return err_code;

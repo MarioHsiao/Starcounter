@@ -128,7 +128,7 @@ namespace Starcounter.Internal {
                 verify = ThreadData.ObjectVerify;
                 try {
                     // Can not fail (only fails if transaction is already bound to context).
-                    sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
+                    sccoredb.star_context_set_transaction(ThreadData.ContextHandle, handle);
 
                     TransactionHandle th = new TransactionHandle(handle, verify, flags, index, applyHooks);
                     if (isImplicit)
@@ -347,7 +347,7 @@ namespace Starcounter.Internal {
                 return;
 
             if (ThreadData.inTransactionScope_ == 0) {
-                sccoredb.star_context_set_current_transaction( // Can not fail.
+                sccoredb.star_context_set_transaction( // Can not fail.
                     ThreadData.ContextHandle, handle.handle
                     );
                 CurrentHandle = handle;
@@ -629,7 +629,7 @@ namespace Starcounter.Internal {
                 // again setting it as the current transaction on context.
 
                 var contextHandle = ThreadData.ContextHandle; // Makes sure thread is attached.
-                sccoredb.star_context_set_current_transaction(  // Can not fail.
+                sccoredb.star_context_set_transaction(  // Can not fail.
                     contextHandle, handle.handle
                     );
                 sccoredb.star_transaction_reset(handle.handle); // Can not fail.

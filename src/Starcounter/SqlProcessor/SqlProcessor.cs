@@ -208,7 +208,7 @@ namespace Starcounter.SqlProcessor {
                         transactionHandle = 0;
                         goto err;
                     }
-                    r = sccoredb.star_context_set_current_transaction(
+                    r = sccoredb.star_context_set_transaction(
                         contextHandle, transactionHandle
                         );
                     if (r != 0) goto err;

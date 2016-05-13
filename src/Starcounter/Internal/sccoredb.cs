@@ -253,7 +253,7 @@ namespace Starcounter.Internal
         /// Always 0. Operation can not fail.
         /// </returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_get_current_transaction(
+        internal static extern uint star_context_get_transaction(
             ulong handle, out ulong transaction_handle
             );
 
@@ -264,7 +264,7 @@ namespace Starcounter.Internal
         /// Always 0. Operation can not fail.
         /// </returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_set_current_transaction(
+        internal static extern uint star_context_set_transaction(
             ulong handle, ulong transaction_handle
             );
 

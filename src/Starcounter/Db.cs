@@ -298,7 +298,7 @@ namespace Starcounter {
                             ThreadData.inTransactionScope_ = 1;
                             ThreadData.applyHooks_ = opts.applyHooks;
 
-                            sccoredb.star_context_set_current_transaction( // Can not fail.
+                            sccoredb.star_context_set_transaction( // Can not fail.
                                 ThreadData.ContextHandle, handle
                                 );
 
@@ -349,7 +349,7 @@ namespace Starcounter {
                         try {
                             ThreadData.inTransactionScope_ = 1;
                             ThreadData.applyHooks_ = opts.applyHooks;
-                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
+                            sccoredb.star_context_set_transaction(ThreadData.ContextHandle, handle);
                             action(arg);
                             TransactionManager.Commit(1);
                             return;
@@ -392,7 +392,7 @@ namespace Starcounter {
                         try {
                             ThreadData.inTransactionScope_ = 1;
                             ThreadData.applyHooks_ = opts.applyHooks;
-                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
+                            sccoredb.star_context_set_transaction(ThreadData.ContextHandle, handle);
                             TResult retValue = func();
                             TransactionManager.Commit(1);
                             return retValue;
@@ -435,7 +435,7 @@ namespace Starcounter {
                         try {
                             ThreadData.inTransactionScope_ = 1;
                             ThreadData.applyHooks_ = opts.applyHooks;
-                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
+                            sccoredb.star_context_set_transaction(ThreadData.ContextHandle, handle);
                             TResult retValue = func(arg);
                             TransactionManager.Commit(1);
                             return retValue;
