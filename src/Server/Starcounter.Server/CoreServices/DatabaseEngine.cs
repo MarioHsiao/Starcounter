@@ -331,8 +331,9 @@ namespace Starcounter.Server {
             // alive. Start a code host process.
 
             var startInfo = GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps, commandLineAdditions);
-            process = DoStartEngineProcess(startInfo, database, (sender, e) => { database.CodeHostErrorOutput.Add(e.Data); });
-            process.BeginErrorReadLine();
+            process = DoStartEngineProcess(startInfo, database, null/*(sender, e) => { database.CodeHostErrorOutput.Add(e.Data); }*/);
+            //process.BeginErrorReadLine();
+            //process.BeginOutputReadLine();
             database.CodeHostArguments = startInfo.Arguments;
             return true;
         }
@@ -650,9 +651,9 @@ namespace Starcounter.Server {
             var processStart = new ProcessStartInfo(this.CodeHostExePath, arguments.Trim());
             processStart.CreateNoWindow = true;
             processStart.UseShellExecute = false;
-            processStart.RedirectStandardInput = true;
-            processStart.RedirectStandardOutput = true;
-            processStart.RedirectStandardError = true;
+            //processStart.RedirectStandardInput = true;
+            //processStart.RedirectStandardOutput = true;
+            //processStart.RedirectStandardError = true;
 
             return processStart;
         }
