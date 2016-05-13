@@ -539,6 +539,7 @@ namespace Starcounter.Server {
 
             try {
                 p.Start();
+                Thread.Sleep(100);
             } catch (Exception e) {
                 var postfix = string.Format("Engine executable: \"{0}\"", startInfo.FileName);
                 ServerLogSources.Default.LogException(e, postfix);
