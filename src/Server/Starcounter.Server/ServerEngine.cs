@@ -62,6 +62,11 @@ namespace Starcounter.Server {
         internal readonly DatabaseEngine DatabaseEngine;
 
         /// <summary>
+        /// Gets the <see cref="GatewayService"/> used by the current server.
+        /// </summary>
+        internal readonly GatewayService GatewayService;
+
+        /// <summary>
         /// Gets the default name of the pipe the server use for it's
         /// core services.
         /// </summary>
@@ -156,6 +161,7 @@ namespace Starcounter.Server {
             this.StorageService = new DatabaseStorageService(this);
             this.DatabaseHostService = new DatabaseHostingService(this);
             this.ExecutableService = new ExecutableService(this);
+            this.GatewayService = new GatewayService(this);
         }
 
         /// <summary>
@@ -192,6 +198,7 @@ namespace Starcounter.Server {
             this.WeaverService.Setup();
             this.StorageService.Setup();
             this.DatabaseHostService.Setup();
+            this.GatewayService.Setup();
 
             SetupDatabases();
             this.CurrentPublicModel = new PublicModelProvider(this);
