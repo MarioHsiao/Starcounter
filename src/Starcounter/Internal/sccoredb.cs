@@ -548,6 +548,7 @@ namespace Starcounter.Internal
         internal static unsafe uint star_iterator_next(
             ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
             ) {
+            var contextHandle = ThreadData.ContextHandle;
             if (verify == ThreadData.ObjectVerify)
                 return star_iterator_next(handle, precord_id, precord_ref);
             return Error.SCERRITERATORNOTOWNED;
@@ -598,6 +599,7 @@ namespace Starcounter.Internal
         internal static unsafe uint star_filter_iterator_next(
             ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
             ) {
+            var contextHandle = ThreadData.ContextHandle;
             if (verify == ThreadData.ObjectVerify)
                 return star_filter_iterator_next(handle, precord_id, precord_ref);
             return Error.SCERRITERATORNOTOWNED;
