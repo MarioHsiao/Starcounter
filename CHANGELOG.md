@@ -15,6 +15,7 @@
 - Removed temporary solution for htmlmerger from Json serializer and marked `IResource.GetHtmlPartialUrl` as obsolete [#3541](https://github.com/Starcounter/Starcounter/issues/3541)
 - Decoding partial urls:s before calling `Self.GET` to allow url:s with parameters [#3527](https://github.com/Starcounter/Starcounter/issues/3527)
 - Fixed a bug in the F# parser that parses JSON-by-example for TypedJSON to allow arrays in arrays [#3554](https://github.com/Starcounter/Starcounter/issues/3554)
+- Added a check for responses so they doesn't exceed a fixed maximum size to avoid buffer overruns and corrupting managed memory [#3608](https://github.com/Starcounter/Starcounter/issues/3608)
 
 ### Changed
 

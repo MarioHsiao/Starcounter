@@ -65,35 +65,7 @@ namespace Starcounter.Server {
             return wasCancelled;
         }
 
-        /// <summary>
-        /// Unregisters existing codehost.
-        /// </summary>
-        static void UnregisterCodehostInGateway(String dbName) {
-
-            String reqBody =
-                dbName + " ";
-
-            reqBody += MixedCodeConstants.EndOfRequest;
-
-            Response r = Http.DELETE(
-                "http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/codehost", reqBody, null);
-
-            if (!r.IsSuccessStatusCode) {
-
-                String errCodeStr = r.Headers[MixedCodeConstants.ScErrorCodeHttpHeader];
-
-                if (null != errCodeStr)
-                    throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
-                else
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, r.Body);
-            }
-        }
-
         public void CodeHostExited(object sender, EventArgs args) {
-
-            // Unregistering codehost in gateway.
-            UnregisterCodehostInGateway(DatabaseName);
-
             var server = this.Monitor.Server;
             var cmd = new ActionCommand<Process>(this.Monitor.Server, Process, sender as Process, WorkDescription);
             server.CurrentPublicModel.Execute(cmd);
@@ -134,6 +106,8 @@ namespace Starcounter.Server {
                     boundProcess.Id);
                 return;
             }
+
+            server.GatewayService.UnregisterCodehost(DatabaseName);
 
             Monitor.ResetInternalAndPublicState(server.DatabaseEngine, database, process);
         }

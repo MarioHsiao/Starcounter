@@ -24,14 +24,14 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Session = session;
 
             session.Use(() => {
-                var before = ((Json)j).DebugString;
+                var before = JsonDebugHelper.ToFullString((Json)j);
                 jsonPatch.Generate(j, true, false);
 
                 var x = j.Friends.Add();
                 x.FirstName = "Henrik";
                 x.LastName = "Boman";
 
-                var after = ((Json)j).DebugString;
+                var after = JsonDebugHelper.ToFullString((Json)j);
                 string result = jsonPatch.Generate(j, true, false);
 
                 Helper.ConsoleWriteLine("Before");
@@ -75,7 +75,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 Helper.ConsoleWriteLine("Dirty status");
                 Helper.ConsoleWriteLine("============");
-                debugString = j.DebugString;
+                debugString = JsonDebugHelper.ToFullString(j);
                 Helper.ConsoleWriteLine(debugString);
 
                 string patch = jsonPatch.Generate(j, true, false);
@@ -128,7 +128,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 Helper.ConsoleWriteLine("Dirty status");
                 Helper.ConsoleWriteLine("============");
-                debugString = j.DebugString;
+                debugString = JsonDebugHelper.ToFullString(j);
                 Helper.ConsoleWriteLine(debugString);
 
                 string patch = jsonPatch.Generate(j, true, false);
@@ -152,28 +152,28 @@ namespace Starcounter.Internal.XSON.Tests {
             person.FirstName = "Timothy";
             person2.FirstName = "Douglas";
 
-            Write("Status 1",company.DebugString);
+            Write("Status 1", JsonDebugHelper.ToFullString(company));
 
             var session = new Session();
             company.Session = session;
             session.Use(() => {
                 Write("JSON-Patch 1", jsonPatch.Generate(company, true, false));
 
-                Write("Before status", company.DebugString);
+                Write("Before status", JsonDebugHelper.ToFullString(company));
 
                 var charlie = new Person();
                 charlie.FirstName = "Charlie";
                 company.Contacts = new object[] { charlie };
 
-                Write("After status 2", company.DebugString);
+                Write("After status 2", JsonDebugHelper.ToFullString(company));
                 Write("JSON-Patch 2", jsonPatch.Generate(company, true, false));
 
                 company.Contacts = new object[] { person, person2 };
 
-                Write("After status 3", company.DebugString);
+                Write("After status 3", JsonDebugHelper.ToFullString(company));
                 Write("JSON-Patch 3", jsonPatch.Generate(company, true, false));
 
-                Write("After status 4 (no changes)", company.DebugString);
+                Write("After status 4 (no changes)", JsonDebugHelper.ToFullString(company));
                 Write("JSON-Patch 4 (empty)", jsonPatch.Generate(company, true, false));
             });
         }
@@ -203,7 +203,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 Helper.ConsoleWriteLine("After status");
                 Helper.ConsoleWriteLine("============");
-                debugString = company.DebugString;
+                debugString = JsonDebugHelper.ToFullString(company);
                 Helper.ConsoleWriteLine(debugString);
 
                 Helper.ConsoleWriteLine("JSON-Patch");
