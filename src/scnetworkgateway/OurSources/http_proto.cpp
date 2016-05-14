@@ -1037,6 +1037,14 @@ ALL_DATA_ACCUMULATED:
         // Handled successfully.
         *is_handled = true;
 
+		// Checking if it was a WebSocket upgrade.
+		if (sd->get_ws_upgrade_approved_flag()) {
+
+			// Changing network protocol because WebSocket upgrade succeeded.
+			sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
+			sd->reset_ws_upgrade_approved_flag();
+		}
+
         // Checking if we want to disconnect the socket.
         if (sd->get_disconnect_socket_flag())
             return SCERRGWDISCONNECTFLAG;

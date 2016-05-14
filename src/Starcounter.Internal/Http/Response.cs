@@ -917,11 +917,11 @@ namespace Starcounter
                             writer.Write(HttpHeadersUtf8.CRLF);
                         }
 
-                        writer.Write(HttpHeadersUtf8.ServerSc);
-
                     } else {
                         writer.Write(wsHandshakeResp_);
                     }
+
+                    writer.Write(HttpHeadersUtf8.ServerSc);
 
                     Boolean addSetCookie = true;
                     Boolean cacheControl = false;
@@ -941,13 +941,13 @@ namespace Starcounter
                         }
                     }
 
+                    Byte[] date = currentDateHeaderBytes_;
+                    if (date != null) {
+                        writer.Write(date);
+                    }
+
                     // NOTE: WebSocket upgrade should not have these headers.
                     if (wsHandshakeResp_ == null) {
-
-                        Byte[] date = currentDateHeaderBytes_;
-                        if (date != null) {
-                            writer.Write(date);
-                        }
 
                         if (!cacheControl) {
                             writer.Write(HttpHeadersUtf8.CacheControlNoCache);

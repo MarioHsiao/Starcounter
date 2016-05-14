@@ -527,9 +527,6 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes() + resp_len_bytes);
     sd->SetWebSocketUpgradeResponsePartLength(resp_len_bytes);
 
-    // Setting WebSocket handshake flag.
-    sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
-
     // Indicating for the host that WebSocket upgrade is made.
     sd->set_ws_upgrade_request_flag();
 

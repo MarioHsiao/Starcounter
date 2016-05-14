@@ -490,7 +490,7 @@ public:
     // Checking if its a WebSocket protocol.
     bool is_web_socket()
     {
-        return MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == get_type_of_network_protocol();
+        return MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == GetTypeOfNetworkProtocol();
     }
 
     // Getting to database direction flag.
