@@ -137,6 +137,24 @@ namespace Administrator.Server.Managers {
         /// <param name="errorCallback"></param>
         internal static void Download(string sourceUrl, Database database, bool throwErrorIfExist, Action<DatabaseApplication> completionCallback = null, Action<string> errorCallback = null) {
 
+            // Check if app is already installed.
+            DatabaseApplication databaseApplication = database.GetApplicationBySourceUrl(sourceUrl);
+            if (databaseApplication != null) {
+
+                if (throwErrorIfExist) {
+                    if (errorCallback != null) {
+                        errorCallback("Application already deployed.");
+                    }
+                    return;
+                }
+
+                // Application already downloaded.
+                if (completionCallback != null) {
+                    completionCallback(databaseApplication);
+                }
+                return;
+            }
+
             DeployManager.DownloadPackage(sourceUrl, (data) => {
 
                 DeployedConfigFile config = null;

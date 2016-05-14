@@ -23,8 +23,10 @@ namespace Administrator.Server.Model {
         public string ID;
         public string Namespace;
         public string Channel;
-        public string DatabaseName {
-            get {
+        public string DatabaseName
+        {
+            get
+            {
                 if (this.Database != null) {
                     return this.Database.ID;
                 }
@@ -51,11 +53,14 @@ namespace Administrator.Server.Model {
         public string Heading;
 
         private bool _IsDeployed;
-        public bool IsDeployed {
-            get {
+        public bool IsDeployed
+        {
+            get
+            {
                 return this._IsDeployed;
             }
-            set {
+            set
+            {
                 if (this._IsDeployed == value) return;
                 this._IsDeployed = value;
                 this.OnPropertyChanged("IsDeployed");
@@ -63,11 +68,14 @@ namespace Administrator.Server.Model {
         }
 
         private bool _IsInstalled;
-        public bool IsInstalled {
-            get {
+        public bool IsInstalled
+        {
+            get
+            {
                 return this._IsInstalled;
             }
-            set {
+            set
+            {
                 if (this._IsInstalled == value) return;
                 this._IsInstalled = value;
                 this.OnPropertyChanged("IsInstalled");
@@ -75,11 +83,14 @@ namespace Administrator.Server.Model {
         }
 
         private bool _CanBeUninstalled;
-        public bool CanBeUninstalled {
-            get {
+        public bool CanBeUninstalled
+        {
+            get
+            {
                 return this._CanBeUninstalled;
             }
-            set {
+            set
+            {
                 if (this._CanBeUninstalled == value) return;
                 this._CanBeUninstalled = value;
                 this.OnPropertyChanged("CanBeUninstalled");
@@ -87,11 +98,14 @@ namespace Administrator.Server.Model {
         }
 
         private ApplicationStatus _Status;
-        public ApplicationStatus Status {
-            get {
+        public ApplicationStatus Status
+        {
+            get
+            {
                 return this._Status;
             }
-            set {
+            set
+            {
                 if (this._Status == value) return;
                 this._Status = value;
                 this.OnPropertyChanged("Status");
@@ -99,11 +113,14 @@ namespace Administrator.Server.Model {
         }
 
         private string _StatusText;
-        public string StatusText {
-            get {
+        public string StatusText
+        {
+            get
+            {
                 return this._StatusText;
             }
-            set {
+            set
+            {
                 if (this._StatusText == value) return;
                 this._StatusText = value;
                 this.OnPropertyChanged("StatusText");
@@ -111,8 +128,10 @@ namespace Administrator.Server.Model {
         }
 
         private ErrorMessage _ErrorMessage = new ErrorMessage();
-        public ErrorMessage ErrorMessage {
-            get {
+        public ErrorMessage ErrorMessage
+        {
+            get
+            {
                 return this._ErrorMessage;
             }
             //set {
@@ -123,8 +142,10 @@ namespace Administrator.Server.Model {
             //}
         }
 
-        public bool HasErrorMessage {
-            get {
+        public bool HasErrorMessage
+        {
+            get
+            {
                 return !(
                 string.IsNullOrEmpty(this.ErrorMessage.Title) &&
                 string.IsNullOrEmpty(this.ErrorMessage.Message) &&
@@ -137,11 +158,14 @@ namespace Administrator.Server.Model {
 
         #region Running
         private bool _IsRunning;
-        public bool IsRunning {
-            get {
+        public bool IsRunning
+        {
+            get
+            {
                 return this._IsRunning;
             }
-            set {
+            set
+            {
                 if (this._IsRunning == value) return;
                 this._IsRunning = value;
                 this.OnPropertyChanged("IsRunning");
@@ -149,11 +173,14 @@ namespace Administrator.Server.Model {
         }
 
         private bool _StartingError;
-        public bool StartingError {
-            get {
+        public bool StartingError
+        {
+            get
+            {
                 return this._StartingError;
             }
-            set {
+            set
+            {
                 if (this._StartingError == value) return;
                 this._StartingError = value;
                 this.OnPropertyChanged("StartingError");
@@ -161,11 +188,14 @@ namespace Administrator.Server.Model {
         }
 
         private bool _StoppingError;
-        private bool StoppingError {
-            get {
+        private bool StoppingError
+        {
+            get
+            {
                 return this._StoppingError;
             }
-            set {
+            set
+            {
                 if (this._StoppingError == value) return;
                 this._StoppingError = value;
                 this.OnPropertyChanged("StoppingError");
@@ -174,23 +204,44 @@ namespace Administrator.Server.Model {
         #endregion
 
         private bool _InstallingError;
-        public bool InstallingError {
-            get {
+        public bool InstallingError
+        {
+            get
+            {
                 return this._InstallingError;
             }
-            set {
+            set
+            {
                 if (this._InstallingError == value) return;
                 this._InstallingError = value;
                 this.OnPropertyChanged("InstallingError");
             }
         }
 
+        private bool _UpgradingError;
+        public bool UpgradingError
+        {
+            get
+            {
+                return this._UpgradingError;
+            }
+            set
+            {
+                if (this._UpgradingError == value) return;
+                this._UpgradingError = value;
+                this.OnPropertyChanged("UpgradingError");
+            }
+        }
+
         private bool _UninstallingError;
-        public bool UninstallingError {
-            get {
+        public bool UninstallingError
+        {
+            get
+            {
                 return this._UninstallingError;
             }
-            set {
+            set
+            {
                 if (this._UninstallingError == value) return;
                 this._UninstallingError = value;
                 this.OnPropertyChanged("UninstallingError");
@@ -198,11 +249,14 @@ namespace Administrator.Server.Model {
         }
 
         private bool _DeletingError;
-        public bool DeletingError {
-            get {
+        public bool DeletingError
+        {
+            get
+            {
                 return this._DeletingError;
             }
-            set {
+            set
+            {
                 if (this._DeletingError == value) return;
                 this._DeletingError = value;
                 this.OnPropertyChanged("DeletingError");
@@ -310,6 +364,194 @@ namespace Administrator.Server.Model {
             }
         }
 
+        #endregion
+
+        #region Upgrade
+
+        private ConcurrentStack<Action<DatabaseApplication>> ApplicationUpgradeCallbacks = new ConcurrentStack<Action<DatabaseApplication>>();
+        private ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>> ApplicationUpgradeErrorCallbacks = new ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>>();
+
+        public void UpgradeApplication(DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            this.ResetErrorMessage();
+
+            if (completionCallback != null) {
+                this.ApplicationUpgradeCallbacks.Push(completionCallback);
+            }
+
+            if (errorCallback != null) {
+                this.ApplicationUpgradeErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(ApplicationStatus.Upgrading)) {
+                // Busy
+                return;
+            }
+
+            if (this == deployedDatabaseApplication) {
+                this.ApplicationUpgradeErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.ApplicationUpgradeCallbacks);
+                return;
+            }
+
+            // TODO: can upgrade self
+            bool wasRunning = this.IsRunning;
+
+            //if (this.StoreUrl != deployedDatabaseApplication.StoreUrl) {
+            //    if (errorCallback != null) {
+            //        errorCallback(deployedDatabaseApplication, false, "Upgrade Application", "Can not upgrade applications from different stores", null);
+            //    }
+            //    return;
+            //}
+
+            this.UpgradingError = false;
+            this.Status |= ApplicationStatus.Upgrading;
+            this.UpgradingError = false;
+
+            this._Upgraded_Step_1_Stopping(deployedDatabaseApplication, wasRunning, (databaseApplication) => {
+
+                // Success
+                this.Status &= ~ApplicationStatus.Upgrading;
+
+                this.ApplicationUpgradeErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.ApplicationUpgradeCallbacks);
+
+            }, (depoyedApplication, wasCanceled, title, message, helpLink) => {
+
+                this.UpgradingError = true;
+
+                // Error, Failed to revert to previous state, Failed to remove downloaded application.
+                this._Upgrade_Revert(depoyedApplication, wasRunning, wasCanceled, title, message, helpLink, (depoyedApplication2, wasCanceled2, title2, message2, helpLink2) => {
+                    // Error reverting
+
+                    this.Status &= ~ApplicationStatus.Upgrading;    // Remove status
+
+                    // Failed to stop database, we can not delete database.
+                    this.ApplicationUpgradeCallbacks.Clear();
+                    this.InvokeActionErrorListeners(this.ApplicationUpgradeErrorCallbacks, wasCanceled, title2, message2, helpLink2);
+                });
+            });
+        }
+
+        private void _Upgraded_Step_1_Stopping(DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            if (this.IsRunning) {
+
+                this.StopApplication((stoppedCurrentApplication) => {
+
+                    this._Upgraded_Step_2_Install(deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
+
+                }, errorCallback);
+            }
+            else {
+                this._Upgraded_Step_2_Install(deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
+            }
+        }
+
+        private void _Upgraded_Step_2_Install(DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            if (this.IsInstalled) {
+
+                deployedDatabaseApplication.InstallApplication((installedApplication) => {
+
+                    this._Upgraded_Step_3_LockFlag(deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
+                }, errorCallback);
+            }
+            else {
+
+                this._Upgraded_Step_3_LockFlag(deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
+            }
+        }
+
+        private void _Upgraded_Step_3_LockFlag(DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            if (this.CanBeUninstalled != deployedDatabaseApplication.CanBeUninstalled) {
+
+                deployedDatabaseApplication.SetCanBeUninstalledFlag(this.CanBeUninstalled, (application) => {
+
+                    this._Upgraded_Step_4_Restart(deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
+
+                }, errorCallback);
+            }
+            else {
+                this._Upgraded_Step_4_Restart(deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
+            }
+        }
+
+        private void _Upgraded_Step_4_Restart(DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            if (wasRunning) {
+                deployedDatabaseApplication.StartApplication((depoyedApplication) => {
+
+                    this._Upgraded_Step_5_Finalize(deployedDatabaseApplication, completionCallback, errorCallback);
+
+                }, errorCallback);
+            }
+            else {
+
+                this._Upgraded_Step_5_Finalize(deployedDatabaseApplication, completionCallback, errorCallback);
+            }
+        }
+
+        private void _Upgraded_Step_5_Finalize(DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            // Delete previous version
+            this.DeleteApplication(true, (databaseApplication) => {
+
+                if (completionCallback != null) {
+                    completionCallback(deployedDatabaseApplication);
+                }
+
+            }, errorCallback);
+        }
+
+        private void _Upgrade_Revert(DatabaseApplication deployedDatabaseApplication, bool wasRunning, bool wasCanceled, string title, string message, string helpLink, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            if (wasRunning) {
+                // Restart the previous app again
+                this.StartApplication((databaseApplication) => {
+
+                    // Delete downloaded app
+                    deployedDatabaseApplication.DeleteApplication(true, (depoyedApplication) => {
+                        // Successfully reverted to previous application
+                        if (errorCallback != null) {
+                            errorCallback(depoyedApplication, wasRunning, title, message, helpLink);
+                        }
+                    }, errorCallback);
+
+                }, (databaseApplication, wasCanceled2, title2, message2, helpLink2) => {
+
+                    // Error, Failed to revert to previous state
+
+                    // Delete downloaded app
+                    deployedDatabaseApplication.DeleteApplication(true, (depoyedApplication) => {
+
+                        // Error, Failed to revert to previous state, Failed to restart previous application.
+                        if (errorCallback != null) {
+                            errorCallback(depoyedApplication, wasRunning, title + ":" + title2, message + " " + message2, helpLink);
+                        }
+                    }, errorCallback);
+                });
+            }
+            else {
+
+                // Delete downloaded app
+                deployedDatabaseApplication.DeleteApplication(true, (depoyedApplication2) => {
+
+                    // Successfully reverted to previous application
+                    if (errorCallback != null) {
+                        errorCallback(depoyedApplication2, wasRunning, title, message, helpLink);
+                    }
+
+                }, (depoyedApplication, wasCanceled2, title2, message2, helpLink2) => {
+
+                    // Error, Failed to revert to previous state, Failed to remove downloaded application
+                    if (errorCallback != null) {
+                        errorCallback(depoyedApplication, wasRunning, title + ":" + title2, message + " " + message2, helpLink);
+                    }
+                });
+            }
+        }
         #endregion
 
         #region Uninstall
@@ -938,6 +1180,8 @@ namespace Administrator.Server.Model {
             applicationJson.DisplayName = this.DisplayName;
             applicationJson.Description = this.Description;
             applicationJson.Company = this.Company;
+            applicationJson.Namespace = this.Namespace;
+            applicationJson.Channel = this.Channel;
             applicationJson.Version = this.Version;
             applicationJson.VersionDate = this.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
             applicationJson.DatabaseName = this.DatabaseName;
@@ -1009,6 +1253,7 @@ namespace Administrator.Server.Model {
             application.Arguments = string.Empty;
             application.SourceID = item.SourceID;
             application.SourceUrl = item.SourceUrl;
+
             application.CanBeUninstalled = item.CanBeUninstalled;
             application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(application.DatabaseName + item.GetExecutableFullPath(DeployManager.GetRawDeployFolder(database.ID)));
             return application;
@@ -1052,6 +1297,7 @@ namespace Administrator.Server.Model {
             application.Arguments = string.Empty; // TODO:
             application.SourceID = string.Empty;
             application.SourceUrl = string.Empty; // TODO: Maybe use file://abc/123.exe ?
+
             application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
             application.CanBeUninstalled = false;
             return application;

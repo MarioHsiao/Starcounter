@@ -71,6 +71,11 @@ namespace Starcounter.Internal
             /// Double end of line for HTTP.
             /// </summary>
             public const string CRLFCRLF = CRLF + CRLF;
+
+            /// <summary>
+            /// The maximum allowed size (in bytes) that one response can be. 
+            /// </summary>
+            public const int MaxResponseSize = 500 * 1024 * 1024; // 500 MB
         }
 
         /// <summary>
