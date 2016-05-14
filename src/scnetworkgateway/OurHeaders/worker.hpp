@@ -300,6 +300,9 @@ public:
     // Sets the clone for the next iteration.
     void SetReceiveClone(SocketDataChunkRef sd_clone)
     {
+		// Setting flag clone to receive.
+		sd_clone->get_socket_info()->set_cloned_to_receive_flag();
+
         // Only one clone at a time is possible.
         GW_ASSERT(sd_receive_clone_ == NULL);
 
