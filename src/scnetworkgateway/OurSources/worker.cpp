@@ -513,7 +513,7 @@ uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
         socket_index_type new_socket_index = ObtainFreeSocketIndex(
             new_socket,
             port_index,
-            MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP,
+            MixedCodeConstants::NetworkProtocolType::PROTOCOL_UNKNOWN,
             false);
 
         // Checking if we can't obtain new socket index.
@@ -883,6 +883,10 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
 		//sd->get_socket_info()->ShutdownSend();
 		//sd->get_socket_info()->ShutdownReceive(); 
+
+		// Checking if its a WebSocket protocol.
+		if (sd->is_web_socket())
+			return SCERRGWDISCONNECTFLAG;
     }
 
     // If we received 0 bytes, the remote side has close the connection.
@@ -1006,13 +1010,23 @@ uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
         HandlersList* ph = sp->get_port_handlers();
 
         if ((ph != NULL) && (!ph->IsEmpty())) {
-            ph->RunHandlers(this, sd_push_to_db, &is_handled);
-            GW_ASSERT(NULL == sd_push_to_db);
+
+			// Push chunk to corresponding channel/scheduler.
+			err_code = PushSocketDataToDb(sd_push_to_db, ph->get_handler_info());
+
+			if (err_code) {
+
+				// Releasing the cloned chunk.
+				ReturnSocketDataChunksToPool(sd_push_to_db);
+
+				return err_code;
+			}
         }        
     }
 
     // Checking if we were not able to push.
     if (NULL != sd_push_to_db) {
+
         // Releasing the cloned chunk.
         ReturnSocketDataChunksToPool(sd_push_to_db);
     }
@@ -1042,7 +1056,7 @@ void GatewayWorker::PushDisconnectToCodehost(SocketDataChunkRef sd) {
 	}
 
     // Processing session according to protocol.
-    switch (sd->get_type_of_network_protocol()) {
+    switch (sd->GetTypeOfNetworkProtocol()) {
 
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS: {
             // NOTE: Ignoring the error code.
@@ -1540,7 +1554,7 @@ void GatewayWorker::ProcessRebalancedSockets() {
         socket_index_type new_socket_index = ObtainFreeSocketIndex(
             s,
             pi,
-            MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP,
+            MixedCodeConstants::NetworkProtocolType::PROTOCOL_UNKNOWN,
             false);
 
         // Checking if we can't obtain new socket index.
