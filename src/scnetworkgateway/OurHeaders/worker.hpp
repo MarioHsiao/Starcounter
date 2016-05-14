@@ -573,7 +573,7 @@ public:
     }
 
     // Push given chunk to database queue.
-    uint32_t PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
+    uint32_t PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool disable_check_for_clone);
 
     // Push given chunk to database queue.
     uint32_t PushSocketDataFromOverflowToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* again_for_overflow);

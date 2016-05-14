@@ -315,16 +315,16 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     GatewayWorker* gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE user_handler_id,
-	bool is_from_overflow_pool)
+	bool disable_check_for_clone)
 {
 #ifdef GW_CHUNKS_DIAG
     GW_PRINT_WORKER_DB << "Pushing chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
 	// Checking flag clone to receive.
-	if ((!sd->get_internal_request_flag()) &&
-		(!is_from_overflow_pool) &&
-		(!sd->get_just_push_disconnect_flag())) {
+	if ((!disable_check_for_clone) &&
+		(!sd->GetSocketAggregatedFlag()) &&
+		(!sd->get_internal_request_flag())) {
 
 		GW_ASSERT(sd->get_socket_info()->get_cloned_to_receive_flag());
 	}
