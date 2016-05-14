@@ -322,7 +322,10 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
 #endif
 
 	// Checking flag clone to receive.
-	if ((!is_from_overflow_pool) && (!sd->get_just_push_disconnect_flag())) {
+	if ((!sd->get_internal_request_flag()) &&
+		(!is_from_overflow_pool) &&
+		(!sd->get_just_push_disconnect_flag())) {
+
 		GW_ASSERT(sd->get_socket_info()->get_cloned_to_receive_flag());
 	}
 
