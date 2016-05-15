@@ -146,8 +146,9 @@ public:
 	// Initializes accumulative buffer.
 	void SetAccumulation(uint32_t buf_total_len_bytes)
 	{
-		cur_network_buf_ptr_ = get_data_blob_start();
+		cur_network_buf_ptr_ = get_data_blob_start() + buf_total_len_bytes;
 		accumulated_len_bytes_ = buf_total_len_bytes;
+		num_available_network_bytes_ -= buf_total_len_bytes;
 
 		GW_ASSERT(accumulated_len_bytes_ <= get_data_blob_size());
 	}
