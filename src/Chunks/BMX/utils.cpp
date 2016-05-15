@@ -242,8 +242,9 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
     _SC_ASSERT(err_code == 0);
 
     // Checking if we should just send the chunks.
-    if (just_sending_flag)
-        (*(uint32_t*)(cur_smc + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
+	if (just_sending_flag) {
+		(*(uint32_t*)(cur_smc + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= starcounter::MixedCodeConstants::SOCKET_DATA_FLAGS_JUST_SEND;
+	}
 
     // Checking if this chunk was aggregated.
     bool aggregated_flag =

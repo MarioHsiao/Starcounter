@@ -9,9 +9,9 @@ sys#1.0.0 C:\www\Starcounter\starcounter\src\BuildSystem\ClientFiles
 ├── array.observe#0.0.1 extraneous
 ├─┬ bootswatch#3.3.6+1
 │ └─┬ bootstrap#3.3.6 (latest is 4.0.0-alpha.2)
-│   └── jquery#2.2.2 (latest is 3.0.0-beta1)
+│   └── jquery#2.1.4 (2.2.3 available, latest is 3.0.0-beta1)
 ├── dom-bind-notifier#9a0a4d20a1
-├─┬ imported-template#1.4.0
+├─┬ imported-template#1.4.1
 │ └── juicy-html#1.1.0
 ├── juicy-jsoneditor#1.0.5 extraneous
 ├── juicy-redirect#0.4.1 extraneous
@@ -24,9 +24,9 @@ sys#1.0.0 C:\www\Starcounter\starcounter\src\BuildSystem\ClientFiles
 ├─┬ starcounter-debug-aid#2.0.5
 │ ├─┬ juicy-jsoneditor#1.0.5
 │ │ ├── fast-json-patch#0.5.7
-│ │ ├── jsoneditor#4.2.1 (latest is 5.2.0)
+│ │ ├── jsoneditor#4.2.1 (latest is 5.5.2)
 │ │ └─┬ polymer#1.4.0 incompatible with ~1.1.4 (1.1.5 available, latest is 1.4.0)
-│ │   └── webcomponentsjs#0.7.21
+│ │   └── webcomponentsjs#0.7.22
 │ └── polymer#1.4.0 incompatible with ~1.1.4 (1.1.5 available, latest is 1.4.0)
-└─┬ starcounter-include#0.1.0
-  └── imported-template#1.4.0
+└─┬ starcounter-include#0.2.1
+  └── imported-template#1.4.1

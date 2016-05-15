@@ -135,14 +135,33 @@ namespace Administrator.Server.Managers {
         /// <param name="sourceUrl"></param>
         /// <param name="completionCallback"></param>
         /// <param name="errorCallback"></param>
-        internal static void Download(string sourceUrl, Database database, Action<DatabaseApplication> completionCallback = null, Action<string> errorCallback = null) {
+        internal static void Download(string sourceUrl, Database database, bool throwErrorIfExist, Action<DatabaseApplication> completionCallback = null, Action<string> errorCallback = null) {
+
+            // Check if app is already installed.
+            DatabaseApplication databaseApplication = database.GetApplicationBySourceUrl(sourceUrl);
+            if (databaseApplication != null) {
+
+                if (throwErrorIfExist) {
+                    if (errorCallback != null) {
+                        errorCallback("Application already deployed.");
+                    }
+                    return;
+                }
+
+                // Application already downloaded.
+                if (completionCallback != null) {
+                    completionCallback(databaseApplication);
+                }
+                return;
+            }
 
             DeployManager.DownloadPackage(sourceUrl, (data) => {
+
+                DeployedConfigFile config = null;
 
                 try {
 
                     using (MemoryStream packageZip = new MemoryStream(data)) {
-                        DeployedConfigFile config;
 
                         string imageResourceFolder = System.IO.Path.Combine(Program.ResourceFolder, DeployManager.GetAppImagesFolder());
 
@@ -158,6 +177,23 @@ namespace Administrator.Server.Managers {
                         }
                     }
                 }
+                catch (InvalidOperationException e) {
+
+                    if (throwErrorIfExist == false && config != null) {
+                        // Find app
+                        DatabaseApplication existingApplication = database.GetApplication(config.Namespace, config.Channel, config.Version);
+                        if (existingApplication != null) {
+                            if (completionCallback != null) {
+                                completionCallback(existingApplication);
+                            }
+                            return;
+                        }
+                    }
+
+                    if (errorCallback != null) {
+                        errorCallback(e.Message);
+                    }
+                }
                 catch (Exception e) {
 
                     if (errorCallback != null) {
@@ -171,6 +207,9 @@ namespace Administrator.Server.Managers {
 
                 if (resultCode == (ushort)System.Net.HttpStatusCode.ServiceUnavailable) {
                     errorMessage += " " + "Service Unavailable.";
+                }
+                else if (resultCode == (ushort)System.Net.HttpStatusCode.NotFound) {
+                    errorMessage += " " + "Application not found.";
                 }
 
                 if (errorCallback != null) {
@@ -282,7 +321,7 @@ namespace Administrator.Server.Managers {
                         errorCallback(response.StatusCode, response.Body);
                     }
                 }
-            },  3600, opt);
+            }, 3600, opt);
         }
     }
 }

@@ -195,8 +195,10 @@ namespace Starcounter
             UInt16 portNumber = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
             Int32 defaultreceiveTimeoutSeconds = 0)
         {
-            if (hostName == null) {
-                hostName = "localhost";
+            // NOTE: We have to use ip address instead of "localhost" because of crazy DNS name 
+            // resolution that takes time.
+            if ((hostName == null) || (hostName == "localhost")) {
+                hostName = "127.0.0.1";
             }
 
             // Checking if port is not specified.

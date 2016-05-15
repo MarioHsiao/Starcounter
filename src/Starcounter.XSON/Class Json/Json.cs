@@ -302,7 +302,8 @@ namespace Starcounter {
             } else if (property is TObject) {
                 var at = (TObject)property;
                 if (at.UseBinding(this)) {
-                    CheckBoundObject(at.BoundGetter(this));
+                    Json childJson = at.UnboundGetter(this);
+                    childJson.CheckBoundObject(at.BoundGetter(this));
                 }
             } else {
                 TValue p = property as TValue;
@@ -423,18 +424,24 @@ namespace Starcounter {
 
 		public object this[string key] {
 			get {
-				var template = (TObject)this.Template;
+				var template = this.Template as TObject;
+                if (template == null)
+                    return null;
+
 				var prop = template.Properties[key];
-				if (prop == null) {
+				if (prop == null)
 					return null;
-				}
+				
 				return this[prop.TemplateIndex];
 			}
 			set {
 				if (Template == null)
 					CreateDynamicTemplate();
 
-				var template = (TObject)this.Template;
+				var template = this.Template as TObject;
+                if (template == null)
+                    return;
+
 				var prop = template.Properties[key];
 				if (prop == null) {
 					Type type;

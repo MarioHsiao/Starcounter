@@ -43,8 +43,6 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     GW_ASSERT(rebalance_accept_sockets_);
     InitializeSListHead(rebalance_accept_sockets_);
 
-    worker_suspended_unsafe_ = false;
-
     worker_stats_bytes_received_ = 0;
     worker_stats_bytes_sent_ = 0;
     worker_stats_sent_num_ = 0;
@@ -515,7 +513,7 @@ uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
         socket_index_type new_socket_index = ObtainFreeSocketIndex(
             new_socket,
             port_index,
-            MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP,
+            MixedCodeConstants::NetworkProtocolType::PROTOCOL_UNKNOWN,
             false);
 
         // Checking if we can't obtain new socket index.
@@ -877,7 +875,18 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
     // Checking disconnect state.
     if (sd->get_disconnect_after_send_flag()) {
-        return SCERRGWDISCONNECTAFTERSENDFLAG;
+
+		// NOTE: We can't shutdown the socket because the last
+		// message is not delivered even we do SHUTDOWN with blocking
+		// either receives or sends. So instead we wait until client
+		// closes the socket or inactive socket timeout is reached.
+
+		//sd->get_socket_info()->ShutdownSend();
+		//sd->get_socket_info()->ShutdownReceive(); 
+
+		// Checking if its a WebSocket protocol.
+		if (sd->is_web_socket())
+			return SCERRGWDISCONNECTFLAG;
     }
 
     // If we received 0 bytes, the remote side has close the connection.
@@ -1001,13 +1010,23 @@ uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
         HandlersList* ph = sp->get_port_handlers();
 
         if ((ph != NULL) && (!ph->IsEmpty())) {
-            ph->RunHandlers(this, sd_push_to_db, &is_handled);
-            GW_ASSERT(NULL == sd_push_to_db);
+
+			// Push chunk to corresponding channel/scheduler.
+			err_code = PushSocketDataToDb(sd_push_to_db, ph->get_handler_info());
+
+			if (err_code) {
+
+				// Releasing the cloned chunk.
+				ReturnSocketDataChunksToPool(sd_push_to_db);
+
+				return err_code;
+			}
         }        
     }
 
     // Checking if we were not able to push.
     if (NULL != sd_push_to_db) {
+
         // Releasing the cloned chunk.
         ReturnSocketDataChunksToPool(sd_push_to_db);
     }
@@ -1037,7 +1056,7 @@ void GatewayWorker::PushDisconnectToCodehost(SocketDataChunkRef sd) {
 	}
 
     // Processing session according to protocol.
-    switch (sd->get_type_of_network_protocol()) {
+    switch (sd->GetTypeOfNetworkProtocol()) {
 
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS: {
             // NOTE: Ignoring the error code.
@@ -1535,7 +1554,7 @@ void GatewayWorker::ProcessRebalancedSockets() {
         socket_index_type new_socket_index = ObtainFreeSocketIndex(
             s,
             pi,
-            MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP,
+            MixedCodeConstants::NetworkProtocolType::PROTOCOL_UNKNOWN,
             false);
 
         // Checking if we can't obtain new socket index.
@@ -1595,7 +1614,7 @@ uint32_t GatewayWorker::WorkerRoutine()
     uint32_t num_fetched_ovls = 0;
     uint32_t err_code = 0;
     uint32_t oper_num_bytes = 0, flags = 0, oldTimeMs = timeGetTime();
-    uint32_t next_sleep_interval_ms = INFINITE;
+    uint32_t next_sleep_interval_ms = 1000;
 
 #ifdef WORKER_NO_SLEEP
     next_sleep_interval_ms = 0;
@@ -1603,7 +1622,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 
     sd_receive_clone_ = NULL;
 
-    // Starting worker infinite loop.
+    // Starting worker loop.
     while (TRUE)
     {
         // Checking if there no work.
@@ -1651,8 +1670,9 @@ uint32_t GatewayWorker::WorkerRoutine()
         }
 
         // Check if global lock is set.
-        if (g_gateway.global_lock())
-            g_gateway.SuspendWorker(this);
+		if (g_gateway.is_global_lock_set()) {
+			g_gateway.SuspendWorker(this);
+		}
 
         // Checking if operation successfully completed.
         if (TRUE == compl_status)
@@ -1808,8 +1828,8 @@ uint32_t GatewayWorker::WorkerRoutine()
             GW_ASSERT((STATUS_USER_APC == err_code) || (STATUS_TIMEOUT == err_code));
         }
 
-        // Setting gateway to wait infinitely for network events.
-        next_sleep_interval_ms = INFINITE;
+        // Setting gateway to wait 1 second for network and other IOCP events.
+        next_sleep_interval_ms = 1000;
 
         // Checking if we have aggregation.
         if (INVALID_PORT_NUMBER != g_gateway.setting_aggregation_port())
@@ -1885,13 +1905,21 @@ uint32_t GatewayWorker::ScanChannels(uint32_t* next_sleep_interval_ms)
                 // Checking that database is ready for deletion (i.e. no pending sockets and chunks).
                 if (g_gateway.GetDatabase(i)->IsReadyForCleanup())
                 {
-                    // Entering global lock.
-                    EnterGlobalLock();
+					// Checking if its the main worker thread.
+					if (0 == worker_id_) {
 
-                    // Deleting all ports that are empty from chunks, etc.
-                    g_gateway.CleanUpEmptyPorts();
+						// Entering global lock.
+						WorkerEnterGlobalLock();
 
-                    GW_ASSERT(true == g_gateway.GetDatabase(i)->IsReadyForCleanup());
+						// Deleting all ports that are empty from chunks, etc.
+						g_gateway.CleanUpEmptyPorts();
+
+						// Making sure the database is ready for clean up.
+						GW_ASSERT(true == g_gateway.GetDatabase(i)->IsReadyForCleanup());
+
+						// Leaving global lock.
+						WorkerLeaveGlobalLock();
+					}
 
                     // Finally completely deleting database object and closing shared memory.
                     DeleteInactiveDatabase(i);
@@ -1899,10 +1927,9 @@ uint32_t GatewayWorker::ScanChannels(uint32_t* next_sleep_interval_ms)
 #ifdef GW_DATABASES_DIAG
                     GW_PRINT_WORKER << "Deleted shared memory for db slot: " << i << GW_ENDL;
 #endif
+					// Releasing holding worker.
                     g_gateway.GetDatabase(i)->ReleaseHoldingWorker();
 
-                    // Leaving global lock.
-                    LeaveGlobalLock();
                 }
                 else
                 {

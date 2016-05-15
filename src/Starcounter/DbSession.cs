@@ -251,6 +251,24 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Runs the task represented by the action delegate on given scheduler and waits for its finish.
+        /// </summary>
+        public void RunSync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
+            ManualResetEvent mre = new ManualResetEvent(false);
+
+            RunAsync(() => {
+                try {
+                    action();
+                } finally {
+                    mre.Set();
+                }
+                
+            }, schedId);
+
+            mre.WaitOne();
+        }
+
+        /// <summary>
         /// Runs the task represented by the action delegate synchronously.
         /// </summary>
         /// <remarks>
@@ -267,7 +285,7 @@ namespace Starcounter {
         /// exception, as an inner exception, is thrown by RunSync.
         /// </para>
         /// </remarks>
-        public void RunSync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
+        public void RunSyncPrevious(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
             unsafe {
                 uint r;
 

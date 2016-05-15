@@ -1,7 +1,7 @@
 ﻿{
-	"$": { Namespace: "Administrator.Server.Model" },
+  "$": { "Namespace": "Administrator.Server.Model" },
   "DatabaseName": "",
-  "SourceUrl" : "",
-	"ID" : ""
+  "Namespace": "",
+  "Channel": "",
+  "SourceUrl": ""
 }
-

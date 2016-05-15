@@ -14,6 +14,7 @@ Release
 *.force
 *.suo
 *.sdf
+*.VC.db
 *.ipch
 *.aps
 *.csproj.user

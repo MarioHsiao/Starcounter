@@ -1058,6 +1058,13 @@ uint32_t Gateway::LoadSettings()
             g_gateway.LogWriteCritical(L"Gateway XML: Unsupported WorkersNumber value.");
             return SCERRBADGATEWAYCONFIG;
         }
+
+		// NOTE: Checking if we have a special env var to set number of gateway workers for testing only.
+		char temp_str[8];
+		int32_t num_chars = GetEnvironmentVariableA("SC_GW_WORKERS_NUMBER", temp_str, 8);
+		if ((num_chars > 0) && (num_chars < 8)) {
+			setting_num_workers_ = atoi(temp_str);
+		}
         
         // Getting maximum connection number.
         node_elem = root_elem->first_node("MaxConnectionsPerWorker");
@@ -1537,7 +1544,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     GW_COUT << "Registering HTTP handler on " << db_name << " \"" << method_space_uri << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
     // Entering global lock.
-    gw->EnterGlobalLock();
+    gw->WorkerEnterGlobalLock();
 
     // Registering determined URI Apps handler.
     uint32_t err_code = g_gateway.AddUriHandler(
@@ -1552,7 +1559,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
         AppsUriProcessData);
 
     // Releasing global lock.
-    gw->LeaveGlobalLock();
+    gw->WorkerLeaveGlobalLock();
 
     // Reporting to server log if we are trying to register a handler duplicate.
     if (SCERRHANDLERALREADYREGISTERED == err_code) {
@@ -1613,7 +1620,7 @@ uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChu
 	GW_COUT << "Removing HTTP handler on \"" << method_space_uri << "\" on port " << port << GW_ENDL;
 
 	// Entering global lock.
-	gw->EnterGlobalLock();
+	gw->WorkerEnterGlobalLock();
 
 	// Getting the port structure.
 	ServerPort* server_port = g_gateway.FindServerPort(port);
@@ -1641,7 +1648,7 @@ uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChu
 	}
 
 	// Releasing global lock.
-	gw->LeaveGlobalLock();
+	gw->WorkerLeaveGlobalLock();
 
 	if (err_code) {
 
@@ -1705,7 +1712,7 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
     GW_COUT << "Registering PORT handler on " << db_name << " on port " << port << "(is udp: " << is_udp << ")" << " registration with handler id: " << handler_info << GW_ENDL;
 
     // Entering global lock.
-    gw->EnterGlobalLock();
+    gw->WorkerEnterGlobalLock();
 
     if (is_udp) {
 
@@ -1732,7 +1739,7 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
     }
 
     // Releasing global lock.
-    gw->LeaveGlobalLock();
+    gw->WorkerLeaveGlobalLock();
 
     if (err_code) {
 
@@ -1802,7 +1809,7 @@ uint32_t RegisterWsHandler(
     GW_COUT << "Registering WebSocket channel handler on " << db_name << " \"" << ws_channel_name << ":" << ws_channel_id << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
     // Entering global lock.
-    gw->EnterGlobalLock();
+    gw->WorkerEnterGlobalLock();
 
     uint32_t err_code = 0;
 
@@ -1824,8 +1831,13 @@ uint32_t RegisterWsHandler(
             0,
             OuterUriProcessData);
 
-        if (err_code)
-            return err_code;
+		if (err_code) {
+
+			// Releasing global lock.
+			gw->WorkerLeaveGlobalLock();
+
+			return err_code;
+		}
 
         server_port = g_gateway.FindServerPort(port);
 
@@ -1851,7 +1863,7 @@ uint32_t RegisterWsHandler(
     }
 
     // Releasing global lock.
-    gw->LeaveGlobalLock();
+    gw->WorkerLeaveGlobalLock();
 
     if (err_code) {
 
@@ -1881,7 +1893,7 @@ uint32_t RegisterWsHandler(
 uint32_t Gateway::DeleteExistingCodehost(GatewayWorker *gw, const std::string codehost_name) {
 
 	// Entering global lock.
-	gw->EnterGlobalLock();
+	gw->WorkerEnterGlobalLock();
 
 	// Checking what databases went down.
 	for (int32_t s = 0; s < num_dbs_slots_; s++)
@@ -1903,7 +1915,7 @@ uint32_t Gateway::DeleteExistingCodehost(GatewayWorker *gw, const std::string co
 	}
 
 	// Leaving global lock.
-	gw->LeaveGlobalLock();
+	gw->WorkerLeaveGlobalLock();
 
 	return 0;
 }
@@ -1916,10 +1928,8 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 #endif
 
 	// Entering global lock.
-	if (NULL != gw)
-		gw->EnterGlobalLock();
-	else 
-		EnterGlobalLock();
+	GW_ASSERT(NULL != gw);
+	gw->WorkerEnterGlobalLock();
 
 	// Finding first empty slot.
 	int32_t empty_db_index = 0;
@@ -1945,7 +1955,6 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 		num_dbs_slots_++;
 
 	// Adding to workers database interfaces.
-	bool db_init_failed = false;
 	uint32_t err_code = 0;
 	for (int32_t i = 0; i < setting_num_workers_; i++)
 	{
@@ -1961,8 +1970,9 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 			g_gateway.LogWriteWarning(temp_str.c_str());
 
 			// Deleting worker database parts.
-			for (int32_t i = 0; i < setting_num_workers_; i++)
-				gw_workers_[i].DeleteInactiveDatabase(empty_db_index);
+			for (int32_t k = 0; k < setting_num_workers_; k++) {
+				gw_workers_[k].DeleteInactiveDatabase(empty_db_index);
+			}
 
 			// Resetting newly created database.
 			active_databases_[empty_db_index].Reset(true);
@@ -1972,31 +1982,18 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 				num_dbs_slots_--;
 
 			// Leaving global lock.
-			if (NULL != gw)
-				gw->LeaveGlobalLock();
-			else
-				LeaveGlobalLock();
+			gw->WorkerLeaveGlobalLock();
 
-			db_init_failed = true;
-
-			break;
+			return err_code;
 		}
 
 		if (err_code)
 		{
 			// Leaving global lock.
-			if (NULL != gw)
-				gw->LeaveGlobalLock();
-			else
-				LeaveGlobalLock();
+			gw->WorkerLeaveGlobalLock();
 
 			return err_code;
 		}
-	}
-
-	// Checking if any error occurred.
-	if (db_init_failed) {
-		return err_code;
 	}
 
 	// Spawning channels events monitor.
@@ -2004,10 +2001,7 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 	if (err_code)
 	{
 		// Leaving global lock.
-		if (NULL != gw)
-			gw->LeaveGlobalLock();
-		else
-			LeaveGlobalLock();
+		gw->WorkerLeaveGlobalLock();
 
 		return err_code;
 	}
@@ -2022,10 +2016,7 @@ uint32_t Gateway::AddNewCodehost(GatewayWorker *gw, const std::string codehost_n
 	}
 
 	// Leaving global lock.
-	if (NULL != gw)
-		gw->LeaveGlobalLock();
-	else
-		LeaveGlobalLock();
+	gw->WorkerLeaveGlobalLock();
 
 	return 0;
 }
@@ -2116,6 +2107,7 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 ActiveDatabase::ActiveDatabase()
 {
     num_holding_workers_ = 0;
+
     InitializeCriticalSection(&cs_db_checks_);
 
     StartDeletion();
@@ -2181,7 +2173,7 @@ bool ActiveDatabase::IsEmpty()
     EnterCriticalSection(&cs_db_checks_);
 
     // Checking if all chunks for this database were released.
-    is_empty_ = (num_holding_workers_ == 0) && IsReadyForCleanup();
+    is_empty_ = (0 == num_holding_workers_) && IsReadyForCleanup();
 
     LeaveCriticalSection(&cs_db_checks_);
 
@@ -2223,10 +2215,21 @@ uint32_t Gateway::Init()
     // Allocating workers data.
     gw_workers_ = GwNewArray(GatewayWorker, setting_num_workers_);
     worker_thread_handles_ = GwNewArray(HANDLE, setting_num_workers_);
+	worker_suspend_events_ = GwNewArray(HANDLE, setting_num_workers_);
 
     // Filling up worker parameters.
-    for (int i = 0; i < setting_num_workers_; i++)
+    for (int32_t i = 0; i < setting_num_workers_; i++)
     {
+		// Creating auto-reset events for all workers.
+		worker_suspend_events_[i] = CreateEvent(
+			NULL,   // default security attributes
+			TRUE,  // manual-reset event object
+			FALSE,  // initial state is nonsignaled
+			NULL);  // unnamed object
+
+		if (NULL == worker_suspend_events_[i])
+			GW_ASSERT(!"Can't create workers suspend events.");
+
         int32_t err_code = gw_workers_[i].Init(i);
         if (err_code)
             return err_code;
@@ -2869,13 +2872,19 @@ std::string Gateway::GetGatewayStatisticsString()
 // Check and wait for global lock.
 void Gateway::SuspendWorker(GatewayWorker* gw)
 {
-    gw->set_worker_suspended(true);
+	// Signalling that worker is in wait state.
+	if (!SetEvent(g_gateway.get_worker_suspend_handle(gw->get_worker_id()))) {
+		GW_ASSERT(!"Can't set worker suspend event.");
+	}
 
     // Entering the critical section.
     EnterCriticalSection(&cs_global_lock_);
-
-    gw->set_worker_suspended(false);
         
+	// This should work as a barrier.
+	if (!ResetEvent(g_gateway.get_worker_suspend_handle(gw->get_worker_id()))) {
+		GW_ASSERT(!"Can't reset worker suspend event.");
+	}
+
     // Leaving the critical section.
     LeaveCriticalSection(&cs_global_lock_);
 }
@@ -2949,22 +2958,19 @@ int64_t Gateway::NumberOverflowChunksAllWorkers()
 // Waits for all workers to suspend.
 void Gateway::WaitAllWorkersSuspended()
 {
-    int32_t num_worker_locked = 0;
-
     // First waking up all workers.
     WakeUpAllWorkers();
 
     // Waiting for all workers to suspend.
-    while (num_worker_locked < setting_num_workers_)
-    {
-        Sleep(1);
-        num_worker_locked = 0;
-        for (int32_t i = 0; i < setting_num_workers_; i++)
-        {
-            if (gw_workers_[i].worker_suspended())
-                num_worker_locked++;
-        }
-    }
+	DWORD ev = WaitForMultipleObjects(
+		setting_num_workers_,           // number of objects in array
+		worker_suspend_events_,     // array of objects
+		TRUE,       // wait for all objects
+		15000);       // fifteen-seconds wait
+
+	if (ev != WAIT_OBJECT_0) {
+		GW_ASSERT(!"Can't get all workers suspended within 15 seconds.");
+	}
 }
 
 // Waking up all workers if they are sleeping.
@@ -3124,22 +3130,19 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
 // Entry point for gateway worker.
 uint32_t __stdcall GatewayWorkerRoutine(LPVOID params)
 {
-    uint32_t err_code = 0;
+	// Catching all unhandled exceptions in this thread.
+	GW_SC_BEGIN_FUNC
 
-    // Catching all unhandled exceptions in this thread.
-    GW_SC_BEGIN_FUNC
-
-    // Starting routine.
-    err_code = ((GatewayWorker *)params)->WorkerRoutine();
-
-    // Catching all unhandled exceptions in this thread.
-    GW_SC_END_FUNC
+    uint32_t err_code = ((GatewayWorker *)params)->WorkerRoutine();
 
     wchar_t temp[256];
     wsprintf(temp, L"Gateway worker thread exited with error code: %d", err_code);
     g_gateway.LogWriteError(temp);
 
     return err_code;
+
+	// Catching all unhandled exceptions in this thread.
+	GW_SC_END_FUNC
 }
 
 // Entry point for inactive sockets cleanup.
@@ -3196,22 +3199,19 @@ uint32_t __stdcall GatewayLoggingRoutine(LPVOID params)
 // Entry point for all threads monitor routine.
 uint32_t __stdcall GatewayMonitorRoutine(LPVOID params)
 {
-    uint32_t err_code = 0;
+	// Catching all unhandled exceptions in this thread.
+	GW_SC_BEGIN_FUNC
 
-    // Catching all unhandled exceptions in this thread.
-    GW_SC_BEGIN_FUNC
-
-    // Starting routine.
-    err_code = g_gateway.GatewayMonitor();
-
-    // Catching all unhandled exceptions in this thread.
-    GW_SC_END_FUNC
+    uint32_t err_code = g_gateway.GatewayMonitor();
 
     wchar_t temp[256];
     wsprintf(temp, L"Gateway monitoring thread exited with error code: %d", err_code);
     g_gateway.LogWriteError(temp);
 
     return err_code;
+
+	// Catching all unhandled exceptions in this thread.
+	GW_SC_END_FUNC
 }
 
 // Cleaning up all global resources.
@@ -3249,9 +3249,6 @@ uint32_t Gateway::GatewayMonitor()
             // Checking if alive.
             if (!WaitForSingleObject(worker_thread_handles_[i], 0))
             {
-                // Stating explicitly that this worker is dead.
-                gw_workers_[i].set_worker_suspended(true);
-
                 // Printing diagnostics.
                 GW_COUT << "Worker " << i << " is dead." << GW_ENDL;
 
@@ -3293,19 +3290,6 @@ uint32_t Gateway::GatewayMonitor()
     }
 
     return 0;
-}
-
-// Safely shutdowns the gateway.
-void Gateway::ShutdownGateway(GatewayWorker* gw, int32_t exit_code)
-{
-    // Entering safe mode.
-    if (gw)
-        gw->EnterGlobalLock();
-    else
-        EnterGlobalLock();
-
-    // Killing process with given exit code.
-    ExitProcess(exit_code);
 }
 
 // Prints statistics, monitors all gateway threads, etc.

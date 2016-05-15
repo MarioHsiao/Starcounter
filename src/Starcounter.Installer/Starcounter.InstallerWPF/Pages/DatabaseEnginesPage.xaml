@@ -116,12 +116,18 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
                                             <TextBox x:Name="tb_PersonalServerPath" Margin="0"  Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" VerticalAlignment="Top">
                                                 <TextBox.Text>
                                                     <Binding Path="Path" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
                                                         <Binding.ValidationRules>
                                                             <rules:IsLocalPathRule ValidatesOnTargetUpdated="True"/>
-                                                            <rules:DatabaseRepositoryFolderRule UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>
+                                                            <rules:IsEmptyFolderRule ValidatesOnTargetUpdated="True"/>
+                                                            <rules:DatabaseRepositoryFolderRule CheckEmptyString="True"  ValidatesOnTargetUpdated="True"/>
                                                             <rules:DuplicatPathCheckRule Type="{x:Static rules:DuplicatPathCheckRule+SelfType.SystemServerPath}" ValidatesOnTargetUpdated="True"/>
                                                         </Binding.ValidationRules>
                                                     </Binding>
@@ -129,6 +135,9 @@
                                             </TextBox>
 
                                             <Button MinWidth="0" Content="_Change" Grid.Column="1" Margin="5,0,0,0"  Command="ApplicationCommands.Open" CommandParameter="Please select a directory where the Server repository will be installed" CommandTarget="{Binding ElementName=tb_PersonalServerPath}"  />
+
+                                            <TextBlock Grid.Row="1" Margin="0,5,0,0" Foreground="#FFFFD700" Grid.ColumnSpan="2" TextWrapping="Wrap" Text="Personal server installation in non-user directory. You are installing Personal Server not in user directory, Make sure you have read/write access rights to the folder" Visibility="{Binding Path=NotUserPersonalDirectory, Converter={StaticResource booleanToVisibilityConverter}}" ></TextBlock>
+                                            <TextBlock Grid.Row="2" Margin="0,5,0,0" Foreground="#FFFFD700" Grid.ColumnSpan="2" TextWrapping="Wrap" Text="Directory contains files" Visibility="{Binding Path=InvalidFolder, Converter={StaticResource booleanToVisibilityConverter}}" ></TextBlock>
                                         </Grid>
 
                                         <Grid Margin="0,7.5,0,0">

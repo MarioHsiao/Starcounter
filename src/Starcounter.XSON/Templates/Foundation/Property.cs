@@ -5,7 +5,6 @@
 // ***********************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter.XSON;
 using Starcounter.Internal;
@@ -24,13 +23,12 @@ namespace Starcounter.Templates {
 		internal Func<Json, T>  UnboundGetter;  
         private Func<Json, Property<T>, T, Input<T>> _inputEventCreator;
         private Action<Json, Input<T>> _inputHandler;
-        private String _appName; // To which application this input handler belongs.
-
+        
 		public Property() {
 			Getter = BoundOrUnboundGet;
 			Setter = BoundOrUnboundSet;
 		}
-
+        
 		private T BoundOrUnboundGet(Json parent) {
 			if (UseBinding(parent))
 				return BoundGetter(parent);
@@ -50,6 +48,8 @@ namespace Starcounter.Templates {
 			parent.CallHasChanged(this);
 		}
 
+        protected abstract bool ValueEquals(T value1, T value2);
+
         /// <summary>
         ///
         /// </summary>
@@ -58,8 +58,19 @@ namespace Starcounter.Templates {
             set; 
         }
 
-        internal override void SetDefaultValue(Json parent) {
-            UnboundSetter(parent, DefaultValue);
+        internal override void SetDefaultValue(Json parent, bool markAsReplaced = false) {
+            if (markAsReplaced) {
+                bool hasChanged = !(ValueEquals(UnboundGetter(parent), DefaultValue));
+                UnboundSetter(parent, DefaultValue);
+
+                if (hasChanged) {
+                    if (parent.HasBeenSent)
+                        parent.MarkAsReplaced(this.TemplateIndex);
+                    parent.CallHasChanged(this);
+                }
+            } else {
+                UnboundSetter(parent, DefaultValue);
+            }
         }
 
 		/// <summary>
@@ -115,10 +126,18 @@ namespace Starcounter.Templates {
 			return (BoundGetter != null);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		internal override void GenerateUnboundGetterAndSetter() {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        internal override bool HasBinding() {
+            return (BoundGetter != null);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal override void GenerateUnboundGetterAndSetter() {
 			if (UnboundGetter == null)
 				TemplateDelegateGenerator.GenerateUnboundDelegates<T>(this, false);
 		}
@@ -166,19 +185,16 @@ namespace Starcounter.Templates {
 		/// <param name="parent"></param>
 		/// <param name="addToChangeLog"></param>
 		internal override void CheckAndSetBoundValue(Json parent, bool addToChangeLog) {
-			if (UseBinding(parent)) {
-				T boundValue = BoundGetter(parent);
-				T oldValue = UnboundGetter(parent);
-
-				// Since all values except string are valuetypes (and cannot be null),
-				// the default implementation does no nullchecks. This method is overriden
-				// in TString where we check for null as well.
-				if (!boundValue.Equals(oldValue)) {
-					UnboundSetter(parent, boundValue);
-					if (addToChangeLog)
-						parent.ChangeLog.UpdateValue(parent, this);
-				}
-			}
+            if (UseBinding(parent)) {
+                T boundValue = BoundGetter(parent);
+                T oldValue = UnboundGetter(parent);
+                
+                if (!ValueEquals(boundValue, oldValue)) {
+                    UnboundSetter(parent, boundValue);
+                    if (addToChangeLog)
+                        parent.ChangeLog.UpdateValue(parent, this);
+                }
+            }
 		}
 
 		/// <summary>
@@ -208,7 +224,6 @@ namespace Starcounter.Templates {
                                Action<Json, Input<T>> handler) {
             _inputEventCreator = createInputEvent;
             _inputHandler = handler;
-            _appName = StarcounterEnvironment.AppName;
         }
 
         /// <summary>
@@ -221,7 +236,7 @@ namespace Starcounter.Templates {
             // Setting the application name of the input handler owner.
             String savedAppName = StarcounterEnvironment.AppName;
             try {
-                StarcounterEnvironment.AppName = _appName;
+                StarcounterEnvironment.AppName = parent._appName;
                 _inputHandler.Invoke(parent, input);
             } finally {
                 StarcounterEnvironment.AppName = savedAppName;
@@ -250,7 +265,8 @@ namespace Starcounter.Templates {
                     Debug.WriteLine("Setting value after custom handler: " + input.Value);
                     Setter(parent, input.Value);
 
-                    if (!input.ValueChanged) // Incoming value have not been changed. Remove the dirtyflag.
+                    // Check if incoming value is set without change. If so remove the dirtyflag.
+                    if (!input.ValueChanged && this.ValueEquals(input.Value, Getter(parent))) 
                         this.Checkpoint(parent);
                 } else {
                     Debug.WriteLine("Handler cancelled: " + value);
@@ -261,7 +277,10 @@ namespace Starcounter.Templates {
                 if (BasedOn == null) {
                     Debug.WriteLine("Setting value after no handler: " + value);
                     Setter(parent, value);
-                    this.Checkpoint(parent); // Incoming value have not been changed. Remove the dirtyflag.
+                    
+                    // Check if incoming value is set without change. If so remove the dirtyflag.
+                    if (this.ValueEquals(value, Getter(parent)))
+                        this.Checkpoint(parent); 
                 } else {
                     // This is an inherited template with no inputhandler, lets 
                     // see if the base-template has a registered handler.

@@ -19,9 +19,11 @@ namespace Starcounter.XSON {
         private static MethodInfo getTemplateMethodInfo = typeof(TObject).GetMethod("get_Template");
 		
 		private static string propNotCompatible = "Incompatible types for binding. Json property '{0}.{1}' ({2}), data property '{3}.{4}' ({5}).";
+        private static string generateBindingFailed = "Unable to generate binding. Json property '{0}.{1}' ({2}), binding '{3}'.";
+        private static string untypedArrayBindingFailed = "Unable to create binding for untyped array. Json property '{0}.{1}'.";
 
 #if DEBUG
-		private static MethodInfo debugView = typeof(Expression).GetMethod("get_DebugView", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static MethodInfo debugView = typeof(Expression).GetMethod("get_DebugView", BindingFlags.Instance | BindingFlags.NonPublic);
 #endif
 
 		/// <summary>
@@ -57,16 +59,22 @@ namespace Starcounter.XSON {
 			if (useBackingField)
 				throw new NotImplementedException();
 
-			var getLambda = GenerateUnboundGetExpression<T>(typeof(Json), property.TemplateIndex);
-			var setLambda = GenerateUnboundSetExpression<T>(typeof(Json), property.TemplateIndex, false);
+            try {
+                var getLambda = GenerateUnboundGetExpression<T>(typeof(Json), property.TemplateIndex);
+                var setLambda = GenerateUnboundSetExpression<T>(typeof(Json), property.TemplateIndex, false);
 
-			property.UnboundGetter = getLambda.Compile();
-			property.UnboundSetter = setLambda.Compile();
+                property.UnboundGetter = getLambda.Compile();
+                property.UnboundSetter = setLambda.Compile();
 
 #if DEBUG
-			property.DebugUnboundGetter = (string)debugView.Invoke(getLambda, new object[0]);
-			property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
+                property.DebugUnboundGetter = (string)debugView.Invoke(getLambda, new object[0]);
+                property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
+            } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
+                throw CreateGenerateBindingException(property, ex);
+            }
 		}
 
 		/// <summary>
@@ -77,20 +85,26 @@ namespace Starcounter.XSON {
 		/// <param name="property"></param>
 		/// <param name="directAccess"></param>
 		internal static void GenerateUnboundDelegates(TObject property, bool useBackingField) {
-			if (useBackingField)
-				throw new NotImplementedException();
+            try {
+                if (useBackingField)
+                    throw new NotImplementedException();
 
-			var getLambda = GenerateUnboundGetExpression<Json>(typeof(Json), property.TemplateIndex);
-			var setLambda = GenerateUnboundSetExpression<Json>(typeof(Json), property.TemplateIndex, true);
+                var getLambda = GenerateUnboundGetExpression<Json>(typeof(Json), property.TemplateIndex);
+                var setLambda = GenerateUnboundSetExpression<Json>(typeof(Json), property.TemplateIndex, true);
 
-			property.UnboundGetter = getLambda.Compile();
-			property.UnboundSetter = setLambda.Compile();
+                property.UnboundGetter = getLambda.Compile();
+                property.UnboundSetter = setLambda.Compile();
 
 #if DEBUG
-			property.DebugUnboundGetter = (string)debugView.Invoke(getLambda, new object[0]);
-			property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
+                property.DebugUnboundGetter = (string)debugView.Invoke(getLambda, new object[0]);
+                property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
-		}
+            } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
+                throw CreateGenerateBindingException(property, ex);
+            }
+        }
 
 		/// <summary>
 		/// Generates an expression-tree for getting and setting unbound values on a json object. The
@@ -100,20 +114,26 @@ namespace Starcounter.XSON {
 		/// <param name="property"></param>
 		/// <param name="directAccess"></param>
 		internal static void GenerateUnboundDelegates(TObjArr property, bool useBackingField) {
-			if (useBackingField)
-				throw new NotImplementedException();
+            try {
+                if (useBackingField)
+                    throw new NotImplementedException();
 
-			var getLambda = GenerateUnboundGetExpression<Json>(typeof(Json), property.TemplateIndex);
-            var setLambda = GenerateUnboundSetExpression<Json>(typeof(Json), property.TemplateIndex, true);
+                var getLambda = GenerateUnboundGetExpression<Json>(typeof(Json), property.TemplateIndex);
+                var setLambda = GenerateUnboundSetExpression<Json>(typeof(Json), property.TemplateIndex, true);
 
-			property.UnboundGetter = getLambda.Compile();
-			property.UnboundSetter = setLambda.Compile();
+                property.UnboundGetter = getLambda.Compile();
+                property.UnboundSetter = setLambda.Compile();
 
 #if DEBUG
-			property.DebugUnboundGetter = (string)debugView.Invoke(getLambda, new object[0]);
-			property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
+                property.DebugUnboundGetter = (string)debugView.Invoke(getLambda, new object[0]);
+                property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
-		}
+            } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
+                throw CreateGenerateBindingException(property, ex);
+            }
+        }
 
 		/// <summary>
 		/// Generates an expression-tree for getting and setting unbound values on a json object. The
@@ -123,20 +143,26 @@ namespace Starcounter.XSON {
 		/// <param name="property"></param>
 		/// <param name="directAccess"></param>
 		internal static void GenerateUnboundDelegates<T>(TArray<T> property, bool useBackingField) where T : Json, new() {
-			if (useBackingField)
-				throw new NotImplementedException();
+            try {
+                if (useBackingField)
+                    throw new NotImplementedException();
 
-			var getLambda = GenerateUnboundGetExpression<Arr<T>>(typeof(Json), property.TemplateIndex);
-            var setLambda = GenerateUnboundSetExpression<Arr<T>>(typeof(Json), property.TemplateIndex, true);
+                var getLambda = GenerateUnboundGetExpression<Arr<T>>(typeof(Json), property.TemplateIndex);
+                var setLambda = GenerateUnboundSetExpression<Arr<T>>(typeof(Json), property.TemplateIndex, true);
 
-			property.UnboundGetter = getLambda.Compile();
-			property.UnboundSetter = setLambda.Compile();
+                property.UnboundGetter = getLambda.Compile();
+                property.UnboundSetter = setLambda.Compile();
 
 #if DEBUG
-			property.DebugUnboundGetter = (string)debugView.Invoke(getLambda, new object[0]);
-			property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
+                property.DebugUnboundGetter = (string)debugView.Invoke(getLambda, new object[0]);
+                property.DebugUnboundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
-		}
+            } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
+                throw CreateGenerateBindingException(property, ex);
+            }
+        }
 
 		/// <summary>
 		/// Generates an expression-tree for getting and setting bound values on a json or dataobject. The
@@ -152,48 +178,58 @@ namespace Starcounter.XSON {
 			Expression<Func<Json, T>> getLambda;
 			Expression<Action<Json, T>> setLambda = null;
 
-			
-			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
+            try {
+                throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
 
-            string bind = property.Bind;
-            boundDirectlyToData = (property == json.Template);
+                string bind = property.Bind;
+                boundDirectlyToData = (property == json.Template);
 
-            if (bind == null && boundDirectlyToData) {
-                bInfo = new BindingInfo();
-                if (json.Data != null) {
-                    bInfo.BoundToType = typeof(T);
-                    bInfo.IsBoundToParent = true;
-                    bInfo.Member = json.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public);
+                if (bind == null && boundDirectlyToData) {
+                    bInfo = new BindingInfo();
+                    if (json.Data != null) {
+                        bInfo.BoundToType = typeof(T);
+                        bInfo.IsBoundToParent = true;
+                        bInfo.Member = json.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public);
+                    }
+                } else {
+                    bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
                 }
-            } else {
-                bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
-            }
-			    
-            if (bInfo.Member != null) {
-				getLambda = GenerateBoundGetExpression<T>(bInfo, property);
-				property.BoundGetter = getLambda.Compile();
 
-				if (DataBindingHelper.HasSetter(bInfo.Member)) {
-					setLambda = GenerateBoundSetExpression<T>(bInfo, property);
-					property.BoundSetter = setLambda.Compile();
-				}
+                if (bInfo.Member != null) {
+                    getLambda = GenerateBoundGetExpression<T>(bInfo, property);
+                    property.BoundGetter = getLambda.Compile();
+
+                    if (DataBindingHelper.HasSetter(bInfo.Member)) {
+                        setLambda = GenerateBoundSetExpression<T>(bInfo, property);
+                        property.BoundSetter = setLambda.Compile();
+                    }
 
 #if DEBUG
-				property.DebugBoundGetter = (string)debugView.Invoke(getLambda, new object[0]);
+                    property.DebugBoundGetter = (string)debugView.Invoke(getLambda, new object[0]);
 
-				if (setLambda != null)
-					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
+                    if (setLambda != null)
+                        property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
-			} else {
-				property.isVerifiedUnbound = true; // Auto binding where property not match.
-			}
-            property.dataTypeForBinding = bInfo.BoundToType;
+                    property.dataTypeForBinding = bInfo.BoundToType;
+                } else {
+                    if (json.Data != null) {
+                        property.isVerifiedUnbound = true; // Auto binding where property not match.
+                        property.dataTypeForBinding = json.Data.GetType();
+                    }
+                    
+                }
 
-            if (boundDirectlyToData)
-                property.isBoundToParent = false;
-            else
-                property.isBoundToParent = bInfo.IsBoundToParent;
-		}
+
+                if (boundDirectlyToData)
+                    property.isBoundToParent = false;
+                else
+                    property.isBoundToParent = bInfo.IsBoundToParent;
+            } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
+                throw CreateGenerateBindingException(property, ex);
+            }
+        }
 
 		/// <summary>
 		/// Generates an expression-tree for getting and setting bound values on a json or dataobject. The
@@ -207,32 +243,43 @@ namespace Starcounter.XSON {
 			Expression<Func<Json, object>> getLambda;
 			Expression<Action<Json, object>> setLambda = null;
 
-            var bind = property.Bind;
-            if (bind == null)
-                return;
+            try {
+                var bind = property.Bind;
+                if (bind == null)
+                    return;
 
-			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
-			bInfo = DataBindingHelper.SearchForBinding(json, bind, property, throwException);
-			if (bInfo.Member != null) {
-				getLambda = GenerateBoundGetExpression<object>(bInfo, property);
-				property.BoundGetter = getLambda.Compile();
+                throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
+                bInfo = DataBindingHelper.SearchForBinding(json, bind, property, throwException);
+                if (bInfo.Member != null) {
+                    getLambda = GenerateBoundGetExpression<object>(bInfo, property);
+                    property.BoundGetter = getLambda.Compile();
 
-				if (DataBindingHelper.HasSetter(bInfo.Member)) {
-					setLambda = GenerateBoundSetExpression<object>(bInfo, property);
-					property.BoundSetter = setLambda.Compile();
-				}
+                    if (DataBindingHelper.HasSetter(bInfo.Member)) {
+                        setLambda = GenerateBoundSetExpression<object>(bInfo, property);
+                        property.BoundSetter = setLambda.Compile();
+                    }
 #if DEBUG
-				property.DebugBoundGetter = (string)debugView.Invoke(getLambda, new object[0]);
+                    property.DebugBoundGetter = (string)debugView.Invoke(getLambda, new object[0]);
 
-				if (setLambda != null)
-					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
+                    if (setLambda != null)
+                        property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
-			} else {
-                property.isVerifiedUnbound = true; // Auto binding where property not match.
-			}
-            property.dataTypeForBinding = bInfo.BoundToType;
-            property.isBoundToParent = bInfo.IsBoundToParent;
-		}
+
+                    property.dataTypeForBinding = bInfo.BoundToType;
+                } else {
+                    if (json.Data != null) {
+                        property.isVerifiedUnbound = true; // Auto binding where property not match.
+                        property.dataTypeForBinding = json.Data.GetType();
+                    }
+                }
+
+                property.isBoundToParent = bInfo.IsBoundToParent;
+            } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
+                throw CreateGenerateBindingException(property, ex);
+            }
+        }
 
 		/// <summary>
 		/// Generates an expression-tree for getting and setting bound values on a json or dataobject. The
@@ -245,35 +292,51 @@ namespace Starcounter.XSON {
 			bool throwException;
 			Expression<Func<Json, IEnumerable>> getLambda;
 			Expression<Action<Json, IEnumerable>> setLambda = null;
-			object dataObject = json.Data;
+			
+            try {
+                var bind = property.Bind;
+                if (bind == null)
+                    return;
 
-            var bind = property.Bind;
-            if (bind == null)
-                return;
+                throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
+                bInfo = DataBindingHelper.SearchForBinding(json, bind, property, throwException);
 
-			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
-			bInfo = DataBindingHelper.SearchForBinding(json, bind, property, throwException);
-			if (bInfo.Member != null) {
-				getLambda = GenerateBoundGetExpression<IEnumerable>(bInfo, property);
-				property.BoundGetter = getLambda.Compile();
+                if (property.ElementType == null) {
+                    if (bInfo.Member != null && throwException)
+                        throw CreateUntypedArrayBindingException(property);
+                    bInfo.Member = null;
+                }
+                
+                if (bInfo.Member != null) {
+                    getLambda = GenerateBoundGetExpression<IEnumerable>(bInfo, property);
+                    property.BoundGetter = getLambda.Compile();
 
-				if (DataBindingHelper.HasSetter(bInfo.Member)) {
-					setLambda = GenerateBoundSetExpression<IEnumerable>(bInfo, property);
-					property.BoundSetter = setLambda.Compile();
-				}
+                    if (DataBindingHelper.HasSetter(bInfo.Member)) {
+                        setLambda = GenerateBoundSetExpression<IEnumerable>(bInfo, property);
+                        property.BoundSetter = setLambda.Compile();
+                    }
 
 #if DEBUG
-				property.DebugBoundGetter = (string)debugView.Invoke(getLambda, new object[0]);
+                    property.DebugBoundGetter = (string)debugView.Invoke(getLambda, new object[0]);
 
-				if (setLambda != null)
-					property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
+                    if (setLambda != null)
+                        property.DebugBoundSetter = (string)debugView.Invoke(setLambda, new object[0]);
 #endif
-			} else {
-                property.isVerifiedUnbound = true; // Auto binding where property not match.
-			}
-            property.dataTypeForBinding = bInfo.BoundToType;
-            property.isBoundToParent = bInfo.IsBoundToParent;
-		}
+                    property.dataTypeForBinding = bInfo.BoundToType;
+                } else {
+                    if (json.Data != null) {
+                        property.isVerifiedUnbound = true; // Auto binding where property not match.
+                        property.dataTypeForBinding = json.Data.GetType();
+                    }
+                }
+
+                property.isBoundToParent = bInfo.IsBoundToParent;
+            } catch (Exception ex) {
+                if (ErrorCode.IsFromErrorCode(ex))
+                    throw; // Already is scerror, simply rethrow it.
+                throw CreateGenerateBindingException(property, ex);
+            }
+        }
 
 		private static Expression<Func<Json, T>> GenerateBoundOrUnboundGetExpression<T>(ParameterExpression property) {
 			return null;
@@ -617,43 +680,73 @@ namespace Starcounter.XSON {
                                                               Template template) {
 			Expression newExpr = null;
 
-			if (to.Equals(typeof(string))) {
-				if (from.Equals(typeof(DateTime))) {
-					// TODO:
-					// What format should be used and how much information?
-					// "u": datetime universal sortable format.
-					newExpr = Expression.Call(expr, dateTimeToStringInfo, Expression.Constant("u"));
+            if (to.Equals(typeof(string))) {
+                if (from.Equals(typeof(DateTime))) {
+                    // TODO:
+                    // What format should be used and how much information?
+                    // "u": datetime universal sortable format.
+                    newExpr = Expression.Call(expr, dateTimeToStringInfo, Expression.Constant("u"));
                 } else if (from.IsEnum) {
                     newExpr = Expression.Call(expr, from.GetMethod("ToString", new Type[0]));
                 }
-			} else if (to.Equals(typeof(DateTime))) {
-				if (from.Equals(typeof(string))) {
-					newExpr = Expression.Call(null, dateTimeParseInfo, expr);
-				}
+            } else if (to.Equals(typeof(DateTime))) {
+                if (from.Equals(typeof(string))) {
+                    newExpr = Expression.Call(null, dateTimeParseInfo, expr);
+                }
             } else if (to.IsEnum) {
                 if (from.Equals(typeof(string))) {
-                    var mi = typeof(Enum).GetMethod("Parse", new Type[]{ typeof(Type), typeof(String) });
+                    var mi = typeof(Enum).GetMethod("Parse", new Type[] { typeof(Type), typeof(String) });
                     newExpr = Expression.Call(null, mi, Expression.Constant(to), expr);
                     newExpr = Expression.Convert(newExpr, to);
                 }
+            } else if (to.Equals(typeof(object)) || to.Equals(typeof(IEnumerable))) {
+                // Object or IEnumerable types already have the correct conversion.
+                // To avoid double conversions and failure to create conditions later
+                // we skip this one. Assign itself to skip the code below.
+                if (template.TemplateTypeId == TemplateTypeEnum.Object
+                    || template.TemplateTypeId == TemplateTypeEnum.Array) {
+                    newExpr = expr;
+                }
             }
-
+            
 			if (newExpr == null) {
 				try {
 					newExpr = Expression.Convert(expr, to);
 				} catch (Exception ex) {
-					throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON,
-												ex,
-												string.Format(propNotCompatible,
-                                                              DataBindingHelper.GetParentClassName(template),
-															  template.TemplateName,
-															  to.FullName,
-                                                              bindTo.DeclaringType.FullName, 
-															  bindTo.Name,
-															  from.FullName));
+                    throw CreatePropNotCompatibleException(template, to, from, bindTo, ex);
 				}
 			}
 			return newExpr;
 		}
-	}
+
+        private static Exception CreatePropNotCompatibleException(Template property, Type to, Type from, MemberInfo member, Exception inner) {
+            var msg = string.Format(propNotCompatible,
+                                    JsonDebugHelper.GetClassName(property.Parent),
+                                    property.TemplateName,
+                                    to.FullName,
+                                    member.DeclaringType.FullName,
+                                    member.Name,
+                                    from.FullName);
+
+            return ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON, inner, msg);
+        }
+
+        private static Exception CreateGenerateBindingException(TValue property, Exception inner) {
+            var msg = string.Format(generateBindingFailed,
+                                    JsonDebugHelper.GetClassName(property.Parent),
+                                    property.TemplateName,
+                                    property.InstanceType.FullName,
+                                    property.Bind);
+
+            return ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON, inner, msg);
+        }
+
+        private static Exception CreateUntypedArrayBindingException(TValue property) {
+            var msg = string.Format(untypedArrayBindingFailed,
+                                    JsonDebugHelper.GetClassName(property.Parent),
+                                    property.TemplateName);
+
+            return ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON, null, msg);
+        }
+    }
 }

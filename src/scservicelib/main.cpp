@@ -277,6 +277,13 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 
     if (r) goto log_scerr;
 
+	// NOTE: Checking if we have a special env var to set number of gateway workers for testing only.
+	wchar_t temp_env_var_gw_workers_num[8];
+	int32_t num_chars = GetEnvironmentVariable(L"SC_GW_WORKERS_NUMBER", temp_env_var_gw_workers_num, 8);
+	if ((num_chars > 0) && (num_chars < 8)) {
+		gateway_workers_number = temp_env_var_gw_workers_num;
+	}
+
 	if(logsteps != 0 ) { 
 		_snwprintf_s(logmessagebuffer,_countof(logmessagebuffer),L"Config file %s read", server_cfg_path);
 		LogVerboseMessage(logmessagebuffer);
@@ -786,13 +793,9 @@ log_scerr:
 			// Logging to log file.
 			LogWriteError(error_msg_buf);
 
-            if ((process_exit_code > 0) && (process_exit_code != MAXDWORD)) {
-                if (exit_code_is_scerr && process_exit_code > 1) 
-                    FormatStarcounterErrorMessage(process_exit_code, error_msg_buf, 4096);
-                else 
-                    swprintf(error_msg_buf, 100, L"Process exitcode: %i", process_exit_code);
-                LogWriteError(error_msg_buf);
-            }
+			// Now writing the process exit code.
+			swprintf(error_msg_buf, 100, L"Process exitcode: %i", process_exit_code);
+			LogWriteError(error_msg_buf);
 		}
 	}
     goto end;

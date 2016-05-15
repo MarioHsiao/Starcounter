@@ -29,7 +29,7 @@ void SocketDataChunk::Init(
     set_to_database_direction_flag();
 
     set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
-    SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
+	type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
 
     set_unique_socket_id(gw->GetUniqueSocketId(socket_info_index));
     set_bound_worker_id(gw->get_worker_id());
@@ -213,9 +213,7 @@ void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw, const scheduler
     type_of_network_protocol_ = GetTypeOfNetworkProtocol();
 
     // Checking if WebSocket handshake was approved.
-    if ((get_type_of_network_protocol() == MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS) &&
-        get_ws_upgrade_approved_flag())
-    {
+    if (get_ws_upgrade_approved_flag()) {
         SetWebSocketGroupId(*(ws_group_id_type*)accept_or_params_or_temp_data_);
     }
 
@@ -237,6 +235,11 @@ void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw, const scheduler
 			// NOTE: We preserve the scheduler id when streaming to avoid locking in codehost.
 			SetSchedulerId(sched_id);
 			set_streaming_response_body_flag();
+
+		} else if (get_ws_upgrade_approved_flag()) {
+
+			// We need to save current scheduler id when WebSocket is uppgraded.
+			SetSchedulerId(sched_id);
 		}
 	}
 }
@@ -300,7 +303,7 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     sd_clone->set_client_ip_info(client_ip_info_);
     sd_clone->set_type_of_network_oper(SocketOperType::RECEIVE_SOCKET_OPER);
 
-    sd_clone->SetTypeOfNetworkProtocol(get_type_of_network_protocol());
+    sd_clone->SetTypeOfNetworkProtocol(GetTypeOfNetworkProtocol());
     
     // This socket becomes attached.
     sd_clone->set_socket_representer_flag();
@@ -351,7 +354,7 @@ void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface
     scheduler_id_type sched_id = GetSchedulerId();
 
     // Checking if we need to create scheduler id for certain protocols.
-    switch (get_type_of_network_protocol()) {
+    switch (GetTypeOfNetworkProtocol()) {
 
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP:
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
@@ -374,7 +377,7 @@ void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface
 void SocketDataChunk::ResetSessionBasedOnProtocol(GatewayWorker* gw)
 {
     // Processing session according to protocol.
-    switch (get_type_of_network_protocol())
+    switch (GetTypeOfNetworkProtocol())
     {
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
             ResetSdSession();

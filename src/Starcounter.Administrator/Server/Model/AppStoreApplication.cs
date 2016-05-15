@@ -23,8 +23,10 @@ namespace Administrator.Server.Model {
         public string ID;
         public string Namespace;
         public string Channel;
-        public string DatabaseName {
-            get {
+        public string DatabaseName
+        {
+            get
+            {
                 if (this.Database != null) {
                     return this.Database.ID;
                 }
@@ -32,8 +34,10 @@ namespace Administrator.Server.Model {
             }
         }
         public string DisplayName;
-        public string AppName {
-            get {
+        public string AppName
+        {
+            get
+            {
 
                 if (this.HasDatabaseAppliction) {
                     return this.DatabaseApplication.AppName;
@@ -62,33 +66,44 @@ namespace Administrator.Server.Model {
         public string Heading;
         public long Rating;
 
-        public bool IsDeployed {
-            get {
+        public bool IsDeployed
+        {
+            get
+            {
                 return this.HasDatabaseAppliction;
             }
         }
-        public bool IsRunning {
-            get {
+        public bool IsRunning
+        {
+            get
+            {
                 return this.HasDatabaseAppliction && this.DatabaseApplication.IsRunning;
             }
         }
-        public bool IsInstalled {
-            get {
+        public bool IsInstalled
+        {
+            get
+            {
                 return this.HasDatabaseAppliction && this.DatabaseApplication.IsInstalled;
             }
         }
-        public bool CanBeUninstalled {
-            get {
+        public bool CanBeUninstalled
+        {
+            get
+            {
                 return this.HasDatabaseAppliction && this.DatabaseApplication.CanBeUninstalled;
             }
         }
         // Version exist (Is deployed) and versionDate is newer
         private bool _CanUpgrade;
-        public bool CanUpgrade {
-            get {
+        public bool CanUpgrade
+        {
+            get
+            {
                 return this._CanUpgrade;
             }
-            set {
+            set
+            {
                 if (this._CanUpgrade == value) return;
                 this._CanUpgrade = value;
                 this.OnPropertyChanged("CanUpgrade");
@@ -96,8 +111,10 @@ namespace Administrator.Server.Model {
         }
 
         private ApplicationStatus _Status;
-        public ApplicationStatus Status {
-            get {
+        public ApplicationStatus Status
+        {
+            get
+            {
 
                 //if (this.HasDatabaseAppliction) {
                 //    return this.DatabaseApplication.Status;
@@ -105,7 +122,8 @@ namespace Administrator.Server.Model {
 
                 return this._Status;
             }
-            set {
+            set
+            {
                 if (this._Status == value) return;
                 this._Status = value;
                 this.OnPropertyChanged("Status");
@@ -113,8 +131,10 @@ namespace Administrator.Server.Model {
         }
 
         private string _StatusText;
-        public string StatusText {
-            get {
+        public string StatusText
+        {
+            get
+            {
 
                 //if (this.HasDatabaseAppliction) {
                 //    return this.DatabaseApplication.StatusText;
@@ -122,7 +142,8 @@ namespace Administrator.Server.Model {
 
                 return this._StatusText;
             }
-            set {
+            set
+            {
                 if (this._StatusText == value) return;
                 this._StatusText = value;
                 this.OnPropertyChanged("StatusText");
@@ -130,8 +151,10 @@ namespace Administrator.Server.Model {
         }
 
         private ErrorMessage _ErrorMessage = new ErrorMessage();
-        public ErrorMessage ErrorMessage {
-            get {
+        public ErrorMessage ErrorMessage
+        {
+            get
+            {
 
                 //if (this.HasDatabaseAppliction) {
                 //    return this.DatabaseApplication.ErrorMessage;
@@ -141,8 +164,10 @@ namespace Administrator.Server.Model {
             }
         }
 
-        public bool HasErrorMessage {
-            get {
+        public bool HasErrorMessage
+        {
+            get
+            {
 
                 //if (this.HasDatabaseAppliction) {
                 //    return this.DatabaseApplication.HasErrorMessage;
@@ -156,11 +181,14 @@ namespace Administrator.Server.Model {
         }
 
         private bool _DeployError;
-        public bool DeployError {
-            get {
+        public bool DeployError
+        {
+            get
+            {
                 return this._DeployError;
             }
-            set {
+            set
+            {
                 if (this._DeployError == value) return;
                 this._DeployError = value;
                 this.OnPropertyChanged("DeployError");
@@ -168,11 +196,14 @@ namespace Administrator.Server.Model {
         }
 
         private bool _DeleteError;
-        public bool DeleteError {
-            get {
+        public bool DeleteError
+        {
+            get
+            {
                 return this._DeleteError;
             }
-            set {
+            set
+            {
                 if (this._DeleteError == value) return;
                 this._DeleteError = value;
                 this.OnPropertyChanged("DeleteError");
@@ -180,11 +211,14 @@ namespace Administrator.Server.Model {
         }
 
         private bool _UpgradeError;
-        public bool UpgradeError {
-            get {
+        public bool UpgradeError
+        {
+            get
+            {
                 return this._UpgradeError;
             }
-            set {
+            set
+            {
                 if (this._UpgradeError == value) return;
                 this._UpgradeError = value;
                 this.OnPropertyChanged("UpgradeError");
@@ -193,18 +227,23 @@ namespace Administrator.Server.Model {
 
         public Database Database { get; set; }
 
-        public bool HasDatabaseAppliction {
-            get {
+        public bool HasDatabaseAppliction
+        {
+            get
+            {
                 return this.DatabaseApplication != null;
             }
         }
 
         private DatabaseApplication _DatabaseApplication;
-        public DatabaseApplication DatabaseApplication {
-            get {
+        public DatabaseApplication DatabaseApplication
+        {
+            get
+            {
                 return this._DatabaseApplication;
             }
-            internal set {
+            internal set
+            {
                 if (this._DatabaseApplication != null) {
                     this._DatabaseApplication.Changed -= _DatabaseApplication_Changed;
                 }
@@ -376,7 +415,7 @@ namespace Administrator.Server.Model {
             this.DeployError = false;
             this.Status |= ApplicationStatus.Installing;
 
-            DeployManager.Download(this.SourceUrl, this.Database, (application) => {
+            DeployManager.Download(this.SourceUrl, this.Database, true, (application) => {
 
                 this.Status &= ~ApplicationStatus.Installing;
 
@@ -510,140 +549,22 @@ namespace Administrator.Server.Model {
             this.UpgradeError = false;
             this.Status |= ApplicationStatus.Upgrading;
 
-            bool wasRunning = currentDatabaseApplication.IsRunning;
-
             this.DeployApplication((deployedDatabaseApplication) => {
 
-                this._Upgraded_Step_1_Stopping(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, (databaseApplication) => {
-
+                currentDatabaseApplication.UpgradeApplication(deployedDatabaseApplication, (databaseApplication) => {
                     // Successfully upgrade application
                     this.OnUpgradeSuccess();
 
                 }, (depoyedApplication, wasCanceled, title, message, helpLink) => {
-                    // Error
-                    this._Upgrade_Revert(currentDatabaseApplication, depoyedApplication, wasRunning, wasCanceled, title, message, helpLink);
-                });
 
+                    this.OnUpgradeError(title, message, helpLink);
+                });
             }, (depoyedApplication, wasCanceled, title, message, helpLink) => {
                 // Error
 
                 // Failed to upgrade
-                this._Upgrade_Revert(currentDatabaseApplication, depoyedApplication, wasRunning, wasCanceled, title, message, helpLink);
+                this.OnUpgradeError(title, message, helpLink);
             });
-        }
-
-        private void _Upgraded_Step_1_Stopping(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
-
-            if (currentDatabaseApplication.IsRunning) {
-
-                currentDatabaseApplication.StopApplication((stoppedCurrentApplication) => {
-
-                    this._Upgraded_Step_2_Install(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
-
-                }, errorCallback);
-            }
-            else {
-                this._Upgraded_Step_2_Install(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
-            }
-        }
-
-        private void _Upgraded_Step_2_Install(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
-
-            if (currentDatabaseApplication.IsInstalled) {
-
-                deployedDatabaseApplication.InstallApplication((installedApplication) => {
-
-                    this._Upgraded_Step_3_LockFlag(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
-                }, errorCallback);
-            }
-            else {
-
-                this._Upgraded_Step_3_LockFlag(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
-            }
-        }
-
-        private void _Upgraded_Step_3_LockFlag(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
-
-            if (currentDatabaseApplication.CanBeUninstalled != deployedDatabaseApplication.CanBeUninstalled) {
-
-                deployedDatabaseApplication.SetCanBeUninstalledFlag(currentDatabaseApplication.CanBeUninstalled, (application) => {
-
-                    this._Upgraded_Step_4_Restart(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
-
-                }, errorCallback);
-            }
-            else {
-                this._Upgraded_Step_4_Restart(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
-            }
-        }
-
-        private void _Upgraded_Step_4_Restart(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
-
-            if (wasRunning) {
-                deployedDatabaseApplication.StartApplication((depoyedApplication) => {
-
-                    this._Upgraded_Step_5_Finalize(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
-
-                }, errorCallback);
-            }
-            else {
-
-                this._Upgraded_Step_5_Finalize(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
-            }
-        }
-
-        private void _Upgraded_Step_5_Finalize(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
-
-            // Delete previous version
-            currentDatabaseApplication.DeleteApplication(true, completionCallback, errorCallback);
-        }
-
-        private void _Upgrade_Revert(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, bool wasRunning, bool wasCanceled, string title, string message, string helpLink) {
-
-            if (wasRunning) {
-                // Restart the previous app again
-                currentDatabaseApplication.StartApplication((databaseApplication) => {
-
-                    // Delete downloaded app
-                    deployedDatabaseApplication.DeleteApplication(true, (depoyedApplication2) => {
-                        // Successfully reverted to previous application
-
-                        this.OnUpgradeError(title, message, helpLink);
-                    }, (depoyedApplication, wasCanceled2, title2, message2, helpLink2) => {
-
-                        // Error, Failed to revert to previous state, Failed to remove downloaded application.
-                        this.OnUpgradeError(title + ":" + title2, message + " " + message2, helpLink);
-                    });
-
-                }, (databaseApplication, wasCanceled2, title2, message2, helpLink2) => {
-
-                    // Error, Failed to revert to previous state
-
-                    // Delete downloaded app
-                    deployedDatabaseApplication.DeleteApplication(true, (depoyedApplication2) => {
-
-                        // Error, Failed to revert to previous state, Failed to restart previous application.
-                        this.OnUpgradeError(title + ":" + title2, message + " " + message2, helpLink);
-                    }, (depoyedApplication, wasCanceled3, title3, message3, helpLink3) => {
-
-                        // Error, Failed to revert to previous state, Failed to remove downloaded application and to restart previous application.
-                        this.OnUpgradeError(title + ":" + title3, message + " " + message3, helpLink);
-                    });
-                });
-            }
-            else {
-
-                // Delete downloaded app
-                deployedDatabaseApplication.DeleteApplication(true, (depoyedApplication2) => {
-
-                    // Successfully reverted to previous application
-                    this.OnUpgradeError(title, message, helpLink);
-                }, (depoyedApplication, wasCanceled2, title2, message2, helpLink2) => {
-
-                    // Error, Failed to revert to previous state, Failed to remove downloaded application
-                    this.OnUpgradeError(title + ":" + title2, message + " " + message2, helpLink);
-                });
-            }
         }
         #endregion
 

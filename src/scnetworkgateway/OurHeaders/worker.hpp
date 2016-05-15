@@ -148,9 +148,6 @@ class GatewayWorker
     // All actively connected databases.
     WorkerDbInterface* worker_dbs_[MAX_ACTIVE_DATABASES];
 
-    // Worker suspend state.
-    volatile bool worker_suspended_unsafe_;
-
     // Some worker temporary data.
     char method_space_uri_space_worker_buf_[MixedCodeConstants::MAX_URI_STRING_LEN];
 
@@ -252,9 +249,6 @@ public:
     // Returns given socket data chunk to private chunk pool.
     void ReturnSocketDataChunksToPool(SocketDataChunkRef sd);
 
-    // Adds socket data chunk to aggregation queue.
-    void AddToAggregation(SocketDataChunkRef sd);
-
     // Processes all aggregated chunks.
     uint32_t SendAggregatedChunks();
 
@@ -265,10 +259,15 @@ public:
         sd->set_accumulating_flag();
 
         // Checking if the host accumulation should be involved.
-        if (total_desired_bytes > static_cast<uint32_t>(MAX_SOCKET_DATA_SIZE))
+        if (total_desired_bytes > g_gateway.setting_maximum_receive_content_length())
         {
             // We need to accumulate on host.
             sd->set_on_host_accumulation_flag();
+
+			wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+			wsprintf(temp, L"Attempt to upload of more than %d bytes on the socket. Closing socket connection.", 
+				g_gateway.setting_maximum_receive_content_length());
+			g_gateway.LogWriteWarning(temp);
 
             return SCERRGWMAXDATASIZEREACHED;
         }
@@ -347,31 +346,25 @@ public:
     // Adds new active database.
     uint32_t AddNewDatabase(db_index_type db_index);
 
-    // Sets worker suspend state.
-    void set_worker_suspended(bool value)
-    {
-        worker_suspended_unsafe_ = value;
-    }
-
-    // Gets worker suspend state.
-    bool worker_suspended()
-    {
-        return worker_suspended_unsafe_;
-    }
-
     // Gets global lock.
-    void EnterGlobalLock()
+    void WorkerEnterGlobalLock()
     {
-        worker_suspended_unsafe_ = true;
+		// Signalling that worker is in wait state.
+		if (!SetEvent(g_gateway.get_worker_suspend_handle(worker_id_))) {
+			GW_ASSERT(!"Can't set worker suspend event.");
+		}
 
         // Entering global lock.
         g_gateway.EnterGlobalLock();
     }
 
     // Releases global lock.
-    void LeaveGlobalLock()
+    void WorkerLeaveGlobalLock()
     {
-        worker_suspended_unsafe_ = false;
+		// This should work as a barrier.
+		if (!ResetEvent(g_gateway.get_worker_suspend_handle(worker_id_))) {
+			GW_ASSERT(!"Can't reset worker suspend event.");
+		}
 
         // Leaving global lock.
         g_gateway.LeaveGlobalLock();

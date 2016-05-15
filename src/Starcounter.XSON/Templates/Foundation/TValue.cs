@@ -11,12 +11,12 @@ namespace Starcounter.Templates {
 	public abstract class TValue : Template {
 		private BindingStrategy strategy = BindingStrategy.UseParent;
 		private string bind;
+        private bool forceGenerateBindings = true;
         protected Type jsonType;
 		internal Type dataTypeForBinding;
 		internal bool isVerifiedUnbound;
         internal bool isBoundToParent;
 		internal bool hasCustomAccessors;
-
         private bool codeGenStarted = false;
         private TypedJsonSerializer codegenStandardSerializer;
         private TypedJsonSerializer codegenFTJSerializer;
@@ -57,7 +57,8 @@ namespace Starcounter.Templates {
 				} else {
 					strategy = BindingStrategy.Unbound;
 				}
-				InvalidateBoundGetterAndSetter();
+                
+                InvalidateBoundGetterAndSetter();
 			}
 		}
 
@@ -90,7 +91,8 @@ namespace Starcounter.Templates {
 					bind = null;
 				else if (bind == null)
 					bind = PropertyName;
-				InvalidateBoundGetterAndSetter();
+                
+                InvalidateBoundGetterAndSetter();
 			}
 		}
 
@@ -153,7 +155,7 @@ namespace Starcounter.Templates {
 		/// 
 		/// </summary>
 		/// <param name="parent"></param>
-		internal abstract void SetDefaultValue(Json parent);
+		internal abstract void SetDefaultValue(Json parent, bool markAsReplaced = false);
 
 		/// <summary>
 		/// 
@@ -161,13 +163,15 @@ namespace Starcounter.Templates {
 		/// <param name="from"></param>
 		internal abstract void CopyValueDelegates(Template toTemplate);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		internal virtual void InvalidateBoundGetterAndSetter() {
-			isVerifiedUnbound = false;
-			dataTypeForBinding = null;
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        internal virtual void InvalidateBoundGetterAndSetter() {
+            isBoundToParent = false;
+            isVerifiedUnbound = false;
+            dataTypeForBinding = null;
+            forceGenerateBindings = true;
+        }
 
 		/// <summary>
 		/// 
@@ -199,51 +203,69 @@ namespace Starcounter.Templates {
 			((TValue)toTemplate).Bind = Bind;
 		}
 
-        //public abstract string ToJson(Json json);
-        //public abstract byte[] ToJsonUtf8(Json json);
-        //public abstract int ToJsonUtf8(Json json, byte[] buffer, int offset);
-        //public abstract int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize);
+        /// <summary>
+        /// Returns true if an existing databinding exists, false otherwise.
+        /// </summary>
+        /// <remarks>
+        /// This method tells if a binding exists, not if it should be used.
+        /// For example dataobject can be null or bind value changed.
+        /// </remarks>
+        /// <returns></returns>
+        internal abstract bool HasBinding();
 
-        //public abstract int EstimateUtf8SizeInBytes(Json json);
+        /// <summary>
+        /// Checks, verifies and creates the binding.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        internal bool UseBinding(Json parent) {
+            object data;
+            Type boundType;
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="data"></param>
-		/// <returns></returns>
-		internal bool UseBinding(Json parent) {
-			object data;
-            if (BindingStrategy == BindingStrategy.Unbound)
-				return false;
+            if (BindingStrategy == BindingStrategy.Unbound || isVerifiedUnbound)
+                return false;
 
-            if (isVerifiedUnbound && isBoundToParent) {
-                if (parent.Data == null)
+            // TODO:
+            // Workaround for having a property bound to codebehind, but
+            // Data-property is always null. Since we want to avoid recreate
+            // the binding when Data is null, we need to first check if
+            // we are bound to codebehind. 
+            // This will not be needed when we change how codebehind-properties
+            // work (https://github.com/Starcounter/Starcounter/issues/2964).
+            if (forceGenerateBindings) {
+                GenerateBoundGetterAndSetter(parent);
+                forceGenerateBindings = false;
+
+                if (isVerifiedUnbound)
                     return false;
-
-                // If we have an auto binding and we have checked once but
-                // no dataobject was set (i. e the "unbound" points to the parent)
-                // we want to reset and check again if we have a dataobject now.
-                InvalidateBoundGetterAndSetter();
             }
 
-            if (dataTypeForBinding != null) {
-                data = (isBoundToParent) ? parent : parent.Data;
-                if (data != null && VerifyBinding(data.GetType()))
-                    return !isVerifiedUnbound;
+            if (isBoundToParent)
+                return true;
 
+            data = parent.Data;
+            if (data == null)
+                return false;
+
+            boundType = dataTypeForBinding;
+            if (boundType != null) {
+                if (VerifyBoundDataType(data.GetType(), boundType))
+                    return true;
+
+                if (this.HasBinding())
+                    this.SetDefaultValue(parent, true);
                 InvalidateBoundGetterAndSetter();
             }
-
-			return GenerateBoundGetterAndSetter(parent);
-		}
+            return GenerateBoundGetterAndSetter(parent);
+        }
 
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="dataType"></param>
 		/// <returns></returns>
-		private bool VerifyBinding(Type dataType) {
-			if (dataType.Equals(dataTypeForBinding) || dataType.IsSubclassOf(dataTypeForBinding))
+		internal bool VerifyBoundDataType(Type dataType, Type boundDataType) {
+			if (dataType.Equals(boundDataType) || dataType.IsSubclassOf(boundDataType))
 				return true;
 			return false;
 		}

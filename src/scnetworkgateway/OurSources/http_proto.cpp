@@ -20,13 +20,6 @@ const char* const kHttpGatewayPongResponse =
 
 const int32_t kHttpGatewayPongResponseLength = static_cast<int32_t> (strlen(kHttpGatewayPongResponse));
 
-const char* const kHttpServiceUnavailable =
-    "HTTP/1.1 503 Service Unavailable\r\n"
-    "Content-Length: 0\r\n"
-    "\r\n";
-
-const int32_t kHttpServiceUnavailableLength = static_cast<int32_t> (strlen(kHttpServiceUnavailable));
-
 const char* const kHttpTooBigUpload =
     "HTTP/1.1 413 Request Entity Too Large\r\n"
     "Content-Type: text/html; charset=UTF-8\r\n"
@@ -546,8 +539,11 @@ uint32_t HttpProto::HttpUriDispatcher(
     if (sd->get_to_database_direction_flag())
     {
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->is_web_socket())
-            return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
+		if (sd->is_web_socket()) {
+			return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
+		}
+
+		GW_ASSERT(sd->get_accumulated_len_bytes() == (sd->get_cur_network_buf_ptr() - sd->get_data_blob_start()));
 
         // Obtaining method and URI.
         char* method_space_uri_space = (char*) sd->get_data_blob_start();
@@ -639,7 +635,7 @@ uint32_t HttpProto::HttpUriDispatcher(
             if (INVALID_URI_INDEX == matched_index)
             {
                 // Entering global lock.
-                gw->EnterGlobalLock();
+                gw->WorkerEnterGlobalLock();
 
                 // Checking once again since maybe it was already generated.
                 if (false == port_uris->HasGeneratedUriMatcher())
@@ -659,7 +655,7 @@ uint32_t HttpProto::HttpUriDispatcher(
                 }
 
                 // Releasing global lock.
-                gw->LeaveGlobalLock();
+                gw->WorkerLeaveGlobalLock();
 
                 if (err_code)
                     return err_code;
@@ -946,6 +942,11 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                         // Handled successfully.
                         *is_handled = true;
 
+						wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+						wsprintf(temp, L"Attempt to HTTP upload of more than %d bytes. Closing socket connection.", 
+							g_gateway.setting_maximum_receive_content_length());
+						g_gateway.LogWriteWarning(temp);
+
 						// Checking if its a socket representer.
 						if (sd->get_socket_representer_flag()) {
 
@@ -1035,6 +1036,14 @@ ALL_DATA_ACCUMULATED:
 
         // Handled successfully.
         *is_handled = true;
+
+		// Checking if it was a WebSocket upgrade.
+		if (sd->get_ws_upgrade_approved_flag()) {
+
+			// Changing network protocol because WebSocket upgrade succeeded.
+			sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
+			sd->reset_ws_upgrade_approved_flag();
+		}
 
         // Checking if we want to disconnect the socket.
         if (sd->get_disconnect_socket_flag())
@@ -1160,7 +1169,7 @@ uint32_t GatewayUpdateConfiguration(HandlersList* hl, GatewayWorker *gw, SocketD
 {
     *is_handled = true;
 
-    gw->EnterGlobalLock();
+    gw->WorkerEnterGlobalLock();
     
     uint32_t err_code = g_gateway.LoadReverseProxies();
 
@@ -1168,7 +1177,7 @@ uint32_t GatewayUpdateConfiguration(HandlersList* hl, GatewayWorker *gw, SocketD
         err_code = g_gateway.UpdateReverseProxies();
     }
 
-    gw->LeaveGlobalLock();
+    gw->WorkerLeaveGlobalLock();
 
     if (0 == err_code) {
 
@@ -1201,13 +1210,13 @@ uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkR
 // Profilers statistics for Gateway.
 uint32_t GatewayProfilersInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    gw->EnterGlobalLock();
+    gw->WorkerEnterGlobalLock();
 
     int32_t resp_len_bytes;
     std::string s = g_gateway.GetGlobalProfilersString(&resp_len_bytes);
     *is_handled = true;
 
-    gw->LeaveGlobalLock();
+    gw->WorkerLeaveGlobalLock();
 
     return gw->SendHttp200WithBody(sd, s.c_str(), resp_len_bytes);
 }

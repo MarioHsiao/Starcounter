@@ -103,7 +103,6 @@ enum GatewayErrorCodes
     SCERRGWSOCKETCLOSEDBYPEER,
     SCERRGWFAILEDACCEPTEX,
     SCERRGWFAILEDWSASEND,
-    SCERRGWDISCONNECTAFTERSENDFLAG,
     SCERRGWDISCONNECTFLAG,
     SCERRGWWEBSOCKETUNKNOWNOPCODE,
     SCERRGWPORTNOTHANDLED,
@@ -123,7 +122,6 @@ enum GatewayErrorCodes
     SCERRGWMAXCHUNKSIZEREACHED,
     SCERRGWMAXCHUNKSNUMBERREACHED,
     SCERRGWMAXDATASIZEREACHED,
-    SCERRGWWEBSOCKET,
     SCERRGWWEBSOCKETWRONGHANDSHAKEDATA,
     SCERRGWNULLCODEHOST,
     SCERRGWCANTOBTAINFREESOCKETINDEX,
@@ -822,6 +820,18 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
 
+	// Shutting down sending on socket.
+	void ShutdownSend() {
+
+		shutdown(socket_, SD_SEND);
+	}
+
+	// Shutting down receiving on socket.
+	void ShutdownReceive() {
+
+		shutdown(socket_, SD_RECEIVE);
+	}
+
     // Disconnecting given socket handle.
     void DisconnectSocket() {
 
@@ -975,7 +985,7 @@ class ActiveDatabase
     volatile bool is_ready_for_cleanup_;
 
     // Number of released workers.
-    int32_t num_holding_workers_;
+	volatile uint32_t num_holding_workers_;
 
     // Critical section for database checks.
     CRITICAL_SECTION cs_db_checks_;
@@ -994,7 +1004,7 @@ public:
     // Releasing worker.
     void ReleaseHoldingWorker()
     {
-        num_holding_workers_--;
+		InterlockedDecrement(&num_holding_workers_);
     }
 
     // Spawns channels events monitor thread.
@@ -1550,6 +1560,9 @@ class Gateway
     // Worker thread handles.
     HANDLE* worker_thread_handles_;
 
+	// Workers suspend events.
+	HANDLE* worker_suspend_events_;
+
 #ifdef USE_OLD_IPC_MONITOR
 
     // Active databases monitor thread handle.
@@ -1584,7 +1597,7 @@ class Gateway
     CRITICAL_SECTION cs_global_lock_;
 
     // Global lock.
-    volatile bool global_lock_unsafe_;
+    volatile bool global_lock_flag_;
 
     ////////////////////////
     // OTHER STUFF
@@ -1983,6 +1996,12 @@ public:
         return worker_thread_handles_[worker_id];
     }
 
+	// Getting specific worker suspend handle.
+	HANDLE get_worker_suspend_handle(worker_id_type worker_id)
+	{
+		return worker_suspend_events_[worker_id];
+	}
+
     // Checks if certain server port exists.
     ServerPort* FindServerPort(uint16_t port_num)
     {
@@ -2096,14 +2115,11 @@ public:
     // Enters global lock and waits for workers.
     void EnterGlobalLock()
     {
-        // Checking if already locked.
-        while (global_lock_unsafe_);
-
         // Entering the critical section.
         EnterCriticalSection(&cs_global_lock_);
 
         // Setting the global lock key.
-        global_lock_unsafe_ = true;
+        global_lock_flag_ = true;
 
         // Waiting until all workers reach the safe point and freeze there.
         WaitAllWorkersSuspended();
@@ -2133,16 +2149,16 @@ public:
     // Releases global lock.
     void LeaveGlobalLock()
     {
-        global_lock_unsafe_ = false;
+        global_lock_flag_ = false;
 
         // Leaving critical section.
         LeaveCriticalSection(&cs_global_lock_);
     }
 
     // Gets global lock value.
-    bool global_lock()
+    bool is_global_lock_set()
     {
-        return global_lock_unsafe_;
+        return global_lock_flag_;
     }
 
     // Returns active database on this slot index.
@@ -2222,9 +2238,6 @@ public:
 
     // Print statistics.
     uint32_t StatisticsAndMonitoringRoutine();
-
-    // Safely shutdowns the gateway.
-    void ShutdownGateway(GatewayWorker* gw, int32_t exit_code);
 
     // Creates socket and binds it to server port.
     uint32_t CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t port_num, SOCKET& sock);

@@ -24,7 +24,7 @@ namespace Starcounter {
         internal static void GetEndpointFromUri(String uri, out String endpoint, out String relativeUri) {
             // Checking if its a localhost communication.
             if ('/' == uri[0]) {
-                endpoint = "localhost";
+                endpoint = "127.0.0.1";
                 relativeUri = uri;
 
                 return;

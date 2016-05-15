@@ -79,6 +79,8 @@ namespace Starcounter.Internal {
 
             // Searching for the current application in responses.
             for (Int32 i = 0; i < responses.Count; i++) {
+                if (responses[i] == null)
+                    continue;
 
                 if (responses[i].AppName == req.HandlerOpts.CallingAppName) {
 
@@ -95,15 +97,17 @@ namespace Starcounter.Internal {
 
                 mainJson._appName = mainResponse.AppName;
                 mainJson._wrapInAppName = true;
-
-                if (responses.Count == 1)
-                    return mainResponse;
-
+                
                 var oldSiblings = mainJson.StepSiblings;
 
                 stepSiblings = new SiblingList();
                 stepSiblings.Add(mainJson);
                 mainJson.StepSiblings = stepSiblings;
+
+                if (responses.Count == 1) {
+                    MarkExistingSiblingsAsSent(mainJson, oldSiblings);
+                    return mainResponse;
+                }
 
                 for (Int32 i = 0; i < responses.Count; i++) {
 
@@ -128,6 +132,15 @@ namespace Starcounter.Internal {
                         if (siblingJson.StepSiblings != null) {
                             // We have another set of step-siblings. Merge them into one list.
                             foreach (var existingSibling in siblingJson.StepSiblings) {
+                                // TODO:
+                                // Filtering out existing siblings that comes from the same app.
+                                // This is a hack to avoid having multiple layouts from the launcher
+                                // that gets merged, since the merger gets called a lot.
+                                // Proper solution needs to be investigated.
+                                // Issue: https://github.com/Starcounter/Starcounter/issues/3470
+                                if (stepSiblings.ExistsForApp(existingSibling._appName))
+                                    continue;
+                                
                                 if (!stepSiblings.Contains(existingSibling)) {
                                     stepSiblings.Add(existingSibling);
                                     existingSibling.StepSiblings = stepSiblings;
@@ -142,15 +155,7 @@ namespace Starcounter.Internal {
                     }
                 }
 
-                if (oldSiblings != null && mainJson.Parent != null) {
-                    for (int i = 0; i < stepSiblings.Count; i++) {
-                        int index = oldSiblings.IndexOf(stepSiblings[i]);
-                        if (index != -1) {
-                            // The same sibling already exists. Lets not send it again.
-                            stepSiblings.MarkAsSent(index);
-                        }
-                    }
-                }
+                MarkExistingSiblingsAsSent(mainJson, oldSiblings);
             }
             return mainResponse;
         }
@@ -158,6 +163,9 @@ namespace Starcounter.Internal {
         private static void TriggerAfterMergeCallback(Request request, Json json) {
             SiblingList list;
             Json newSibling = null;
+            string callingAppName = request.HandlerAppName;
+            if (callingAppName == null)
+                callingAppName = StarcounterEnvironment.AppName;
 
             if (json == null || afterMergeCallbacks_.Count == 0)
                 return;
@@ -169,7 +177,7 @@ namespace Starcounter.Internal {
             }
 
             foreach (var hook in afterMergeCallbacks_) {
-                newSibling = hook.Invoke(request, StarcounterEnvironment.AppName, list);
+                newSibling = hook.Invoke(request, callingAppName, list);
                 if (newSibling != null) {
                     newSibling._wrapInAppName = true;
                     list.Add(newSibling);
@@ -179,6 +187,21 @@ namespace Starcounter.Internal {
 
             if (json.StepSiblings == null && list.Count > 1) {
                 json.StepSiblings = list;
+            }
+        }
+
+        private static void MarkExistingSiblingsAsSent(Json mainJson, SiblingList oldSiblings) {
+            SiblingList newSiblings;
+
+            if (oldSiblings != null && mainJson.Parent != null) {
+                newSiblings = mainJson.StepSiblings;
+                for (int i = 0; i < newSiblings.Count; i++) {
+                    int index = oldSiblings.IndexOf(newSiblings[i]);
+                    if (index != -1) {
+                        // The same sibling already exists. Lets not send it again.
+                        newSiblings.MarkAsSent(index);
+                    }
+                }
             }
         }
     }

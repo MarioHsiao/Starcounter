@@ -213,7 +213,7 @@ namespace Starcounter.Internal.XSON.Tests {
             session.Use(() => {
                 j.FirstName = "Douglas";
 
-                var before = ((Json)j).DebugString;
+                var before = JsonDebugHelper.ToFullString((Json)j);
                 //            Session.Current.CheckpointChangeLog();
                 string str = jsonPatch.Generate(j, true, false);
 
@@ -222,7 +222,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 j.LastName = "Wester";
                 j.FirstName = "Charlie";
 
-                var after = ((Json)j).DebugString;
+                var after = JsonDebugHelper.ToFullString((Json)j);
                 var result = jsonPatch.Generate(j, true, false);
 
                 Write("Before", before);
@@ -262,13 +262,13 @@ namespace Starcounter.Internal.XSON.Tests {
             session.Use(() => {
                 j.Friends.Add(henrik);
 
-                Write("New stuff", ((Json)j).DebugString);
+                Write("New stuff", JsonDebugHelper.ToFullString((Json)j));
 
                 jsonPatch.Generate(j, true, false);
 
                 Helper.ConsoleWriteLine("Flushed");
                 Helper.ConsoleWriteLine("=========");
-                Helper.ConsoleWriteLine(((Json)j).DebugString);
+                Helper.ConsoleWriteLine(JsonDebugHelper.ToFullString((Json)j));
 
                 string str = jsonPatch.Generate(j, true, false);
                 Assert.AreEqual("[]", str);
@@ -281,7 +281,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 Helper.ConsoleWriteLine("Changed");
                 Helper.ConsoleWriteLine("=========");
-                Helper.ConsoleWriteLine(((Json)j).DebugString);
+                Helper.ConsoleWriteLine(JsonDebugHelper.ToFullString((Json)j));
 
                 str = jsonPatch.Generate(j, true, false);
 
@@ -325,13 +325,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 Helper.ConsoleWriteLine("New stuff");
                 Helper.ConsoleWriteLine("=========");
-                Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
-
+                Helper.ConsoleWriteLine(JsonDebugHelper.ToFullString((Json)jockeJson));
+            
                 jsonPatch.Generate(jockeJson, true, false);
 
                 Helper.ConsoleWriteLine("Flushed");
                 Helper.ConsoleWriteLine("=========");
-                Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
+                Helper.ConsoleWriteLine(JsonDebugHelper.ToFullString((Json)jockeJson));
 
                 string str = jsonPatch.Generate(jockeJson, true, false);
                 Assert.AreEqual("[]", str);
@@ -344,7 +344,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 Helper.ConsoleWriteLine("Changed");
                 Helper.ConsoleWriteLine("=========");
-                Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
+                Helper.ConsoleWriteLine(JsonDebugHelper.ToFullString((Json)jockeJson));
 
                 str = jsonPatch.Generate(jockeJson, true, false);
 
@@ -374,8 +374,8 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Session = session;
 
             session.Use(() => {
-                var before = ((Json)j).DebugString;
-
+                var before = JsonDebugHelper.ToFullString((Json)j);
+                
                 jsonPatch.Generate(j, true, false);
 
                 j.FirstName = "Timothy";
@@ -385,7 +385,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 j.FirstName = "Charlie";
                 j.Friends.Add().FirstName = "Henrik";
 
-                var after = ((Json)j).DebugString;
+                var after = JsonDebugHelper.ToFullString((Json)j);
                 string result = jsonPatch.Generate(j, true, false);
 
                 Helper.ConsoleWriteLine("Before");
@@ -430,7 +430,7 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Session = session;
 
             session.Use(() => {
-                var start = json.DebugString;
+                var start = JsonDebugHelper.ToFullString(json);
 
                 Assert.AreEqual("{}", json.ToJson()); // The data is not bound so the JSON should still be an empty object
 
@@ -444,11 +444,11 @@ namespace Starcounter.Internal.XSON.Tests {
                 Assert.AreEqual("{\"FirstName\":\"Joachim\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
 
                 jsonPatch.Generate(j, true, false); // Flush
-                var before = ((Json)j).DebugString;
+                var before = JsonDebugHelper.ToFullString((Json)j);
 
                 p.FirstName = "Douglas";
 
-                var after = ((Json)j).DebugString;
+                var after = JsonDebugHelper.ToFullString((Json)j);
 
                 string patch = jsonPatch.Generate(j, true, false);
 
@@ -493,7 +493,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 Helper.ConsoleWriteLine("Dirty status");
                 Helper.ConsoleWriteLine("============");
-                debugString = j.DebugString;
+                debugString = JsonDebugHelper.ToFullString(j);
                 Helper.ConsoleWriteLine(debugString);
 
                 string patch = jsonPatch.Generate(j, true, false);

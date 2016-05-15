@@ -15,17 +15,9 @@ namespace network {
 const char *kSecWebSocketKey = "Sec-WebSocket-Key";
 const int32_t kSecWebSocketKeyLen = static_cast<int32_t> (strlen(kSecWebSocketKey));
 
-// Server response security field.
-const char *kSecWebSocketAccept = "Sec-WebSocket-Accept";
-const int32_t kSecWebSocketAcceptLen = static_cast<int32_t> (strlen(kSecWebSocketAccept));
-
 // Should be 13.
 const char *kSecWebSocketVersion = "Sec-WebSocket-Version";
 const int32_t kSecWebSocketVersionLen = static_cast<int32_t> (strlen(kSecWebSocketVersion));
-
-// Which protocols the client would like to speak.
-const char *kSecWebSocketProtocol = "Sec-WebSocket-Protocol";
-const int32_t kSecWebSocketProtocolLen = static_cast<int32_t> (strlen(kSecWebSocketProtocol));
 
 const char *kWsGuid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const int32_t kWsGuidLen = static_cast<int32_t> (strlen(kWsGuid));
@@ -35,10 +27,9 @@ const int32_t kWsGuidLen = static_cast<int32_t> (strlen(kWsGuid));
 // A client MUST close a connection if it detects a masked frame.
 
 const char *kWsHsResponseStaticPart =
-    "HTTP/1.1 101 Switching Protocols\r\n"
-    "Upgrade: websocket\r\n"
-    "Connection: Upgrade\r\n"
-    "Server: SC\r\n";
+	"HTTP/1.1 101 Switching Protocols\r\n"
+	"Upgrade: websocket\r\n"
+	"Connection: Upgrade\r\n";
 
 const int32_t kWsHsResponseStaticPartLen = static_cast<int32_t> (strlen(kWsHsResponseStaticPart));
 
@@ -290,7 +281,7 @@ uint32_t WsProto::ProcessWsDataToDb(
         uint8_t* cur_data_ptr = orig_data_ptr + num_processed_bytes;
 
         // Payload size after all parsing.
-        uint32_t payload_len;
+        uint64_t payload_len;
 
         // Header length.
         uint8_t header_len;
@@ -298,18 +289,31 @@ uint32_t WsProto::ProcessWsDataToDb(
         // Obtaining frame info.
         bool complete_header = ParseFrameInfo(cur_data_ptr, orig_data_ptr + num_accum_bytes, &mask, &payload_len, &header_len);
 
+		// Remaining bytes to process.
+		int32_t num_remaining_bytes = num_accum_bytes - num_processed_bytes;
+
         // Checking if header is not complete.
         if (!complete_header) {
 
             // Checking if we need to move current data up.
-            cur_data_ptr = sd->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes);
+            cur_data_ptr = sd->MoveDataToTopAndContinueReceive(cur_data_ptr, num_remaining_bytes);
 
             // Returning socket to receiving state.
             return gw->Receive(sd);
         }
 
-        int32_t num_remaining_bytes = num_accum_bytes - num_processed_bytes;
-        int32_t header_plus_payload_bytes = header_len + payload_len;
+		// Checking if we have payload size bigger than maximum allowed.
+		if (payload_len > g_gateway.setting_maximum_receive_content_length()) {
+
+			wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+			wsprintf(temp, L"Attempt to upload a WebSocket frame of more than %d bytes. Closing socket connection.",
+				g_gateway.setting_maximum_receive_content_length());
+			g_gateway.LogWriteWarning(temp);
+
+			return SCERRGWMAXDATASIZEREACHED;
+		}
+
+        int32_t header_plus_payload_bytes = header_len + static_cast<int32_t>(payload_len);
 
         // Checking if complete frame does not fit in current accumulated data.
         if (header_plus_payload_bytes > num_remaining_bytes) {
@@ -333,7 +337,7 @@ uint32_t WsProto::ProcessWsDataToDb(
         uint8_t* payload = cur_data_ptr + header_len;
 
         // Setting size and offset of user data.
-        sd->SetUserData(payload, payload_len);
+        sd->SetUserData(payload, static_cast<uint32_t>(payload_len));
 
         // Adding whole frame as processed.
         num_processed_bytes += header_plus_payload_bytes;
@@ -432,6 +436,8 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
         opcode_ = WS_OPCODE_CLOSE;
     }
 
+	GW_ASSERT((opcode_ == WS_OPCODE_TEXT) || (opcode_ == WS_OPCODE_BINARY) || (opcode_ == WS_OPCODE_CLOSE));
+
     // Place where masked data should be written.
     payload = WritePayload(gw, sd, opcode_, false, WS_FRAME_SINGLE, total_payload_len, payload, cur_payload_len);
 
@@ -520,9 +526,6 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     // NOTE: We are still pointing to the original request not the upgrade response start.
     sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes() + resp_len_bytes);
     sd->SetWebSocketUpgradeResponsePartLength(resp_len_bytes);
-
-    // Setting WebSocket handshake flag.
-    sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
 
     // Indicating for the host that WebSocket upgrade is made.
     sd->set_ws_upgrade_request_flag();
@@ -614,7 +617,7 @@ bool WsProto::ParseFrameInfo(
     uint8_t* data,
     uint8_t* limit,
     uint32_t* out_mask, 
-    uint32_t* out_payload_len,
+    uint64_t* out_payload_len,
     uint8_t* out_header_len)
 {
     uint8_t* data_orig = data;

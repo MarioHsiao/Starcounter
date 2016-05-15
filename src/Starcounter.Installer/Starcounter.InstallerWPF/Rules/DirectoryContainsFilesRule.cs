@@ -13,7 +13,6 @@ namespace Starcounter.InstallerWPF.Rules {
 
     public class InstallationFolderRule : ValidationRule {
 
-        public bool UseWarning { get; set; }
         public bool CheckEmptyString { get; set; }
 
         public override ValidationResult Validate(object value, CultureInfo cultureInfo) {
@@ -62,10 +61,19 @@ namespace Starcounter.InstallerWPF.Rules {
         }
     }
 
+    public class IsEmptyFolderRule : ValidationRule {
+
+        public override ValidationResult Validate(object value, CultureInfo cultureInfo) {
+
+            if (value == null || string.IsNullOrEmpty(value.ToString()) || string.IsNullOrEmpty(value.ToString().Trim())) {
+                return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Please enter a path" });
+            }
+            return new ValidationResult(true, null);
+        }
+    }
 
     public class DatabaseRepositoryFolderRule : ValidationRule {
 
-        public bool UseWarning { get; set; }
         public bool CheckEmptyString { get; set; }
 
         public override ValidationResult Validate(object value, CultureInfo cultureInfo) {
@@ -88,58 +96,12 @@ namespace Starcounter.InstallerWPF.Rules {
                 if (File.Exists(config)) {
                     return new ValidationResult(true, null);
                 }
-
-                bool bDirectoryContainsFiles = MainWindow.DirectoryContainsFiles(folder, true);
-                if (bDirectoryContainsFiles) {
-                    return new ValidationResult(false, new ErrorObject() { IsError = !UseWarning, Message = "Directory contains files (" + folder + ")" });
-                }
             }
             catch (System.UnauthorizedAccessException e) {
                 return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path" + Environment.NewLine + e.Message });
             }
 
             return new ValidationResult(true, null);
-
-        }
-    }
-
-
-    public class DirectoryContainsFilesRule : ValidationRule {
-
-        public bool UseWarning { get; set; }
-        public bool CheckEmptyString { get; set; }
-        public bool AddStarcounter { get; set; }
-
-        public override ValidationResult Validate(object value, CultureInfo cultureInfo) {
-
-            if (value == null || string.IsNullOrEmpty(value.ToString()) || string.IsNullOrEmpty(value.ToString().Trim())) {
-                if (this.CheckEmptyString) {
-                    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Please enter a path" });
-                }
-                else {
-                    return new ValidationResult(true, null);
-                }
-            }
-
-            try {
-
-                string folder = value.ToString();
-
-                if (this.AddStarcounter) {
-                    folder = Path.Combine(folder, ConstantsBank.SCProductName);
-                }
-
-                bool bDirectoryContainsFiles = MainWindow.DirectoryContainsFiles(folder, true);
-                if (bDirectoryContainsFiles) {
-                    return new ValidationResult(false, new ErrorObject() { IsError = !UseWarning, Message = "Directory contains files (" + folder+")" });
-                }
-            }
-            catch (System.UnauthorizedAccessException e) {
-                return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path" + Environment.NewLine + e.Message });
-            }
-
-            return new ValidationResult(true, null);
-
         }
     }
 

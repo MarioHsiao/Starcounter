@@ -303,6 +303,50 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestSuppressingInputChangeSetterNotChangingValue() {
+            var schema = new TObject();
+            var tName = schema.Add<TString>("Name");
+            var tName2 = schema.Add<TString>("Name2");
+
+            tName.SetCustomAccessors(
+                (parent) => { return "Static"; },
+                (parent, value) => { }
+            );
+
+            tName2.SetCustomAccessors(
+                (parent) => { return "Static2"; },
+                (parent, value) => { }
+            );
+
+            tName2.AddHandler(
+                Helper.CreateInput<string>,
+                (Json pup, Starcounter.Input<string> input) => {
+                    // Do nothing, simply accept value.                    
+                }
+            );
+            
+            Json json = (Json)schema.CreateInstance();
+            var session = new Session();
+            session.Data = json;
+
+            json.ChangeLog.Generate(true);
+
+            // No inputhandler, value will simply be set.
+            tName.ProcessInput(json, "ClientValue");
+            Change[] changes = json.ChangeLog.Generate(true);
+
+            Assert.AreEqual(1, changes.Length);
+            Assert.AreEqual(tName, changes[0].Property);
+
+            // Have an inputhandler, will call that one first and then set value.
+            tName2.ProcessInput(json, "ClientValue");
+            changes = json.ChangeLog.Generate(true);
+
+            Assert.AreEqual(1, changes.Length);
+            Assert.AreEqual(tName2, changes[0].Property);
+        }
+
+        [Test]
         public static void TestCancellingInputChange() {
             TObject schema;
 
@@ -542,19 +586,212 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 // No namespaces.
                 var jsonStr = ss.ToJson();
-                Assert.AreEqual(@"{""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""MainApp"":{""Text"":""1asf32""},""Html"":""""}", jsonStr);
+                Assert.AreEqual(@"{""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""MainApp"":{""Text"":""1asf32""}}", jsonStr);
 
                 jsonStr = p.ExtraInfo.ToJson();
-                Assert.AreEqual(@"{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""Html"":""""}", jsonStr);
+                Assert.AreEqual(@"{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""}}", jsonStr);
 
                 jsonStr = p.ToJson();
                 Assert.AreEqual(
-                    @"{""FirstName$"":""Arne"",""LastName"":""Anka"",""Age"":19,""Stats"":23.987,""Fields"":[],""ExtraInfo"":{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""Html"":""""}}",
+                    @"{""FirstName$"":""Arne"",""LastName"":""Anka"",""Age"":19,""Stats"":23.987,""Fields"":[],""ExtraInfo"":{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""}}}",
                     jsonStr
                 );
             } finally {
                 session.enableNamespaces = false;
             }
+        }
+
+        [Test]
+        public static void TestDirtyCheckWithDataObjectsWithDifferentTypes() {
+            var schema = new TObject();
+            var tObjectNo = schema.Add<TLong>("ObjectNo");
+            var tName = schema.Add<TString>("Name");
+            var tStreet = schema.Add<TString>("Street");
+            var tMisc = schema.Add<TString>("Misc");
+
+            tStreet.DefaultValue = "MyStreet";
+            tMisc.DefaultValue = "Misc";
+
+            var dataObject1 = new Agent() {
+                ObjectNo = 1,
+                Name = "Agent"
+            };
+
+            var dataObject2 = new Address() {
+                ObjectNo = 2,
+                Street = "Street"
+            };
+
+            var json = new Json() { Template = schema };
+            var session = new Session();
+
+            session.Data = json;
+
+            Change[] changes;
+            
+            session.Use(() => {
+                changes = json.ChangeLog.Generate(true);
+                
+                // Bound properties: ObjectNo, Name
+                // Unbound properties: Street, Misc
+                // Changes should be ObjectNo, Name
+                json.Data = dataObject1;
+                changes = json.ChangeLog.Generate(true);
+                json.ChangeLog.Checkpoint();
+                
+                Assert.AreEqual(2, changes.Length);
+                Assert.AreEqual(tObjectNo, changes[0].Property);
+                Assert.AreEqual(tName, changes[1].Property);
+
+                // Bound properties: ObjectNo, Street
+                // Unbound properties: Name, Misc
+                // Changes should be ObjectNo, Name, Street
+                json.Data = dataObject2;
+                changes = json.ChangeLog.Generate(true);
+                json.ChangeLog.Checkpoint();
+
+                Assert.AreEqual(3, changes.Length);
+                Assert.AreEqual(tObjectNo, changes[0].Property);
+                Assert.AreEqual(tName, changes[1].Property);
+                Assert.AreEqual(tStreet, changes[2].Property);
+
+                // Make sure values that are used for dirtychecking is resetted.
+                //                tStreet.CheckAndSetBoundValue(json, false);
+
+                // Bound properties: ObjectNo, Name
+                // Unbound properties: Street, Misc
+                // Changes should be ObjectNo, Name, Street, 
+                json.Data = dataObject1;
+                changes = json.ChangeLog.Generate(true);
+                json.ChangeLog.Checkpoint();
+
+                Assert.AreEqual(3, changes.Length);
+                Assert.AreEqual(tObjectNo, changes[0].Property);
+                Assert.AreEqual(tName, changes[1].Property);
+                Assert.AreEqual(tStreet, changes[2].Property);
+
+                // Make sure values that are used for dirtychecking is resetted.
+                //tName.CheckAndSetBoundValue(json, false);
+
+                // Bound properties: 
+                // Unbound properties: ObjectNo, Name, Street, Misc
+                // Changes should be ObjectNo, Name
+                json.Data = null;
+                changes = json.ChangeLog.Generate(true);
+                json.ChangeLog.Checkpoint();
+
+                Assert.AreEqual(2, changes.Length);
+                Assert.AreEqual(tObjectNo, changes[0].Property);
+                Assert.AreEqual(tName, changes[1].Property);
+            });
+        }
+
+        [Test]
+        public static void TestDirtyCheckForSiblings() {
+            dynamic root = new Json();
+            dynamic page = new Json();
+            var session = new Session();
+
+            page.Title = "Page";
+            root.Page = page;
+            session.Data = root;
+
+            Change[] changes = root.ChangeLog.Generate(true);
+
+            dynamic sibling = new Json();
+            
+            SiblingList siblings = new SiblingList();
+            siblings.Add(page);
+            siblings.Add(sibling);
+
+            ((Json)page).StepSiblings = siblings;
+            ((Json)sibling).StepSiblings = siblings;
+
+            sibling.Name = "Sibling";
+            
+            Assert.IsTrue(sibling._Dirty);
+            Assert.IsFalse(sibling.HasBeenSent);
+            Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
+            
+            changes = root.ChangeLog.Generate(true);
+
+            Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0]));
+            Assert.IsFalse(sibling._Dirty);
+            Assert.IsTrue(sibling.HasBeenSent);
+        }
+
+        [Test]
+        public static void TestReplaceSessionDataWithVersioning_3418() {
+            dynamic json = new Json();
+            json.Name = "First";
+
+            var session = new Session(SessionOptions.PatchVersioning);
+            session.Data = json;
+
+            ChangeLog changeLog = json.ChangeLog;
+
+            changeLog.Generate(true);
+            changeLog.Generate(true);
+
+            Assert.AreEqual(2, changeLog.Version.LocalVersion);
+
+            dynamic json2 = new Json();
+            json2.Name = "Second";
+
+            session.Data = json2;
+            changeLog = json2.ChangeLog;
+
+            Assert.AreEqual(2, changeLog.Version.LocalVersion);
+
+            Change[] changes = changeLog.Generate(true);
+
+            Assert.AreEqual(3, changeLog.Version.LocalVersion);
+            Assert.AreEqual(1, changes.Length);
+            Assert.IsNull(changes[0].Property);
+            Assert.AreEqual(json2, changes[0].Parent);
+        }
+
+        [Test]
+        public static void TestDirtyCheckForReplacingStatefulSibling_3583() {
+            dynamic root = new Json();
+            dynamic page = new Json();
+
+            var session = new Session();
+
+            page.Title = "Page";
+            root.Page = page;
+            session.Data = root;
+
+            Change[] changes = root.ChangeLog.Generate(true);
+
+            dynamic siblingRoot = new Json();
+            dynamic sibling = new Json();
+            siblingRoot.Current = sibling;
+
+            SiblingList siblings = new SiblingList();
+            siblings.Add(page);
+            siblings.Add(sibling);
+
+            ((Json)page).StepSiblings = siblings;
+            ((Json)sibling).StepSiblings = siblings;
+
+            sibling.Name = "Sibling";
+
+            Assert.IsTrue(sibling._Dirty);
+            Assert.IsFalse(sibling.HasBeenSent);
+            Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
+
+            changes = root.ChangeLog.Generate(true);
+
+            sibling = new Json();
+            sibling.Header = "New sibling";
+            siblingRoot.Current = sibling;
+
+            changes = root.ChangeLog.Generate(true);
+
+            Assert.AreEqual(1, changes.Length);
+            Assert.AreEqual(sibling, changes[0].Parent);
+            Assert.IsNull(changes[0].Property);
         }
     }
 }

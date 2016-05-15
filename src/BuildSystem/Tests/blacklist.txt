@@ -54,7 +54,8 @@ sqlcachetrasher_test.bat
 ipc_test.bat
 node_test_loop.bat
 node_looped_proxy_test.bat
-
+CountQueryInheritedOpt3447_test.bat
+OffsetkeyEmptyBug3502_test.bat
 
 # Level0 tests that has to be reenabled in future (they are not maintained at the moment).
 

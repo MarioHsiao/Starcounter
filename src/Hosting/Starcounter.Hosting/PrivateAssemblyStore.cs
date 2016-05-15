@@ -4,81 +4,94 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Starcounter.Hosting {
     /// <summary>
-    /// Represents a binary file the host is aware of, possibly an
-    /// assembly, located in one of the application directories.
-    /// </summary>
-    internal sealed class PrivateBinaryFile {
-        public readonly string FilePath;
-        public readonly AssemblyName Name;
-        public readonly DateTime Resolved;
-
-        public PrivateBinaryFile(string path) {
-            FilePath = path;
-            Resolved = DateTime.Now;
-            try {
-                Name = AssemblyName.GetAssemblyName(path);
-            } catch (BadImageFormatException) { }
-        }
-
-        public bool IsAssembly {
-            get { return Name != null; }
-        }
-
-        public bool IsFromApplicaionDirectory(string dir) {
-            return PrivateAssemblyStore.EqualDirectories(
-                Path.GetDirectoryName(FilePath),
-                dir);
-        }
-    }
-
-    /// <summary>
-    /// Represents the collection of private assemblies the code host is
-    /// aware of, based on loaded applications.
+    /// Code-host specific adapter of a private assembly store, supporting immutable
+    /// consistent views of the store at different generations to be retrived using
+    /// the <c>Immutable</c> property.
     /// </summary>
     internal sealed class PrivateAssemblyStore {
-        readonly List<string> applicationDirectories = new List<string>();
-        readonly Dictionary<string, PrivateBinaryFile> fileToIdentity = new Dictionary<string, PrivateBinaryFile>(StringComparer.InvariantCultureIgnoreCase);
-        
-        public void RegisterApplicationDirectory(DirectoryInfo dir) {
-            var binaries = new List<FileInfo>();
-            binaries.AddRange(dir.GetFiles("*.dll"));
-            binaries.AddRange(dir.GetFiles("*.exe"));
+        /// <summary>
+        /// Provide a consistent view of the code-host global private assembly store
+        /// by means of only using immutable state.
+        /// </summary>
+        private class ImmutableState : IPrivateAssemblyStore {
+            static StringComparer comparer = StringComparer.CurrentCultureIgnoreCase;
+            readonly List<string> applicationDirectories;
+            readonly Dictionary<string, PrivateBinaryFile> fileToIdentity;
 
-            applicationDirectories.Add(dir.FullName);
-            foreach (var binary in binaries) {
-                fileToIdentity.Add(binary.FullName, new PrivateBinaryFile(binary.FullName));
+            public static ImmutableState Empty = new ImmutableState() {};
+
+            private ImmutableState() {
+                applicationDirectories = new List<string>();
+                fileToIdentity = new Dictionary<string, PrivateBinaryFile>(ImmutableState.comparer);
+            }
+
+            public ImmutableState(ImmutableState previous, ApplicationDirectory dir) {
+                applicationDirectories = new List<string>(previous.applicationDirectories.Count + 1);
+                fileToIdentity = new Dictionary<string, PrivateBinaryFile>(previous.fileToIdentity.Count + dir.Binaries.Length, ImmutableState.comparer);
+
+                foreach (var appDir in previous.applicationDirectories) {
+                    applicationDirectories.Add(appDir);
+                }
+
+                foreach (var file in previous.fileToIdentity) {
+                    fileToIdentity.Add(file.Key, file.Value);
+                }
+
+                applicationDirectories.Add(dir.Path);
+                foreach (var binary in dir.Binaries) {
+                    fileToIdentity.Add(binary.FilePath, binary);
+                }
+            }
+
+            PrivateBinaryFile[] IPrivateAssemblyStore.GetAssemblies(string assemblyName) {
+                var assemblies = fileToIdentity.Values.Where((candidate) => {
+                    return candidate.IsAssembly && candidate.Name.Name == assemblyName;
+                });
+                return assemblies.OrderBy(file => file.Resolved).ToArray();
+            }
+
+            AssemblyName IPrivateAssemblyStore.GetAssembly(string filePath) {
+                var record = fileToIdentity[filePath];
+                if (!record.IsAssembly) throw new BadImageFormatException();
+                return record.Name;
+            }
+
+            bool IPrivateAssemblyStore.IsApplicationDirectory(string applicationDirectory) {
+                return applicationDirectories.FirstOrDefault((candidate) => {
+                    return EqualDirectories(candidate, applicationDirectory);
+                }) != null;
+            }
+        }
+
+        private volatile ImmutableState state;
+        /// <summary>
+        /// Gets a snapshot of an immutable state, providing a consistent view
+        /// of the assembly store.
+        /// </summary>
+        public IPrivateAssemblyStore Immutable {
+            get {
+                return state;
             }
         }
 
         /// <summary>
-        /// Evaluates the given <paramref name="applicationDirectory"/> to see
-        /// if it is a directory previously registered with the current store.
+        /// Creates the code-host singleton, empty store.
         /// </summary>
-        /// <param name="applicationDirectory">The directory to look for.</param>
-        /// <returns><c>true</c> if the given directory is a known application
-        /// directory; <c>false</c> otherwise.</returns>
-        public bool IsApplicationDirectory(string applicationDirectory) {
-            return applicationDirectories.FirstOrDefault((candidate) => {
-                return EqualDirectories(candidate, applicationDirectory);
-            }) != null;
+        public PrivateAssemblyStore() {
+            state = ImmutableState.Empty;
         }
 
-        public AssemblyName GetAssembly(string filePath) {
-            var record = fileToIdentity[filePath];
-            if (!record.IsAssembly) throw new BadImageFormatException();
-            return record.Name;
-        }
-
-        public PrivateBinaryFile[] GetAssemblies(string assemblyName) {
-            var assemblies = fileToIdentity.Values.Where((candidate) => {
-                return candidate.IsAssembly && candidate.Name.Name == assemblyName;
-            });
-            return assemblies.OrderBy(file => file.Resolved).ToArray();
+        /// <summary>
+        /// Register a new application within the store, effectively transitioning
+        /// the underlying immutable state.
+        /// </summary>
+        /// <param name="dir">The application directory</param>
+        public void RegisterApplicationDirectory(ApplicationDirectory dir) {
+            var next = new ImmutableState(state, dir);
+            state = next;
         }
 
         public static bool EqualDirectories(string dir1, string dir2) {

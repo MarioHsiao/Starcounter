@@ -62,6 +62,16 @@ namespace Starcounter.XSON {
                     return sibling.Json;
                 return null;
             }
+            internal set {
+                Sibling sibling = list[index];
+
+                if (value != null) {
+                    value._wrapInAppName = true;
+                    value.StepSiblings = this;
+                }
+                sibling.Json = value;
+                sibling.HasBeenSent = false;
+            }
         }
         
         public void Add(Json sibling) {
@@ -93,12 +103,12 @@ namespace Starcounter.XSON {
                 return (sibling.Json == item);
             });
         }
-        
-        //public Json Find(string appName) {
-        //    return list.Exists((Sibling sibling) => {
-        //        return (sibling.Json._appName == appName);
-        //    });
-        //}
+
+        internal bool ExistsForApp(string appName) {
+            return list.Exists((Sibling sibling) => {
+                return (sibling.Json._appName == appName);
+            });
+        }
 
         public IEnumerator<Json> GetEnumerator() {
             return new JsonEnumerator(this.list);

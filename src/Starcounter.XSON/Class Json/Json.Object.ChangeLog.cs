@@ -10,11 +10,15 @@ using Starcounter.XSON;
 
 namespace Starcounter {
 	partial class Json {
+        internal bool IsTrackingChanges {
+            get { return _trackChanges; }
+        }
+
 		/// <summary>
 		/// 
 		/// </summary>
 		internal void Dirtyfy(bool callStepSiblings = true) {
-            if (!_trackChanges)
+            if (!_trackChanges || (_Dirty == true))
                 return;
             
 			_Dirty = true;
@@ -29,21 +33,22 @@ namespace Starcounter {
                 }
             }
 		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		internal void CheckpointChangeLog(bool callStepSiblings = true) {
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        internal void CheckpointChangeLog(bool callStepSiblings = true) {
             if (!_trackChanges)
                 return;
 
 			if (this.IsArray) {
-				this.ArrayAddsAndDeletes = null;
-				if (Template != null) {
-					var tjson = (TObjArr)Template;
-					tjson.Checkpoint(this.Parent);
-				}
-			} else {
+                this.ArrayAddsAndDeletes = null;
+                for (int i = 0; i < ((IList)this).Count; i++) {
+                    var row = (Json)this._GetAt(i);
+                    row.CheckpointChangeLog();
+                    this.CheckpointAt(i);
+                }
+            } else {
 				if (Template != null) {
                     this.Scope<Json, TValue>( 
                         (parent, tjson) => {
@@ -61,25 +66,25 @@ namespace Starcounter {
                         },
                         this,
                         (TValue)Template);
-
-                    if (callStepSiblings == true && this._stepSiblings != null) {
-                        for (int i = 0; i < _stepSiblings.Count; i++) {
-                            var sibling = _stepSiblings[i];
-                            _stepSiblings.MarkAsSent(i);
-
-                            if (sibling == this)
-                                continue;
-                            
-                            sibling.CheckpointChangeLog(false);
-                            if (sibling.Parent != null) {
-                                sibling.Parent.CheckpointAt(sibling.IndexInParent);
-                            }
-                        }
-                    }
 				}
 			}
 			_Dirty = false;
-		}
+
+            if (callStepSiblings == true && this._stepSiblings != null) {
+                for (int i = 0; i < _stepSiblings.Count; i++) {
+                    var sibling = _stepSiblings[i];
+                    _stepSiblings.MarkAsSent(i);
+
+                    if (sibling == this)
+                        continue;
+
+                    sibling.CheckpointChangeLog(false);
+                    if (sibling.Parent != null) {
+                        sibling.Parent.CheckpointAt(sibling.IndexInParent);
+                    }
+                }
+            }
+        }
 
 		/// <summary>
 		/// 
@@ -218,10 +223,13 @@ namespace Starcounter {
                                     if (c != null)
                                         c.LogValueChangesWithDatabase(clog, true);
                                 } else {
-                                    if (json.IsArray)
+                                    if (json.IsArray) {
                                         throw new NotImplementedException();
-                                    else
+                                    } else {
                                         ((TValue)p).CheckAndSetBoundValue(json, true);
+                                        if (json.WasReplacedAt(p.TemplateIndex))
+                                            clog.UpdateValue(json, (TValue)p);
+                                    }
                                 }
                             }
                         }
@@ -238,6 +246,8 @@ namespace Starcounter {
                                 } else {
                                     var p = exposed[t] as TValue;
                                     p.CheckAndSetBoundValue(json, true);
+                                    if (json.WasReplacedAt(p.TemplateIndex))
+                                        clog.UpdateValue(json, p);
                                 }
                             }
 
@@ -251,6 +261,8 @@ namespace Starcounter {
                             json.CheckpointAt(template.TemplateIndex);
                         } else {
                             template.CheckAndSetBoundValue(json, true);
+                            if (json.WasReplacedAt(template.TemplateIndex))
+                                clog.UpdateValue(json, template);
                         }
                     }
                 }
@@ -267,6 +279,7 @@ namespace Starcounter {
                         } else {
                             clog.Add(Change.Update(sibling, null, true));
                             _stepSiblings.MarkAsSent(i);
+                            sibling.CheckpointChangeLog(false);
                         }
                     }
                 }
@@ -683,6 +696,7 @@ namespace Starcounter {
             addedInVersion = -1;
             if (_transaction != TransactionHandle.Invalid) {
                 Session.DeregisterTransaction(_transaction);
+                _transaction = TransactionHandle.Invalid;
             }
 
             _trackChanges = false;
@@ -736,6 +750,21 @@ namespace Starcounter {
         public bool AutoRefreshBoundProperties {
             get { return _checkBoundProperties; }
             set { _checkBoundProperties = value; } 
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newValue"></param>
+        internal void CheckAndUpdateSibling(Json newValue) {
+            if (this._stepSiblings != null) {
+                int index = this._stepSiblings.IndexOf(this);
+
+                if (index != -1) {
+                    this._stepSiblings[index] = newValue;                    
+                    this._stepSiblings = null;
+                }
+            }
         }
 	}
 }

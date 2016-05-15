@@ -191,7 +191,7 @@ READY_SOCKET_DATA:
             sd->PreInitSocketDataFromDb(gw, sched_id);
 
             // Checking for socket data correctness.
-            GW_ASSERT(sd->get_type_of_network_protocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);
+            GW_ASSERT(sd->GetTypeOfNetworkProtocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);
             GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections_per_worker());
 
 #ifdef GW_CHUNKS_DIAG
@@ -320,7 +320,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     GW_PRINT_WORKER_DB << "Pushing chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    GW_ASSERT(sd->get_type_of_network_protocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);
+    GW_ASSERT(sd->GetTypeOfNetworkProtocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);
 
     // Checking if we have no IPC/no chunks test.
     if (sd->get_gateway_no_ipc_no_chunks_test_flag()) {

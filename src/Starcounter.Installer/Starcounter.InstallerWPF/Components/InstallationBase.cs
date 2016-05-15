@@ -16,26 +16,34 @@ namespace Starcounter.InstallerWPF.Components {
 
         public const string Identifier = "StarcounterInstallation";
 
-        public override string ComponentIdentifier {
-            get {
+        public override string ComponentIdentifier
+        {
+            get
+            {
                 return InstallationBase.Identifier;
             }
         }
 
-        public override string Name {
-            get {
+        public override string Name
+        {
+            get
+            {
                 return "Starcounter Installation Path";
             }
         }
 
-        public override bool ShowProperties {
-            get {
+        public override bool ShowProperties
+        {
+            get
+            {
                 return true;
             }
         }
 
-        public override bool IsExecuteCommandEnabled {
-            get {
+        public override bool IsExecuteCommandEnabled
+        {
+            get
+            {
                 return false;
             }
         }
@@ -48,45 +56,69 @@ namespace Starcounter.InstallerWPF.Components {
         //    }
         //}
 
-        public string Path {
-            get {
+        public string Path
+        {
+            get
+            {
 
                 if (string.IsNullOrEmpty(this.BasePath)) {
                     return null;
                 }
 
-                if ( Utilities.IsDeveloperFolder(this.BasePath)) {
+                if (Utilities.IsDeveloperFolder(this.BasePath)) {
                     // Developer folder, do not add product name "Starcounter"
                     return this.BasePath;
                 }
-               
+
                 return System.IO.Path.Combine(this.BasePath, ConstantsBank.SCProductName);
             }
         }
 
         private string _BasePath;
-        public string BasePath {
+        public string BasePath
+        {
 
-            get {
+            get
+            {
                 return this._BasePath;
             }
-            set {
+            set
+            {
 
                 if (string.Compare(this._BasePath, value) == 0) return;
                 this._BasePath = value;
 
                 this.OnPropertyChanged("BasePath");
                 this.OnPropertyChanged("Path");
+                this.OnPropertyChanged("DirectoryContainsFiles");
             }
 
         }
 
+
+        public bool DirectoryContainsFiles
+        {
+            get
+            {
+                if (this.BasePath != null && this.BasePath is String) {
+                    // Add Starcounter
+                    string folder = System.IO.Path.Combine(this.BasePath, ConstantsBank.SCProductName);
+                    return MainWindow.DirectoryContainsFiles(folder, true);
+                }
+                return false;
+            }
+        }
+
+
         private bool _SendUsageAndCrashReports;
-        public bool SendUsageAndCrashReports {
-            get {
+        public bool SendUsageAndCrashReports
+        {
+            get
+            {
                 return this._SendUsageAndCrashReports;
             }
-            set {
+            set
+            {
                 if (this._SendUsageAndCrashReports == value) return;
                 this._SendUsageAndCrashReports = value;
                 this.OnPropertyChanged("SendUsageAndCrashReports");
@@ -95,11 +127,14 @@ namespace Starcounter.InstallerWPF.Components {
 
 
         private bool _AddToStartMenu;
-        public bool AddToStartMenu {
-            get {
+        public bool AddToStartMenu
+        {
+            get
+            {
                 return this._AddToStartMenu;
             }
-            set {
+            set
+            {
                 if (this._AddToStartMenu == value) return;
                 this._AddToStartMenu = value;
                 this.OnPropertyChanged("AddToStartMenu");
@@ -141,7 +176,7 @@ namespace Starcounter.InstallerWPF.Components {
 
                 //this.Path = System.IO.Path.Combine(programFilesPath, System.IO.Path.Combine(ConstantsBank.SCProductName, CurrentVersion.Version));
                 this.BasePath = programFilesPath;
-//                this.BasePath = System.IO.Path.Combine(programFilesPath, ConstantsBank.SCProductName);
+                //                this.BasePath = System.IO.Path.Combine(programFilesPath, ConstantsBank.SCProductName);
             }
 
             switch (this.Command) {
@@ -180,17 +215,16 @@ namespace Starcounter.InstallerWPF.Components {
         public override bool ValidateSettings() {
 
             InstallationFolderRule installationFolderRule = new InstallationFolderRule();
-            installationFolderRule.UseWarning = true;
             installationFolderRule.CheckEmptyString = true;
             ValidationResult installationFolderRuleResult = installationFolderRule.Validate(this.BasePath, CultureInfo.CurrentCulture);
             if (!installationFolderRuleResult.IsValid) return false;
 
-            DirectoryContainsFilesRule directoryContainsFilesRule = new DirectoryContainsFilesRule();
-            directoryContainsFilesRule.UseWarning = true;
-            directoryContainsFilesRule.CheckEmptyString = true;
-            directoryContainsFilesRule.AddStarcounter = true;
-            ValidationResult directoryContainsFilesRuleResult = directoryContainsFilesRule.Validate(this.BasePath, CultureInfo.CurrentCulture);
-            if (!directoryContainsFilesRuleResult.IsValid) return false;
+            //DirectoryContainsFilesRule directoryContainsFilesRule = new DirectoryContainsFilesRule();
+            //directoryContainsFilesRule.UseWarning = true;
+            //directoryContainsFilesRule.CheckEmptyString = true;
+            //directoryContainsFilesRule.AddStarcounter = true;
+            //ValidationResult directoryContainsFilesRuleResult = directoryContainsFilesRule.Validate(this.BasePath, CultureInfo.CurrentCulture);
+            //if (!directoryContainsFilesRuleResult.IsValid) return false;
 
             DuplicatPathCheckRule duplicatPathCheckRule = new DuplicatPathCheckRule();
             duplicatPathCheckRule.Type = DuplicatPathCheckRule.SelfType.InstallationPath;

@@ -1,4 +1,4 @@
-# Here we specify durations for long tests that run longer that 1 minute.
+# Here we specify durations for long tests that run longer than 5 minutes.
 # Duration is specified in seconds, 60 means one minute.
 
 loadandlatency_test.bat 20000
@@ -10,12 +10,14 @@ pokerdemo_test.bat 900
 hostlooper_test.bat 300
 apps_test.bat 300
 urls_test.bat 300
-websockets_test.bat 300
+websockets_test.bat 900
 udp_test.bat 100
 HttpStreams_test.exe 900
 umbrella_node_test.bat 240
 star_loop_test.bat 100
 star_loop_exception_test.bat 100
+SimpleAggregation_test.bat 120
 SimpleAggregationRemote_test.bat 200
 SimpleIndependentTests_hosted_test.exe 500
 tpca_test.bat 300
+kitchensink_selenium_test.bat 180

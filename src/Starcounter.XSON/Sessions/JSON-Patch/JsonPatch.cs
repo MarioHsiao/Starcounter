@@ -9,8 +9,6 @@ using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -131,14 +129,28 @@ namespace Starcounter.XSON {
             int patchSize;
             for (int i = 0; i < changes.Length; i++) {
                 patchSize = EstimateSizeOfPatch(changes[i], includeNamespace);
-                if (patchSize == -1)
+                if (patchSize == -1) { // This change is no longer valid.
+                    changes[i] = Change.Invalid;
                     continue;
+                }
+                    
                 size += patchSize;
             }
 
             size += changes.Length - 1; // Adding one ',' per change over zero.
             if (size < 2) size = 2;
 
+
+            if (size > StarcounterConstants.NetworkConstants.MaxResponseSize) {
+                var errMsg = "JsonPatch: Estimated needed size (" 
+                            + size 
+                            + ") for patches exceeds the maximum allowed (" 
+                            + StarcounterConstants.NetworkConstants.MaxResponseSize 
+                            + ").\r\nNumber of patches: " + changes.Length
+                            + "\r\nJson: " + JsonDebugHelper.ToBasicString(changeLog.Employer);
+                throw new Exception(errMsg);
+            }
+            
             buffer = new byte[size];
             
             unsafe {
@@ -167,6 +179,9 @@ namespace Starcounter.XSON {
 
                     for (int i = 0; i < changes.Length; i++) {
                         var change = changes[i];
+                        if (change.ChangeType == Change.INVALID)
+                            continue;
+
                         WritePatch(change, ref writer, includeNamespace);
 
                         if (change.Property != null) {
@@ -187,9 +202,12 @@ namespace Starcounter.XSON {
             }
 
             if (size > buffer.Length) {
-                var errMsg = "JsonPatch: Written size is larger than estimated size!";
-                errMsg += " (written: " + size + ", estimated: " + buffer.Length + ")\r\n";
-                errMsg += "Buffer (w/o data out of bounds): " + System.Text.Encoding.UTF8.GetString(buffer);
+                var errMsg = "JsonPatch: written size (" 
+                            + size 
+                            + ") for patches exceeds the estimated size (" 
+                            + buffer.Length 
+                            + ").\r\nNumber of patches: " + changes.Length
+                            + "\r\nJson: " + JsonDebugHelper.ToBasicString(changeLog.Employer);
                 throw new Exception(errMsg);
             }
 
@@ -248,16 +266,16 @@ namespace Starcounter.XSON {
                     if (change.Property == null) {
                         change.Parent.calledFromStepSibling = change.SuppressNamespace;
                         try {
-                            serializer = ((TValue)change.Parent.Template).JsonSerializer;
+                            serializer = change.Parent.JsonSerializer;
                             size = serializer.Serialize(change.Parent, (IntPtr)writer.Buffer, int.MaxValue);
                         } finally {
                             change.Parent.calledFromStepSibling = false;
                         }
                     } else if (change.Index != -1) {
-                        serializer = ((TValue)change.Item.Template).JsonSerializer;
+                        serializer = change.Item.JsonSerializer;
                         size = serializer.Serialize(change.Item, (IntPtr)writer.Buffer, int.MaxValue);
                     } else {
-                        size = change.Property.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
+                        size = change.Parent.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
                     }
                     writer.Skip(size);
                 }
@@ -310,16 +328,16 @@ namespace Starcounter.XSON {
                 if (change.Property == null) {
                     change.Parent.calledFromStepSibling = change.SuppressNamespace;
                     try {
-                        serializer = ((TValue)change.Parent.Template).JsonSerializer;
+                        serializer = change.Parent.JsonSerializer;
                         size += serializer.EstimateSizeBytes(change.Parent);
                     } finally {
                         change.Parent.calledFromStepSibling = false;
                     }
                 } else if (change.Index != -1) {
-                    serializer = ((TValue)change.Item.Template).JsonSerializer;
+                    serializer = change.Item.JsonSerializer;
                     size += serializer.EstimateSizeBytes(change.Item);
                 } else {
-                    size += change.Property.JsonSerializer.EstimateSizeBytes(change.Parent, change.Property);
+                    size += change.Parent.JsonSerializer.EstimateSizeBytes(change.Parent, change.Property);
                 }
             }
             return size;
@@ -330,6 +348,7 @@ namespace Starcounter.XSON {
             int totalSize;
             Json parent;
             Template template;
+            Session session;
 
             // TODO:
             // Evaluate all possible paths and create patches for all valid ones. 
@@ -337,8 +356,12 @@ namespace Starcounter.XSON {
             if (json == null)
                 return -1;
 
-            if (json == json.Session.PublicViewModel) // Valid path.
-                return 0;
+            session = json.Session;
+            if (session == null) // No session, this can't be the correct path.
+                return -1;
+
+            if (json == session.PublicViewModel) // Valid path.
+                return 1;
 
             size = -1;
             totalSize = 0;
@@ -393,6 +416,7 @@ namespace Starcounter.XSON {
             bool pathWritten;
             Json parent;
             Template template;
+            Session session;
 
             // TODO:
             // Evaluate all possible paths and create patches for all valid ones. 
@@ -400,7 +424,11 @@ namespace Starcounter.XSON {
             if (json == null)
                 return false;
 
-            if (json == json.Session.PublicViewModel) // Valid path.
+            session = json.Session;
+            if (session == null)
+                return false;
+
+            if (json == session.PublicViewModel) // Valid path.
                 return true;
 
             pathWritten = false;

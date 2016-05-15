@@ -1,6 +1,9 @@
 ﻿
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
+using System.Threading;
 using NUnit.Framework;
 using Starcounter.Advanced;
 using Starcounter.Internal.XSON.Tests.CompiledJson;
@@ -69,6 +72,24 @@ namespace Starcounter.Internal.XSON.Tests {
 				json.FirstName = "Nisse";
 			});
 		}
+
+        [Test]
+        public static void TestBindingToJsonObject() {
+            Person person = new Person() { FirstName = "Arne", LastName = "Anka" };
+            person.Address = new Address() { Street = "Nybrogatan" };
+            
+            var jsonTemplate = new TObject();
+            var firstNameTemplate = jsonTemplate.Add<TString>("FirstName");
+            var addressTemplate = jsonTemplate.Add<TObject>("Address", "Data.Address");
+            var streetTemplate = addressTemplate.Add<TString>("Street");
+            
+            dynamic json = (Json)jsonTemplate.CreateInstance();
+            json.Data = person;
+
+            Assert.AreEqual(person.FirstName, json.FirstName);
+            Assert.AreEqual(person.Address, json.Address.Data);
+            Assert.AreEqual(person.Address.Street, json.Address.Street);
+        }
 
         [Test]
         public static void TestBoundToCorrectDataType() {
@@ -270,6 +291,129 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestAutoBindAndChangeBind() {
+            // Making sure that we have our own private schema and not the 
+            // default one, since we modify it in the test.
+            var template = new BaseJson.JsonByExample.Schema();
+            var json = new BaseJson() { Template = template };
+            
+            var person = new Person() {
+                FirstName = "John",
+                LastName = "Doe"
+            };
+            json.Data = person;
+            
+            // Verify that the property SimpleValue is not bound and that it is verified as
+            // unbound, meaning that the binding is not recreated each time.
+            var value = json.SimpleValue;
+
+            // Calling again for debugging purposes to see that the binding is not checked for again.
+            value = json.SimpleValue;
+
+            Assert.IsTrue(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.AreEqual(person.GetType(), template.SimpleValue.dataTypeForBinding);
+
+            Assert.AreEqual("Base", value);
+
+            // Change Bind path, which will invalidate the binding.
+            template.SimpleValue.Bind = "FirstName";
+
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.IsNull(template.SimpleValue.dataTypeForBinding);
+
+            value = json.SimpleValue;
+
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.IsNotNull(template.SimpleValue.dataTypeForBinding);
+            Assert.AreEqual("John", value);
+
+            // Change Bind path again to a property in the codebehind.
+            template.SimpleValue.Bind = "BaseStringValue";
+
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsFalse(template.SimpleValue.isBoundToParent);
+            Assert.IsNull(template.SimpleValue.dataTypeForBinding);
+
+            value = json.SimpleValue;
+            Assert.IsFalse(template.SimpleValue.isVerifiedUnbound);
+            Assert.IsTrue(template.SimpleValue.isBoundToParent);
+            Assert.IsNotNull(template.SimpleValue.dataTypeForBinding);
+            Assert.AreEqual("CBValue", value);
+
+        }
+
+        [Test]
+        public static void TestAccessingBoundPropertyFromMultipleThreadsWithDataAndNull() {
+            // Making sure that we have our own private schema and not the 
+            // default one, since we modify it in the test.
+            var template = new BaseJson.JsonByExample.Schema();
+            
+            Exception ex1 = null;
+            Exception ex2 = null;
+
+            template.SimpleValue.Bind = "FirstName";
+
+            AutoResetEvent[] autos = new AutoResetEvent[2];
+            autos[0] = new AutoResetEvent(false);
+            autos[1] = new AutoResetEvent(false);
+
+            ThreadPool.QueueUserWorkItem((state) => {
+                try {
+                    var json = new BaseJson() { Template = template };
+                    var data = new Person() {
+                        FirstName = "John"
+                    };
+
+                    for (int i = 0; i < 100000; i++) {
+                        json.Data = data;
+                        var v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                    }
+                } catch (Exception ex) {
+                    ex1 = ex;
+                } finally {
+                    autos[0].Set();
+                }
+            });
+
+            ThreadPool.QueueUserWorkItem((state) => {
+                try {
+                    var json = new BaseJson() { Template = template };
+                    Person data = null;
+
+                    for (int i = 0; i < 100000; i++) {
+                        json.Data = data;
+                        var v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                        v = json.SimpleValue;
+                    }
+                } catch (Exception ex) {
+                    ex2 = ex;
+                } finally {
+                    autos[1].Set();
+                }
+            });
+
+            WaitHandle.WaitAll(autos);
+
+            if (ex1 != null) {
+                ExceptionDispatchInfo.Capture(ex1).Throw();
+            }
+
+            if (ex2 != null) {
+                ExceptionDispatchInfo.Capture(ex2).Throw();
+            }
+        }
+
+        [Test]
         public static void TestBoundToCodeBehindWithData() {
             // Unittest for reproducing issue #2542
             // The second call to session.GenerateChangeLog will call the bound property
@@ -283,6 +427,18 @@ namespace Starcounter.Internal.XSON.Tests {
 
             simple.ChangeLog.Generate(true);
             simple.ChangeLog.Generate(true);
+        }
+
+        [Test]
+        public static void TestBoundToCodeBehindWithNoData() {
+            var json = new BaseJson() {
+                Template = new BaseJson.JsonByExample.Schema()
+            };
+            json.Template.SimpleValue.Bind = "BaseStringValue"; // Property in codebehind
+
+            // Data-property should be null.
+            string value = json.SimpleValue;
+            Assert.AreEqual("CBValue", value);
         }
 
         [Test]
@@ -306,6 +462,155 @@ namespace Starcounter.Internal.XSON.Tests {
             Json json = new Json();
             json.Template = new TString();
             json.Data = new Person();
+        }
+
+        [Test]
+        public static void TestDataObjectsWithDifferentTypes() {
+            var schema = new TObject();
+            var tObjectNo = schema.Add<TLong>("ObjectNo");
+            var tName = schema.Add<TString>("Name");
+            var tStreet = schema.Add<TString>("Street");
+            var tMisc = schema.Add<TString>("Misc");
+            
+            tStreet.DefaultValue = "MyStreet";
+            tMisc.DefaultValue = "Misc";
+
+            var dataObject1 = new Agent() {
+                ObjectNo = 1,
+                Name = "Agent"
+            };
+
+            var dataObject2 = new Address() {
+                ObjectNo = 2,
+                Street = "Street"
+            };
+
+            dynamic json = new Json() { Template = schema };
+            
+            json.Data = dataObject1;
+            Assert.AreEqual(dataObject1.ObjectNo, json.ObjectNo);
+            Assert.AreEqual(dataObject1.Name, json.Name);
+            Assert.AreEqual("MyStreet", json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+
+            json.Data = dataObject2;
+            Assert.AreEqual(dataObject2.ObjectNo, json.ObjectNo);
+            Assert.AreEqual("", json.Name);
+            Assert.AreEqual(dataObject2.Street, json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+
+            json.Data = dataObject1;
+            Assert.AreEqual(dataObject1.ObjectNo, json.ObjectNo);
+            Assert.AreEqual(dataObject1.Name, json.Name);
+            Assert.AreEqual("MyStreet", json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+
+            json.Data = null;
+            Assert.AreEqual(0, json.ObjectNo);
+            Assert.AreEqual("", json.Name);
+            Assert.AreEqual("MyStreet", json.Street);
+            Assert.AreEqual("Misc", json.Misc);
+        }
+
+        [Test]
+        public static void TestAutoUnboundPropertyWithDifferentData() {
+            var schema = new TObject();
+            var tObjectNo = schema.Add<TLong>("ObjectNo");
+            var tName = schema.Add<TString>("Name");
+            var tStreet = schema.Add<TString>("Street");
+            var tMisc = schema.Add<TString>("Misc");
+
+            tStreet.DefaultValue = "MyStreet";
+            tMisc.DefaultValue = "Misc";
+
+            var dataObject1 = new Agent() {
+                ObjectNo = 1,
+                Name = "Agent"
+            };
+
+            var dataObject2 = new Address() {
+                ObjectNo = 2,
+                Street = "Street"
+            };
+
+            dynamic json = new Json() { Template = schema };
+
+            json.Data = dataObject1;
+            Assert.AreEqual("Misc", json.Misc);
+
+            json.Data = dataObject2;
+            json.Data = dataObject1;
+            Assert.AreEqual("Misc", json.Misc);
+        }
+
+        [Test]
+        public static void TestUnboundArrayWithDataObject() {
+            dynamic json = new Json();
+
+            json.Name = "";
+            json.UnboundItems = new List<Json>();
+
+            var data = new Agent() {
+                Name = "Agent"
+            };
+
+            dynamic item = new Json();
+            item.Header = "Item1";
+            json.UnboundItems.Add(item);
+
+            json.Data = data;
+            Assert.AreEqual(data.Name, json.Name);
+            Assert.AreEqual(1, json.UnboundItems.Count);
+            Assert.AreEqual(item, json.UnboundItems[0]);
+
+            json.Data = null;
+            Assert.AreEqual("", json.Name);
+            Assert.AreEqual(1, json.UnboundItems.Count);
+            Assert.AreEqual(item, json.UnboundItems[0]);
+        }
+
+        [Test]
+        public static void TestAutoBindingToUntypedArray() {
+            var schema = new TObject();
+            var tName = schema.Add<TString>("Name");
+            var tArr = schema.Add<TObjArr>("Recursives");
+
+            var json = (Json)schema.CreateInstance();
+            var data = new Recursive();
+            data.Name = "Head";
+            data.Recursives.Add(new Recursive() { Name = "Item" });
+
+            json.Data = data;
+
+            Assert.AreEqual(data.Name, json.Get(tName));
+
+            var arr = (IList)json.Get(tArr);
+
+            Assert.AreEqual(0, arr.Count);
+            Assert.IsNull(tArr.BoundGetter);
+            Assert.IsTrue(tArr.isVerifiedUnbound);
+            Assert.AreEqual(typeof(Recursive), tArr.dataTypeForBinding);
+        }
+
+        [Test]
+        public static void TestBoundBindingToUntypedArray() {
+            var schema = new TObject();
+            var tName = schema.Add<TString>("Name");
+            var tArr = schema.Add<TObjArr>("Recursives");
+            tArr.BindingStrategy = BindingStrategy.Bound;
+
+            var json = (Json)schema.CreateInstance();
+            var data = new Recursive();
+            data.Name = "Head";
+            data.Recursives.Add(new Recursive() { Name = "Item" });
+
+            Exception ex = Assert.Throws<Exception>(() => {
+                json.Data = data;
+            });
+
+            uint ec;
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out ec));
+            Assert.AreEqual(ec, Error.SCERRCREATEDATABINDINGFORJSON);
         }
     }
 }
