@@ -92,7 +92,8 @@ uint32_t WsProto::UnmaskFrameAndPush(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE user_handler_id,
-    uint32_t mask)
+    uint32_t mask,
+	bool last_frame)
 {
     uint8_t* payload = sd->GetUserData();
 
@@ -117,18 +118,8 @@ uint32_t WsProto::UnmaskFrameAndPush(
             // Profiling.
             Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsReceivedMessages);
 
-            /*
-            payload = WritePayload(gw, sd, WS_OPCODE_TEXT, false, WS_FRAME_SINGLE, payload_len, payload, payload_len);
-
-            // Prepare buffer to send outside.
-            sd->PrepareForSend(payload, payload_len);
-
-            // Sending data.
-            return gw->Send(sd);
-            */
-
             // Push chunk to corresponding channel/scheduler.
-            return gw->PushSocketDataToDb(sd, user_handler_id);
+            return gw->PushSocketDataToDb(sd, user_handler_id, !last_frame);
         }
 
         case WS_OPCODE_CLOSE:
@@ -227,7 +218,7 @@ uint32_t WsProto::SendWebSocketDisconnectToDb(
 	sd_push_to_db->SetUserData(sd_push_to_db->get_data_blob_start(), 0);
 
     // Push chunk to corresponding channel/scheduler.
-    err_code = gw->PushSocketDataToDb(sd_push_to_db, user_handler_id);
+    err_code = gw->PushSocketDataToDb(sd_push_to_db, user_handler_id, true);
 
     if (err_code) {
 
@@ -374,12 +365,12 @@ uint32_t WsProto::ProcessWsDataToDb(
             }
 
             // Unmasking frame and pushing to database.
-            return UnmaskFrameAndPush(gw, sd, user_handler_id, mask);
+            return UnmaskFrameAndPush(gw, sd, user_handler_id, mask, true);
         }
         else
         {
             // Unmasking frame and pushing to database.
-            err_code = sd_push_to_db->get_ws_proto()->UnmaskFrameAndPush(gw, sd_push_to_db, user_handler_id, mask);
+            err_code = sd_push_to_db->get_ws_proto()->UnmaskFrameAndPush(gw, sd_push_to_db, user_handler_id, mask, false);
 
             // Original sd would be released automatically.
             if (err_code) {
@@ -544,7 +535,7 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsHandshakes);
 
     // Push chunk to corresponding channel/scheduler.
-    return gw->PushSocketDataToDb(sd, user_handler_id);
+    return gw->PushSocketDataToDb(sd, user_handler_id, false);
 }
 
 // Masks or unmasks payload.

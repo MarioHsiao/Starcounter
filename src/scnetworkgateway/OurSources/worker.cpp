@@ -994,7 +994,6 @@ uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
         return err_code;
 
     sd_push_to_db->ResetAllFlags();
-
     sd_push_to_db->set_just_push_disconnect_flag();
 
     // NOTE: There is no used data when disconnecting.
@@ -1012,7 +1011,7 @@ uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
         if ((ph != NULL) && (!ph->IsEmpty())) {
 
 			// Push chunk to corresponding channel/scheduler.
-			err_code = PushSocketDataToDb(sd_push_to_db, ph->get_handler_info());
+			err_code = PushSocketDataToDb(sd_push_to_db, ph->get_handler_info(), true);
 
 			if (err_code) {
 
@@ -1455,6 +1454,9 @@ uint32_t GatewayWorker::ProcessReceiveClones(bool just_delete_clone)
     {
         // NOTE: Taking just a pointer without reference.
         SocketDataChunk* sd = sd_receive_clone_;
+
+		// Resetting flag clone to receive.
+		sd_receive_clone_->get_socket_info()->reset_cloned_to_receive_flag();
 
 #ifdef GW_SOCKET_DIAG
         GW_PRINT_WORKER << "Processing clone: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
@@ -1997,7 +1999,10 @@ uint32_t GatewayWorker::AddNewDatabase(db_index_type db_index)
 }
 
 // Push given chunk to database queue.
-uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
+uint32_t GatewayWorker::PushSocketDataToDb(
+	SocketDataChunkRef sd, 
+	BMX_HANDLER_TYPE handler_id, 
+	bool disable_check_for_clone)
 {
     // Checking correct unique socket.
     if (!sd->CompareUniqueSocketId()) {
@@ -2027,7 +2032,7 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
             return 0;
         }
 
-        uint32_t err_code = db->PushSocketDataToDb(this, sd, handler_id);
+        uint32_t err_code = db->PushSocketDataToDb(this, sd, handler_id, disable_check_for_clone);
 
         // Checking if any issue occurred.
         if (err_code) {
@@ -2071,7 +2076,7 @@ uint32_t GatewayWorker::PushSocketDataFromOverflowToDb(SocketDataChunkRef sd, BM
     // Pushing chunk to that database.
     if (NULL != db) {
 
-        uint32_t err_code = db->PushSocketDataToDb(this, sd, handler_id);
+        uint32_t err_code = db->PushSocketDataToDb(this, sd, handler_id, true);
 
         // Checking if we need to put the socket back to overflow.
         if (err_code) {
