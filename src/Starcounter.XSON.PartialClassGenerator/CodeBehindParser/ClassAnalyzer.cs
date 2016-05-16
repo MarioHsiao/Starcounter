@@ -53,9 +53,13 @@ namespace Starcounter.XSON.PartialClassGenerator {
             ci.IsDeclaredInCodeBehind = true;
             if (outer != null) {
                 ci.Namespace = outer.codeBehindMetadata.Namespace;
+                var tokens = nestedName.Split('+');
+                ci.ParentClasses = new List<string>(
+                    tokens.TakeWhile((v, i) => { return i < tokens.Length - 1; }));
             }
             else {
                 ci.Namespace = RoslynSyntaxHelpers.GetFullNamespace(node);
+                ci.ParentClasses = new List<string>();
             }
 
             // Check 1: we are named as the root object, or 2, we contain an attribute
