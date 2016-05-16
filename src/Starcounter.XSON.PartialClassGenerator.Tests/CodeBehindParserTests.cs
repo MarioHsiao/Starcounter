@@ -13,6 +13,11 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 File.ReadAllText(path), path, useRoslynParser);
         }
 
+        private static CodeBehindMetadata ParserAnalyzeCode(string className, string sourceCode, bool useRoslynParser = false)
+        {
+            return CodeBehindParser.Analyze(className, sourceCode, className + ".cs", useRoslynParser);
+        }
+
         [Test]
         public static void CodeBehindSimpleAnalyzeTest() {
 			var monoMetadata = ParserAnalyze("Simple", @"Input\simple.json.cs");
