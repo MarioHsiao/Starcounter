@@ -76,7 +76,7 @@ namespace Starcounter.Rest {
                         clang_engine,
                         false,
                         false,
-                        true,
+                        MixedCodeConstants.SCLLVM_OPT_FLAG,
                         cpp_code_ptr,
                         function_names_bytes_native,
                         out_func_ptrs,
