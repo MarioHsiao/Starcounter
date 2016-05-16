@@ -16,8 +16,10 @@
 - Decoding partial urls:s before calling `Self.GET` to allow url:s with parameters [#3527](https://github.com/Starcounter/Starcounter/issues/3527)
 - Fixed a bug in the F# parser that parses JSON-by-example for TypedJSON to allow arrays in arrays [#3554](https://github.com/Starcounter/Starcounter/issues/3554)
 - Added a check for responses so they doesn't exceed a fixed maximum size to avoid buffer overruns and corrupting managed memory [#3608](https://github.com/Starcounter/Starcounter/issues/3608)
+- Fixed problem with WebSocket disconnect procedure [#38](https://github.com/StarcounterSamples/KitchenSink/issues/38)
 
 ### Changed
+- Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
 
 ## [2.2.1834] - 2016-04-19
 ### Added

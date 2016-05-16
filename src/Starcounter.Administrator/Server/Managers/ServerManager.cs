@@ -30,7 +30,7 @@ namespace Administrator.Server.Managers {
 
             lock (lockObject_) {
 
-                String sessionString = s.ToAsciiString();
+                String sessionString = s.SessionId;
 
                 if (sessionList_.Contains(sessionString)) {
                     sessionList_.Remove(sessionString);
@@ -90,7 +90,7 @@ namespace Administrator.Server.Managers {
 
                         // Checking if its internal Self.GET that has no session.
                         if (session != null) {
-                            String sessionString = session.ToAsciiString();
+                            String sessionString = session.SessionId;
 
                             if (!sessionList_.Contains(sessionString)) {
                                 sessionList_.Add(sessionString);
@@ -123,7 +123,7 @@ namespace Administrator.Server.Managers {
                     Response response = GetAllowAccessControlResponse();
                     response.Resource = serverModelJson;
                     response.Headers["Set-Cookie"] = request.Uri + "/" + id;
-                    response.Headers["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.ToAsciiString();
+                    response.Headers["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionId;
 
                     return response;
                 }
@@ -173,7 +173,7 @@ namespace Administrator.Server.Managers {
                         // Checking if its internal Self.GET that has no session.
                         if (session != null) {
 
-                            String sessionString = session.ToAsciiString();
+                            String sessionString = session.SessionId;
 
                             if (!sessionList_.Contains(sessionString)) {
                                 sessionList_.Add(sessionString);
@@ -212,7 +212,7 @@ namespace Administrator.Server.Managers {
                     Response response = new Response();
                     response.Resource = databaseJson;
                     response.Headers["Set-Cookie"] = request.Uri + "/" + id;
-                    response.Headers["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.ToAsciiString();
+                    response.Headers["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionId;
 
                     response.Headers["Access-Control-Allow-Origin"] = "*"; // "http://localhost:8080";
                     response.Headers["Access-Control-Expose-Headers"] = "Location, X-Location";
