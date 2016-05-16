@@ -107,5 +107,33 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.IsTrue(ex.Message.Contains("is considered a root class"));
             Assert.IsTrue(ex.Message.Contains("is too"));
         }
+
+        [Test]
+        public static void CodeBehindParsersEqualityTest()
+        {
+            var source = "namespace Foo { namespace Bar { public partial class Fubar {} } }";
+            var mono = ParserAnalyzeCode("Fubar", source);
+            var roslyn = ParserAnalyzeCode("Fubar", source, true);
+
+            // Fail because of bug in mono parser
+            // Assert.AreEqual(mono.RootClassInfo.Namespace, roslyn.RootClassInfo.Namespace);
+            Assert.True(roslyn.RootClassInfo.Namespace == "Foo.Bar");
+
+            source = "namespace Foo { { public partial class Bar { [Bar_json.Foo] public partial class Foo { [Bar_json.Foo.Fubar] public partial class Fubar {} } } }";
+            mono = ParserAnalyzeCode("Bar", source);
+            roslyn = ParserAnalyzeCode("Bar", source, true);
+
+            var c1 = mono.FindClassInfo("*.Fubar");
+            var c2 = roslyn.FindClassInfo("*.Fubar");
+
+            Assert.NotNull(c1);
+            Assert.NotNull(c2);
+            Assert.True(c1.ParentClasses.Count == 2);
+            Assert.AreEqual(c1.ParentClasses.Count, c2.ParentClasses.Count);
+            Assert.AreEqual(c1.ParentClasses[0], "Bar");
+            Assert.AreEqual(c2.ParentClasses[0], "Bar");
+            Assert.AreEqual(c1.ParentClasses[1], "Foo");
+            Assert.AreEqual(c2.ParentClasses[1], "Foo");
+        }
     }
 }
