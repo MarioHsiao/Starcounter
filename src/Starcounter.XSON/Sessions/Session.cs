@@ -222,7 +222,7 @@ namespace Starcounter {
 
                     Session s = (Session) sessionClass.apps_session_int_;
                     if (null != s) {
-                        s.Use(task, s.ToAsciiString());
+                        s.Use(task, s.SessionId);
                     }
                 }
 
@@ -298,7 +298,7 @@ namespace Starcounter {
         /// <summary>
         /// Returns ASCII string representing the session.
         /// </summary>
-        /// <returns></returns>
+        [System.Obsolete("Please use SessionId property instead.")]
         public String ToAsciiString() {
             return InternalSession.ToAsciiString();
         }
@@ -448,9 +448,21 @@ namespace Starcounter {
         /// <summary>
         /// Internal session string.
         /// </summary>
-        [System.Obsolete("Please use ToAsciiString() instead.")]
+        [System.Obsolete("Please use SessionId property instead.")]
         public String SessionIdString {
             get { return InternalSession.ToAsciiString(); }
+        }
+
+        /// <summary>
+        /// String representation of the session object.
+        /// Used, for example, for storing session and then using it as parameter for Session.ScheduleTask.
+        /// </summary>
+        public String SessionId
+        {
+            get
+            {
+                return InternalSession.ToAsciiString();
+            }
         }
 
         /// Returns True if session is being used now.
@@ -490,12 +502,12 @@ namespace Starcounter {
                     if (count++ < noRetries) {
                         log.LogWarning("Exclusive access to the session with id {0} could "
                                        +"not be obtained within the allotted time. Trying again ({1}/{2}).",
-                                       this.ToAsciiString(),
+                                       this.SessionId,
                                        count,
                                        noRetries);
                         continue;
                     }
-                    throw ErrorCode.ToException(Error.SCERRACQUIRESESSIONTIMEOUT, "Id: " + this.ToAsciiString());
+                    throw ErrorCode.ToException(Error.SCERRACQUIRESESSIONTIMEOUT, "Id: " + this.SessionId);
                 }
                 break;
             }

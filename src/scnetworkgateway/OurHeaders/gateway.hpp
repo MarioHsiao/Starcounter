@@ -756,7 +756,8 @@ enum SOCKET_FLAGS
     SOCKET_FLAGS_DISCONNECT_AFTER_SEND = 2 << 1,
     SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT = 2 << 2,
 	SOCKET_FLAGS_STREAMING_RESPONSE_BODY = 2 << 3,
-	SOCKET_FLAGS_DISCONNECT_PUSHED_TO_CODEHOST = 2 << 4
+	SOCKET_FLAGS_DISCONNECT_PUSHED_TO_CODEHOST = 2 << 4,
+	SOCKET_FLAGS_CLONED_TO_RECEIVE = 2 << 5
 };
 
 // Structure that facilitates the socket.
@@ -873,6 +874,21 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 	void set_streaming_response_body_flag()
 	{
 		flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_STREAMING_RESPONSE_BODY;
+	}
+
+	bool get_cloned_to_receive_flag()
+	{
+		return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_CLONED_TO_RECEIVE) != 0;
+	}
+
+	void set_cloned_to_receive_flag()
+	{
+		flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_CLONED_TO_RECEIVE;
+	}
+
+	void reset_cloned_to_receive_flag()
+	{
+		flags_ &= ~SOCKET_FLAGS::SOCKET_FLAGS_CLONED_TO_RECEIVE;
 	}
 
     bool get_socket_proxy_connect_flag()

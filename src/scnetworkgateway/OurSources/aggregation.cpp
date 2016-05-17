@@ -86,7 +86,7 @@ uint32_t PortAggregator(
                 ags->socket_info_index_ = gw->ObtainFreeSocketIndex(
                     INVALID_SOCKET,
                     port_index,
-                    MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP,
+                    MixedCodeConstants::NetworkProtocolType::PROTOCOL_UNKNOWN,
                     false);
 
                 // Checking if we can't obtain new socket index.
@@ -181,7 +181,7 @@ uint32_t PortAggregator(
                 new_sd->set_client_ip_info(aggr_sd->get_client_ip_info());
 
                 // Changing accumulative buffer accordingly.
-                new_sd->SetAccumulation(ags->size_bytes_, 0);
+                new_sd->SetAccumulation(ags->size_bytes_);
 
                 // Checking if its a no IPC test.
                 switch ((MixedCodeConstants::AggregationMessageFlags) ags->msg_flags_) {
