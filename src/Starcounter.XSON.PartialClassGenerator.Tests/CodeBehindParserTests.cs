@@ -123,17 +123,20 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             mono = ParserAnalyzeCode("Bar", source);
             roslyn = ParserAnalyzeCode("Bar", source, true);
 
-            var c1 = mono.FindClassInfo("*.Fubar");
-            var c2 = roslyn.FindClassInfo("*.Fubar");
+            var c1 = mono.FindClassInfo("*.Foo.Fubar");
+            var c2 = roslyn.FindClassInfo("*.Foo.Fubar");
 
             Assert.NotNull(c1);
             Assert.NotNull(c2);
             Assert.True(c1.ParentClasses.Count == 2);
             Assert.AreEqual(c1.ParentClasses.Count, c2.ParentClasses.Count);
-            Assert.AreEqual(c1.ParentClasses[0], "Bar");
-            Assert.AreEqual(c2.ParentClasses[0], "Bar");
-            Assert.AreEqual(c1.ParentClasses[1], "Foo");
-            Assert.AreEqual(c2.ParentClasses[1], "Foo");
+            Assert.AreEqual(c1.GlobalClassSpecifier, c2.GlobalClassSpecifier);
+            Assert.AreEqual(c1.UseGlobalSpecifier, c2.UseGlobalSpecifier);
+
+            for (int i = 0; i < c1.ParentClasses.Count; i++)
+            {
+                Assert.AreEqual(c1.ParentClasses[i], c2.ParentClasses[i]);
+            }
         }
     }
 }
