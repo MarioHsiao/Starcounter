@@ -3,6 +3,7 @@ using System.IO;
 using NUnit.Framework;
 using Starcounter.XSON.Compiler.Mono;
 using Starcounter.XSON.Metadata;
+using System.Text;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
@@ -136,6 +137,40 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             for (int i = 0; i < c1.ParentClasses.Count; i++)
             {
                 Assert.AreEqual(c1.ParentClasses[i], c2.ParentClasses[i]);
+            }
+
+            var sb = new StringBuilder();
+            sb.Append("public partial class Foo : Json { } ");
+            sb.Append("[Foo_json.Foo2] public partial class Foo2 : Json, IDisposable { } ");
+            sb.Append("[Foo_json.Foo3] public partial class Foo3 : Json, IBound<Fubar.Bar> { } ");
+            sb.Append("[Foo_json.Foo4] public partial class Foo4 : IDisposable { } ");
+            sb.Append("[Foo_json.Foo5] public partial class Foo5 : IBound<Fubar.Bar> {} ");
+            sb.Append("[Foo_json.Foo6] public partial class Foo6 : Custom.BaseType, IBaseType, IRootType {} ");
+
+            source = sb.ToString();
+            mono = ParserAnalyzeCode("Foo", source);
+            roslyn = ParserAnalyzeCode("Foo", source, true);
+
+            Assert.AreEqual(mono.CodeBehindClasses.Count, roslyn.CodeBehindClasses.Count);
+            for (int i = 0; i < mono.CodeBehindClasses.Count; i++)
+            {
+                var mc = mono.CodeBehindClasses[i];
+                var rc = roslyn.CodeBehindClasses[i];
+
+                Assert.AreEqual(mc.BaseClassName, rc.BaseClassName);
+                Assert.AreEqual(mc.BoundDataClass, rc.BoundDataClass);
+                Assert.AreEqual(mc.ClassName, rc.ClassName);
+                Assert.AreEqual(mc.ClassPath, rc.ClassPath);
+                Assert.AreEqual(mc.DerivesDirectlyFromJson, rc.DerivesDirectlyFromJson);
+                Assert.AreEqual(mc.GlobalClassSpecifier, rc.GlobalClassSpecifier);
+                Assert.AreEqual(mc.InputBindingList, rc.InputBindingList);
+                Assert.AreEqual(mc.IsDeclaredInCodeBehind, rc.IsDeclaredInCodeBehind);
+                Assert.AreEqual(mc.IsMapped, rc.IsMapped);
+                Assert.AreEqual(mc.IsRootClass, rc.IsRootClass);
+                Assert.AreEqual(mc.Namespace, rc.Namespace);
+                Assert.AreEqual(mc.ParentClasses, rc.ParentClasses);
+                Assert.AreEqual(mc.RawDebugJsonMapAttribute, rc.RawDebugJsonMapAttribute);
+                Assert.AreEqual(mc.UseGlobalSpecifier, rc.UseGlobalSpecifier);
             }
         }
     }
