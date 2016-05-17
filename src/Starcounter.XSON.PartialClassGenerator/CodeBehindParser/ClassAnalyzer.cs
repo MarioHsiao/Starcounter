@@ -66,7 +66,8 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 ci.ParentClasses.AddRange(list);
             }
             else {
-                ci.Namespace = RoslynSyntaxHelpers.GetFullNamespace(node);
+                var ns = RoslynSyntaxHelpers.GetFullNamespace(node);
+                ci.Namespace = ns == string.Empty ? null : ns;
             }
 
             // Check 1: we are named as the root object, or 2, we contain an attribute
