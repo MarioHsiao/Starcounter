@@ -605,19 +605,14 @@ namespace Starcounter.Internal.XSON.Tests {
                 Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
 
                 try {
+                    // Making sure '.0' is added to values without decimals and exponent.
                     var patch = jsonPatch.Generate(root, true, false);
                     var expected = '[' + string.Format(Helper.PATCH_REPLACE, "", @"{""Number"":65.0}") + ']';
                     Assert.AreEqual(expected, patch);
                     
-                    root.Number = 99.555400004d;
-                    patch = jsonPatch.Generate(root, true, false);
-                    expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Number", "99.555400004") + ']';
-                    Assert.AreEqual(expected, patch);
-
+                    // Only interested in that the patch is generated without buffer overflow
                     root.Number = 454354544454545445453454534534453499.55d;
                     patch = jsonPatch.Generate(root, true, false);
-                    expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Number", "4.54354544454545E+35") + ']';
-                    Assert.AreEqual(expected, patch);
                 } finally {
                     Thread.CurrentThread.CurrentCulture = oldCulture;
                 }
