@@ -330,6 +330,15 @@ namespace Starcounter.SqlProcessor {
                 return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(errorCode, m, message, position, token, query));
             }
         }
+        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
+            CharSet = CharSet.Unicode)]
+        internal static extern uint scsql_advance_iter(ulong iter);
+        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
+            CharSet = CharSet.Unicode)]
+        internal static extern uint scsql_delete_iter(ulong iter);
+        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
+            CharSet = CharSet.Unicode)]
+        internal static extern uint scsql_deref_db_iter(ulong iter, out ulong rec_id, out ulong rec_ref);
     }
 
     [StructLayout(LayoutKind.Sequential)]
