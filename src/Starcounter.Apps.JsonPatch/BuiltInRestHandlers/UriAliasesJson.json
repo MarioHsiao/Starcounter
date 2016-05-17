@@ -1,0 +1,8 @@
+﻿{
+  "$": { "Namespace": "Starcounter.Internal" },
+  "Items": [
+    {
+      "$": { "Reuse": "Starcounter.Internal.UriAliasJson" }
+    }
+  ]
+}

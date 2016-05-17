@@ -69,6 +69,22 @@ namespace Starcounter.Internal {
             return false;
         }
 
+        public UriAlias GetUriAlias(string httpMethod, ushort port, string fromUri) {
+
+            for (int i = 0; i < UriAliases.Count; i++) {
+
+                UriAlias uriAlias = UriAliases[i];
+
+                if (uriAlias.HttpMethod == httpMethod &&
+                    uriAlias.Port == port &&
+                    uriAlias.FromUri.ToUpperInvariant() == fromUri.ToUpperInvariant()) {
+
+                    return uriAlias;
+                }
+            }
+            return null;
+        }
+
         public Boolean RemoveUriAlias(UriAlias newAlias) {
 
             newAlias.HttpMethod = newAlias.HttpMethod.ToUpperInvariant();
@@ -79,11 +95,9 @@ namespace Starcounter.Internal {
 
                 if (a.HttpMethod == newAlias.HttpMethod &&
                     a.Port == newAlias.Port &&
-                    a.FromUri == newAlias.FromUri.ToUpperInvariant() &&
-                    a.ToUri == newAlias.ToUri.ToUpperInvariant()) {
+                    a.FromUri.ToUpperInvariant() == newAlias.FromUri.ToUpperInvariant()) {
 
                     UriAliases.Remove(a);
-
                     return true;
                 }
             }
@@ -91,6 +105,18 @@ namespace Starcounter.Internal {
             return false;
         }
 
+        public ReverseProxy GetReverseProxy(string matchingHost, ushort starcounterProxyPort) {
+
+            for (int i = 0; i < ReverseProxies.Count; i++) {
+
+                ReverseProxy r = ReverseProxies[i];
+
+                if (r.StarcounterProxyPort == starcounterProxyPort && r.MatchingHost.ToUpperInvariant() == matchingHost.ToUpperInvariant()) {
+                    return r;
+                }
+            }
+            return null;
+        }
         public Boolean AddOrReplaceReverseProxy(ReverseProxy newRevProxy) {
 
             for (int i = 0; i < ReverseProxies.Count; i++) {
@@ -180,7 +206,8 @@ namespace Starcounter.Internal {
                     return true;
                 }
 
-            } finally {
+            }
+            finally {
 
                 // Gateway failed to update configuration.
                 if (!updateSuccess) {
