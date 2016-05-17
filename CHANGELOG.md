@@ -17,7 +17,8 @@
 - Fixed a bug in the F# parser that parses JSON-by-example for TypedJSON to allow arrays in arrays [#3554](https://github.com/Starcounter/Starcounter/issues/3554)
 - Added a check for responses so they doesn't exceed a fixed maximum size to avoid buffer overruns and corrupting managed memory [#3608](https://github.com/Starcounter/Starcounter/issues/3608)
 - Fixed problem with WebSocket disconnect procedure [#38](https://github.com/StarcounterSamples/KitchenSink/issues/38)
-- Fixed bug in jsonmerger, that in some specific cases returned a response belonging to another app [#3622](https://github.com/StarcounterSamples/KitchenSink/issues/3622)  
+- Fixed bug in jsonmerger, that in some specific cases returned a response belonging to another app [#3622](https://github.com/Starcounter/Starcounter/issues/3622)  
+- Fixed buffer overrun when serializing really large double values in TypedJSON [#3585](https://github.com/Starcounter/Starcounter/issues/3585), [#3589](https://github.com/Starcounter/Starcounter/issues/3589) 
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
