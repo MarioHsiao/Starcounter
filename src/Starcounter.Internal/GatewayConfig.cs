@@ -17,6 +17,8 @@ namespace Starcounter.Internal {
     /// </summary>
     public class NetworkGateway {
 
+        static Object lockObject = new Object();
+
         static String DescriptionOrig =
     @"
     WorkersNumber: Number of worker threads (default: 2);
@@ -164,59 +166,65 @@ namespace Starcounter.Internal {
 
         public static NetworkGateway Deserealize() {
 
-            XmlSerializer mySerializer = new XmlSerializer(typeof(NetworkGateway));
+            lock (NetworkGateway.lockObject) {
 
-            using (FileStream myFileStream = new FileStream(StarcounterEnvironment.Gateway.PathToGatewayConfig, FileMode.Open)) {
+                XmlSerializer mySerializer = new XmlSerializer(typeof(NetworkGateway));
 
-                NetworkGateway ng = (NetworkGateway)mySerializer.Deserialize(myFileStream);
-                ng.Description = DescriptionOrig;
+                using (FileStream myFileStream = new FileStream(StarcounterEnvironment.Gateway.PathToGatewayConfig, FileMode.Open)) {
 
-                return ng;
+                    NetworkGateway ng = (NetworkGateway)mySerializer.Deserialize(myFileStream);
+                    ng.Description = DescriptionOrig;
+
+                    return ng;
+                }
             }
         }
 
         public Boolean UpdateConfiguration() {
 
-            String gatewayXml = StarcounterEnvironment.Gateway.PathToGatewayConfig;
-            String backupFile = gatewayXml + ".bak";
-            Boolean updateSuccess = false;
+            lock (NetworkGateway.lockObject) {
 
-            try {
+                String gatewayXml = StarcounterEnvironment.Gateway.PathToGatewayConfig;
+                String backupFile = gatewayXml + ".bak";
+                Boolean updateSuccess = false;
 
-                // Deleting existing backup file if any.
-                if (File.Exists(backupFile)) {
-                    File.Delete(backupFile);
+                try {
+
+                    // Deleting existing backup file if any.
+                    if (File.Exists(backupFile)) {
+                        File.Delete(backupFile);
+                    }
+
+                    // Renaming current working gateway XML to backup.
+                    File.Move(gatewayXml, backupFile);
+
+                    // Serializing to the actual gateway xml.
+                    Serialize(gatewayXml);
+
+                    // Sending update configuration request to gateway.
+                    Response resp = Http.GET("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/updateconf");
+
+                    if (resp.IsSuccessStatusCode) {
+
+                        // Gateway successfully updated configuration.
+                        updateSuccess = true;
+                        File.Delete(backupFile);
+
+                        return true;
+                    }
+
+                }
+                finally {
+
+                    // Gateway failed to update configuration.
+                    if (!updateSuccess) {
+                        File.Delete(gatewayXml);
+                        File.Move(backupFile, gatewayXml);
+                    }
                 }
 
-                // Renaming current working gateway XML to backup.
-                File.Move(gatewayXml, backupFile);
-
-                // Serializing to the actual gateway xml.
-                Serialize(gatewayXml);
-
-                // Sending update configuration request to gateway.
-                Response resp = Http.GET("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/updateconf");
-
-                if (resp.IsSuccessStatusCode) {
-
-                    // Gateway successfully updated configuration.
-                    updateSuccess = true;
-                    File.Delete(backupFile);
-
-                    return true;
-                }
-
+                return false;
             }
-            finally {
-
-                // Gateway failed to update configuration.
-                if (!updateSuccess) {
-                    File.Delete(gatewayXml);
-                    File.Move(backupFile, gatewayXml);
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
