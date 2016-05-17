@@ -51,15 +51,22 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
             ci.ClassName = node.Identifier.ValueText;
             ci.IsDeclaredInCodeBehind = true;
+            ci.ParentClasses = new List<string>();
+
             if (outer != null) {
                 ci.Namespace = outer.codeBehindMetadata.Namespace;
+
+                // Foo.Bar.[ThisName] -> list([Bar], [Foo])
+                // We keep the somewhat weird reversed format to be
+                // compatible with how the Mono parser does it, and
+                // what outer code expect.
+                var simpleName = node.Identifier.ValueText;
                 var tokens = nestedName.Split('+');
-                ci.ParentClasses = new List<string>(
-                    tokens.TakeWhile((v, i) => { return i < tokens.Length - 1; }));
+                var list = tokens.Reverse().Where((s) => { return s != simpleName; });
+                ci.ParentClasses.AddRange(list);
             }
             else {
                 ci.Namespace = RoslynSyntaxHelpers.GetFullNamespace(node);
-                ci.ParentClasses = new List<string>();
             }
 
             // Check 1: we are named as the root object, or 2, we contain an attribute
