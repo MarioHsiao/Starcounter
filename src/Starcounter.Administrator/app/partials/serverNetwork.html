@@ -90,16 +90,16 @@
 
                     <thead>
                         <tr>
-                            <th>Port</th>
-                            <th>FromUri</th>
-                            <th>ToUri</th>
-                            <th>HttpMethod</th>
+                            <th>Port (database)</th>
+                            <th>From Uri</th>
+                            <th>To Uri</th>
+                            <th>Http Method</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         <tr ng-repeat="uriAlias in model.uriAliases | orderBy: 'Port'">
-                            <td>{{uriAlias.Port}}</td>
+                            <td>{{uriAlias.Port}} <span ng-show="uriAlias.DatabaseName"> ({{uriAlias.DatabaseName}})</span></td>
                             <td>{{uriAlias.FromUri}}</td>
                             <td>{{uriAlias.ToUri}}</td>
                             <td>{{uriAlias.HttpMethod}}</td>
@@ -113,19 +113,19 @@
 
                     <thead>
                         <tr>
-                            <th>DestinationIP</th>
-                            <th>DestinationPort</th>
-                            <th>StarcounterProxyPort</th>
-                            <th>MatchingHost</th>
+                            <th>Destination IP</th>
+                            <th>Destination Port (database)</th>
+                            <th>Matching Host</th>
+                            <th>Starcounter Proxy Port</th>
                         </tr>
                     </thead>
 
                     <tbody>
-                        <tr ng-repeat="uriAlias in model.reverseProxies | orderBy: 'DestinationPort'">
-                            <td>{{uriAlias.DestinationIP}}</td>
-                            <td>{{uriAlias.DestinationPort}}</td>
-                            <td>{{uriAlias.StarcounterProxyPort}}</td>
-                            <td>{{uriAlias.MatchingHost}}</td>
+                        <tr ng-repeat="reverseProxy in model.reverseProxies | orderBy: 'DestinationPort'">
+                            <td>{{reverseProxy.DestinationIP}}</td>
+                            <td>{{reverseProxy.DestinationPort}} <span ng-show="reverseProxy.DatabaseName"> ({{reverseProxy.DatabaseName}})</span></td>
+                            <td>{{reverseProxy.MatchingHost}}</td>
+                            <td>{{reverseProxy.StarcounterProxyPort}}</td>
                         </tr>
                     </tbody>
                 </table>

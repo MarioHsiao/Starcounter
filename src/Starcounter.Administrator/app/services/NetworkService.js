@@ -9,8 +9,8 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', '$location', 'Ut
     // {
     //    statistics : object,
     //    workingfolders : [{"Port":8080, "Folder":"folderpath"}],
-    //    uriAliases : [{"HttpMethod":"GET", "FromUri":"/", "ToUri":"/launcher", "Port":7000}],
-    //    reverseProxies: [{"DestinationIP":"127.0.0.1", "DestinationPort":80, "StarcounterProxyPort":7000, "MatchingHost":"mydomain.com"}],
+    //    uriAliases : [{"HttpMethod":"GET", "FromUri":"/", "ToUri":"/launcher", "Port":7000,"DatabaseName":"this is added after get"}],
+    //    reverseProxies: [{"DestinationIP":"127.0.0.1", "DestinationPort":80, "StarcounterProxyPort":7000, "MatchingHost":"mydomain.com", "DatabaseName":"this is added after get"}],
     // }
     this.model = {};
 
@@ -212,11 +212,41 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', '$location', 'Ut
 
             self.model.uriAliases = uriAliases.Items;
 
+            // Apply database name
+            for (var i = 0 ; i < self.model.uriAliases.length ; i++) {
+                var uriAlias = self.model.uriAliases[i];
+
+                var databases = HostModelService.data.model.Databases
+                for (var d = 0 ; d < databases.length ; d++) {
+                    var database = databases[d];
+                    if (database.UserHttpPort == uriAlias.Port) {
+                        uriAlias.DatabaseName = database.DisplayName;
+                        break;
+                    }
+                }
+            }
+
+
         }, errorCallback);
 
         this.getReverseProxies(function (reverseProxies) {
 
             self.model.reverseProxies = reverseProxies.Items;
+
+            // Apply database name
+            for (var i = 0 ; i < self.model.reverseProxies.length ; i++) {
+                var reverseProxy = self.model.reverseProxies[i];
+
+                var databases = HostModelService.data.model.Databases
+                for (var d = 0 ; d < databases.length ; d++) {
+                    var database = databases[d];
+                    if (database.UserHttpPort == reverseProxy.DestinationPort) {
+                        reverseProxy.DatabaseName = database.DisplayName;
+                        break;
+                    }
+                }
+            }
+
 
         }, errorCallback);
 
@@ -239,7 +269,7 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', '$location', 'Ut
                         break;
                     }
                 }
-            
+
             }
             self.getNetworkStaticFolders(databasesToProcess, successCallback, errorCallback);
 
