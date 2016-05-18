@@ -188,6 +188,27 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 Assert.AreEqual(mc.RawDebugJsonMapAttribute, rc.RawDebugJsonMapAttribute);
                 Assert.AreEqual(mc.UseGlobalSpecifier, rc.UseGlobalSpecifier);
             }
+
+            sb.Clear();
+            sb.Append("public partial class Foo { ");
+            sb.Append("  public void Handle(Input.Bar bar) {}");
+            sb.Append("  public void Handle(Input.Bar2 bar) {}");
+            sb.Append("}");
+
+            source = sb.ToString();
+            mono = ParserAnalyzeCode("Foo", source);
+            roslyn = ParserAnalyzeCode("Foo", source, true);
+
+            Assert.AreEqual(mono.RootClassInfo.InputBindingList.Count, roslyn.RootClassInfo.InputBindingList.Count);
+            for (int i = 0; i < mono.RootClassInfo.InputBindingList.Count; i++)
+            {
+                var mh = mono.RootClassInfo.InputBindingList[i];
+                var rh = roslyn.RootClassInfo.InputBindingList[i];
+
+                Assert.AreEqual(mh.DeclaringClassName, rh.DeclaringClassName);
+                Assert.AreEqual(mh.DeclaringClassNamespace, rh.DeclaringClassNamespace);
+                Assert.AreEqual(mh.FullInputTypeName, rh.FullInputTypeName);
+            }
         }
     }
 }
