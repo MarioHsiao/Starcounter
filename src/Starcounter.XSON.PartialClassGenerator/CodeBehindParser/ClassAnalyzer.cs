@@ -50,6 +50,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             var outer = NestingClass;
 
             ci.ClassName = node.Identifier.ValueText;
+            ci.BaseClassName = string.Empty;
             ci.IsDeclaredInCodeBehind = true;
             ci.ParentClasses = new List<string>();
 
@@ -125,11 +126,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
             // Validate, and wrap up (add attribute if not exist), and finally
             // add to the result.
-            // Validate 1: we have detected a base class
-            // Validate 2: we are adding ourselves as a root, and there is already
-            // a result in the result
-            // TODO:
-
+            
             var root = Result.RootClassInfo;
             if (root != null && ci.IsRootClass) {
                 throw IllegalCodeBehindException("Class {0} is considered a root class; {1}  is too.", ClassDiagnosticName, root.ClassName);
