@@ -25,8 +25,6 @@ namespace Administrator.Server.Managers {
 
         public static string AppStoreServerHost;
 
-        static Object lockObject_ = new Object();
-
         /// <summary>
         /// Get applications from appstore
         /// </summary>
@@ -35,7 +33,7 @@ namespace Administrator.Server.Managers {
         /// <param name="errorCallback"></param>
         public static void GetApplications(AppStoreStore store, Action<IList<AppStoreApplication>> completionCallback = null, Action<string> errorCallback = null) {
 
-            lock (lockObject_) {
+            lock (ServerManager.ServerInstance) {
 
                 if (string.IsNullOrEmpty(AppStoreManager.AppStoreServerHost)) {
 
@@ -156,7 +154,7 @@ namespace Administrator.Server.Managers {
         /// <param name="errorCallback"></param>
         public static void GetStores(Action<IList<AppStoreStore>> completionCallback = null, Action<string> errorCallback = null) {
 
-            lock (lockObject_) {
+            lock (ServerManager.ServerInstance) {
 
                 Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
 
