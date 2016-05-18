@@ -147,6 +147,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             sb.Append("[Foo_json.Foo5] public partial class Foo5 : IBound<Fubar.Bar> {} ");
             sb.Append("[Foo_json.Foo6] public partial class Foo6 : Custom.BaseType, IBaseType, IRootType {} ");
             sb.Append("[Foo_json.Foo7] public partial class Foo7 { } ");
+            sb.Append("[Foo_json.Foo8] public partial class Foo8 : Custom.BaseType, IBaseType, IBound<Fubar.Bar>, IRootType {} ");
 
             source = sb.ToString();
             mono = ParserAnalyzeCode("Foo", source);
@@ -165,10 +166,18 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                     // bother with this in mono parser.
                     Assert.AreEqual(mc.BaseClassName, rc.BaseClassName);
                     Assert.AreEqual(mc.BoundDataClass, rc.BoundDataClass);
+                    Assert.AreEqual(mc.DerivesDirectlyFromJson, rc.DerivesDirectlyFromJson);
                 }
+                else
+                {
+                    // Check Roslyn produce a more accurate result
+                    Assert.AreEqual(rc.BaseClassName, string.Empty);
+                    Assert.AreEqual(rc.BoundDataClass, "Fubar.Bar");
+                    Assert.True(rc.DerivesDirectlyFromJson);
+                }
+
                 Assert.AreEqual(mc.ClassName, rc.ClassName);
                 Assert.AreEqual(mc.ClassPath, rc.ClassPath);
-                Assert.AreEqual(mc.DerivesDirectlyFromJson, rc.DerivesDirectlyFromJson);
                 Assert.AreEqual(mc.GlobalClassSpecifier, rc.GlobalClassSpecifier);
                 Assert.AreEqual(mc.InputBindingList, rc.InputBindingList);
                 Assert.AreEqual(mc.IsDeclaredInCodeBehind, rc.IsDeclaredInCodeBehind);
