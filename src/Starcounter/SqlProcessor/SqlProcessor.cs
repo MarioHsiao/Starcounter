@@ -6,8 +6,8 @@ using System.Runtime.InteropServices;
 namespace Starcounter.SqlProcessor {
     internal class SqlProcessor {
 
-        internal const ulong STAR_MOM_OF_ALL_LAYOUTS_NAME_TOKEN = 10;
-        internal const ulong STAR_GLOBAL_SETSPEC_INDEX_NAME_TOKEN = 11;
+        internal const ulong STAR_MOM_OF_ALL_LAYOUTS_NAME_TOKEN = 11;
+        internal const ulong STAR_GLOBAL_SETSPEC_INDEX_NAME_TOKEN = 12;
 
         [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
             CharSet = CharSet.Unicode)]
