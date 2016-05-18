@@ -142,7 +142,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             // first the base class (e.g. "Json"), then the interfaces.
 
             // Grab and discover the presumed base class
-            DiscoverPrimaryBaseType(node.Types[0]);
+            DiscoverPrimaryBaseType(node);
 
             // Process secondary types
             for (int i = 1; i < node.Types.Count; i++) {
@@ -187,20 +187,44 @@ namespace Starcounter.XSON.PartialClassGenerator {
             return this.Node.Identifier.ValueText == this.CodeBehindAnalyzer.Root.Name;
         }
 
-        void DiscoverPrimaryBaseType(BaseTypeSyntax baseType) {
-            this.codeBehindMetadata.BaseClassName = baseType.Type.ToString();
+        bool IsBindingName(GenericNameSyntax name)
+        {
+            if (name.TypeArgumentList == null || name.TypeArgumentList.Arguments.Count != 1)
+            {
+                return false;
+            }
+
+            var generic = name.Identifier.Text;
+            return generic.Equals("IBound") || generic.Equals("Starcounter.IBound");
+        }
+
+        void DiscoverPrimaryBaseType(BaseListSyntax node) {
+            var baseType = node.Types[0];
+            var name = baseType.Type.ToString();
+
+            // We employ a specific and forgiving strategy for classes
+            // that define IBound<T> as the first argument of their base
+            // type list, allowing implicit inheriting of Json if the
+            // first (and possibly only) type is IBound<T>, such as
+            // partial class Foo : IBound<Bar> { ... }.
+            if (baseType.Type.Kind() == SyntaxKind.GenericName)
+            {
+                var genericName = (GenericNameSyntax)baseType.Type;
+                if (IsBindingName(genericName)) {
+                    codeBehindMetadata.BoundDataClass = genericName.TypeArgumentList.Arguments[0].ToString();
+                    name = string.Empty;
+                }
+            }
+
+            this.codeBehindMetadata.BaseClassName = name;
         }
 
         void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, IdentifierNameSyntax name) {
         }
 
         void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, GenericNameSyntax name) {
-            if (name.TypeArgumentList == null || name.TypeArgumentList.Arguments.Count != 1) {
-                return;
-            }
-
-            var generic = name.Identifier.Text;
-            if (generic.Equals("IBound") || generic.Equals("Starcounter.IBound")) {
+            if (IsBindingName(name))
+            {
                 codeBehindMetadata.BoundDataClass = name.TypeArgumentList.Arguments[0].ToString();
             }
         }
