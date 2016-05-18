@@ -142,7 +142,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             // first the base class (e.g. "Json"), then the interfaces.
 
             // Grab and discover the presumed base class
-            DiscoverBaseClass(node.Types[0]);
+            DiscoverPrimaryBaseType(node.Types[0]);
 
             // Process secondary types
             for (int i = 1; i < node.Types.Count; i++) {
@@ -153,15 +153,15 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 switch (type.Kind()) {
                     case SyntaxKind.IdentifierName:
                         // e.g. "Json"
-                        DiscoverBaseType(baseType, (IdentifierNameSyntax)type);
+                        DiscoverSecondaryBaseType(baseType, (IdentifierNameSyntax)type);
                         break;
                     case SyntaxKind.QualifiedName:
                         // e.g "Starcounter.Json"
-                        DiscoverBaseType(baseType, (QualifiedNameSyntax)type);
+                        DiscoverSecondaryBaseType(baseType, (QualifiedNameSyntax)type);
                         break;
                     case SyntaxKind.GenericName:
                         // e.g IBound<Foo>
-                        DiscoverBaseType(baseType, (GenericNameSyntax)type);
+                        DiscoverSecondaryBaseType(baseType, (GenericNameSyntax)type);
                         break;
                 }
             }
@@ -187,14 +187,14 @@ namespace Starcounter.XSON.PartialClassGenerator {
             return this.Node.Identifier.ValueText == this.CodeBehindAnalyzer.Root.Name;
         }
 
-        void DiscoverBaseClass(BaseTypeSyntax baseType) {
+        void DiscoverPrimaryBaseType(BaseTypeSyntax baseType) {
             this.codeBehindMetadata.BaseClassName = baseType.Type.ToString();
         }
 
-        void DiscoverBaseType(BaseTypeSyntax baseType, IdentifierNameSyntax name) {
+        void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, IdentifierNameSyntax name) {
         }
 
-        void DiscoverBaseType(BaseTypeSyntax baseType, GenericNameSyntax name) {
+        void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, GenericNameSyntax name) {
             if (name.TypeArgumentList == null || name.TypeArgumentList.Arguments.Count != 1) {
                 return;
             }
@@ -205,7 +205,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             }
         }
 
-        void DiscoverBaseType(BaseTypeSyntax baseType, QualifiedNameSyntax name) {
+        void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, QualifiedNameSyntax name) {
         }
 
         Exception IllegalCodeBehindException(string message, params object[] args) {
