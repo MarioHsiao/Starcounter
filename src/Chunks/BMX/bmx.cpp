@@ -16,16 +16,24 @@ namespace bmx
 	EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
 		GenericManagedCallback generic_managed_handler)
 	{
+		_SC_BEGIN_FUNC
+
 		g_generic_managed_handler = generic_managed_handler;
 
 		return 0;
+
+		_SC_END_FUNC
 	}
 
 	// Initializes profilers.
 	EXTERN_C void __stdcall sc_init_profilers(uint8_t num_workers)
 	{
+		_SC_BEGIN_FUNC
+
 		// Initializing profilers.
 		Profiler::InitAll(num_workers);
+
+		_SC_END_FUNC
 	}
 
 	// Gets profiler results for a given scheduler.
@@ -48,7 +56,11 @@ namespace bmx
 	EXTERN_C void __stdcall sc_profiler_reset(
 		uint8_t sched_id)
 	{
+		_SC_BEGIN_FUNC
+
 		Profiler::GetProfiler(sched_id)->ResetAll();
+
+		_SC_END_FUNC
 	}
 
 	// Main message loop for incoming requests. Handles the 
