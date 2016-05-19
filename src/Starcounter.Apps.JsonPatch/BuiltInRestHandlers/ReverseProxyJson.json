@@ -1,7 +1,7 @@
 ﻿{
-	"$": { Namespace: "Starcounter.Internal" },
-    "DestinationIP": "",
-    "DestinationPort": 0,
-    "StarcounterProxyPort": 0,
-	"MatchingHost": "" 
+  "$": { "Namespace": "Starcounter.Internal" },
+  "DestinationIP": "",
+  "DestinationPort": 0,
+  "StarcounterProxyPort": 0,
+  "MatchingHost": ""
 }
