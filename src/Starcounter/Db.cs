@@ -110,7 +110,7 @@ namespace Starcounter {
                 int implicitColumnCount;
                 ushort inheritedTableId = 0;
                 if (inheritedTableDef == null) {
-                    implicitColumnCount = 2; // Implicit key column.
+                    implicitColumnCount = 3; // Implicit key column.
                 } else {
                     // TODO:
                     // We're assume that the base table definition is complete
