@@ -10,8 +10,12 @@ EXTERN_C uint32_t __stdcall sc_bmx_obtain_new_chunk(
     starcounter::core::chunk_index* new_chunk_index,
     uint8_t** new_chunk_mem)
 {
+	_SC_BEGIN_FUNC
+
     // Obtaining chunk memory.
     return cm_acquire_shared_memory_chunk(new_chunk_index, new_chunk_mem);
+
+	_SC_END_FUNC
 }
 
 uint32_t sc_clone_linked_chunks(
@@ -121,6 +125,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_copy_from_chunks_and_release_trailing(
     const int32_t dest_buffer_size
     )
 {
+	_SC_BEGIN_FUNC
+
     // Copying first chunk data.
     int32_t cur_chunk_num_copy_bytes = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
     if (cur_chunk_num_copy_bytes > total_copy_bytes) {
@@ -191,6 +197,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_copy_from_chunks_and_release_trailing(
     }
 
     return 0;
+
+	_SC_END_FUNC
 }
 
 // Clones the existing chunk into a new one by copying the specified header.
