@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 namespace staradmin.Commands {
 
@@ -73,18 +74,32 @@ namespace staradmin.Commands {
 
             foreach (var name in StarcounterEnvironment.ScProcessesList) {
 
-                foreach (var proc in Process.GetProcessesByName(name)) {
+                // Trying 10 times to kill running process.
+                for (Int32 i = 0; i < 10; i++) {
 
                     try {
 
-                        proc.Kill();
-                        proc.WaitForExit();
+                        foreach (var proc in Process.GetProcessesByName(name)) {
 
-                        Console.WriteLine(DateTime.Now.TimeOfDay + ": process '" + name + "' successfully killed!");
+                            try {
 
-                    } finally {
-                        proc.Close();
+                                proc.Kill();
+                                proc.WaitForExit();
+
+                                Console.WriteLine(DateTime.Now.TimeOfDay + ": process '" + name + "' successfully killed!");
+
+                            } finally {
+                                proc.Close();
+                            }
+                        }
+
+                    } catch {
+                        Console.Error.WriteLine("Failed to kill process: {0}. Retrying in 1 second...", name);
+                        Thread.Sleep(1000);
+                        continue;
                     }
+
+                    break;
                 }
             }
         }
