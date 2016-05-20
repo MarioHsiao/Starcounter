@@ -1,8 +1,7 @@
-﻿using Starcounter.XSON.Metadata;
-using System;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Starcounter.XSON.Metadata;
 using System.IO;
 
 namespace Starcounter.XSON.PartialClassGenerator {
@@ -49,7 +48,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// </summary>
         /// <returns></returns>
         public CodeBehindMetadata ParseToMetadata() {
-            Console.WriteLine("Begin parsing with Roslyn ...");
             SyntaxTree tree = CSharpSyntaxTree.ParseText(SourceCode);
             var root = (CompilationUnitSyntax)tree.GetRoot();
             var walker = new CodeBehindFileAnalyzer(this);
