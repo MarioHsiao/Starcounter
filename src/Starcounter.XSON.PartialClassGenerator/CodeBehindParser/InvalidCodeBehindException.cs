@@ -15,6 +15,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
         ClassGeneric,
         MultipleRootClasses,
         InputHandlerStatic,
+        InputHandlerAbstract,
         InputHandlerBadParameterCount,
         InputHandlerHasTypeParameters,
         InputHandlerWithRefParameter,

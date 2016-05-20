@@ -193,6 +193,11 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerStatic, node);
             }
 
+            var isAbstract = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.AbstractKeyword);
+            if (isAbstract) {
+                throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerAbstract, node);
+            }
+
             if (node.ParameterList == null || node.ParameterList.Parameters.Count != 1) {
                 throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerBadParameterCount, node);
             }

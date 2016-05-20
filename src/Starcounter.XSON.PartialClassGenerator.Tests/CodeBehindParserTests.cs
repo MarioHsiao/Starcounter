@@ -127,6 +127,10 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             source = "public partial class Foo : Json { public int Handle(Input.Bar bar) {} }";
             ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyzeCode("Foo", source, useRoslynParser));
             Assert.IsTrue(ex2.Error == InvalidCodeBehindError.InputHandlerNotVoidReturnType);
+
+            source = "public partial class Foo : Json { public abstract void Handle(Input.Bar bar); }";
+            ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyzeCode("Foo", source, useRoslynParser));
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.InputHandlerAbstract);
         }
 
         [Test]
