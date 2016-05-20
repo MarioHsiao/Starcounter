@@ -74,6 +74,7 @@
     <Compile Include="CodeBehindMetaData\CodeBehindClassInfo.cs" />
     <Compile Include="CodeBehindParser\ClassAnalyzer.cs" />
     <Compile Include="CodeBehindParser\CodeBehindFileAnalyzer.cs" />
+    <Compile Include="CodeBehindParser\InvalidCodeBehindException.cs" />
     <Compile Include="CodeBehindParser\RootClass.cs" />
     <Compile Include="CodeBehindParser\RoslynCodeBehindParser.cs" />
     <Compile Include="CodeBehindParser\RoslynSyntaxHelpers.cs" />
