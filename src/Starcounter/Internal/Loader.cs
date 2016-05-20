@@ -167,7 +167,7 @@ namespace Starcounter.Internal
             // Add column definition for implicit key column.
             columnDefs.Add(new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, baseName == null ? false : true));
             columnDefs.Add(new ColumnDef("__setspecifier", sccoredb.STAR_TYPE_STRING, true, baseName == null ? false : true));
-            columnDefs.Add(new ColumnDef("__type_id", sccoredb.STAR_TYPE_ULONG, true, baseName == null ? false : true));
+            columnDefs.Add(new ColumnDef("__type_id", sccoredb.STAR_TYPE_ULONG, false, baseName == null ? false : true));
 
             GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false, ref isObjectID, ref isObjectNo);
             DetectColumnsWithNoPublicMapping(databaseClass, columnDefs, propertyDefs);
