@@ -1198,31 +1198,33 @@ namespace Administrator.Server.Model {
         /// <returns></returns>
         public static DatabaseApplication ToApplication(Representations.JSON.PlayListLocalItem item, string databaseName) {
 
-            var versionInfo = FileVersionInfo.GetVersionInfo(item.Executable);
+            lock (ServerManager.ServerInstance) {
+                var versionInfo = FileVersionInfo.GetVersionInfo(item.Executable);
 
-            Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+                Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
 
-            Trace.Assert(database != null, "Database not found: " + databaseName);
+                Trace.Assert(database != null, "Database not found: " + databaseName);
 
-            DatabaseApplication application = new DatabaseApplication();
-            application.Database = database;
-            application.Namespace = string.Empty;
-            application.Channel = string.Empty;
-            application.DisplayName = item.AppName;
-            application.AppName = item.AppName;
-            application.Description = versionInfo.FileDescription;
-            application.Version = versionInfo.FileVersion;
-            application.VersionDate = File.GetLastWriteTimeUtc(item.Executable);
-            application.ResourceFolder = item.Resourcefolder;
-            application.Company = versionInfo.CompanyName;
-            application.ImageUri = string.Empty; // TODO: Use default image?
-            application.Executable = item.Executable;
-            application.Arguments = string.Empty;
-            application.SourceID = string.Empty;
-            application.SourceUrl = string.Empty;   // TODO: Maybe use file://abc/123.exe ?
-            application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
-            application.CanBeUninstalled = false;
-            return application;
+                DatabaseApplication application = new DatabaseApplication();
+                application.Database = database;
+                application.Namespace = string.Empty;
+                application.Channel = string.Empty;
+                application.DisplayName = item.AppName;
+                application.AppName = item.AppName;
+                application.Description = versionInfo.FileDescription;
+                application.Version = versionInfo.FileVersion;
+                application.VersionDate = File.GetLastWriteTimeUtc(item.Executable);
+                application.ResourceFolder = item.Resourcefolder;
+                application.Company = versionInfo.CompanyName;
+                application.ImageUri = string.Empty; // TODO: Use default image?
+                application.Executable = item.Executable;
+                application.Arguments = string.Empty;
+                application.SourceID = string.Empty;
+                application.SourceUrl = string.Empty;   // TODO: Maybe use file://abc/123.exe ?
+                application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
+                application.CanBeUninstalled = false;
+                return application;
+            }
         }
 
         /// <summary>
@@ -1233,30 +1235,32 @@ namespace Administrator.Server.Model {
         /// <returns></returns>
         public static DatabaseApplication ToApplication(DeployedConfigFile item, string databaseName) {
 
-            Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+            lock (ServerManager.ServerInstance) {
+                Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
 
-            Trace.Assert(database != null, "Database not found: " + databaseName);
+                Trace.Assert(database != null, "Database not found: " + databaseName);
 
-            DatabaseApplication application = new DatabaseApplication();
-            application.Database = database;
-            application.Namespace = item.Namespace;
-            application.Channel = item.Channel;
-            application.DisplayName = item.DisplayName;
-            application.AppName = item.AppName;
-            application.Description = item.Description;
-            application.Version = item.Version;
-            application.VersionDate = item.VersionDate;
-            application.ResourceFolder = item.GetResourceFullPath(DeployManager.GetDeployFolder(database.ID));
-            application.Company = item.Company;
-            application.ImageUri = string.IsNullOrEmpty(item.ImageUri) ? string.Empty : string.Format("{0}/{1}", DeployManager.GetAppImagesFolder(), item.ImageUri); // Use default image?
-            application.Executable = item.GetExecutableFullPath(DeployManager.GetDeployFolder(database.ID));
-            application.Arguments = string.Empty;
-            application.SourceID = item.SourceID;
-            application.SourceUrl = item.SourceUrl;
+                DatabaseApplication application = new DatabaseApplication();
+                application.Database = database;
+                application.Namespace = item.Namespace;
+                application.Channel = item.Channel;
+                application.DisplayName = item.DisplayName;
+                application.AppName = item.AppName;
+                application.Description = item.Description;
+                application.Version = item.Version;
+                application.VersionDate = item.VersionDate;
+                application.ResourceFolder = item.GetResourceFullPath(DeployManager.GetDeployFolder(database.ID));
+                application.Company = item.Company;
+                application.ImageUri = string.IsNullOrEmpty(item.ImageUri) ? string.Empty : string.Format("{0}/{1}", DeployManager.GetAppImagesFolder(), item.ImageUri); // Use default image?
+                application.Executable = item.GetExecutableFullPath(DeployManager.GetDeployFolder(database.ID));
+                application.Arguments = string.Empty;
+                application.SourceID = item.SourceID;
+                application.SourceUrl = item.SourceUrl;
 
-            application.CanBeUninstalled = item.CanBeUninstalled;
-            application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(application.DatabaseName + item.GetExecutableFullPath(DeployManager.GetRawDeployFolder(database.ID)));
-            return application;
+                application.CanBeUninstalled = item.CanBeUninstalled;
+                application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(application.DatabaseName + item.GetExecutableFullPath(DeployManager.GetRawDeployFolder(database.ID)));
+                return application;
+            }
         }
 
         /// <summary>
@@ -1267,40 +1271,42 @@ namespace Administrator.Server.Model {
         /// <returns></returns>
         public static DatabaseApplication ToApplication(AppInfo item, string databaseName) {
 
-            Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+            lock (ServerManager.ServerInstance) {
+                Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
 
-            Trace.Assert(database != null, "Database not found: " + databaseName);
+                Trace.Assert(database != null, "Database not found: " + databaseName);
 
-            DatabaseApplication application = new DatabaseApplication();
-            application.Database = database;
-            application.Namespace = string.Empty;
-            application.Channel = string.Empty;
-            application.DisplayName = item.Name;
-            application.AppName = item.Name;
+                DatabaseApplication application = new DatabaseApplication();
+                application.Database = database;
+                application.Namespace = string.Empty;
+                application.Channel = string.Empty;
+                application.DisplayName = item.Name;
+                application.AppName = item.Name;
 
-            try {
-                var versionInfo = FileVersionInfo.GetVersionInfo(item.FilePath);
-                application.Description = versionInfo.FileDescription;
-                application.Version = versionInfo.FileVersion;
-                application.Company = versionInfo.CompanyName;
+                try {
+                    var versionInfo = FileVersionInfo.GetVersionInfo(item.FilePath);
+                    application.Description = versionInfo.FileDescription;
+                    application.Version = versionInfo.FileVersion;
+                    application.Company = versionInfo.CompanyName;
+                }
+                catch (Exception) {
+                    application.Description = string.Empty;
+                    application.Version = string.Empty;
+                    application.Company = string.Empty;
+                }
+
+                application.VersionDate = File.GetLastWriteTimeUtc(item.FilePath);
+                application.ResourceFolder = item.WorkingDirectory;
+                application.ImageUri = string.Empty; // TODO: Use default image?
+                application.Executable = item.FilePath;
+                application.Arguments = string.Empty; // TODO:
+                application.SourceID = string.Empty;
+                application.SourceUrl = string.Empty; // TODO: Maybe use file://abc/123.exe ?
+
+                application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
+                application.CanBeUninstalled = false;
+                return application;
             }
-            catch (Exception) {
-                application.Description = string.Empty;
-                application.Version = string.Empty;
-                application.Company = string.Empty;
-            }
-
-            application.VersionDate = File.GetLastWriteTimeUtc(item.FilePath);
-            application.ResourceFolder = item.WorkingDirectory;
-            application.ImageUri = string.Empty; // TODO: Use default image?
-            application.Executable = item.FilePath;
-            application.Arguments = string.Empty; // TODO:
-            application.SourceID = string.Empty;
-            application.SourceUrl = string.Empty; // TODO: Maybe use file://abc/123.exe ?
-
-            application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
-            application.CanBeUninstalled = false;
-            return application;
         }
 
         #region INotifyPropertyChanged Members

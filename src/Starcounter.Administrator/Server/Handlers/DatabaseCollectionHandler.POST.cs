@@ -25,76 +25,69 @@ namespace Starcounter.Administrator.Server.Handlers {
             // Create database
             Handle.POST("/api/admin/databases", (DatabaseSettings settings, Request req) => {
 
-                try {
+                lock (ServerManager.ServerInstance) {
 
-                    ValidationErrors validationErrors = RestUtils.GetValidationErrors(settings);
+                    try {
 
-                    if (validationErrors.Items.Count > 0) {
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden, BodyBytes = validationErrors.ToJsonUtf8() };
-                    }
+                        ValidationErrors validationErrors = RestUtils.GetValidationErrors(settings);
 
-                    var command = new CreateDatabaseCommand(Program.ServerEngine, settings.Name) {
-                        EnableWaiting = true
-                    };
+                        if (validationErrors.Items.Count > 0) {
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden, BodyBytes = validationErrors.ToJsonUtf8() };
+                        }
 
-                    command.SetupProperties.Configuration.Runtime.DefaultUserHttpPort = (ushort)settings.DefaultUserHttpPort;
-                    command.SetupProperties.Configuration.Runtime.SchedulerCount = (int)settings.SchedulerCount;
-                    command.SetupProperties.Configuration.Runtime.ChunksNumber = (int)settings.ChunksNumber;
-                    command.SetupProperties.StorageConfiguration.CollationFile = settings.CollationFile;
+                        var command = new CreateDatabaseCommand(Program.ServerEngine, settings.Name) {
+                            EnableWaiting = true
+                        };
+
+                        command.SetupProperties.Configuration.Runtime.DefaultUserHttpPort = (ushort)settings.DefaultUserHttpPort;
+                        command.SetupProperties.Configuration.Runtime.SchedulerCount = (int)settings.SchedulerCount;
+                        command.SetupProperties.Configuration.Runtime.ChunksNumber = (int)settings.ChunksNumber;
+                        command.SetupProperties.StorageConfiguration.CollationFile = settings.CollationFile;
                     command.SetupProperties.StorageConfiguration.FirstObjectID = settings.FirstObjectID;
                     command.SetupProperties.StorageConfiguration.LastObjectID = settings.LastObjectID;
 
-                    command.SetupProperties.Configuration.Runtime.DumpDirectory = settings.DumpDirectory;
-                    command.SetupProperties.Configuration.Runtime.TempDirectory = settings.TempDirectory;
-                    command.SetupProperties.Configuration.Runtime.ImageDirectory = settings.ImageDirectory;
-                    command.SetupProperties.Configuration.Runtime.TransactionLogDirectory = settings.TransactionLogDirectory;
+                        command.SetupProperties.Configuration.Runtime.DumpDirectory = settings.DumpDirectory;
+                        command.SetupProperties.Configuration.Runtime.TempDirectory = settings.TempDirectory;
+                        command.SetupProperties.Configuration.Runtime.ImageDirectory = settings.ImageDirectory;
+                        command.SetupProperties.Configuration.Runtime.TransactionLogDirectory = settings.TransactionLogDirectory;
 
-                    command.EnableWaiting = true;
+                        command.EnableWaiting = true;
 
-                    var info = server.Execute(command);
-                    info = server.Wait(info);
-                    if (info.HasError) {
+                        var info = server.Execute(command);
+                        info = server.Wait(info);
+                        if (info.HasError) {
 
-                        ErrorInfo single = info.Errors.PickSingleServerError();
-                        var msg = single.ToErrorMessage();
+                            ErrorInfo single = info.Errors.PickSingleServerError();
+                            var msg = single.ToErrorMessage();
 
-                        ErrorResponse errorResponse = new ErrorResponse();
-                        errorResponse.Text = msg.Brief;
-                        errorResponse.StackTrace = string.Empty;
-                        errorResponse.Helplink = msg.Helplink;
-                        errorResponse.ServerCode = single.GetErrorCode();
+                            ErrorResponse errorResponse = new ErrorResponse();
+                            errorResponse.Text = msg.Brief;
+                            errorResponse.StackTrace = string.Empty;
+                            errorResponse.Helplink = msg.Helplink;
+                            errorResponse.ServerCode = single.GetErrorCode();
 
-                        if (single.GetErrorCode() == Error.SCERRDATABASEALREADYEXISTS) {
-                            return new Response() { StatusCode = (ushort)422, Body = errorResponse.ToJson() };
+                            if (single.GetErrorCode() == Error.SCERRDATABASEALREADYEXISTS) {
+                                return new Response() { StatusCode = (ushort)422, Body = errorResponse.ToJson() };
+                            }
+
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
                         }
 
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                        Database database = ServerManager.ServerInstance.GetDatabase(settings.Name);
+                        if (database != null) {
+                            DatabaseJson databaseJson = new DatabaseJson();
+                            databaseJson.Data = database;
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = databaseJson.ToJson() };
+                        }
+
+                        ErrorResponse errorResponse2 = new ErrorResponse();
+                        errorResponse2.Text = "Failed to find the created database";
+
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse2.ToJson() };
                     }
-
-                    Database database = ServerManager.ServerInstance.GetDatabase(settings.Name);
-                    if (database != null) {
-                        DatabaseJson databaseJson = new DatabaseJson();
-                        databaseJson.Data = database;
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = databaseJson.ToJson() };
+                    catch (Exception e) {
+                        return RestUtils.CreateErrorResponse(e);
                     }
-
-                    ErrorResponse errorResponse2 = new ErrorResponse();
-                    errorResponse2.Text = "Failed to find the created database";
-
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse2.ToJson() };
-
-                    //                    // At the moment we only return the database name
-                    //                    dynamic resultJson = new DynamicJson();
-                    //                    resultJson.ID = settings.Name.ToLower();
-                    ////                    DatabaseInfo dbInfo = Program.ServerInterface.GetDatabaseByName(resultJson.ID);
-                    ////                    database.Url = dbInfo.Uri;
-                    //                    database.Url = string.Format("http://{0}:{1}/api/admin/databases/{2}", req.ClientIpAddress.ToString(), StarcounterEnvironment.Default.SystemHttpPort, database.ID); // TODO: Fix hardcodes IP and Port
-
-                    //                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = resultJson.ToString() };
-
-                }
-                catch (Exception e) {
-                    return RestUtils.CreateErrorResponse(e);
                 }
             });
         }

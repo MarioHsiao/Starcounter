@@ -12,7 +12,6 @@ namespace Administrator.Server.Managers {
     public class ExternalAPI {
 
         static List<Task> Tasks = new List<Task>();
-        static Object lockObject_ = new Object();
 
         //Handle.GET("/__internal_api/databases/{?}/task/{?}", (string databaseName, string taskID, Request request) => {
         //Handle.POST("/__internal_api/databases/{?}/task", (string databaseName, Request request) => {
@@ -23,7 +22,7 @@ namespace Administrator.Server.Managers {
             // Get task
             Handle.GET("/api/tasks/{?}", (string taskID, Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     // TODO: Make hashtable or ExternalAPI.Tasks
                     foreach (Task task in ExternalAPI.Tasks) {
@@ -41,7 +40,7 @@ namespace Administrator.Server.Managers {
             // Create database task
             Handle.POST("/api/tasks/createdatabase", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -59,7 +58,7 @@ namespace Administrator.Server.Managers {
             // Delete database task
             Handle.POST("/api/tasks/deletedatabase", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -88,7 +87,7 @@ namespace Administrator.Server.Managers {
             // Install application task
             Handle.POST("/api/tasks/installapplication", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -118,7 +117,7 @@ namespace Administrator.Server.Managers {
             // Upgrade application task
             Handle.POST("/api/tasks/upgradeapplication", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -170,7 +169,7 @@ namespace Administrator.Server.Managers {
             // Install application task
             Handle.POST("/api/tasks/uninstallapplication", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -209,7 +208,7 @@ namespace Administrator.Server.Managers {
             // Start application task
             Handle.POST("/api/tasks/startapplication", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -247,7 +246,7 @@ namespace Administrator.Server.Managers {
             // Start database task
             Handle.POST("/api/tasks/startdatabase", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -277,7 +276,7 @@ namespace Administrator.Server.Managers {
             // Stop database task
             Handle.POST("/api/tasks/stopdatabase", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -607,25 +606,28 @@ namespace Administrator.Server.Managers {
         /// <returns></returns>
         static Response CreateDatabase_Task(DatabaseSettings settings) {
 
-            // Create TaskItem
-            Task taskItem = new Task();
+            lock (ServerManager.ServerInstance) {
 
-            ServerManager.ServerInstance.CreateDatabase(settings, (database) => {
+                // Create TaskItem
+                Task taskItem = new Task();
 
-                taskItem.ResourceUri = database.Url;
-                taskItem.ResourceID = database.ID;
-                taskItem.Status = 0; // Done;
-            }, (wasCancelled, title, message, helpLink) => {
+                ServerManager.ServerInstance.CreateDatabase(settings, (database) => {
 
-                taskItem.Message = message;
-                taskItem.Status = -1; // Error;
-            });
+                    taskItem.ResourceUri = database.Url;
+                    taskItem.ResourceID = database.ID;
+                    taskItem.Status = 0; // Done;
+                }, (wasCancelled, title, message, helpLink) => {
 
-            TaskJson taskItemJson = new TaskJson();
-            taskItemJson.Data = taskItem;
-            ExternalAPI.Tasks.Add(taskItem);
+                    taskItem.Message = message;
+                    taskItem.Status = -1; // Error;
+                });
 
-            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
+                TaskJson taskItemJson = new TaskJson();
+                taskItemJson.Data = taskItem;
+                ExternalAPI.Tasks.Add(taskItem);
+
+                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
+            }
         }
 
         /// <summary>

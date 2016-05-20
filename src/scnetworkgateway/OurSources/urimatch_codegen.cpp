@@ -211,7 +211,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
                 clang_engine_addr,
                 false,
                 false,
-                true,
+				MixedCodeConstants::SCLLVM_OPT_FLAG,
                 uri_matching_code_,
                 root_function_name,
                 out_functions,
