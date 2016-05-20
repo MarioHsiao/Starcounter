@@ -232,5 +232,35 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 return candidate.DeclaringClassNamespace == null && candidate.FullInputTypeName == "Input.Bar2";
             }));
         }
+
+        [Test]
+        public static void CodeBehindParserErrorPropagationTest() {
+            var source = "public /*partial*/ class Foo {}";
+            var ex = Assert.Throws<InvalidCodeBehindException>(() => { var roslyn = ParserAnalyzeCode("Foo", source, true); });
+            Assert.True(ex.Line == 1);
+            Assert.True(ex.EndLine == 1);
+
+            source = Environment.NewLine; // 1
+            source += "using Starcounter" + Environment.NewLine; // 2
+            source += "public /*partial*/ class Foo {}"; // 3
+            source += Environment.NewLine;
+
+            ex = Assert.Throws<InvalidCodeBehindException>(() => { var roslyn = ParserAnalyzeCode("Foo", source, true); });
+            Assert.True(ex.Line == 3);
+            Assert.True(ex.EndLine == 3);
+
+            var sb = new StringBuilder();
+            sb.AppendLine();
+            sb.AppendLine("public partial class Foo {"); // 2
+            sb.AppendLine();
+            sb.AppendLine("public int Handle(Input.Bar bar) {");    // 4
+            sb.AppendLine("Console.WriteLine(\"Hello from invalid handler\");");
+            sb.AppendLine("}");
+
+            source = sb.ToString();
+            ex = Assert.Throws<InvalidCodeBehindException>(() => { var roslyn = ParserAnalyzeCode("Foo", source, true); });
+            Assert.True(ex.Error == InvalidCodeBehindError.InputHandlerNotVoidReturnType);
+            Assert.True(ex.Line == 4);
+        }
     }
 }
