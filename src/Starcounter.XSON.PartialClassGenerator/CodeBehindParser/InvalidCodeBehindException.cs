@@ -16,7 +16,8 @@ namespace Starcounter.XSON.PartialClassGenerator {
         MultipleRootClasses,
         InputHandlerStatic,
         InputHandlerBadParameterCount,
-        InputHandlerHasTypeParameters
+        InputHandlerHasTypeParameters,
+        InputHandlerWithRefParameter,
     }
 
     public class InvalidCodeBehindException : Exception {

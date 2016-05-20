@@ -4,6 +4,7 @@ using NUnit.Framework;
 using Starcounter.XSON.Compiler.Mono;
 using Starcounter.XSON.Metadata;
 using System.Text;
+using Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
@@ -14,14 +15,13 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 File.ReadAllText(path), path, useRoslynParser);
         }
 
-        private static CodeBehindMetadata ParserAnalyzeCode(string className, string sourceCode, bool useRoslynParser = false)
-        {
+        private static CodeBehindMetadata ParserAnalyzeCode(string className, string sourceCode, bool useRoslynParser = false) {
             return CodeBehindParser.Analyze(className, sourceCode, className + ".cs", useRoslynParser);
         }
 
         [Test]
         public static void CodeBehindSimpleAnalyzeTest() {
-			var monoMetadata = ParserAnalyze("Simple", @"Input\simple.json.cs");
+            var monoMetadata = ParserAnalyze("Simple", @"Input\simple.json.cs");
             var roslynMetadata = ParserAnalyze("Simple", @"Input\simple.json.cs", true);
 
             foreach (var metadata in new[] { monoMetadata, roslynMetadata }) {
@@ -46,8 +46,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         }
 
-		[Test]
-		public static void CodeBehindComplexAnalyzeTest() {
+        [Test]
+        public static void CodeBehindComplexAnalyzeTest() {
             var monoMetadata = ParserAnalyze("Complex", @"Input\complex.json.cs");
             var roslynMetadata = ParserAnalyze("Complex", @"Input\complex.json.cs", true);
 
@@ -71,10 +71,10 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 Assert.AreEqual("MySampleNamespace.Something", metadata.UsingDirectives[1]);
                 Assert.AreEqual("SomeOtherNamespace", metadata.UsingDirectives[2]);
             }
-		}
+        }
 
-		[Test]
-		public static void CodeBehindIncorrectAnalyzeTest() {
+        [Test]
+        public static void CodeBehindIncorrectAnalyzeTest() {
             Exception ex;
 
             bool useRoslynParser = false;
@@ -86,7 +86,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.IsTrue(ex.Message.Contains("constructors are not"));
 
             useRoslynParser = true;
-            
+
             ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect", @"Input\incorrect.json.cs", useRoslynParser));
             Assert.IsTrue(ex.Message.Contains("generic class"));
 
@@ -95,7 +95,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect3", @"Input\incorrect3.json.cs", useRoslynParser));
             Assert.IsTrue(ex.Message.Contains("not marked partial"));
-            
+
             ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect4", @"Input\incorrect4.json.cs", useRoslynParser));
             Assert.IsTrue(ex.Message.Contains("neither a named root nor contains any mapping attribute"));
             Assert.IsTrue(ex.Message.Contains("DoesNotMap"));
@@ -107,11 +107,26 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect6", @"Input\incorrect6.json.cs", useRoslynParser));
             Assert.IsTrue(ex.Message.Contains("is considered a root class"));
             Assert.IsTrue(ex.Message.Contains("is too"));
+
+            var source = "public partial class Foo : Json { public static void Handle(Input.Bar bar) {} }";
+            var ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyzeCode("Foo", source, useRoslynParser));
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.InputHandlerStatic);
+
+            source = "public partial class Foo : Json { public void Handle(Input.Bar bar, Second illegal) {} }";
+            ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyzeCode("Foo", source, useRoslynParser));
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.InputHandlerBadParameterCount);
+
+            source = "public partial class Foo : Json { public void Handle<T>(Input.Bar bar) {} }";
+            ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyzeCode("Foo", source, useRoslynParser));
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.InputHandlerHasTypeParameters);
+
+            source = "public partial class Foo : Json { public void Handle(ref Input.Bar bar) {} }";
+            ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyzeCode("Foo", source, useRoslynParser));
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.InputHandlerWithRefParameter);
         }
 
         [Test]
-        public static void CodeBehindParsersEqualityTest()
-        {
+        public static void CodeBehindParsersEqualityTest() {
             var source = "namespace Foo { namespace Bar { public partial class Fubar {} } }";
             var mono = ParserAnalyzeCode("Fubar", source);
             var roslyn = ParserAnalyzeCode("Fubar", source, true);
@@ -134,8 +149,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.AreEqual(c1.GlobalClassSpecifier, c2.GlobalClassSpecifier);
             Assert.AreEqual(c1.UseGlobalSpecifier, c2.UseGlobalSpecifier);
 
-            for (int i = 0; i < c1.ParentClasses.Count; i++)
-            {
+            for (int i = 0; i < c1.ParentClasses.Count; i++) {
                 Assert.AreEqual(c1.ParentClasses[i], c2.ParentClasses[i]);
             }
 
@@ -154,13 +168,11 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             roslyn = ParserAnalyzeCode("Foo", source, true);
 
             Assert.AreEqual(mono.CodeBehindClasses.Count, roslyn.CodeBehindClasses.Count);
-            for (int i = 0; i < mono.CodeBehindClasses.Count; i++)
-            {
+            for (int i = 0; i < mono.CodeBehindClasses.Count; i++) {
                 var mc = mono.CodeBehindClasses[i];
                 var rc = roslyn.CodeBehindClasses[i];
 
-                if (mc.ClassName != "Foo5")
-                {
+                if (mc.ClassName != "Foo5") {
                     // For Foo5, the mono parser generate a naked IBound as the
                     // base type, while Roslyn return IBound<Fubar.Bar>. Let's not
                     // bother with this in mono parser.
@@ -168,8 +180,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                     Assert.AreEqual(mc.BoundDataClass, rc.BoundDataClass);
                     Assert.AreEqual(mc.DerivesDirectlyFromJson, rc.DerivesDirectlyFromJson);
                 }
-                else
-                {
+                else {
                     // Check Roslyn produce a more accurate result
                     Assert.AreEqual(rc.BaseClassName, string.Empty);
                     Assert.AreEqual(rc.BoundDataClass, "Fubar.Bar");
@@ -200,8 +211,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             roslyn = ParserAnalyzeCode("Foo", source, true);
 
             Assert.AreEqual(mono.RootClassInfo.InputBindingList.Count, roslyn.RootClassInfo.InputBindingList.Count);
-            for (int i = 0; i < mono.RootClassInfo.InputBindingList.Count; i++)
-            {
+            for (int i = 0; i < mono.RootClassInfo.InputBindingList.Count; i++) {
                 var mh = mono.RootClassInfo.InputBindingList[i];
                 var rh = roslyn.RootClassInfo.InputBindingList[i];
 
