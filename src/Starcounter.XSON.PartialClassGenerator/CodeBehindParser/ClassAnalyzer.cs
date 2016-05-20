@@ -175,8 +175,35 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node) {
-            Console.WriteLine("Found this method: {0}", node.Identifier.Text);
-            base.VisitMethodDeclaration(node);
+            if (node.Identifier.Text == "Handle") {
+                var isStatic = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.StaticKeyword);
+                if (isStatic) {
+                    throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerStatic, node);
+                }
+
+                if (node.ParameterList == null || node.ParameterList.Parameters.Count != 1) {
+                    throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerBadParameterCount, node);
+                }
+
+                if (node.TypeParameterList != null) {
+                    throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerHasTypeParameters, node);
+                }
+
+                var parameter = node.ParameterList.Parameters[0];
+                if (parameter.Modifiers.Any((t) => t.Kind() == SyntaxKind.RefKeyword)) {
+                    throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerWithRefParameter, node);
+                }
+
+                var info = new InputBindingInfo();
+                info.DeclaringClassName = codeBehindMetadata.ClassName;
+                info.DeclaringClassNamespace = codeBehindMetadata.Namespace;
+                info.FullInputTypeName = parameter.Type.ToString();
+
+                codeBehindMetadata.InputBindingList.Add(info);
+            }
+
+            // Let's not invoke base method, since we don't need to analyze 
+            // anything else about it.
         }
 
         bool IsNamedRootObject() {
@@ -187,10 +214,8 @@ namespace Starcounter.XSON.PartialClassGenerator {
             return this.Node.Identifier.ValueText == this.CodeBehindAnalyzer.Root.Name;
         }
 
-        bool IsBindingName(GenericNameSyntax name)
-        {
-            if (name.TypeArgumentList == null || name.TypeArgumentList.Arguments.Count != 1)
-            {
+        bool IsBindingName(GenericNameSyntax name) {
+            if (name.TypeArgumentList == null || name.TypeArgumentList.Arguments.Count != 1) {
                 return false;
             }
 
@@ -207,8 +232,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             // type list, allowing implicit inheriting of Json if the
             // first (and possibly only) type is IBound<T>, such as
             // partial class Foo : IBound<Bar> { ... }.
-            if (baseType.Type.Kind() == SyntaxKind.GenericName)
-            {
+            if (baseType.Type.Kind() == SyntaxKind.GenericName) {
                 var genericName = (GenericNameSyntax)baseType.Type;
                 if (IsBindingName(genericName)) {
                     codeBehindMetadata.BoundDataClass = genericName.TypeArgumentList.Arguments[0].ToString();
@@ -223,8 +247,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, GenericNameSyntax name) {
-            if (IsBindingName(name))
-            {
+            if (IsBindingName(name)) {
                 codeBehindMetadata.BoundDataClass = name.TypeArgumentList.Arguments[0].ToString();
             }
         }
@@ -234,6 +257,10 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
         Exception IllegalCodeBehindException(string message, params object[] args) {
             return new Exception(string.Format(message, args));
+        }
+
+        InvalidCodeBehindException IllegalCodeBehindException(InvalidCodeBehindError error, CSharpSyntaxNode node = null) {
+            return new InvalidCodeBehindException(error, node);
         }
     }
 }
