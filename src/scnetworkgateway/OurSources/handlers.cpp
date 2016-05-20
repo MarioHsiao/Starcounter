@@ -106,7 +106,7 @@ uint32_t UdpPortProcessData(
                 return err_code;
 
             // Push chunk to corresponding channel/scheduler.
-            err_code = gw->PushSocketDataToDb(sd, user_handler_id);
+            err_code = gw->PushSocketDataToDb(sd, user_handler_id, false);
             if (err_code)
                 return err_code;
         }
@@ -159,7 +159,7 @@ uint32_t TcpPortProcessData(
         *is_handled = true;
 
         // Push chunk to corresponding channel/scheduler.
-        err_code = gw->PushSocketDataToDb(sd, user_handler_id);
+        err_code = gw->PushSocketDataToDb(sd, user_handler_id, true);
 
         if (err_code) {
 
@@ -190,7 +190,7 @@ uint32_t TcpPortProcessData(
             return err_code;
 
         // Push chunk to corresponding channel/scheduler.
-        err_code = gw->PushSocketDataToDb(sd, user_handler_id);
+        err_code = gw->PushSocketDataToDb(sd, user_handler_id, false);
         if (err_code)
             return err_code;
 

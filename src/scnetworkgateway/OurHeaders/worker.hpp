@@ -300,6 +300,9 @@ public:
     // Sets the clone for the next iteration.
     void SetReceiveClone(SocketDataChunkRef sd_clone)
     {
+		// Setting flag clone to receive.
+		sd_clone->get_socket_info()->set_cloned_to_receive_flag();
+
         // Only one clone at a time is possible.
         GW_ASSERT(sd_receive_clone_ == NULL);
 
@@ -570,7 +573,7 @@ public:
     }
 
     // Push given chunk to database queue.
-    uint32_t PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
+    uint32_t PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool disable_check_for_clone);
 
     // Push given chunk to database queue.
     uint32_t PushSocketDataFromOverflowToDb(SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* again_for_overflow);

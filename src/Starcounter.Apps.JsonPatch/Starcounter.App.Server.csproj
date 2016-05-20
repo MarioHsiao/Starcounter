@@ -150,6 +150,16 @@
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="BuiltInRestHandlers\UriAliasJson.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="BuiltInRestHandlers\UriAliasesJson.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

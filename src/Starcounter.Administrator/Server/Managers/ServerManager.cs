@@ -19,7 +19,6 @@ namespace Administrator.Server.Managers {
 
         public static Model.Server ServerInstance;
         private static ConcurrentDictionary<ulong, Database> databaseModelSockets;
-        static Object lockObject_ = new Object();
 
         private static List<String> sessionList_ = new List<String>();
 
@@ -28,9 +27,9 @@ namespace Administrator.Server.Managers {
             if (null == s)
                 return;
 
-            lock (lockObject_) {
+            lock (ServerManager.ServerInstance) {
 
-                String sessionString = s.ToAsciiString();
+                String sessionString = s.SessionId;
 
                 if (sessionList_.Contains(sessionString)) {
                     sessionList_.Remove(sessionString);
@@ -83,14 +82,14 @@ namespace Administrator.Server.Managers {
 
             Handle.GET("/api/servermodel/{?}/{?}", (string key, Session session, Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     // Check if the request was a WebSocket request.
                     if (request.WebSocketUpgrade) {
 
                         // Checking if its internal Self.GET that has no session.
                         if (session != null) {
-                            String sessionString = session.ToAsciiString();
+                            String sessionString = session.SessionId;
 
                             if (!sessionList_.Contains(sessionString)) {
                                 sessionList_.Add(sessionString);
@@ -108,7 +107,7 @@ namespace Administrator.Server.Managers {
 
             Handle.GET("/api/servermodel", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     // Create view-model
                     ServerJson serverModelJson = new ServerJson();
@@ -123,7 +122,7 @@ namespace Administrator.Server.Managers {
                     Response response = GetAllowAccessControlResponse();
                     response.Resource = serverModelJson;
                     response.Headers["Set-Cookie"] = request.Uri + "/" + id;
-                    response.Headers["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.ToAsciiString();
+                    response.Headers["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionId;
 
                     return response;
                 }
@@ -132,7 +131,7 @@ namespace Administrator.Server.Managers {
             // Incoming patch on socket
             Handle.WebSocket(socketChannelName, (string data, WebSocket ws) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     if (ws.Session == null) {
                         ws.Disconnect("Session is null", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
@@ -146,7 +145,7 @@ namespace Administrator.Server.Managers {
 
             Handle.WebSocketDisconnect(socketChannelName, (ws) => {
                 // Remove ws.
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     Session s = ((Session)ws.Session);
 
@@ -165,7 +164,7 @@ namespace Administrator.Server.Managers {
 
             Handle.GET(port, "/api/servermodel/{?}/{?}/{?}", (string databaseName, string key, Session session, Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     // Check if the request was a WebSocket request.
                     if (request.WebSocketUpgrade) {
@@ -173,7 +172,7 @@ namespace Administrator.Server.Managers {
                         // Checking if its internal Self.GET that has no session.
                         if (session != null) {
 
-                            String sessionString = session.ToAsciiString();
+                            String sessionString = session.SessionId;
 
                             if (!sessionList_.Contains(sessionString)) {
                                 sessionList_.Add(sessionString);
@@ -186,7 +185,8 @@ namespace Administrator.Server.Managers {
                             WebSocket ws = request.SendUpgrade(socketChannelName, null, null, session);
                             databaseModelSockets[ws.ToUInt64()] = database;
                             return HandlerStatus.Handled;
-                        } else {
+                        }
+                        else {
                             // TODO:
                         }
                     }
@@ -197,7 +197,7 @@ namespace Administrator.Server.Managers {
 
             Handle.GET(port, "/api/servermodel/{?}", (string databaseName, Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     // Create view-model
                     DatabaseJson databaseJson = new DatabaseJson();
@@ -212,7 +212,7 @@ namespace Administrator.Server.Managers {
                     Response response = new Response();
                     response.Resource = databaseJson;
                     response.Headers["Set-Cookie"] = request.Uri + "/" + id;
-                    response.Headers["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.ToAsciiString();
+                    response.Headers["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionId;
 
                     response.Headers["Access-Control-Allow-Origin"] = "*"; // "http://localhost:8080";
                     response.Headers["Access-Control-Expose-Headers"] = "Location, X-Location";
@@ -224,7 +224,7 @@ namespace Administrator.Server.Managers {
             // Incoming patch on http
             Handle.PATCH(port, "/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     Json json = TemporaryStorage.Find(id);
                     ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
@@ -242,7 +242,7 @@ namespace Administrator.Server.Managers {
 
             // Incoming patch on socket
             Handle.WebSocket(port, socketChannelName, (string data, WebSocket ws) => {
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     if (ws.Session == null) {
                         ws.Disconnect("Session is null", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
@@ -258,7 +258,7 @@ namespace Administrator.Server.Managers {
             });
 
             Handle.WebSocketDisconnect(port, socketChannelName, (ws) => {
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     DestroySession((Session)ws.Session);
 
@@ -277,29 +277,27 @@ namespace Administrator.Server.Managers {
 
             Handle.POST("/__internal_api/databases", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     // Database added
                     ServerManager.ServerInstance.InvalidateDatabases();
+                    return 200;
                 }
-
-                return 200;
             });
 
             Handle.DELETE("/__internal_api/databases/{?}", (string databaseName, Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     // Database deleted
                     ServerManager.ServerInstance.InvalidateDatabases();
+                    return 200;
                 }
-
-                return 200;
             });
 
             Handle.PUT("/__internal_api/databases/{?}", (string databaseName, Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
                     // Database properties changed and/or database application(s) started/stopped
 
                     Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
@@ -314,9 +312,8 @@ namespace Administrator.Server.Managers {
                     }
 
                     database.InvalidateModel();
+                    return 200;
                 }
-
-                return 200;
             });
         }
 
@@ -330,7 +327,7 @@ namespace Administrator.Server.Managers {
 
             Session.ScheduleTask(ServerManager.sessionList_, (Session session, String sessionId) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     if (session == null) {
                         if (sessionList_.Contains(sessionId)) {
@@ -354,22 +351,25 @@ namespace Administrator.Server.Managers {
         /// <returns></returns>
         private static string GetModelChanges(Session session) {
 
-            string changes = null;
-            if (session.PublicViewModel is DatabaseJson) {
+            lock (ServerManager.ServerInstance) {
+                string changes = null;
+                if (session.PublicViewModel is DatabaseJson) {
 
-                Database database;
-                if (databaseModelSockets.TryGetValue(session.ActiveWebSocket.ToUInt64(), out database)) {
-                    changes = database.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
+                    Database database;
+                    if (databaseModelSockets.TryGetValue(session.ActiveWebSocket.ToUInt64(), out database)) {
+                        changes = database.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
+                    }
                 }
-            } else if (session.PublicViewModel is ServerJson) {
-                changes = ServerManager.ServerInstance.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
-            }
+                else if (session.PublicViewModel is ServerJson) {
+                    changes = ServerManager.ServerInstance.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
+                }
 
-            if (!string.IsNullOrEmpty(changes) && changes != "[]") {
-                return changes;
-            }
+                if (!string.IsNullOrEmpty(changes) && changes != "[]") {
+                    return changes;
+                }
 
-            return null;
+                return null;
+            }
         }
     }
 

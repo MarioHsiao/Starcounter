@@ -900,5 +900,47 @@ namespace Starcounter.Internal.XSON.Tests {
                 () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
             );   
         }
+
+        [Test]
+        public static void TestSettingDataOnUnboundArray_3548() {
+            dynamic json = new Json();
+            dynamic data = new object[] {
+                new { Name = "One" },
+                new { Name = "Two" }
+            };
+
+            json.Items = new List<Json>();
+            json.Items.Data = data;
+
+            Assert.AreEqual(2, json.Items.Count);
+            Assert.AreEqual(data[0].Name, json.Items[0].Name);
+            Assert.AreEqual(data[1].Name, json.Items[1].Name);
+
+            data = new object[] {
+                new { Name = "Three" },
+                new { Name = "Four" },
+                new { Name = "Five" }
+            };
+            json.Items.Data = data;
+
+            Assert.AreEqual(3, json.Items.Count);
+            Assert.AreEqual(data[0].Name, json.Items[0].Name);
+            Assert.AreEqual(data[1].Name, json.Items[1].Name);
+            Assert.AreEqual(data[2].Name, json.Items[2].Name);
+        }
+
+        [Test]
+        public static void TestArrayInArray_3554() {
+            var jsonStr = @"{""Items"": [ [ 3 ] ] }";
+
+            TObject schema = (TObject)TObject.CreateFromMarkup(jsonStr);
+
+            Assert.AreEqual(1, schema.Properties.Count);
+            Assert.IsInstanceOf(typeof(TObjArr), schema.Properties[0]);
+            TObjArr tArr = (TObjArr)schema.Properties[0];
+            Assert.IsInstanceOf(typeof(TObjArr), tArr.ElementType);
+            TObjArr tSubArr = (TObjArr)tArr.ElementType;
+            Assert.IsInstanceOf(typeof(TLong), tSubArr.ElementType);
+        }
     }
 }

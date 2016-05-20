@@ -721,7 +721,7 @@ namespace Starcounter.XSON {
 
         private static Exception CreatePropNotCompatibleException(Template property, Type to, Type from, MemberInfo member, Exception inner) {
             var msg = string.Format(propNotCompatible,
-                                    DataBindingHelper.GetParentClassName(property),
+                                    JsonDebugHelper.GetClassName(property.Parent),
                                     property.TemplateName,
                                     to.FullName,
                                     member.DeclaringType.FullName,
@@ -733,7 +733,7 @@ namespace Starcounter.XSON {
 
         private static Exception CreateGenerateBindingException(TValue property, Exception inner) {
             var msg = string.Format(generateBindingFailed,
-                                    DataBindingHelper.GetParentClassName(property),
+                                    JsonDebugHelper.GetClassName(property.Parent),
                                     property.TemplateName,
                                     property.InstanceType.FullName,
                                     property.Bind);
@@ -743,7 +743,7 @@ namespace Starcounter.XSON {
 
         private static Exception CreateUntypedArrayBindingException(TValue property) {
             var msg = string.Format(untypedArrayBindingFailed,
-                                    DataBindingHelper.GetParentClassName(property),
+                                    JsonDebugHelper.GetClassName(property.Parent),
                                     property.TemplateName);
 
             return ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON, null, msg);

@@ -2323,7 +2323,7 @@ uint32_t Gateway::Init()
         clang_engine_addr, // Pointer to Clang engine.
         false, // Accumulate Clang modules.
         false, // Print build output to console.
-        true, // Do code optimizations.
+		MixedCodeConstants::SCLLVM_OPT_FLAG, // Do code optimizations.
 
         "extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
         "extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
@@ -3130,22 +3130,19 @@ uint32_t __stdcall MonitorDatabasesRoutine(LPVOID params)
 // Entry point for gateway worker.
 uint32_t __stdcall GatewayWorkerRoutine(LPVOID params)
 {
-    uint32_t err_code = 0;
+	// Catching all unhandled exceptions in this thread.
+	GW_SC_BEGIN_FUNC
 
-    // Catching all unhandled exceptions in this thread.
-    GW_SC_BEGIN_FUNC
-
-    // Starting routine.
-    err_code = ((GatewayWorker *)params)->WorkerRoutine();
-
-    // Catching all unhandled exceptions in this thread.
-    GW_SC_END_FUNC
+    uint32_t err_code = ((GatewayWorker *)params)->WorkerRoutine();
 
     wchar_t temp[256];
     wsprintf(temp, L"Gateway worker thread exited with error code: %d", err_code);
     g_gateway.LogWriteError(temp);
 
     return err_code;
+
+	// Catching all unhandled exceptions in this thread.
+	GW_SC_END_FUNC
 }
 
 // Entry point for inactive sockets cleanup.
@@ -3202,22 +3199,19 @@ uint32_t __stdcall GatewayLoggingRoutine(LPVOID params)
 // Entry point for all threads monitor routine.
 uint32_t __stdcall GatewayMonitorRoutine(LPVOID params)
 {
-    uint32_t err_code = 0;
+	// Catching all unhandled exceptions in this thread.
+	GW_SC_BEGIN_FUNC
 
-    // Catching all unhandled exceptions in this thread.
-    GW_SC_BEGIN_FUNC
-
-    // Starting routine.
-    err_code = g_gateway.GatewayMonitor();
-
-    // Catching all unhandled exceptions in this thread.
-    GW_SC_END_FUNC
+    uint32_t err_code = g_gateway.GatewayMonitor();
 
     wchar_t temp[256];
     wsprintf(temp, L"Gateway monitoring thread exited with error code: %d", err_code);
     g_gateway.LogWriteError(temp);
 
     return err_code;
+
+	// Catching all unhandled exceptions in this thread.
+	GW_SC_END_FUNC
 }
 
 // Cleaning up all global resources.

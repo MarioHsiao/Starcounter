@@ -3,6 +3,7 @@ using Starcounter.Templates;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Starcounter.XSON;
 
 namespace Starcounter.Advanced.XSON {
     public abstract class StandardJsonSerializerBase : TypedJsonSerializer {
@@ -11,7 +12,7 @@ namespace Starcounter.Advanced.XSON {
 
         private static EstimateSizeDelegate[] estimatePerTemplate;
         private static SerializeDelegate[] serializePerTemplate;
-
+        
         static StandardJsonSerializerBase() {
             estimatePerTemplate = new EstimateSizeDelegate[9];
             estimatePerTemplate[(int)TemplateTypeEnum.Unknown] = EstimateException;
@@ -38,12 +39,16 @@ namespace Starcounter.Advanced.XSON {
 
         public override int EstimateSizeBytes(Json json) {
             return json.Scope<TypedJsonSerializer, Json, int>((TypedJsonSerializer tjs, Json j) => {
+                int size = 0;
                 if (j.Template != null) {
                     return estimatePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, j.Template);
                 } else {
                     // No template defined. Assuming object.
-                    return EstimateObject(this, j);
+                    size = EstimateObject(this, j);
                 }
+
+                AssertEstimatedSize(json, null, size);
+                return size;
             },
             this,
             json);
@@ -51,7 +56,9 @@ namespace Starcounter.Advanced.XSON {
 
         public override int EstimateSizeBytes(Json json, Template property) {
             return json.Scope<TypedJsonSerializer, Json, Template, int>((TypedJsonSerializer tjs, Json j, Template t) => {
-                return estimatePerTemplate[(int)t.TemplateTypeId](tjs, j, t);
+                int size = estimatePerTemplate[(int)t.TemplateTypeId](tjs, j, t);
+                AssertEstimatedSize(json, property, size);
+                return size;
             },
             this,
             json,
@@ -75,7 +82,7 @@ namespace Starcounter.Advanced.XSON {
                 dest,
                 destSize);
 
-                AssertWrittenSize(json, realSize, destSize);
+                AssertWrittenSize(json, null, realSize, destSize);
                 return realSize;
             } finally {
                 json.checkBoundProperties = oldValue;
@@ -95,18 +102,27 @@ namespace Starcounter.Advanced.XSON {
                  dest,
                  destSize);
 
-                AssertWrittenSize(json, realSize, destSize);
+                AssertWrittenSize(json, property, realSize, destSize);
                 return realSize;
             } finally {
                 json.checkBoundProperties = oldValue;
             }
         }
-        
-        private static void AssertWrittenSize(Json json, int realSize, int destSize) {
+
+        private static void AssertEstimatedSize(Json json, Template template, int estimatedSize) {
+            if (estimatedSize > StarcounterConstants.NetworkConstants.MaxResponseSize) {
+                var errMsg = "TypedJson serializer: Estimated needed size for serializing is larger than max allowed size (500MB).\r\n";
+                errMsg += "Estimated needed size: " + estimatedSize + "\r\n";
+                errMsg += "Json: " + JsonDebugHelper.ToBasicString(json, template);
+                throw new Exception(errMsg);
+            }
+        }
+
+        private static void AssertWrittenSize(Json json, Template template, int realSize, int destSize) {
             if (realSize > destSize) {
-                var errMsg = "TypedJson serializer: written size is larger than size of destination!";
-                errMsg += " (written: " + realSize + ", destination: " + destSize + ")\r\n";
-                errMsg += "Type: " + json.GetType() + ", DebugString: " + json.DebugString;
+                var errMsg = "TypedJson serializer: written size is larger than size of destination!\r\n";
+                errMsg += "Written: " + realSize + ", destination: " + destSize + "\r\n";
+                errMsg += "Json: " + JsonDebugHelper.ToBasicString(json, template);
                 throw new Exception(errMsg);
             }
         }
@@ -153,18 +169,17 @@ namespace Starcounter.Advanced.XSON {
                 json = ((TObject)template).Getter(parent);
             }
 
+            int size = 2;
             if (json != null) {
-                return json.Scope<TypedJsonSerializer, Json, int>(EstimateObject, serializer, json);
-            } else {
-                return 2;
+                size = json.Scope<TypedJsonSerializer, Json, int>(EstimateObject, serializer, json);
             }
+            return size;
         }
 
         private static int EstimateObject(TypedJsonSerializer serializer, Json json) {
             Session session = json.Session;
             int sizeBytes = 0;
-            string htmlUriMerged = null;
-
+         
             if (json.Template == null) {
                 sizeBytes = 2; // 2 for "{}".
                 return sizeBytes;
@@ -197,12 +212,7 @@ namespace Starcounter.Advanced.XSON {
 
             if (wrapInAppName) {
                 sizeBytes += json.appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
-                
-                // Checking if there is any partial Html provided.
-                if (!String.IsNullOrEmpty(json.GetHtmlPartialUrl())) {
-                    htmlUriMerged = json.appName + "=" + json.GetHtmlPartialUrl();
-                }
-                
+               
                 // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
                 // we check if we have more than one stepsibling.
                 if (!json.calledFromStepSibling && json.Siblings != null && json.Siblings.Count != 1) {
@@ -216,14 +226,6 @@ namespace Starcounter.Advanced.XSON {
 
                         pp.calledFromStepSibling = true;
                         try {
-                            // Checking if there is any partial Html provided.
-                            if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
-                                if (htmlUriMerged != null)
-                                    htmlUriMerged += "&";
-
-                                htmlUriMerged += pp.appName + "=" + pp.GetHtmlPartialUrl();
-                            }
-
                             sizeBytes += pp.appName.Length + 1; // 1 for ":".
                             sizeBytes += serializer.EstimateSizeBytes(pp) + 2; // 2 for ",".
                         } finally {
@@ -234,12 +236,6 @@ namespace Starcounter.Advanced.XSON {
 
                 // ,"Html":"" is 10 characters
                 sizeBytes += 10;
-
-                // Checking if merging Html URI was constructed.
-                if (htmlUriMerged != null) {
-                    htmlUriMerged = StarcounterConstants.HtmlMergerPrefix + htmlUriMerged;
-                    sizeBytes += htmlUriMerged.Length;
-                }
             }
 
             sizeBytes += 1; // 1 for "}".
@@ -254,12 +250,11 @@ namespace Starcounter.Advanced.XSON {
                 ((TObjArr)template).SetCachedReads(json);
                 json = ((TObjArr)template).Getter(parent);
             }
-
+            int size = 2;
             if (json != null) {
-                return json.Scope<TypedJsonSerializer, Json, int>(EstimateArray, serializer, json);
-            } else {
-                return 2;
+                size = json.Scope<TypedJsonSerializer, Json, int>(EstimateArray, serializer, json);
             }
+            return size;
         }
 
         private static int EstimateArray(TypedJsonSerializer serializer, Json json) {
@@ -269,6 +264,8 @@ namespace Starcounter.Advanced.XSON {
             for (int i = 0; i < arrList.Count; i++) {
                 var rowJson = (Json)arrList[i];
                 sizeBytes += serializer.EstimateSizeBytes(rowJson) + 1;
+
+                AssertEstimatedSize(json, null, sizeBytes);
             }
             return sizeBytes;
         }
@@ -343,7 +340,6 @@ namespace Starcounter.Advanced.XSON {
             int valueSize;
             int used = 0;
             List<Template> exposedProperties;
-            string htmlUriMerged = null;
             Session session = json.Session;
 
             // Checking if application name should wrap the JSON.
@@ -362,11 +358,6 @@ namespace Starcounter.Advanced.XSON {
                 }
 
                 if (wrapInAppName) {   
-                    // Checking if there is any partial Html provided.
-                    if (!String.IsNullOrEmpty(json.GetHtmlPartialUrl())) {
-                        htmlUriMerged = json.appName + "=" + json.GetHtmlPartialUrl();
-                    }
-
                     valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, json.appName);
                     pfrag += valueSize;
                     used += valueSize;
@@ -457,14 +448,6 @@ namespace Starcounter.Advanced.XSON {
 
                             pp.calledFromStepSibling = true;
                             try {
-                                // Checking if there is any partial Html provided.
-                                if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
-                                    if (htmlUriMerged != null)
-                                        htmlUriMerged += "&";
-
-                                    htmlUriMerged += pp.appName + "=" + pp.GetHtmlPartialUrl();
-                                }
-
                                 valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, pp.appName);
                                 used += valueSize;
                                 pfrag += valueSize;
@@ -483,33 +466,6 @@ namespace Starcounter.Advanced.XSON {
                                 pp.calledFromStepSibling = false;
                             }
                         }
-                    }
-
-                    // Adding Html property.
-                    *pfrag++ = (byte)',';
-                    used++;
-
-                    // Adding Html property to outer level.
-                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, "Html");
-                    used += valueSize;
-                    pfrag += valueSize;
-
-                    *pfrag++ = (byte)':';
-                    used++;
-
-                    // Checking if merging Html URI was constructed.
-                    if (null != htmlUriMerged) {
-                        htmlUriMerged = StarcounterConstants.HtmlMergerPrefix + htmlUriMerged;
-
-                        valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, htmlUriMerged);
-                        used += valueSize;
-                        pfrag += valueSize;
-                    } else {
-                        // Inserting an empty string.
-                        *pfrag++ = (byte)'\"';
-                        used++;
-                        *pfrag++ = (byte)'\"';
-                        used++;
                     }
                 }
 
@@ -549,8 +505,7 @@ namespace Starcounter.Advanced.XSON {
 
                 *pfrag++ = (byte)'[';
                 used++;
-
-
+                
                 arrList = (IList)json;
                 for (int i = 0; i < arrList.Count; i++) {
                     arrItem = (Json)arrList[i];

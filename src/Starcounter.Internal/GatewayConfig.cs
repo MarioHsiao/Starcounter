@@ -17,6 +17,8 @@ namespace Starcounter.Internal {
     /// </summary>
     public class NetworkGateway {
 
+        static Object lockObject = new Object();
+
         static String DescriptionOrig =
     @"
     WorkersNumber: Number of worker threads (default: 2);
@@ -69,6 +71,22 @@ namespace Starcounter.Internal {
             return false;
         }
 
+        public UriAlias GetUriAlias(string httpMethod, ushort port, string fromUri) {
+
+            for (int i = 0; i < UriAliases.Count; i++) {
+
+                UriAlias uriAlias = UriAliases[i];
+
+                if (uriAlias.HttpMethod == httpMethod &&
+                    uriAlias.Port == port &&
+                    uriAlias.FromUri.ToUpperInvariant() == fromUri.ToUpperInvariant()) {
+
+                    return uriAlias;
+                }
+            }
+            return null;
+        }
+
         public Boolean RemoveUriAlias(UriAlias newAlias) {
 
             newAlias.HttpMethod = newAlias.HttpMethod.ToUpperInvariant();
@@ -79,11 +97,9 @@ namespace Starcounter.Internal {
 
                 if (a.HttpMethod == newAlias.HttpMethod &&
                     a.Port == newAlias.Port &&
-                    a.FromUri == newAlias.FromUri.ToUpperInvariant() &&
-                    a.ToUri == newAlias.ToUri.ToUpperInvariant()) {
+                    a.FromUri.ToUpperInvariant() == newAlias.FromUri.ToUpperInvariant()) {
 
                     UriAliases.Remove(a);
-
                     return true;
                 }
             }
@@ -91,6 +107,18 @@ namespace Starcounter.Internal {
             return false;
         }
 
+        public ReverseProxy GetReverseProxy(string matchingHost, ushort starcounterProxyPort) {
+
+            for (int i = 0; i < ReverseProxies.Count; i++) {
+
+                ReverseProxy r = ReverseProxies[i];
+
+                if (r.StarcounterProxyPort == starcounterProxyPort && r.MatchingHost.ToUpperInvariant() == matchingHost.ToUpperInvariant()) {
+                    return r;
+                }
+            }
+            return null;
+        }
         public Boolean AddOrReplaceReverseProxy(ReverseProxy newRevProxy) {
 
             for (int i = 0; i < ReverseProxies.Count; i++) {
@@ -138,58 +166,65 @@ namespace Starcounter.Internal {
 
         public static NetworkGateway Deserealize() {
 
-            XmlSerializer mySerializer = new XmlSerializer(typeof(NetworkGateway));
+            lock (NetworkGateway.lockObject) {
 
-            using (FileStream myFileStream = new FileStream(StarcounterEnvironment.Gateway.PathToGatewayConfig, FileMode.Open)) {
+                XmlSerializer mySerializer = new XmlSerializer(typeof(NetworkGateway));
 
-                NetworkGateway ng = (NetworkGateway)mySerializer.Deserialize(myFileStream);
-                ng.Description = DescriptionOrig;
+                using (FileStream myFileStream = new FileStream(StarcounterEnvironment.Gateway.PathToGatewayConfig, FileMode.Open)) {
 
-                return ng;
+                    NetworkGateway ng = (NetworkGateway)mySerializer.Deserialize(myFileStream);
+                    ng.Description = DescriptionOrig;
+
+                    return ng;
+                }
             }
         }
 
         public Boolean UpdateConfiguration() {
 
-            String gatewayXml = StarcounterEnvironment.Gateway.PathToGatewayConfig;
-            String backupFile = gatewayXml + ".bak";
-            Boolean updateSuccess = false;
+            lock (NetworkGateway.lockObject) {
 
-            try {
+                String gatewayXml = StarcounterEnvironment.Gateway.PathToGatewayConfig;
+                String backupFile = gatewayXml + ".bak";
+                Boolean updateSuccess = false;
 
-                // Deleting existing backup file if any.
-                if (File.Exists(backupFile)) {
-                    File.Delete(backupFile);
+                try {
+
+                    // Deleting existing backup file if any.
+                    if (File.Exists(backupFile)) {
+                        File.Delete(backupFile);
+                    }
+
+                    // Renaming current working gateway XML to backup.
+                    File.Move(gatewayXml, backupFile);
+
+                    // Serializing to the actual gateway xml.
+                    Serialize(gatewayXml);
+
+                    // Sending update configuration request to gateway.
+                    Response resp = Http.GET("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/updateconf");
+
+                    if (resp.IsSuccessStatusCode) {
+
+                        // Gateway successfully updated configuration.
+                        updateSuccess = true;
+                        File.Delete(backupFile);
+
+                        return true;
+                    }
+
+                }
+                finally {
+
+                    // Gateway failed to update configuration.
+                    if (!updateSuccess) {
+                        File.Delete(gatewayXml);
+                        File.Move(backupFile, gatewayXml);
+                    }
                 }
 
-                // Renaming current working gateway XML to backup.
-                File.Move(gatewayXml, backupFile);
-
-                // Serializing to the actual gateway xml.
-                Serialize(gatewayXml);
-
-                // Sending update configuration request to gateway.
-                Response resp = Http.GET("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/updateconf");
-
-                if (resp.IsSuccessStatusCode) {
-
-                    // Gateway successfully updated configuration.
-                    updateSuccess = true;
-                    File.Delete(backupFile);
-
-                    return true;
-                }
-
-            } finally {
-
-                // Gateway failed to update configuration.
-                if (!updateSuccess) {
-                    File.Delete(gatewayXml);
-                    File.Move(backupFile, gatewayXml);
-                }
+                return false;
             }
-
-            return false;
         }
 
         /// <summary>

@@ -157,7 +157,7 @@ namespace Starcounter.XSON {
 			if (pInfo == null && throwException) {
 				throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON,
 											string.Format(propNotFound,
-														  GetParentClassName(template),
+														  JsonDebugHelper.GetClassName(template.Parent),
 														  template.TemplateName,
 														  bindingName,
 														  dataType.FullName
@@ -165,25 +165,7 @@ namespace Starcounter.XSON {
 			}
 			return pInfo;
 		}
-
-        /// <summary>
-        /// Used when exception is raised to get the correct classname for the template.
-        /// </summary>
-        /// <param name="template"></param>
-        /// <returns></returns>
-        internal static string GetParentClassName(Template template) {
-            string className = null;
-            if (template.Parent is TObject)
-                className = ((TObject)template.Parent).ClassName;
-            else if (template.Parent is TObjArr) {
-                className = ((TObjArr)template.Parent).ElementType.ClassName;
-            }
-
-            if (className == null)
-                className = "<noname>";
-            return className;
-        }
-
+        
 		/// <summary>
 		/// 
 		/// </summary>

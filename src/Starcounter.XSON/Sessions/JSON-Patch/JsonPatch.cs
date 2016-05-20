@@ -9,8 +9,6 @@ using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -141,6 +139,17 @@ namespace Starcounter.XSON {
             size += changes.Length - 1; // Adding one ',' per change over zero.
             if (size < 2) size = 2;
 
+
+            if (size > StarcounterConstants.NetworkConstants.MaxResponseSize) {
+                var errMsg = "JsonPatch: Estimated needed size (" 
+                            + size 
+                            + ") for patches exceeds the maximum allowed (" 
+                            + StarcounterConstants.NetworkConstants.MaxResponseSize 
+                            + ").\r\nNumber of patches: " + changes.Length
+                            + "\r\nJson: " + JsonDebugHelper.ToBasicString(changeLog.Employer);
+                throw new Exception(errMsg);
+            }
+            
             buffer = new byte[size];
             
             unsafe {
@@ -185,9 +194,12 @@ namespace Starcounter.XSON {
             }
 
             if (size > buffer.Length) {
-                var errMsg = "JsonPatch: Written size is larger than estimated size!";
-                errMsg += " (written: " + size + ", estimated: " + buffer.Length + ")\r\n";
-                errMsg += "Buffer (w/o data out of bounds): " + System.Text.Encoding.UTF8.GetString(buffer);
+                var errMsg = "JsonPatch: written size (" 
+                            + size 
+                            + ") for patches exceeds the estimated size (" 
+                            + buffer.Length 
+                            + ").\r\nNumber of patches: " + changes.Length
+                            + "\r\nJson: " + JsonDebugHelper.ToBasicString(changeLog.Employer);
                 throw new Exception(errMsg);
             }
             
@@ -246,7 +258,7 @@ namespace Starcounter.XSON {
                     if (change.Property == null) {
                         change.Parent.calledFromStepSibling = change.SuppressNamespace;
                         try {
-                            serializer = ((TValue)change.Parent.Template).JsonSerializer;
+                            serializer = change.Parent.JsonSerializer;
                             size = serializer.Serialize(change.Parent, (IntPtr)writer.Buffer, int.MaxValue);
                             change.Parent.CheckpointChangeLog(!change.SuppressNamespace);
                         } finally {
@@ -262,7 +274,7 @@ namespace Starcounter.XSON {
                             change.Parent.calledFromStepSibling = false;
                         }
                     } else {
-                        size = change.Property.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
+                        size = change.Parent.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
                         
                         change.Parent.Scope<Json, TValue>((p, t) => {
                             t.Checkpoint(p);
@@ -319,16 +331,16 @@ namespace Starcounter.XSON {
                 if (change.Property == null) {
                     change.Parent.calledFromStepSibling = change.SuppressNamespace;
                     try {
-                        serializer = ((TValue)change.Parent.Template).JsonSerializer;
+                        serializer = change.Parent.JsonSerializer;
                         size += serializer.EstimateSizeBytes(change.Parent);
                     } finally {
                         change.Parent.calledFromStepSibling = false;
                     }
                 } else if (change.Index != -1) {
-                    serializer = ((TValue)change.Item.Template).JsonSerializer;
+                    serializer = change.Item.JsonSerializer;
                     size += serializer.EstimateSizeBytes(change.Item);
                 } else {
-                    size += change.Property.JsonSerializer.EstimateSizeBytes(change.Parent, change.Property);
+                    size += change.Parent.JsonSerializer.EstimateSizeBytes(change.Parent, change.Property);
                 }
             }
             return size;
@@ -352,7 +364,7 @@ namespace Starcounter.XSON {
                 return -1;
 
             if (json == session.PublicViewModel) // Valid path.
-                return 0;
+                return 1;
 
             size = -1;
             totalSize = 0;

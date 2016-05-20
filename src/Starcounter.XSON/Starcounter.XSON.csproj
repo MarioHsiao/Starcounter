@@ -62,6 +62,7 @@
     <Compile Include="Class Json\Json.State.cs" />
     <Compile Include="Class Json\JsonExtension.cs" />
     <Compile Include="Class Json\SiblingList.cs" />
+    <Compile Include="JsonDebugHelper.cs" />
     <Compile Include="JSON-By-Example\MetaTemplate.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstJSConstructor.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstJsonSerializerClass.cs" />
@@ -89,7 +90,6 @@
     <Compile Include="Class Json\Json.Object.ChangeLog.cs" />
     <Compile Include="Class Json\Json.Array.cs" />
     <Compile Include="Class Json\Arr.cs" />
-    <Compile Include="Class Json\Json.Debug.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="Serializer\FTJ\FasterThanJsonSerializer.cs" />
     <Compile Include="Sessions\JSON-Patch\ChangeLog.cs" />

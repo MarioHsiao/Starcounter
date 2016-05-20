@@ -160,7 +160,7 @@ namespace NetworkIoTestApp {
             Handle.GET("/view-session/{?}", (Session s) =>
             {
                 if (s != null)
-                    return "Session string: " + s.ToAsciiString();
+                    return "Session string: " + s.SessionId;
 
                 return "No session to view!";
             });

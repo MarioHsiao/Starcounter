@@ -7,7 +7,6 @@ include_directories(../../../../level0/src/include)
 add_library(bmx SHARED
     bmx.cpp
     bmx.hpp
-    bmx_manager.cpp
     chunk_helper.h
     utils.cpp
     bmx.def

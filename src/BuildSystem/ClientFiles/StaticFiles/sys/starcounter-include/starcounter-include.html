@@ -2,7 +2,7 @@
 starcounter-include.html
 MIT license
 https://github.com/Starcounter/starcounter-include
-version: 0.1.0
+version: 0.3.0
 -->
 <link rel="import" href="../imported-template/imported-template.html">
 <script>
@@ -10,6 +10,9 @@ version: 0.1.0
         var StarcounterIncludePrototype = Object.create(HTMLElement.prototype);
 
         StarcounterIncludePrototype.partial = null;
+        // StarcounterIncludePrototype.html = null;
+        StarcounterIncludePrototype.mergedHtmlPrefix = '/sc/htmlmerger?';
+        StarcounterIncludePrototype.defaultHtml = '';
 
         /**
          * Read the `partial` attribute of given element,
@@ -35,6 +38,7 @@ version: 0.1.0
             //d console.log("starcounter-partial created");
             //this.partial = /*this.partial ||*/ {};
             var partial = partialAttributeToProperty(this);
+            var html = buildURL(partial, this.mergedHtmlPrefix, this.defaultHtml);
             var starcounterInclude = this;
             // define a setter for partial attribute,
             // so it could be change by VanillaJs without Polymer Template Binding
@@ -50,7 +54,7 @@ version: 0.1.0
             });
 
             var importedTemplate = document.createElement("template", "imported-template");
-            partial && partial.Html && importedTemplate.setAttribute('content', partial.Html);
+            html && importedTemplate.setAttribute('content', html);
             importedTemplate.model = partial;
             this.template = importedTemplate;
 
@@ -74,10 +78,7 @@ version: 0.1.0
          */
         StarcounterIncludePrototype.partialChanged = function(newVal) {
             var html = undefined;
-            if (this.partial) {
-                html = this.partial.Html;
-                !html && console.warn("partial.Html for", this, "is missing.");
-            }
+            html = buildURL(this.partial, this.mergedHtmlPrefix, this.defaultHtml);
             if(html === null || html === undefined){
                 this.template.removeAttribute("content");
             } else {
@@ -94,10 +95,52 @@ version: 0.1.0
          * @param  {Mixed} value New value
          */
         StarcounterIncludePrototype._notifyPath = function(path, value) {
-            if (path.indexOf("partial.") == 0) {
-                if (this.template._notifyPath) {
-                    this.template._notifyPath(path.replace("partial.", "model."), value);
+            if (path.indexOf("partial.") === 0) {
+
+                // if(path.match(/^partial\.[^.]+\.Html$/)) {
+                if( (path.indexOf('.Html') === path.length - 5) && path.slice(8, -5).indexOf('.') === -1){
+                    this.partialChanged(this.partial);
+                } else {
+                    if (this.template._notifyPath) {
+                        this.template._notifyPath(path.replace("partial.", "model."), value);
+                    }
                 }
+            }
+        };
+        /**
+         * Retrieves URL of HTML file to be loaded from given partial.
+         * For merged partials/namespaced JSONs without
+         * `.Html` property on root level it builds one out of
+         * `.Html` properties from nested objects
+         * {prefix}{key1}={partial.key1.Html}&{key2}={partial.key2.Html}&{key3}={defaultURL}
+         * Parameters are URI encoded, for scopes without `.Html` property _defaultURL_ is used
+         * @param  {Object} partial    partial object
+         * @param  {String} prefix     prefix for merged partials
+         * @param  {String} defaultURL Html to be used for nodes that does not have one
+         * @return {String}            [description]
+         */
+        function buildURL(partial, prefix, defaultURL) {
+            if(partial){
+                if(partial.Html !== undefined){
+                    return partial.Html;
+                } else {
+                    var htmls = [];
+                    for (var key in partial){
+                        if (partial.hasOwnProperty(key)) {
+                            htmls.push(
+                                key +
+                                '=' +
+                                (partial[key].Html && encodeURIComponent(partial[key].Html) || defaultURL)
+                            );
+                        }
+                    }
+                    // Workaround for https://github.com/Starcounter/Starcounter/issues/3072
+                    // as described in https://github.com/Starcounter/starcounter-include/issues/12
+                    return htmls.length && (prefix + htmls.join('&')) || undefined;
+                    // return prefix + htmls.join('&');
+                }
+            } else {
+                return undefined;
             }
         };
 

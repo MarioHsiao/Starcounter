@@ -25,6 +25,7 @@ namespace Starcounter {
         /// The way to get a URL for HTML partial if any.
         /// </summary>
         /// <returns></returns>
+        [Obsolete("This method will be removed in a later version.")]
         string GetHtmlPartialUrl();
 
         /// <summary>

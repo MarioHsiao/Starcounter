@@ -416,18 +416,24 @@ namespace Starcounter {
 
 		public object this[string key] {
 			get {
-				var template = (TObject)Template;
+				var template = this.Template as TObject;
+                if (template == null)
+                    return null;
+
 				var prop = template.Properties[key];
-				if (prop == null) {
+				if (prop == null)
 					return null;
-				}
+				
 				return this[prop.TemplateIndex];
 			}
 			set {
 				if (Template == null)
 					CreateDynamicTemplate();
 
-				var template = (TObject)Template;
+				var template = this.Template as TObject;
+                if (template == null)
+                    return;
+
 				var prop = template.Properties[key];
 				if (prop == null) {
 					Type type;

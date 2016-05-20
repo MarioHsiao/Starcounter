@@ -37,6 +37,7 @@ namespace Starcounter {
             set {
                 this.Scope<Json, object>((j, v) => {
                     if (j.IsArray) {
+                        ((IList)this).Clear(); // Clear any existing items since a new dataobject is set.
                         j.pendingEnumeration = true;
                         j.data = (IEnumerable)v;
                         j.Array_InitializeAfterImplicitConversion((Json)j.Parent, (TObjArr)j.Template);
