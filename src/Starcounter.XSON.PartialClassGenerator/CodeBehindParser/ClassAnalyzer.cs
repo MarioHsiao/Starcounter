@@ -83,7 +83,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     var mapped = CodeBehindClassInfo.EvaluateAttributeString(attrib.ToString().Trim('[', ']'), ci);
                     if (mapped != null) {
                         if (map != null) {
-                            throw IllegalCodeBehindException("Class {0} contain more than one mapping attribute", ClassDiagnosticName);
+                            throw IllegalCodeBehindException(InvalidCodeBehindError.MultipleMappingAttributes, node);
                         }
                         else {
                             map = attrib;
@@ -95,7 +95,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             var rootMapAttributeText = this.CodeBehindAnalyzer.Root.Name + "_json";
             if (map == null) {
                 if (!IsNamedRootObject()) {
-                    throw IllegalCodeBehindException("Class {0} is neither a named root nor contains any mapping attribute", ClassDiagnosticName);
+                    throw IllegalCodeBehindException(InvalidCodeBehindError.ClassNotMapped, node);
                 }
 
                 // This is the named root, but without any mapping information
@@ -107,19 +107,18 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 // mapped as such.
                 if (IsNamedRootObject()) {
                     if (ci.RawDebugJsonMapAttribute != rootMapAttributeText) {
-                        throw IllegalCodeBehindException(
-                            "Class {0} is a named root but maps to [{1}]", ClassDiagnosticName, ci.RawDebugJsonMapAttribute);
+                        throw IllegalCodeBehindException(InvalidCodeBehindError.RootClassWithCustomMapping, node);
                     }
                 }
             }
 
             var isPartial = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.PartialKeyword);
             if (!isPartial) {
-                throw IllegalCodeBehindException("Class {0} is not marked partial.", ClassDiagnosticName);
+                throw IllegalCodeBehindException(InvalidCodeBehindError.ClassNotPartial, node);
             }
 
             if (node.TypeParameterList != null) {
-                throw IllegalCodeBehindException("Class {0} is a generic class.", ClassDiagnosticName);
+                throw IllegalCodeBehindException(InvalidCodeBehindError.ClassGeneric, node);
             }
 
             // Run through the declaration
@@ -130,7 +129,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             
             var root = Result.RootClassInfo;
             if (root != null && ci.IsRootClass) {
-                throw IllegalCodeBehindException("Class {0} is considered a root class; {1}  is too.", ClassDiagnosticName, root.ClassName);
+                throw IllegalCodeBehindException(InvalidCodeBehindError.MultipleRootClasses, node);
             }
 
             Result.CodeBehindClasses.Add(ci);
@@ -174,7 +173,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
             var isStatic = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.StaticKeyword);
             if (!isStatic) {
-                throw IllegalCodeBehindException("Class {0} defines at least one constructor.", ClassDiagnosticName);
+                throw IllegalCodeBehindException(InvalidCodeBehindError.DefineInstanceConstructor, node);
             }
         }
 
@@ -271,10 +270,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
             var generic = name.Identifier.Text;
             return generic.Equals("IBound") || generic.Equals("Starcounter.IBound");
-        }
-
-        Exception IllegalCodeBehindException(string message, params object[] args) {
-            return new Exception(string.Format(message, args));
         }
 
         InvalidCodeBehindException IllegalCodeBehindException(InvalidCodeBehindError error, CSharpSyntaxNode node = null) {

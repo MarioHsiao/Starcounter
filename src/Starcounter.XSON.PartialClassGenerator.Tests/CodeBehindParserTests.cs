@@ -87,29 +87,26 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             useRoslynParser = true;
 
-            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect", @"Input\incorrect.json.cs", useRoslynParser));
-            Assert.IsTrue(ex.Message.Contains("generic class"));
+            var ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyze("Incorrect", @"Input\incorrect.json.cs", useRoslynParser));
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.ClassGeneric);
 
-            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect2", @"Input\incorrect2.json.cs", useRoslynParser));
-            Assert.IsTrue(ex.Message.Contains("defines at least one constructor"));
+            ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyze("Incorrect2", @"Input\incorrect2.json.cs", useRoslynParser));
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.DefineInstanceConstructor);
 
-            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect3", @"Input\incorrect3.json.cs", useRoslynParser));
-            Assert.IsTrue(ex.Message.Contains("not marked partial"));
+            ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyze("Incorrect3", @"Input\incorrect3.json.cs", useRoslynParser));
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.ClassNotPartial);
 
-            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect4", @"Input\incorrect4.json.cs", useRoslynParser));
-            Assert.IsTrue(ex.Message.Contains("neither a named root nor contains any mapping attribute"));
-            Assert.IsTrue(ex.Message.Contains("DoesNotMap"));
+            ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyze("Incorrect4", @"Input\incorrect4.json.cs", useRoslynParser));
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.ClassNotMapped);
 
-            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect5", @"Input\incorrect5.json.cs", useRoslynParser));
-            Assert.IsTrue(ex.Message.Contains("is a named root but maps to"));
-            Assert.IsTrue(ex.Message.Contains("SomethingElse_json"));
+            ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyze("Incorrect5", @"Input\incorrect5.json.cs", useRoslynParser));
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.RootClassWithCustomMapping);
 
-            ex = Assert.Throws<Exception>(() => ParserAnalyze("Incorrect6", @"Input\incorrect6.json.cs", useRoslynParser));
-            Assert.IsTrue(ex.Message.Contains("is considered a root class"));
-            Assert.IsTrue(ex.Message.Contains("is too"));
+            ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyze("Incorrect6", @"Input\incorrect6.json.cs", useRoslynParser));
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.MultipleRootClasses);
 
             var source = "public partial class Foo : Json { public static void Handle(Input.Bar bar) {} }";
-            var ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyzeCode("Foo", source, useRoslynParser));
+            ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyzeCode("Foo", source, useRoslynParser));
             Assert.IsTrue(ex2.Error == InvalidCodeBehindError.InputHandlerStatic);
 
             source = "public partial class Foo : Json { public void Handle(Input.Bar bar, Second illegal) {} }";

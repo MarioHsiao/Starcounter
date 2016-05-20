@@ -11,6 +11,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
         DefineInstanceConstructor,
         MultipleMappingAttributes,
         RootClassWithCustomMapping,
+        ClassNotMapped,
         ClassNotPartial,
         ClassGeneric,
         MultipleRootClasses,
