@@ -13,10 +13,6 @@ namespace Administrator.Server.Managers {
 
         static List<Task> Tasks = new List<Task>();
 
-        //Handle.GET("/__internal_api/databases/{?}/task/{?}", (string databaseName, string taskID, Request request) => {
-        //Handle.POST("/__internal_api/databases/{?}/task", (string databaseName, Request request) => {
-
-
         public static void Register() {
 
             // Get task

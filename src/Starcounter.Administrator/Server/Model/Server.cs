@@ -195,6 +195,23 @@ namespace Administrator.Server.Model {
             }
         }
 
+        public bool InvalidateDatabase(string databaseName) {
+
+            Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+            if (database == null) {
+                ServerManager.ServerInstance.InvalidateDatabases();
+                database = ServerManager.ServerInstance.GetDatabase(databaseName);
+            }
+
+            if (database == null) {
+                // Error;
+                return false;
+            }
+
+            database.InvalidateModel();
+            return true;
+        }
+
         /// <summary>
         /// Invalidate list of databases
         /// Assure that the list of databases is up-to-date
