@@ -223,6 +223,13 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 Assert.AreEqual(mh.DeclaringClassNamespace, rh.DeclaringClassNamespace);
                 Assert.AreEqual(mh.FullInputTypeName, rh.FullInputTypeName);
             }
+
+            Assert.IsNotNull(roslyn.RootClassInfo.InputBindingList.Find((candidate) => {
+                return candidate.DeclaringClassName == "Foo" && candidate.FullInputTypeName == "Input.Bar";
+            }));
+            Assert.IsNotNull(roslyn.RootClassInfo.InputBindingList.Find((candidate) => {
+                return candidate.DeclaringClassNamespace == null && candidate.FullInputTypeName == "Input.Bar2";
+            }));
         }
     }
 }

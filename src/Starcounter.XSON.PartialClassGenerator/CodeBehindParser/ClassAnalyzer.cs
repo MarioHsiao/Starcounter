@@ -207,7 +207,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             }
 
             var returns = node.ReturnType as PredefinedTypeSyntax;
-            if (returns == null || returns.Keyword != SyntaxFactory.Token(SyntaxKind.VoidKeyword)) {
+            if (returns == null || !returns.Keyword.IsKind(SyntaxKind.VoidKeyword)) {
                 throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerNotVoidReturnType, node);
             }
 
