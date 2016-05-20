@@ -91,7 +91,7 @@ namespace Starcounter
         private static IEnumerable<Column> GetColumnsForUnload(Table tbl)
         {
             return Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)
-                     .Where(col => (col.Name != "__id" && col.Name != "__setspecifier"));
+                     .Where(col => (col.Name != "__id" && col.Name != "__setspecifier" && col.Name != "__type_id"));
         }
 
         private static string CreateSelectStatementForTable(Table tbl)

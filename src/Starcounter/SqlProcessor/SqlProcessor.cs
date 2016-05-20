@@ -172,7 +172,7 @@ namespace Starcounter.SqlProcessor {
             MetalayerThrowIfError(Starcounter.SqlProcessor.SqlProcessor.star_setspec_ref_by_table_ref(
                 ThreadData.ContextHandle, rawviewRecordOid, rawviewRecordAddr,
                 &setspecRecordOid, &setspecRecordAddr));
-            return DbState.ReadString(setspecRecordOid, setspecRecordAddr, 2);
+            return DbState.ReadString(setspecRecordOid, setspecRecordAddr, 3);
         }
 
         public static void PopulateRuntimeMetadata() {
