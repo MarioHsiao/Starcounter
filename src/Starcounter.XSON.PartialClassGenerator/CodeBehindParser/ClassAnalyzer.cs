@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Starcounter.XSON.Metadata;
 using System;
@@ -168,6 +169,9 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node) {
+            // By design: Let's not invoke base visitor, since we don't need to analyze 
+            // anything else about it, and we provide a faster execution if we don't.
+
             var isStatic = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.StaticKeyword);
             if (!isStatic) {
                 throw IllegalCodeBehindException("Class {0} defines at least one constructor.", ClassDiagnosticName);
@@ -175,52 +179,44 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node) {
+            // By design: Let's not invoke base visitor, since we don't need to analyze 
+            // anything else about it, and we provide a faster execution if we don't.
+
             if (node.Identifier.Text == "Handle") {
-                var isStatic = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.StaticKeyword);
-                if (isStatic) {
-                    throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerStatic, node);
-                }
-
-                if (node.ParameterList == null || node.ParameterList.Parameters.Count != 1) {
-                    throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerBadParameterCount, node);
-                }
-
-                if (node.TypeParameterList != null) {
-                    throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerHasTypeParameters, node);
-                }
-
-                var parameter = node.ParameterList.Parameters[0];
-                if (parameter.Modifiers.Any((t) => t.Kind() == SyntaxKind.RefKeyword)) {
-                    throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerWithRefParameter, node);
-                }
-
-                var info = new InputBindingInfo();
-                info.DeclaringClassName = codeBehindMetadata.ClassName;
-                info.DeclaringClassNamespace = codeBehindMetadata.Namespace;
-                info.FullInputTypeName = parameter.Type.ToString();
-
-                codeBehindMetadata.InputBindingList.Add(info);
+                DiscoverInputHandler(node);
             }
-
-            // Let's not invoke base method, since we don't need to analyze 
-            // anything else about it.
         }
 
-        bool IsNamedRootObject() {
-            if (this.NestingClass != null) {
-                return false;
+        void DiscoverInputHandler(MethodDeclarationSyntax node) {
+            var isStatic = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.StaticKeyword);
+            if (isStatic) {
+                throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerStatic, node);
             }
 
-            return this.Node.Identifier.ValueText == this.CodeBehindAnalyzer.Root.Name;
-        }
-
-        bool IsBindingName(GenericNameSyntax name) {
-            if (name.TypeArgumentList == null || name.TypeArgumentList.Arguments.Count != 1) {
-                return false;
+            if (node.ParameterList == null || node.ParameterList.Parameters.Count != 1) {
+                throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerBadParameterCount, node);
             }
 
-            var generic = name.Identifier.Text;
-            return generic.Equals("IBound") || generic.Equals("Starcounter.IBound");
+            if (node.TypeParameterList != null) {
+                throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerHasTypeParameters, node);
+            }
+
+            var parameter = node.ParameterList.Parameters[0];
+            if (parameter.Modifiers.Any((t) => t.Kind() == SyntaxKind.RefKeyword)) {
+                throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerWithRefParameter, node);
+            }
+
+            var returns = node.ReturnType as PredefinedTypeSyntax;
+            if (returns == null || returns.Keyword != SyntaxFactory.Token(SyntaxKind.VoidKeyword)) {
+                throw IllegalCodeBehindException(InvalidCodeBehindError.InputHandlerNotVoidReturnType, node);
+            }
+
+            var info = new InputBindingInfo();
+            info.DeclaringClassName = codeBehindMetadata.ClassName;
+            info.DeclaringClassNamespace = codeBehindMetadata.Namespace;
+            info.FullInputTypeName = parameter.Type.ToString();
+
+            codeBehindMetadata.InputBindingList.Add(info);
         }
 
         void DiscoverPrimaryBaseType(BaseListSyntax node) {
@@ -253,6 +249,23 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, QualifiedNameSyntax name) {
+        }
+
+        bool IsNamedRootObject() {
+            if (this.NestingClass != null) {
+                return false;
+            }
+
+            return this.Node.Identifier.ValueText == this.CodeBehindAnalyzer.Root.Name;
+        }
+
+        bool IsBindingName(GenericNameSyntax name) {
+            if (name.TypeArgumentList == null || name.TypeArgumentList.Arguments.Count != 1) {
+                return false;
+            }
+
+            var generic = name.Identifier.Text;
+            return generic.Equals("IBound") || generic.Equals("Starcounter.IBound");
         }
 
         Exception IllegalCodeBehindException(string message, params object[] args) {
