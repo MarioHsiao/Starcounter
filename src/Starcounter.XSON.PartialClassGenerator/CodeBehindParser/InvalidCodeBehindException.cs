@@ -1,9 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Starcounter.XSON.PartialClassGenerator {
     public enum InvalidCodeBehindError {
@@ -31,6 +27,40 @@ namespace Starcounter.XSON.PartialClassGenerator {
             base(Enum.GetName(typeof(InvalidCodeBehindError), error)) {
             Error = error;
             Node = node;
+        }
+
+        public string FilePath {
+            get {
+                return Node.SyntaxTree.FilePath;
+            }
+        }
+
+        public int Line {
+            get {
+                var y = Node.SyntaxTree.GetLineSpan(Node.Span);
+                return y.StartLinePosition.Line + 1;
+            }
+        }
+
+        public int Column {
+            get {
+                var y = Node.SyntaxTree.GetLineSpan(Node.Span);
+                return y.StartLinePosition.Character;
+            }
+        }
+
+        public int EndLine {
+            get {
+                var y = Node.SyntaxTree.GetLineSpan(Node.Span);
+                return y.EndLinePosition.Line + 1;
+            }
+        }
+
+        public int EndColumn {
+            get {
+                var y = Node.SyntaxTree.GetLineSpan(Node.Span);
+                return y.EndLinePosition.Character;
+            }
         }
     }
 }
