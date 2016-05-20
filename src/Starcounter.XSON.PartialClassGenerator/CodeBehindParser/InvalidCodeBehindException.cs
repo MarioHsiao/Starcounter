@@ -35,13 +35,27 @@ namespace Starcounter.XSON.PartialClassGenerator {
             }
         }
 
+        /// <summary>
+        /// Gets the zero-based starting line number where the error was found.
+        /// </summary>
+        /// <remarks>
+        /// To translate this to a number that correspond to how they are normally
+        /// displayed in an editor, increase it by 1.
+        /// </remarks>
         public int Line {
             get {
                 var y = Node.SyntaxTree.GetLineSpan(Node.Span);
-                return y.StartLinePosition.Line + 1;
+                return y.StartLinePosition.Line;
             }
         }
 
+        /// <summary>
+        /// Gets the zero-based starting column where the error was found.
+        /// </summary>
+        /// <remarks>
+        /// To translate this to a number that correspond to how they are normally
+        /// displayed in an editor, increase it by 1.
+        /// </remarks>
         public int Column {
             get {
                 var y = Node.SyntaxTree.GetLineSpan(Node.Span);
@@ -49,13 +63,27 @@ namespace Starcounter.XSON.PartialClassGenerator {
             }
         }
 
+        /// <summary>
+        /// Gets the zero-based ending line number where the error was found.
+        /// </summary>
+        /// <remarks>
+        /// To translate this to a number that correspond to how they are normally
+        /// displayed in an editor, increase it by 1.
+        /// </remarks>
         public int EndLine {
             get {
                 var y = Node.SyntaxTree.GetLineSpan(Node.Span);
-                return y.EndLinePosition.Line + 1;
+                return y.EndLinePosition.Line;
             }
         }
 
+        /// <summary>
+        /// Gets the zero-based ending column where the error was found.
+        /// </summary>
+        /// <remarks>
+        /// To translate this to a number that correspond to how they are normally
+        /// displayed in an editor, increase it by 1.
+        /// </remarks>
         public int EndColumn {
             get {
                 var y = Node.SyntaxTree.GetLineSpan(Node.Span);
