@@ -34,11 +34,14 @@ namespace Administrator.Server.Model {
         #region Properties
 
         private bool _CreatingDatabaseError;
-        public bool CreatingDatabaseError {
-            get {
+        public bool CreatingDatabaseError
+        {
+            get
+            {
                 return this._CreatingDatabaseError;
             }
-            set {
+            set
+            {
                 if (this._CreatingDatabaseError == value) return;
                 this._CreatingDatabaseError = value;
                 this.OnPropertyChanged("CreatingDatabaseError");
@@ -49,14 +52,18 @@ namespace Administrator.Server.Model {
         #region Status
 
         private ErrorMessage _ErrorMessage = new ErrorMessage();
-        public ErrorMessage ErrorMessage {
-            get {
+        public ErrorMessage ErrorMessage
+        {
+            get
+            {
                 return this._ErrorMessage;
             }
         }
 
-        public bool HasErrorMessage {
-            get {
+        public bool HasErrorMessage
+        {
+            get
+            {
                 return !(
                 string.IsNullOrEmpty(this.ErrorMessage.Title) &&
                 string.IsNullOrEmpty(this.ErrorMessage.Message) &&
@@ -65,11 +72,14 @@ namespace Administrator.Server.Model {
         }
 
         private ServerStatus _Status;
-        public ServerStatus Status {
-            get {
+        public ServerStatus Status
+        {
+            get
+            {
                 return this._Status;
             }
-            set {
+            set
+            {
                 if (this._Status == value) return;
                 this._Status = value;
                 this.OnPropertyChanged("Status");
@@ -77,11 +87,14 @@ namespace Administrator.Server.Model {
         }
 
         private string _StatusText;
-        public string StatusText {
-            get {
+        public string StatusText
+        {
+            get
+            {
                 return this._StatusText;
             }
-            set {
+            set
+            {
                 if (this._StatusText == value) return;
                 this._StatusText = value;
                 this.OnPropertyChanged("StatusText");
@@ -223,20 +236,14 @@ namespace Administrator.Server.Model {
 
             foreach (DatabaseInfo databaseInfo in databaseInfos) {
 
-                //Database database = GetDatabaseByUrl(databaseInfo.Uri);
                 Database database = this.GetDatabase(databaseInfo.Name);
                 if (database == null) {
                     // Create
                     database = new Database();
                     database.ID = databaseInfo.Name.ToLower();
                     database.DisplayName = databaseInfo.Name;
-                    //database.Url = databaseInfo.Uri;
-
-//                    database.Url = string.Format("http://127.0.0.1:8181/api/admin/databases/{0}", database.ID); // TODO: Fix hardcodes IP and Port
                     database.Url = string.Format("/api/admin/databases/{0}", database.ID); // TODO: Fix hardcodes IP and Port
-
                     database.UserHttpPort = databaseInfo.Configuration.Runtime.DefaultUserHttpPort;
-
                     this.Databases.Add(database);
                 }
             }
@@ -271,7 +278,7 @@ namespace Administrator.Server.Model {
         public Database GetDatabase(string id) {
 
             foreach (var database in this.Databases) {
-                if (string.Equals( database.ID,id, StringComparison.InvariantCultureIgnoreCase)) {
+                if (string.Equals(database.ID, id, StringComparison.InvariantCultureIgnoreCase)) {
                     return database;
                 }
             }
@@ -304,7 +311,7 @@ namespace Administrator.Server.Model {
         /// </summary>
         /// <param name="completionCallback"></param>
         /// <param name="errorCallback"></param>
-        public void CreateDatabase(DatabaseSettings settings, Action<Database> completionCallback = null, Action< bool, string, string, string> errorCallback = null) {
+        public void CreateDatabase(DatabaseSettings settings, Action<Database> completionCallback = null, Action<bool, string, string, string> errorCallback = null) {
 
             this.ResetErrorMessage();
 
@@ -329,6 +336,8 @@ namespace Administrator.Server.Model {
 
                 this.Status &= ~ServerStatus.CreatingDatabase;
 
+                ServerManager.ServerInstance.InvalidateDatabases();
+
                 Database database = this.GetDatabase(settings.Name);
                 if (database == null) {
                 }
@@ -336,7 +345,7 @@ namespace Administrator.Server.Model {
                 if (completionCallback != null) {
                     completionCallback(database);
                 }
-            }, ( wasCancelled, title, message, helpLink) => {
+            }, (wasCancelled, title, message, helpLink) => {
 
                 this.Status &= ~ServerStatus.CreatingDatabase;
                 this.CreatingDatabaseError = true;
@@ -369,7 +378,7 @@ namespace Administrator.Server.Model {
         /// </summary>
         /// <param name="command"></param>
         /// <param name="database"></param>
-        private void ExecuteCommand(ServerCommand command, Action completionCallback = null, Action< bool, string, string, string> errorCallback = null) {
+        private void ExecuteCommand(ServerCommand command, Action completionCallback = null, Action<bool, string, string, string> errorCallback = null) {
 
             var runtime = RootHandler.Host.Runtime;
 
@@ -406,7 +415,7 @@ namespace Administrator.Server.Model {
                     var msg = single.ToErrorMessage();
 
                     if (errorCallback != null) {
-                        errorCallback( wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                        errorCallback(wasCancelled, command.Description, msg.Brief, msg.Helplink);
                     }
                 }
                 else {
@@ -441,7 +450,7 @@ namespace Administrator.Server.Model {
                     ErrorInfo single = c.Errors.PickSingleServerError();
                     var msg = single.ToErrorMessage();
                     if (errorCallback != null) {
-                        errorCallback( wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                        errorCallback(wasCancelled, command.Description, msg.Brief, msg.Helplink);
                     }
                 }
                 else {
@@ -478,7 +487,7 @@ namespace Administrator.Server.Model {
 
                 Action<Database> callback;
                 if (listeners.TryPop(out callback)) {
-                    callback( database);
+                    callback(database);
                 }
                 else {
                     // TODO:
@@ -495,9 +504,9 @@ namespace Administrator.Server.Model {
 
             while (listeners.Count > 0) {
 
-                Action< bool, string, string, string> callback;
+                Action<bool, string, string, string> callback;
                 if (listeners.TryPop(out callback)) {
-                    callback( wasCancelled, title, message, helpLink);
+                    callback(wasCancelled, title, message, helpLink);
                 }
                 else {
                     // TODO:
