@@ -10,6 +10,7 @@ namespace Starcounter {
     /// </summary>
     public class PartialToStandaloneHtmlProvider : IMiddleware {
         static Encoding defaultEncoding = Encoding.UTF8;
+        readonly string template = ImplicitStandaloneTemplate;
 
         #region Implicit standalone page template
         const string ImplicitStandaloneTemplate = @"<!DOCTYPE html>
@@ -48,6 +49,24 @@ namespace Starcounter {
 </html>";
         #endregion
 
+        /// <summary>
+        /// Creates a new instance of <see cref="PartialToStandaloneHtmlProvider"/>
+        /// using the predefined default template.
+        /// </summary>
+        public PartialToStandaloneHtmlProvider() : this(ImplicitStandaloneTemplate)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="PartialToStandaloneHtmlProvider"/>
+        /// using the given standalone page template.
+        /// </summary>
+        public PartialToStandaloneHtmlProvider(string standaloneTemplate)
+        {
+            if (string.IsNullOrEmpty(standaloneTemplate)) throw new ArgumentNullException("standaloneTemplate");
+            template = standaloneTemplate;
+        }
+
         void IMiddleware.Register(Application application) {
             application.Use(MimeProvider.Html(this.Invoke));
         }
@@ -59,7 +78,7 @@ namespace Starcounter {
                 var json = context.Resource as Json;
                 if (json != null) {
                     if (!IsFullPageHtml(content)) {
-                        content = ProvideImplicitStandalonePage(content, context.Request.HandlerAppName);
+                        content = ProvideImplicitStandalonePage(content, context.Request.HandlerAppName, template);
                         context.Result = content;
                     }
                 }
@@ -68,8 +87,8 @@ namespace Starcounter {
             next();
         }
 
-        internal static byte[] ProvideImplicitStandalonePage(byte[] content, string appName) {
-            var html = String.Format(ImplicitStandaloneTemplate, appName);
+        internal static byte[] ProvideImplicitStandalonePage(byte[] content, string appName, string template = ImplicitStandaloneTemplate) {
+            var html = String.Format(template, appName);
             return defaultEncoding.GetBytes(html);
         }
 
