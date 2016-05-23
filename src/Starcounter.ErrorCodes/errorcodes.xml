@@ -4669,6 +4669,66 @@
         Seems that specified application resource directory is mapped to a network drive. 
       </message>
     </code>
+    <code hex="0016" severity="Error" name="ScErrJsonWithConstructor">
+      <message>
+        Typed JSON code-behind classes does not support custom instance constructors.
+      </message>
+    </code>
+    <code hex="0017" severity="Error" name="ScErrJsonMappedMoreThanOnce">
+      <message>
+        The code-behind class defines multiple mapping attributes.
+      </message>
+    </code>
+    <code hex="0018" severity="Error" name="ScErrJsonRootHasCustomMapping">
+      <message>
+        The code-behind class is named as the root JSON object, but also define a mapping.
+      </message>
+    </code>
+    <code hex="0019" severity="Error" name="ScErrJsonClassNotPartial">
+      <message>
+        Typed JSON code-behind classes must be partial.
+      </message>
+    </code>
+    <code hex="001A" severity="Error" name="ScErrJsonClassIsGeneric">
+      <message>
+        Typed JSON code-behind classes can not be generic.
+      </message>
+    </code>
+    <code hex="001B" severity="Error" name="ScErrJsonWithMultipleRoots">
+      <message>
+        Found more than once code-behind class that was mapped to the root JSON object.
+      </message>
+    </code>
+    <code hex="001C" severity="Error" name="ScErrJsonStaticInputHandler">
+      <message>
+        Input handler methods can not be static.
+      </message>
+    </code>
+    <code hex="001D" severity="Error" name="ScErrJsonAbstractInputHandler">
+      <message>
+        Input handler methods can not be abstract.
+      </message>
+    </code>
+    <code hex="001E" severity="Error" name="ScErrJsonInputHandlerBadParameterCount">
+      <message>
+        The input handler has to many parameters.
+      </message>
+    </code>
+    <code hex="001F" severity="Error" name="ScErrJsonInputHandlerGeneric">
+      <message>
+        Input handler methods can not be generic.
+      </message>
+    </code>
+    <code hex="0020" severity="Error" name="ScErrJsonInputHandlerRefParam">
+      <message>
+        Input handler parameter should not be defined as a reference (ref) parameter.
+      </message>
+    </code>
+    <code hex="0021" severity="Error" name="ScErrJsonInputHandlerNotVoid">
+      <message>
+        Input handler methods must have void return type.
+      </message>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->
