@@ -73,6 +73,8 @@ namespace Starcounter.Administrator.Server.Handlers {
                             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
                         }
 
+                        ServerManager.ServerInstance.InvalidateDatabases();
+
                         Database database = ServerManager.ServerInstance.GetDatabase(settings.Name);
                         if (database != null) {
                             DatabaseJson databaseJson = new DatabaseJson();

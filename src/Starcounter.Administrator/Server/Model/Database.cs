@@ -1020,6 +1020,8 @@ namespace Administrator.Server.Model {
 
                 this.Status &= ~DatabaseStatus.Deleting;
 
+                ServerManager.ServerInstance.InvalidateDatabases();
+
                 this.DatabaseDeleteErrorCallbacks.Clear();
                 this.InvokeActionListeners(this.DatabaseDeleteCallbacks);
             }, (database, wasCancelled, title, message, helpLink) => {

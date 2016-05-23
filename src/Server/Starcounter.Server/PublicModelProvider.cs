@@ -63,7 +63,9 @@ namespace Starcounter.Server {
             lock (databases) {
                 databases.Add(database.Uri, info);
             }
-            Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/__internal_api/databases", database.Name, null);
+
+            Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/__internal_api/databases", database.Name, null, (response) => { });    // async
+
             return info;
         }
 
@@ -79,7 +81,9 @@ namespace Starcounter.Server {
             lock (databases) {
                 databases[database.Uri] = info;
             }
-            Http.PUT("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/__internal_api/databases/" + database.Name, string.Empty, null);
+
+            Http.PUT("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/__internal_api/databases/" + database.Name, string.Empty, null, (response) => { });   // async
+
             return info;
         }
 
@@ -100,8 +104,10 @@ namespace Starcounter.Server {
         }
 
         /// <inheritdoc />
-        public CommandDescriptor[] Functionality {
-            get {
+        public CommandDescriptor[] Functionality
+        {
+            get
+            {
                 // NOTE: We are exposing the internal array "as is", instead
                 // of giving back a clone. But it's so unlikely that this will
                 // be exploited in the kind of controlled environment server
