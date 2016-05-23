@@ -8,7 +8,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
         DefineInstanceConstructor = Error.SCERRJSONWITHCONSTRUCTOR,
         MultipleMappingAttributes = Error.SCERRJSONMAPPEDMORETHANONCE,
         RootClassWithCustomMapping = Error.SCERRJSONROOTHASCUSTOMMAPPING,
-        ClassNotMapped = Error.SCERRUNSPECIFIED,
         ClassNotPartial = Error.SCERRJSONCLASSNOTPARTIAL,
         ClassGeneric = Error.SCERRJSONCLASSISGENERIC,
         MultipleRootClasses = Error.SCERRJSONWITHMULTIPLEROOTS,

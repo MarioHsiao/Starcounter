@@ -1,17 +1,11 @@
 ﻿
 namespace MySampleNamespace {
     /// <summary>
-    /// This class is not incorrect in itself. The next one is.
+    /// Classes can not map to multiple nodes
     /// </summary>
+    [Foo_json]
+    [Foo_json.Bar]
     public partial class Incorrect4 {
         public string Name { get; set; }
-    }
-
-    /// <summary>
-    /// Code-behind classes must map to objects in the JSON data.
-    /// This one does not.
-    /// </summary>
-    public partial class DoesNotMap {
-        public int Foo { get; set; }
     }
 }

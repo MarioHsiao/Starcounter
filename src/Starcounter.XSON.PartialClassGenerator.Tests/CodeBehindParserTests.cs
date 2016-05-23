@@ -97,7 +97,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.IsTrue(ex2.Error == InvalidCodeBehindError.ClassNotPartial);
 
             ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyze("Incorrect4", @"Input\incorrect4.json.cs", useRoslynParser));
-            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.ClassNotMapped);
+            Assert.IsTrue(ex2.Error == InvalidCodeBehindError.MultipleMappingAttributes);
 
             ex2 = Assert.Throws<InvalidCodeBehindException>(() => ParserAnalyze("Incorrect5", @"Input\incorrect5.json.cs", useRoslynParser));
             Assert.IsTrue(ex2.Error == InvalidCodeBehindError.RootClassWithCustomMapping);
