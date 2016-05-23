@@ -92,7 +92,9 @@ namespace Starcounter.XSON.PartialClassGenerator {
             var rootMapAttributeText = this.CodeBehindAnalyzer.Root.Name + "_json";
             if (map == null) {
                 if (!IsNamedRootObject()) {
-                    throw IllegalCodeBehindException(InvalidCodeBehindError.ClassNotMapped, node);
+                    // Code-behind classes not indicating any mapping are not of
+                    // our interest.
+                    return;
                 }
 
                 // This is the named root, but without any mapping information
