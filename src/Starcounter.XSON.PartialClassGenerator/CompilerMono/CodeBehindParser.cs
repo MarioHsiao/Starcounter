@@ -26,17 +26,31 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// <param name="useRoslynParser">Instruct the analyzer to use the newer
         /// Roslyn-based parser</param>
         /// <returns>CodeBehindMetadata.</returns>
-        public static CodeBehindMetadata Analyze(string className, string codebehind, string filePathNote, bool useRoslynParser = false) {
+        public static CodeBehindMetadata Analyze(string className, string codebehind, string filePathNote, bool? useRoslynParser = null) {
             CodeBehindMetadata metadata;
             CSharpToken token;
             MonoCSharpEnumerator mce;
 			bool beforeNS = true;
-           
+            bool useRoslyn = true;
+
+            if (useRoslynParser.HasValue) {
+                // Caller made explicit choice; respect that.
+                useRoslyn = useRoslynParser.Value;
+            }
+            else {
+                // We use Roslyn parser if not the temporary labs-like
+                // setting instruct to enable the Mono-based one.
+                var useMono = Environment.GetEnvironmentVariable("SC_LABS_JSON_CODEBEHIND_MONO_PARSER");
+                if (!string.IsNullOrEmpty(useMono)) {
+                    useRoslyn = false;
+                }
+            }
+
             if ((codebehind == null) || codebehind.Equals("") ) {
                 return CodeBehindMetadata.Empty;
             }
 
-            if (useRoslynParser) {
+            if (useRoslyn) {
                 var parser = new RoslynCodeBehindParser(className, codebehind, filePathNote);
                 return parser.ParseToMetadata();
             }
