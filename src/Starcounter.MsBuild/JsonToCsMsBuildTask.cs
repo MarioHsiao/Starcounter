@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.Internal.MsBuild {
     /// <summary>
@@ -41,8 +42,14 @@ namespace Starcounter.Internal.MsBuild {
                         Directory.CreateDirectory(dir);
                     }
                     File.WriteAllText(OutputFiles[i].ItemSpec, generatedCodeStr);
-                } catch (Starcounter.Internal.JsonTemplate.Error.CompileError ce) {
+                }
+                catch (Starcounter.Internal.JsonTemplate.Error.CompileError ce) {
                     msbuildLog.LogError("json", null, null, jsonFilename, ce.Position.Item1, ce.Position.Item2, 0, 0, ce.Message);
+                    success = false;
+                } catch (InvalidCodeBehindException icb) {
+                    // Positions in exception are zero-based, translate them all to
+                    // 1-based as we expect in the IDE.
+                    msbuildLog.LogError("json", null, null, codeBehindFilename, icb.Line + 1, icb.Column + 1, icb.EndLine + 1, icb.EndColumn + 1, icb.Message);
                     success = false;
                 } catch (Exception ex) {
                     msbuildLog.LogError("json", null, null, codeBehindFilename, 0, 0, 0, 0, ex.Message);
