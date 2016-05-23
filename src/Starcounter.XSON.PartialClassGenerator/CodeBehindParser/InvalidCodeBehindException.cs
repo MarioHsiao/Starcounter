@@ -1,30 +1,42 @@
 ﻿using Microsoft.CodeAnalysis;
 using System;
+using Starcounter.Internal;
 
 namespace Starcounter.XSON.PartialClassGenerator {
-    public enum InvalidCodeBehindError {
-        NotSpecified = 0,
-        DefineInstanceConstructor,
-        MultipleMappingAttributes,
-        RootClassWithCustomMapping,
-        ClassNotMapped,
-        ClassNotPartial,
-        ClassGeneric,
-        MultipleRootClasses,
-        InputHandlerStatic,
-        InputHandlerAbstract,
-        InputHandlerBadParameterCount,
-        InputHandlerHasTypeParameters,
-        InputHandlerWithRefParameter,
-        InputHandlerNotVoidReturnType
+    public enum InvalidCodeBehindError : uint {
+        NotSpecified = Error.SCERRUNSPECIFIED,
+        DefineInstanceConstructor = Error.SCERRJSONWITHCONSTRUCTOR,
+        MultipleMappingAttributes = Error.SCERRJSONMAPPEDMORETHANONCE,
+        RootClassWithCustomMapping = Error.SCERRJSONROOTHASCUSTOMMAPPING,
+        ClassNotMapped = Error.SCERRUNSPECIFIED,
+        ClassNotPartial = Error.SCERRJSONCLASSNOTPARTIAL,
+        ClassGeneric = Error.SCERRJSONCLASSISGENERIC,
+        MultipleRootClasses = Error.SCERRJSONWITHMULTIPLEROOTS,
+        InputHandlerStatic = Error.SCERRJSONSTATICINPUTHANDLER,
+        InputHandlerAbstract = Error.SCERRJSONABSTRACTINPUTHANDLER,
+        InputHandlerBadParameterCount = Error.SCERRJSONINPUTHANDLERBADPARAMETERCOUNT,
+        InputHandlerHasTypeParameters = Error.SCERRJSONINPUTHANDLERGENERIC,
+        InputHandlerWithRefParameter = Error.SCERRJSONINPUTHANDLERREFPARAM,
+        InputHandlerNotVoidReturnType = Error.SCERRJSONINPUTHANDLERNOTVOID
+    }
+
+    public static class InvalidCodeBehindExtensions {
+        public static bool IsBadInputHandlerSignature(this InvalidCodeBehindError error) {
+            return
+                error == InvalidCodeBehindError.InputHandlerAbstract ||
+                error == InvalidCodeBehindError.InputHandlerBadParameterCount ||
+                error == InvalidCodeBehindError.InputHandlerHasTypeParameters ||
+                error == InvalidCodeBehindError.InputHandlerNotVoidReturnType ||
+                error == InvalidCodeBehindError.InputHandlerStatic ||
+                error == InvalidCodeBehindError.InputHandlerWithRefParameter;
+        }
     }
 
     public class InvalidCodeBehindException : Exception {
         public readonly InvalidCodeBehindError Error = InvalidCodeBehindError.NotSpecified;
         public readonly SyntaxNode Node;
 
-        public InvalidCodeBehindException(InvalidCodeBehindError error, SyntaxNode node = null) : 
-            base(Enum.GetName(typeof(InvalidCodeBehindError), error)) {
+        public InvalidCodeBehindException(InvalidCodeBehindError error, SyntaxNode node = null) : base(string.Empty) {
             Error = error;
             Node = node;
         }
@@ -88,6 +100,26 @@ namespace Starcounter.XSON.PartialClassGenerator {
             get {
                 var y = Node.SyntaxTree.GetLineSpan(Node.Span);
                 return y.EndLinePosition.Character;
+            }
+        }
+
+        public override string Message {
+            get {
+                var e = Error;
+                string postfix = null;
+                if (e.IsBadInputHandlerSignature()) {
+                    postfix = "Try instead: void Handle(Input.* input);";
+                }
+                return ErrorCode.ToMessage((uint)e, postfix).Message;
+            }
+        }
+
+        public override string HelpLink {
+            get {
+                return ErrorCode.ToHelpLink((uint)Error);
+            }
+            set {
+                throw new InvalidOperationException("We construct the helplink from the error");
             }
         }
     }
