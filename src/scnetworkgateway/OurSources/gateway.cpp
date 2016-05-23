@@ -2323,7 +2323,7 @@ uint32_t Gateway::Init()
         clang_engine_addr, // Pointer to Clang engine.
         false, // Accumulate Clang modules.
         false, // Print build output to console.
-        true, // Do code optimizations.
+		MixedCodeConstants::SCLLVM_OPT_FLAG, // Do code optimizations.
 
         "extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
         "extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",

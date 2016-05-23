@@ -29,32 +29,38 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             Handle.GET("/api/admin/databases", (Request req) => {
 
-                try {
-                    DatabasesJson databasesJson = new DatabasesJson();
+                lock (ServerManager.ServerInstance) {
 
-                    databasesJson.Items.Data = ServerManager.ServerInstance.Databases;
+                    try {
+                        DatabasesJson databasesJson = new DatabasesJson();
 
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = databasesJson.ToJsonUtf8() };
-                }
-                catch (Exception e) {
-                    return RestUtils.CreateErrorResponse(e);
+                        databasesJson.Items.Data = ServerManager.ServerInstance.Databases;
+
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = databasesJson.ToJsonUtf8() };
+                    }
+                    catch (Exception e) {
+                        return RestUtils.CreateErrorResponse(e);
+                    }
                 }
             });
 
             Handle.GET("/api/admin/databases/{?}", (string id, Request req) => {
 
-                try {
+                lock (ServerManager.ServerInstance) {
 
-                    DatabaseJson databaseJson = new DatabaseJson();
+                    try {
 
-                    databaseJson.Data = ServerManager.ServerInstance.GetDatabase(id);
-                    if (databaseJson.Data == null) {
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
+                        DatabaseJson databaseJson = new DatabaseJson();
+
+                        databaseJson.Data = ServerManager.ServerInstance.GetDatabase(id);
+                        if (databaseJson.Data == null) {
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
+                        }
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = databaseJson.ToJsonUtf8() };
                     }
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = databaseJson.ToJsonUtf8() };
-                }
-                catch (Exception e) {
-                    return RestUtils.CreateErrorResponse(e);
+                    catch (Exception e) {
+                        return RestUtils.CreateErrorResponse(e);
+                    }
                 }
             });
         }

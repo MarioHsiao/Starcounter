@@ -26,7 +26,6 @@ namespace Administrator.Server.Model {
     public class Database : INotifyPropertyChanged {
 
         internal JsonPatch JsonPatchInstance;
-        static Object lockObject_ = new Object();
 
         #region Properties
         private string _ID;
@@ -728,7 +727,7 @@ namespace Administrator.Server.Model {
 
         private void UpdateAppStoreList(IList<AppStoreStore> freshStores) {
 
-            lock (lockObject_) {
+            lock (ServerManager.ServerInstance) {
 
                 // Add new stores
                 IList<AppStoreStore> addList = new List<AppStoreStore>();
@@ -781,7 +780,7 @@ namespace Administrator.Server.Model {
 
         private void UpdateAppStoreApplications(AppStoreStore store, IList<AppStoreApplication> freshAppStoreApplications) {
 
-            lock (lockObject_) {
+            lock (ServerManager.ServerInstance) {
                 // Add new stores
                 List<AppStoreApplication> addList = new List<AppStoreApplication>();
 
@@ -1020,6 +1019,8 @@ namespace Administrator.Server.Model {
             this.ExecuteCommand(command, (database) => {
 
                 this.Status &= ~DatabaseStatus.Deleting;
+
+                ServerManager.ServerInstance.InvalidateDatabases();
 
                 this.DatabaseDeleteErrorCallbacks.Clear();
                 this.InvokeActionListeners(this.DatabaseDeleteCallbacks);

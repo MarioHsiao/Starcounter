@@ -1009,7 +1009,7 @@ ALL_DATA_ACCUMULATED:
             sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes());
 
             // Push chunk to corresponding channel/scheduler.
-            err_code = gw->PushSocketDataToDb(sd, handler_id);
+            err_code = gw->PushSocketDataToDb(sd, handler_id, false);
             if (err_code)
                 return err_code;
 

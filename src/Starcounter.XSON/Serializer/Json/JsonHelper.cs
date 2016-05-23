@@ -474,7 +474,10 @@ namespace Starcounter.Advanced.XSON {
         public static int WriteDouble(IntPtr ptr, int size, double value) {
             unsafe {
                 byte* pfrag = (byte*)ptr;
-                return WriteStringNoQuotations(pfrag, size, value.ToString("0.0###########################", CultureInfo.InvariantCulture));
+                string valueToStr = value.ToString("G17", CultureInfo.InvariantCulture);
+                if (valueToStr.IndexOf('.') == -1 && valueToStr.IndexOf('E') == -1)
+                    valueToStr += ".0";
+                return WriteStringNoQuotations(pfrag, size, valueToStr);
             }
         }
 

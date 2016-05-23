@@ -74,20 +74,27 @@ namespace Starcounter.Internal {
                 return resp;
             }
 
-            var mainResponse = responses[0];
-            Int32 mainResponseId = 0;
+            Response mainResponse = null;
+            Int32 mainResponseId = -1;
 
-            // Searching for the current application in responses.
-            for (Int32 i = 0; i < responses.Count; i++) {
-                if (responses[i] == null)
-                    continue;
+            if (responses != null) {
+                // Searching for the current application in responses.
+                for (Int32 i = 0; i < responses.Count; i++) {
+                    if (responses[i] == null)
+                        continue;
 
-                if (responses[i].AppName == req.HandlerOpts.CallingAppName) {
+                    if (responses[i].AppName == req.HandlerOpts.CallingAppName) {
 
-                    mainResponse = responses[i];
-                    mainResponseId = i;
-                    break;
+                        mainResponse = responses[i];
+                        mainResponseId = i;
+                        break;
+                    }
                 }
+            }
+
+            if (mainResponse == null) {
+                // No response from the main caller. There is nothing to merge on and we return.
+                return mainResponse;
             }
 
             // Checking if its a Json response.

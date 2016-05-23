@@ -10,7 +10,7 @@
     "starcounter-debug-aid": "StarcounterSamples/starcounter-debug-aid#~2.0.5",
     "puppet-client": "PuppetJs/puppet-polymer-client#~2.0.0",
     "bootswatch": "thomaspark/bootswatch#~3.3.5",
-    "starcounter-include": ">=0.2.1",
+    "starcounter-include": ">=0.3.0",
     "polymer": "polymer/polymer#>=1.4.0"
   },
   "resolutions": {

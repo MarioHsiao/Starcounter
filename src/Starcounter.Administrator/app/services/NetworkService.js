@@ -8,7 +8,9 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', '$location', 'Ut
     // Network model
     // {
     //    statistics : object,
-    //    workingfolders : [{Port:8080, Folder:"folderpath"}]
+    //    workingfolders : [{"Port":8080, "Folder":"folderpath"}],
+    //    uriAliases : [{"HttpMethod":"GET", "FromUri":"/", "ToUri":"/launcher", "Port":7000,"DatabaseName":"this is added after get"}],
+    //    reverseProxies: [{"DestinationIP":"127.0.0.1", "DestinationPort":80, "StarcounterProxyPort":7000, "MatchingHost":"mydomain.com", "DatabaseName":"this is added after get"}],
     // }
     this.model = {};
 
@@ -109,6 +111,95 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', '$location', 'Ut
         });
     }
 
+    /**
+       * Get Uri Aliases
+       * @param {function} successCallback Success Callback function
+       * @param {function} errorCallback Error Callback function
+       */
+    this.getUriAliases = function (successCallback, errorCallback) {
+
+        var errorHeader = "Failed to retrieve Uri Aliases";
+        var uri = "/sc/alias";
+
+        $http.get(uri).then(function (response) {
+            // Success
+            $log.info("Uri Aliases successfully retrived");
+            if (typeof (successCallback) == "function") {
+                successCallback(response.data);
+            }
+
+        }, function (response) {
+            // Error
+            $log.error(errorHeader, response);
+
+            if (typeof (errorCallback) == "function") {
+
+                var messageObject;
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                else {
+                    // Unhandle Error
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+
+                errorCallback(messageObject);
+            }
+
+
+        });
+
+
+    }
+
+    /**
+       * Get Reverse Proxies
+       * @param {function} successCallback Success Callback function
+       * @param {function} errorCallback Error Callback function
+       */
+    this.getReverseProxies = function (successCallback, errorCallback) {
+
+        var errorHeader = "Failed to retrieve Reverse Proxies";
+        var uri = "/sc/reverseproxies";
+
+        $http.get(uri).then(function (response) {
+            // Success
+            $log.info("Reverse Proxies successfully retrived");
+            if (typeof (successCallback) == "function") {
+                successCallback(response.data);
+            }
+
+        }, function (response) {
+            // Error
+            $log.error(errorHeader, response);
+
+            if (typeof (errorCallback) == "function") {
+
+                var messageObject;
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                else {
+                    // Unhandle Error
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+
+                errorCallback(messageObject);
+            }
+        });
+    }
 
     /**
      * Refresh Network Statistics
@@ -116,6 +207,50 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', '$location', 'Ut
      * @param {function} errorCallback Error Callback function
      */
     this.refreshNetworkStatistics = function (successCallback, errorCallback) {
+
+        this.getUriAliases(function (uriAliases) {
+
+            self.model.uriAliases = uriAliases.Items;
+
+            // Apply database name
+            for (var i = 0 ; i < self.model.uriAliases.length ; i++) {
+                var uriAlias = self.model.uriAliases[i];
+
+                var databases = HostModelService.data.model.Databases
+                for (var d = 0 ; d < databases.length ; d++) {
+                    var database = databases[d];
+                    if (database.UserHttpPort == uriAlias.Port) {
+                        uriAlias.DatabaseName = database.DisplayName;
+                        break;
+                    }
+                }
+            }
+
+
+        }, errorCallback);
+
+        this.getReverseProxies(function (reverseProxies) {
+
+            self.model.reverseProxies = reverseProxies.Items;
+
+            // Apply database name
+            for (var i = 0 ; i < self.model.reverseProxies.length ; i++) {
+                var reverseProxy = self.model.reverseProxies[i];
+
+                var databases = HostModelService.data.model.Databases
+                for (var d = 0 ; d < databases.length ; d++) {
+                    var database = databases[d];
+                    if (database.UserHttpPort == reverseProxy.DestinationPort) {
+                        reverseProxy.DatabaseName = database.DisplayName;
+                        break;
+                    }
+                }
+            }
+
+
+        }, errorCallback);
+
+
 
         this.getNetworkStatistics(function (statistics) {
             // Success
@@ -134,7 +269,7 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', '$location', 'Ut
                         break;
                     }
                 }
-            
+
             }
             self.getNetworkStaticFolders(databasesToProcess, successCallback, errorCallback);
 

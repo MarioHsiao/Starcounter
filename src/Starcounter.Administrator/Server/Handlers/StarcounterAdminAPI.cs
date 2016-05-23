@@ -65,32 +65,38 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             Handle.GET("/sql", (Request req) => {
 
-                if (ServerManager.ServerInstance.Databases.Count == 0) {
-                    // No databases available
-                    return System.Net.HttpStatusCode.NotFound;
-                }
+                lock (ServerManager.ServerInstance) {
 
-                // Get 'default' database or first one found.
-                Database database = ServerManager.ServerInstance.GetDatabase(StarcounterConstants.DefaultDatabaseName);
-                if (database == null) {
-                    // No 'default' database, then pick the first one in the list.
-                    database = ServerManager.ServerInstance.Databases[0];
-                }
+                    if (ServerManager.ServerInstance.Databases.Count == 0) {
+                        // No databases available
+                        return System.Net.HttpStatusCode.NotFound;
+                    }
 
-                return Self.GET(req.Uri + "/" + database.ID);
+                    // Get 'default' database or first one found.
+                    Database database = ServerManager.ServerInstance.GetDatabase(StarcounterConstants.DefaultDatabaseName);
+                    if (database == null) {
+                        // No 'default' database, then pick the first one in the list.
+                        database = ServerManager.ServerInstance.Databases[0];
+                    }
+
+                    return Self.GET(req.Uri + "/" + database.ID);
+                }
             });
 
             Handle.GET("/sql/{?}", (string databaseName, Request req) => {
 
-                Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
-                if (database == null) {
-                    return System.Net.HttpStatusCode.NotFound;
-                }
+                lock (ServerManager.ServerInstance) {
 
-                Response response = new Response();
-                response.Headers["location"] = "/#/databases/" + database.ID + "/sql";
-                response.StatusCode = (ushort)System.Net.HttpStatusCode.TemporaryRedirect;
-                return response;
+                    Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+                    if (database == null) {
+                        return System.Net.HttpStatusCode.NotFound;
+                    }
+
+                    Response response = new Response();
+                    response.Headers["location"] = "/#/databases/" + database.ID + "/sql";
+                    response.StatusCode = (ushort)System.Net.HttpStatusCode.TemporaryRedirect;
+                    return response;
+                }
             });
         }
     }
