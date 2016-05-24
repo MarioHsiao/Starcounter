@@ -815,7 +815,7 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
-        public void TestAccessToBoundProperties() {
+        public void TestAccessToBoundPrimitiveProperty() {
             var schema = new TObject();
             var tName = schema.Add<TString>("Name");
             var data = new PropertyAccessCounter();
@@ -849,7 +849,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(1, data.GetNameCount);
             Assert.AreEqual(0, data.SetNameCount);
 
-//            json.VerifyDirtyFlags();
+            json.VerifyDirtyFlags();
 
             // Verifying that name is cached in unbound storage.
             Assert.AreEqual(data.NameSkipCounter, tName.UnboundGetter(json));
@@ -862,17 +862,108 @@ namespace Starcounter.Internal.XSON.Tests {
                 var jsonPatch = new JsonPatch();
                 str = jsonPatch.Generate(json, true, false);
                 json.Set(tName, "Arne Anka");
+                
+                data.ResetCount();
+                str = jsonPatch.Generate(json, true, false);
+
+                json.VerifyDirtyFlags();
+
+                Assert.AreEqual(1, data.GetNameCount);
+                Assert.AreEqual(0, data.SetNameCount);
+                Assert.IsFalse(json.IsCached(tName));
+         
+                data.Name = "John Doe";
+                data.ResetCount();
+
+                str = jsonPatch.Generate(json, true, false);
+
+                json.VerifyDirtyFlags();
+
+                Assert.AreEqual(1, data.GetNameCount);
+                Assert.AreEqual(0, data.SetNameCount);
+                Assert.IsFalse(json.IsCached(tName));
+            });
+            
+            // Verifying that name is cached in unbound storage.
+            Assert.AreEqual(data.NameSkipCounter, tName.UnboundGetter(json));
+        }
+
+        [Test]
+        public void TestAccessToBoundObjectProperty() {
+            var schema = new TObject();
+            var tAgent = schema.Add<TObject>("Agent");
+            
+            tAgent.Add<TString>("Name");
+            var data = new PropertyAccessCounter();
+            data.Agent = new Agent() { Name = "John Doe" };
+
+            Json json = (Json)schema.CreateInstance();
+            json.Data = data;
+            
+            data.ResetCount();
+
+            // First test simple serialization. 
+            string str = json.ToJson();
+            
+            Assert.AreEqual(1, data.GetAgentCount);
+            Assert.AreEqual(0, data.SetAgentCount);
+
+            data.ResetCount();
+
+            var newAgent = new Agent() { Name = "Nils Nilsson" };
+            json.Set(tAgent, newAgent);
+            Assert.AreEqual(0, data.GetAgentCount);
+            Assert.AreEqual(1, data.SetAgentCount);
+            Assert.AreEqual(newAgent, data.AgentSkipCounter);
+
+            data.ResetCount();
+
+            // Adding a Session (i.e. json will be stateful and propertyaccess during serialization cached).
+            var session = new Session();
+            session.Data = json;
+
+            str = json.ToJson();
+
+            Assert.AreEqual(1, data.GetAgentCount);
+            Assert.AreEqual(0, data.SetAgentCount);
+
+            json.VerifyDirtyFlags();
+
+            // Verifying that name is cached in unbound storage.
+            Assert.AreEqual(data.AgentSkipCounter, tAgent.UnboundGetter(json));
+
+            // Resetting cached value.
+            tAgent.UnboundSetter(json, null);
+
+            data.ResetCount();
+            session.Use(() => {
+                var jsonPatch = new JsonPatch();
+                str = jsonPatch.Generate(json, true, false);
+                json.Set(tAgent, new Agent() { Name = "Apa Papa" });
 
                 data.ResetCount();
                 str = jsonPatch.Generate(json, true, false);
+
+                json.VerifyDirtyFlags();
+
+                Assert.AreEqual(1, data.GetAgentCount);
+                Assert.AreEqual(0, data.SetAgentCount);
+                Assert.IsFalse(json.IsCached(tAgent));
+
+                data.Agent = new Agent() { Name = "John Doe" };
+                data.ResetCount();
+
+                str = jsonPatch.Generate(json, true, false);
+
+                json.VerifyDirtyFlags();
+
+                Assert.AreEqual(1, data.GetAgentCount);
+                Assert.AreEqual(0, data.SetAgentCount);
+                Assert.IsFalse(json.IsCached(tAgent));
             });
 
-            Assert.AreEqual(1, data.GetNameCount);
-            Assert.AreEqual(0, data.SetNameCount);
-            Assert.IsFalse(json.IsCached(tName));
-
             // Verifying that name is cached in unbound storage.
-            Assert.AreEqual(data.NameSkipCounter, tName.UnboundGetter(json));
+            Assert.AreEqual(data.AgentSkipCounter, tAgent.UnboundGetter(json));
         }
     }
 }
