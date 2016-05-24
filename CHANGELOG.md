@@ -19,9 +19,12 @@
 - Fixed problem with WebSocket disconnect procedure [#38](https://github.com/StarcounterSamples/KitchenSink/issues/38)
 - Fixed bug in jsonmerger, that in some specific cases returned a response belonging to another app [#3622](https://github.com/Starcounter/Starcounter/issues/3622)  
 - Fixed buffer overrun when serializing really large double values in TypedJSON [#3585](https://github.com/Starcounter/Starcounter/issues/3585), [#3589](https://github.com/Starcounter/Starcounter/issues/3589) 
+- Fixed so that Typed JSON code-behind classes can derive generic classes [#3640](https://github.com/Starcounter/Starcounter/issues/3640)
+- Enabled Typed JSON code-behind classes with naked IBound-declaration, resloving [#3624](https://github.com/Starcounter/Starcounter/issues/3624)
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
+- Rewrote the Typed JSON code-behind parser, now driven by Roslyn [#3439](https://github.com/Starcounter/Starcounter/issues/3439)
 
 ## [2.2.1834] - 2016-04-19
 ### Added
