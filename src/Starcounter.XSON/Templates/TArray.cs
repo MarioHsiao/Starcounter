@@ -122,6 +122,7 @@ namespace Starcounter.Templates {
 
             if (parent.checkBoundProperties && UseBinding(parent)) {
 				arr.CheckBoundArray(BoundGetter(parent));
+                parent.MarkAsCached(this.TemplateIndex);
 			}
 
             return arr;
