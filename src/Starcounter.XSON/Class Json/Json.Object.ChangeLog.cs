@@ -748,8 +748,23 @@ namespace Starcounter {
         }
 
         public bool AutoRefreshBoundProperties {
-            get { return _checkBoundProperties; }
-            set { _checkBoundProperties = value; } 
+            get {
+                return _checkBoundProperties;
+            }
+            set {
+                _checkBoundProperties = value;
+
+                // If we have siblings we reflect this value to them as well, to make 
+                // it possible to enable/disable autoupdates on whole tree starting
+                // from this point.
+                if (_stepSiblings != null) {
+                    foreach (Json sibling in _stepSiblings) {
+                        if ((sibling == null) || (sibling == this))
+                            continue;
+                        sibling._checkBoundProperties = value;
+                    }
+                }
+            } 
         }
         
         /// <summary>
