@@ -427,7 +427,7 @@ namespace Starcounter {
 
         internal void CheckBoundObject(object boundValue) {
             if (!CompareDataObjects(boundValue, Data))
-                AttachData(boundValue);
+                AttachData(boundValue, false);
         }
 
         private static int IndexOf(IList list, int offset, object value) {
@@ -841,7 +841,16 @@ namespace Starcounter {
 
         public bool AutoRefreshBoundProperties {
             get { return this.checkBoundProperties; }
-            set { this.checkBoundProperties = value; } 
+            set {
+                this.checkBoundProperties = value;
+                if (this.Siblings != null) {
+                    foreach (var sibling in this.Siblings) {
+                        if (sibling == this)
+                            continue;
+                        sibling.checkBoundProperties = value;
+                    }
+                }
+            } 
         }
         
         /// <summary>
