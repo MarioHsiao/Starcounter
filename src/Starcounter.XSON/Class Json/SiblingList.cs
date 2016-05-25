@@ -66,8 +66,8 @@ namespace Starcounter.XSON {
                 Sibling sibling = list[index];
 
                 if (value != null) {
-                    value._wrapInAppName = true;
-                    value.StepSiblings = this;
+                    value.wrapInAppName = true;
+                    value.Siblings = this;
                 }
                 sibling.Json = value;
                 sibling.HasBeenSent = false;
@@ -106,7 +106,7 @@ namespace Starcounter.XSON {
 
         internal bool ExistsForApp(string appName) {
             return list.Exists((Sibling sibling) => {
-                return (sibling.Json._appName == appName);
+                return (sibling.Json.appName == appName);
             });
         }
 

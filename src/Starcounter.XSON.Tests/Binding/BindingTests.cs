@@ -606,6 +606,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Exception ex = Assert.Throws<Exception>(() => {
                 json.Data = data;
+                var arr = tArr.Getter(json);
             });
 
             uint ec;

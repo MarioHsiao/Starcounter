@@ -49,10 +49,7 @@ namespace Starcounter.XSON {
         /// <param name="property">The property to update</param>
         internal void UpdateValue(Json obj, TValue property) {
             VerifyChange(obj, property);
-
             changes.Add(Change.Update(obj, property));
-            if (property != null)
-                property.Checkpoint(obj);
         }
 
         /// <summary>
@@ -61,7 +58,6 @@ namespace Starcounter.XSON {
         /// <param name="toAdd"></param>
         internal void Add(Change change) {
             VerifyChange(change);
-
             changes.Add(change);
         }
 
@@ -86,18 +82,8 @@ namespace Starcounter.XSON {
 
             if (brandNew) {
                 changes.Add(Change.Add(employer));
-                employer.CheckpointChangeLog();
-                brandNew = false;
             } else {
-                // TODO:
-                // Since we dont want to have session here, this property should probably be moved 
-                // somewhere else but since it currently always returns true we just ingore it for now.
-
-//                if (DatabaseHasBeenUpdatedInCurrentTask) {
-                    employer.LogValueChangesWithDatabase(this, true);
-//                } else {
-//                    employer.LogValueChangesWithoutDatabase(this, true);
-//                }
+                employer.LogValueChangesWithDatabase(this, true);
             }
 
             // TODO:
@@ -106,8 +92,9 @@ namespace Starcounter.XSON {
 
             var arr = changes.ToArray();
 
-            if (flushLog)
-                changes.Clear();
+            if (flushLog) {
+                this.Checkpoint();
+            }
             return arr;
         }
 
@@ -134,6 +121,7 @@ namespace Starcounter.XSON {
         /// 
         /// </summary>
         public void Checkpoint() {
+            changes.Clear();
             employer.CheckpointChangeLog();
             brandNew = false;
         }

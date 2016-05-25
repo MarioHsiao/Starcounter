@@ -43,15 +43,15 @@ namespace Starcounter.Templates {
             if (newValue != null) {
                 if (newValue.Parent != parent)
                     newValue.Parent = parent;
-                newValue._cacheIndexInArr = TemplateIndex;
-                if (newValue.StepSiblings != null) // already merged, don't check old siblings.
+                newValue.cacheIndexInArr = TemplateIndex;
+                if (newValue.Siblings != null) // already merged, don't check old siblings.
                     checkSiblings = false; 
             }
 
             var oldValue = (Json)GetUnboundValueAsObject(parent);
             if (oldValue != null) {
                 oldValue.SetParent(null);
-                oldValue._cacheIndexInArr = -1;
+                oldValue.cacheIndexInArr = -1;
                 if (checkSiblings)
                     oldValue.CheckAndUpdateSibling(newValue);
             }

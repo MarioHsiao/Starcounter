@@ -12,7 +12,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="json"></param>
         /// <returns></returns>
         public static string GetAppName(this Json json) {
-            return json._appName;
+            return json.appName;
         }
         
         /// <summary>
@@ -27,7 +27,7 @@ namespace Starcounter.Advanced.XSON {
 
             try {
 
-                StarcounterEnvironment.AppName = json._appName;
+                StarcounterEnvironment.AppName = json.appName;
 
                 var handle = json.GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
@@ -52,7 +52,7 @@ namespace Starcounter.Advanced.XSON {
 
             try {
 
-                StarcounterEnvironment.AppName = json._appName;
+                StarcounterEnvironment.AppName = json.appName;
 
                 var handle = json.GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
@@ -77,7 +77,7 @@ namespace Starcounter.Advanced.XSON {
 
             try {
 
-                StarcounterEnvironment.AppName = json._appName;
+                StarcounterEnvironment.AppName = json.appName;
 
                 var handle = json.GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
@@ -102,7 +102,7 @@ namespace Starcounter.Advanced.XSON {
 
             try {
 
-                StarcounterEnvironment.AppName = json._appName;
+                StarcounterEnvironment.AppName = json.appName;
 
                 var handle = json.GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
@@ -127,7 +127,7 @@ namespace Starcounter.Advanced.XSON {
             
             try {
 
-                StarcounterEnvironment.AppName = json._appName;
+                StarcounterEnvironment.AppName = json.appName;
 
                 var handle = json.GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
@@ -151,7 +151,7 @@ namespace Starcounter.Advanced.XSON {
             
             try {
 
-                StarcounterEnvironment.AppName = json._appName;
+                StarcounterEnvironment.AppName = json.appName;
 
                 var handle = json.GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
@@ -175,7 +175,7 @@ namespace Starcounter.Advanced.XSON {
             
             try {
 
-                StarcounterEnvironment.AppName = json._appName;
+                StarcounterEnvironment.AppName = json.appName;
 
                 var handle = json.GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
@@ -199,7 +199,7 @@ namespace Starcounter.Advanced.XSON {
             
             try {
 
-                StarcounterEnvironment.AppName = json._appName;
+                StarcounterEnvironment.AppName = json.appName;
 
                 var handle = json.GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
@@ -223,7 +223,7 @@ namespace Starcounter.Advanced.XSON {
             
             try {
 
-                StarcounterEnvironment.AppName = json._appName;
+                StarcounterEnvironment.AppName = json.appName;
 
                 var handle = json.GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
@@ -247,7 +247,7 @@ namespace Starcounter.Advanced.XSON {
             
             try {
 
-                StarcounterEnvironment.AppName = json._appName;
+                StarcounterEnvironment.AppName = json.appName;
 
                 var handle = json.GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
