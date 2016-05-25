@@ -38,9 +38,11 @@ namespace staradmin.Commands {
             Console.WriteLine();
             Console.WriteLine("If sure, enter the name of the database (\"{0}\"), then press ENTER", database);
             Console.WriteLine("To abort, just press ENTER.");
-
+            Console.WriteLine();
+            
             var granted = false;
             while (!granted) {
+                Console.WriteLine("I want to stop and permanently delete database with name:");
                 var input = Console.ReadLine();
                 input = input.Trim().Trim('"');
                 if (input.Equals(database, StringComparison.InvariantCultureIgnoreCase)) {
