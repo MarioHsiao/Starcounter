@@ -114,18 +114,7 @@ namespace Starcounter {
         internal void MarkAsCached(int templateIndex) {
             stateFlags[templateIndex] |= PropertyState.Cached;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void ResetCachedFlags() {
-            if (stateFlags != null) {
-                for (int i = 0; i < stateFlags.Count; i++) {
-                    stateFlags[i] &= ~PropertyState.Cached;
-                }
-            }
-        }
-
+        
         /// <summary>
         /// Resets the stateflags for the property with the specified index.
         /// </summary>
@@ -178,7 +167,7 @@ namespace Starcounter {
                         continue;
 
                     sibling.CheckpointChangeLog(false);
-                    if (sibling.Parent != null) {
+                    if (sibling.Parent != null && sibling.Parent.IsTrackingChanges) {
                         sibling.Parent.CheckpointAt(sibling.IndexInParent);
                     }
                 }
@@ -946,7 +935,7 @@ namespace Starcounter {
 
             AssertOrThrow((this.stateFlags.Count == tObj.Properties.Count), tObj);
             for (int i = 0; i < this.stateFlags.Count; i++) {
-                AssertOrThrow((this.stateFlags[i] == PropertyState.Default), tObj);
+                AssertOrThrow((this.stateFlags[i] == PropertyState.Default), tObj.Properties[i]);
 
                 tCon = tObj.Properties[i] as TContainer;
                 if (tCon != null) {
@@ -960,30 +949,8 @@ namespace Starcounter {
         private void AssertOrThrow(bool expression, Template template) {
             if (!expression) {
                 //                Json.logSource.LogWarning("Verification of dirtyflags failed for " + GetTemplateName(template) + "\n" + (new StackTrace(true)).ToString());
-                throw new System.Exception("Verification of dirtyflags failed for " + GetTemplateName(template));
+                throw new System.Exception("Verification of dirtyflags failed for " + JsonDebugHelper.GetFullName(this, template));
             }
-        }
-
-        private string GetTemplateName(Template template) {
-            var sb = new StringBuilder();
-            BuildNamePath(this, template, sb);
-            return sb.ToString();
-        }
-
-        private static void BuildNamePath(Json json, Template template, StringBuilder sb) {
-            if (json.Parent != null)
-                BuildNamePath(json.Parent, json.Parent.Template, sb);
-
-            if (sb.Length > 0)
-                sb.Append('.');
-
-            string name = template.TemplateName;
-            if (name == null)
-                name = template.ClassName;
-            if (name == null)
-                name = "(anonymous)";
-
-            sb.Append(name);
         }
     }
 }
