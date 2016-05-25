@@ -33,7 +33,7 @@
                     <div class="btn-group-sm">
                         <button style="min-width: 80px" class="btn btn-success" ng-hide="database.IsRunning" ng-click="btnStartDatabase(database)" title="Start Database">Start</button>
                         <button style="min-width: 80px" class="btn btn-default" ng-show="database.IsRunning" ng-click="btnStopDatabase(database)" title="Stop Database">Stop...</button>
-                        <button style="min-width: 80px" class="btn btn-default" ng-disabled="database.IsRunning || database.Status!=0" ng-click="btnDeleteDatabase(database)" title="Delete Database">Delete...</button>
+                        <button style="min-width: 80px" class="btn btn-default" ng-disabled="database.Status!=0" ng-click="btnDeleteDatabase(database)" title="Delete Database">Delete...</button>
                     </div>
                 </td>
 
