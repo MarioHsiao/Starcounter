@@ -22,7 +22,7 @@
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
-
+- CLI command `staradmin delete db` will no longer fail when, but instead stop, database is running [#3649](https://github.com/Starcounter/Starcounter/issues/3649)
 ## [2.2.1834] - 2016-04-19
 ### Added
 - New staradmin command `staradmin start server`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/).
