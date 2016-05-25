@@ -90,7 +90,7 @@ namespace Starcounter.Templates {
         internal void SetCachedReads(Json json) {
             // We don't have to check if th property is already cached.
             // That is done when checking if binding should be used.
-            if (json.IsTrackingChanges && UseBinding(json) && json.Session.EnableCachedReads) {
+            if (json.IsTrackingChanges && UseBinding(json) && json.Session.enableCachedReads) {
                 Json value = UnboundGetter(json);
                 if (value != null && json.checkBoundProperties) {
                     value.CheckBoundObject(BoundGetter(json));
@@ -118,7 +118,7 @@ namespace Starcounter.Templates {
             if (json != null && json.checkBoundProperties && UseBinding(parent)) {
 				json.CheckBoundObject(BoundGetter(parent));
 
-                if (json.Session.EnableCachedReads)
+                if (json.Session.enableCachedReads)
                     parent.MarkAsCached(this.TemplateIndex);
 			}
 

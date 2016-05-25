@@ -83,7 +83,7 @@ namespace Starcounter.XSON {
             var session = json.Session;
             if (session != null) {
                 session.enableNamespaces = true;
-                session.EnableCachedReads = true;
+                session.enableCachedReads = true;
             }
 
             try {
@@ -91,7 +91,7 @@ namespace Starcounter.XSON {
             } finally {
                 if (session != null) {
                     session.enableNamespaces = false;
-                    session.EnableCachedReads = false;
+                    session.enableCachedReads = false;
                 }
             }
             return patchSize;
