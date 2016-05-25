@@ -107,7 +107,6 @@
     <Compile Include="Sessions\JSON-Patch\JsonPointer.cs" />
     <Compile Include="Templates\Foundation\Bound.cs" />
     <Compile Include="Templates\Foundation\Property.cs" />
-    <Compile Include="Templates\TObject.Expando.cs" />
     <Compile Include="Interfaces\IXsonMarkupReader.cs" />
     <Compile Include="JSON-By-Example\AppTemplateFactory.cs" />
     <Compile Include="JSON-By-Example\JsonByExampleTemplateReader.cs" />

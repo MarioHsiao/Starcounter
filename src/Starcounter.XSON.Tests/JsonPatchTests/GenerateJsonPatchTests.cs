@@ -136,17 +136,17 @@ namespace Starcounter.Internal.XSON.Tests {
                 json2.FirstName = "ApaPapa";
 
                 Json hack = json2;
-                hack._appName = "OtherApp";
+                hack.appName = "OtherApp";
 
                 SiblingList stepSiblings = new SiblingList();
                 stepSiblings.Add(json.Page);
                 stepSiblings.Add(json2);
                 Json real = json.Page;
-                real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.wrapInAppName = true;
+                real.Siblings = stepSiblings;
                 real = json2;
-                real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.wrapInAppName = true;
+                real.Siblings = stepSiblings;
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
@@ -172,16 +172,16 @@ namespace Starcounter.Internal.XSON.Tests {
                 json2.FirstName = "ApaPapa";
 
                 hack = json2;
-                hack._appName = "OtherApp";
+                hack.appName = "OtherApp";
                 stepSiblings = new SiblingList();
                 stepSiblings.Add(json.Focused);
                 stepSiblings.Add(json2);
                 real = json.Focused;
-                real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.wrapInAppName = true;
+                real.Siblings = stepSiblings;
                 real = json2;
-                real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.wrapInAppName = true;
+                real.Siblings = stepSiblings;
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
@@ -517,7 +517,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             json.Session.Use(() => {
                 var patch = jsonPatch.Generate(json, true, false);
-                json.MarkAsReplaced(save);
+                json.MarkAsDirty(save);
                 patch = jsonPatch.Generate(json, true, false);
 
                 Helper.ConsoleWriteLine(patch);

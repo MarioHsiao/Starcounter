@@ -41,7 +41,7 @@ namespace Starcounter.Advanced.XSON {
             return json.Scope<TypedJsonSerializer, Json, int>((TypedJsonSerializer tjs, Json j) => {
                 int size = 0;
                 if (j.Template != null) {
-                    size = estimatePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null);
+                    return estimatePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, j.Template);
                 } else {
                     // No template defined. Assuming object.
                     size = EstimateObject(this, j);
@@ -66,12 +66,12 @@ namespace Starcounter.Advanced.XSON {
         }
 
         public override int Serialize(Json json, IntPtr dest, int destSize) {
-            bool oldValue = json._checkBoundProperties;
+            bool oldValue = json.checkBoundProperties;
             try {
-                json._checkBoundProperties = false;
+                json.checkBoundProperties = false;
                 int realSize = json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, IntPtr d, int ds) => {
                     if (j.Template != null) {
-                        return serializePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null, d, ds);
+                        return serializePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, j.Template, d, ds);
                     } else {
                         // No template defined. Assuming object.
                         return SerializeObject(this, j, d, ds);
@@ -85,14 +85,14 @@ namespace Starcounter.Advanced.XSON {
                 AssertWrittenSize(json, null, realSize, destSize);
                 return realSize;
             } finally {
-                json._checkBoundProperties = oldValue;
+                json.checkBoundProperties = oldValue;
             }
         }
 
         public override int Serialize(Json json, Template property, IntPtr dest, int destSize) {
-            bool oldValue = json._checkBoundProperties;
+            bool oldValue = json.checkBoundProperties;
             try {
-                json._checkBoundProperties = false;
+                json.checkBoundProperties = false;
                 int realSize = json.Scope<TypedJsonSerializer, Json, Template, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, Template t, IntPtr d, int ds) => {
                     return serializePerTemplate[(int)t.TemplateTypeId](tjs, j, t, d, ds);
                 },
@@ -105,7 +105,7 @@ namespace Starcounter.Advanced.XSON {
                 AssertWrittenSize(json, property, realSize, destSize);
                 return realSize;
             } finally {
-                json._checkBoundProperties = oldValue;
+                json.checkBoundProperties = oldValue;
             }
         }
 
@@ -132,28 +132,29 @@ namespace Starcounter.Advanced.XSON {
         }
 
         private static int EstimateBool(TypedJsonSerializer serializer, Json json, Template template) {
+            ((TBool)template).SetCachedReads(json);
             return 5;
         }
 
         private static int EstimateDecimal(TypedJsonSerializer serializer, Json json, Template template) {
+            ((TDecimal)template).SetCachedReads(json);
             return 32;
         }
 
         private static int EstimateDouble(TypedJsonSerializer serializer, Json json, Template template) {
+            ((TDouble)template).SetCachedReads(json);
             return 32;
         }
 
         private static int EstimateLong(TypedJsonSerializer serializer, Json json, Template template) {
+            ((TLong)template).SetCachedReads(json);
             return 32;
         }
 
         private static int EstimateString(TypedJsonSerializer serializer, Json json, Template template) {
-            if (template == null) {
-                // This is a root. Take template from json.
-                template = json.Template;
-            }
-
-            string value = ((TString)template).Getter(json);
+            TString strTemplate = (TString)template;
+            strTemplate.SetCachedReads(json);
+            string value = strTemplate.Getter(json);
 
             if (value != null)
                 return value.Length * 2 + 2;
@@ -161,9 +162,11 @@ namespace Starcounter.Advanced.XSON {
         }
 
         private static int ScopeAndEstimateObject(TypedJsonSerializer serializer, Json json, Template template) {
-            if (template != null) {
-                // Not a root. Get correct value from template getter.
-                json = ((TObject)template).Getter(json);
+            Json parent = json;
+            if (template != json.Template) {
+                // Template points to a property in the specified jsonobject. Get correct value from template getter.
+                ((TObject)template).SetCachedReads(json);
+                json = ((TObject)template).Getter(parent);
             }
 
             int size = 2;
@@ -181,7 +184,7 @@ namespace Starcounter.Advanced.XSON {
                 sizeBytes = 2; // 2 for "{}".
                 return sizeBytes;
             }
-
+            
             // Checking if application name should wrap the JSON.
             bool wrapInAppName = ShouldBeNamespaced(json, session);
 
@@ -208,22 +211,22 @@ namespace Starcounter.Advanced.XSON {
             }
 
             if (wrapInAppName) {
-                sizeBytes += json._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
+                sizeBytes += json.appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
                
                 // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
                 // we check if we have more than one stepsibling.
-                if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
+                if (!json.calledFromStepSibling && json.Siblings != null && json.Siblings.Count != 1) {
                     // For comma.
                     sizeBytes++;
 
                     // Calculating the size for each step sibling.
-                    foreach (Json pp in json.StepSiblings) {
+                    foreach (Json pp in json.Siblings) {
                         if (pp == json)
                             continue;
 
                         pp.calledFromStepSibling = true;
                         try {
-                            sizeBytes += pp._appName.Length + 1; // 1 for ":".
+                            sizeBytes += pp.appName.Length + 1; // 1 for ":".
                             sizeBytes += serializer.EstimateSizeBytes(pp) + 2; // 2 for ",".
                         } finally {
                             pp.calledFromStepSibling = false;
@@ -240,9 +243,12 @@ namespace Starcounter.Advanced.XSON {
         }
 
         private static int ScopeAndEstimateArray(TypedJsonSerializer serializer, Json json, Template template) {
-            if (template != null) {
+            Json parent = json;
+
+            if (template != parent.Template) {
                 // Not a root. Get correct value from getter.
-                json = ((TObjArr)template).Getter(json);
+                ((TObjArr)template).SetCachedReads(json);
+                json = ((TObjArr)template).Getter(parent);
             }
             int size = 2;
             if (json != null) {
@@ -313,7 +319,9 @@ namespace Starcounter.Advanced.XSON {
         }
 
         private static int ScopeAndSerializeObject(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
-            if (template != null)
+            Json parent = json;
+
+            if (template != parent.Template)
                 json = ((TObject)template).Getter(json);
 
             if (json != null) {
@@ -350,7 +358,7 @@ namespace Starcounter.Advanced.XSON {
                 }
 
                 if (wrapInAppName) {   
-                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, json._appName);
+                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, json.appName);
                     pfrag += valueSize;
                     used += valueSize;
 
@@ -422,12 +430,12 @@ namespace Starcounter.Advanced.XSON {
 
                     // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
                     // we check if we have more than one stepsibling.
-                    if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
+                    if (!json.calledFromStepSibling && json.Siblings != null && json.Siblings.Count != 1) {
                         bool addComma = true;
 
                         // Serializing every sibling first.
-                        for (int s = 0; s < json.StepSiblings.Count; s++) {
-                            var pp = json.StepSiblings[s];
+                        for (int s = 0; s < json.Siblings.Count; s++) {
+                            var pp = json.Siblings[s];
 
                             if (pp == json)
                                 continue;
@@ -440,7 +448,7 @@ namespace Starcounter.Advanced.XSON {
 
                             pp.calledFromStepSibling = true;
                             try {
-                                valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, pp._appName);
+                                valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, pp.appName);
                                 used += valueSize;
                                 pfrag += valueSize;
 
@@ -451,7 +459,7 @@ namespace Starcounter.Advanced.XSON {
                                 pfrag += valueSize;
                                 used += valueSize;
 
-                                if ((s + 1) < json.StepSiblings.Count) {
+                                if ((s + 1) < json.Siblings.Count) {
                                     addComma = true;
                                 }
                             } finally {
@@ -469,7 +477,9 @@ namespace Starcounter.Advanced.XSON {
         }
 
         private static int ScopeAndSerializeArray(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
-            if (template != null)
+            Json parent = json;
+
+            if (template != parent.Template)
                 json = ((TObjArr)template).Getter(json);
 
             if (json != null) {
@@ -488,6 +498,7 @@ namespace Starcounter.Advanced.XSON {
             int used = 0;
             int valueSize;
             IList arrList;
+            Json arrItem;
             
             unsafe {
                 byte* pfrag = (byte*)dest;
@@ -497,7 +508,17 @@ namespace Starcounter.Advanced.XSON {
                 
                 arrList = (IList)json;
                 for (int i = 0; i < arrList.Count; i++) {
-                    valueSize = ((Json)arrList[i]).ToJsonUtf8((IntPtr)pfrag, destSize - used);
+                    arrItem = (Json)arrList[i];
+
+                    if (arrItem != null) {
+                        valueSize = arrItem.ToJsonUtf8((IntPtr)pfrag, destSize - used);
+                    } else {
+                        // TODO:
+                        // Handle nullvalues.
+                        *pfrag++ = (byte)'{';
+                        *pfrag++ = (byte)'}';
+                        valueSize = 2;
+                    }
 
                     pfrag += valueSize;
                     used += valueSize;
@@ -530,7 +551,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="session"></param>
         /// <returns></returns>
         private static bool ShouldBeNamespaced(Json json, Session session) {
-            if (json._wrapInAppName
+            if (json.wrapInAppName
                 && session != null
                 && session.enableNamespaces
                 && session.CheckOption(SessionOptions.IncludeNamespaces)

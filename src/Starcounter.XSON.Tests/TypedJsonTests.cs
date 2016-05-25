@@ -260,13 +260,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
             json.Page = oldPage;
             Assert.IsNotNull(oldPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)oldPage).cacheIndexInArr);
 
             json.Page = newPage;
             Assert.IsNotNull(newPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)newPage).cacheIndexInArr);
             Assert.IsNull(oldPage.Parent);
-            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreEqual(-1, ((Json)oldPage).cacheIndexInArr);
         }
 
         [Test]
@@ -280,13 +280,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
             tpage.UnboundSetter(json, oldPage);
             Assert.IsNotNull(oldPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)oldPage).cacheIndexInArr);
 
             tpage.UnboundSetter(json, newPage);
             Assert.IsNotNull(newPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)newPage).cacheIndexInArr);
             Assert.IsNull(oldPage.Parent);
-            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreEqual(-1, ((Json)oldPage).cacheIndexInArr);
         }
 
         [Test]
@@ -300,13 +300,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
             tpages.UnboundSetter(json, oldPage);
             Assert.IsNotNull(oldPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)oldPage).cacheIndexInArr);
 
             tpages.UnboundSetter(json, newPage);
             Assert.IsNotNull(newPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)newPage).cacheIndexInArr);
             Assert.IsNull(oldPage.Parent);
-            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreEqual(-1, ((Json)oldPage).cacheIndexInArr);
         }
 
         [Test]
@@ -320,13 +320,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
             tpages.UnboundSetter(json, oldPage);
             Assert.IsNotNull(oldPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)oldPage).cacheIndexInArr);
 
             tpages.UnboundSetter(json, newPage);
             Assert.IsNotNull(newPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)newPage).cacheIndexInArr);
             Assert.IsNull(oldPage.Parent);
-            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreEqual(-1, ((Json)oldPage).cacheIndexInArr);
         }
 
         [Test]
@@ -346,13 +346,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
             json.Page = oldPage;
             Assert.IsNotNull(oldPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)oldPage).cacheIndexInArr);
             
             json.Page = newPage;
             Assert.IsNotNull(newPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)newPage).cacheIndexInArr);
             Assert.IsNull(oldPage.Parent);
-            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreEqual(-1, ((Json)oldPage).cacheIndexInArr);
         }
 
         [Test]
@@ -372,13 +372,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
             tpages.Setter(json, oldPage);
             Assert.IsNotNull(oldPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)oldPage).cacheIndexInArr);
 
             tpages.Setter(json, newPage);
             Assert.IsNotNull(newPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)newPage).cacheIndexInArr);
             Assert.IsNull(oldPage.Parent);
-            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreEqual(-1, ((Json)oldPage).cacheIndexInArr);
         }
 
         [Test]
@@ -398,13 +398,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
             tpages.Setter(json, oldPage);
             Assert.IsNotNull(oldPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)oldPage).cacheIndexInArr);
 
             tpages.Setter(json, newPage);
             Assert.IsNotNull(newPage.Parent);
-            Assert.AreNotEqual(-1, ((Json)newPage)._cacheIndexInArr);
+            Assert.AreNotEqual(-1, ((Json)newPage).cacheIndexInArr);
             Assert.IsNull(oldPage.Parent);
-            Assert.AreEqual(-1, ((Json)oldPage)._cacheIndexInArr);
+            Assert.AreEqual(-1, ((Json)oldPage).cacheIndexInArr);
         }
 
 

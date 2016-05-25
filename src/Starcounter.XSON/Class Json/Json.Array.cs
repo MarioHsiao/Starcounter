@@ -28,11 +28,11 @@ namespace Starcounter {
         }
         
         internal Json(Json parent, TObjArr templ) {
-            _trackChanges = false;
-            _checkBoundProperties = true;
-            _cacheIndexInArr = -1;
-            _transaction = TransactionHandle.Invalid;
-            _appName = StarcounterEnvironment.AppName;
+            trackChanges = false;
+            checkBoundProperties = true;
+            cacheIndexInArr = -1;
+            transaction = TransactionHandle.Invalid;
+            appName = StarcounterEnvironment.AppName;
             AttachCurrentTransaction();
             this.Template = templ;
             Parent = parent;
@@ -44,13 +44,13 @@ namespace Starcounter {
         /// </summary>
         /// <param name="result">The data source</param>
         protected Json(IEnumerable result) {
-            _trackChanges = false;
-            _checkBoundProperties = true;
-            _cacheIndexInArr = -1;
-            _transaction = TransactionHandle.Invalid;
+            trackChanges = false;
+            checkBoundProperties = true;
+            cacheIndexInArr = -1;
+            transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();
-            _data = result;
-            _PendingEnumeration = true;
+            data = result;
+            pendingEnumeration = true;
         }
 
         /// <summary>
@@ -71,8 +71,8 @@ namespace Starcounter {
                 Parent = parent;
             }
 
-            if (_PendingEnumeration) {
-                var notEnumeratedResult = (IEnumerable)_data;
+            if (this.pendingEnumeration) {
+                var notEnumeratedResult = (IEnumerable)this.data;
                 var elementType = template.ElementType;
 
                 foreach (var entity in notEnumeratedResult) {
@@ -90,25 +90,25 @@ namespace Starcounter {
                         // Setting only the reference to the data first to allow bindings 
                         // and other stuff be handled then setting the property data after 
                         // the new item have been added to have the callback to usercode.
-                        newApp._data = entity;
+                        newApp.data = entity;
                         ((IList)this).Add(newApp);
                         newApp.Data = entity;
                     }
                 }
-                _PendingEnumeration = false;
+                this.pendingEnumeration = false;
             }
             parent.CallHasChanged(template);
         }
 
         internal void UpdateCachedIndex() {
-            _cacheIndexInArr = ((IList)Parent).IndexOf(this);
+            cacheIndexInArr = ((IList)Parent).IndexOf(this);
         }
 
         internal int TransformIndex(ViewModelVersion version, long fromVersion, int orgIndex) {
             int transformedIndex;
             long currentVersion;
             
-            if ((_Dirty == false) && (versionLog == null || versionLog.Count == 0))
+            if ((dirty == false) && (versionLog == null || versionLog.Count == 0))
                 return orgIndex;
 
             currentVersion = version.LocalVersion;
@@ -126,9 +126,9 @@ namespace Starcounter {
                 }
             }
 
-            if (transformedIndex != -1 && ArrayAddsAndDeletes != null) {
+            if (transformedIndex != -1 && this.arrayAddsAndDeletes != null) {
                 // There are current changes made that haven't been pushed to client yet.
-                transformedIndex = FindAndTransformIndex(ArrayAddsAndDeletes, transformedIndex);
+                transformedIndex = FindAndTransformIndex(this.arrayAddsAndDeletes, transformedIndex);
             }
             return transformedIndex;
         }

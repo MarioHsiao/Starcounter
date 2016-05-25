@@ -65,7 +65,7 @@ namespace Starcounter.XSON {
             int size;
 
             if (!JsonHelper.ParseBoolean(valuePtr, valueSize, out value, out size)) {
-                parent.MarkAsReplaced(property);
+                parent.MarkAsDirty(property);
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             }
             property.ProcessInput(parent, value);
@@ -76,7 +76,7 @@ namespace Starcounter.XSON {
             int size;
 
             if (!JsonHelper.ParseDecimal(valuePtr, valueSize, out value, out size)) {
-                parent.MarkAsReplaced(property);
+                parent.MarkAsDirty(property);
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             }
             property.ProcessInput(parent, value);
@@ -87,7 +87,7 @@ namespace Starcounter.XSON {
             int size;
 
             if (!JsonHelper.ParseDouble(valuePtr, valueSize, out value, out size)) {
-                parent.MarkAsReplaced(property);
+                parent.MarkAsDirty(property);
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             }
             property.ProcessInput(parent, value);
@@ -98,7 +98,7 @@ namespace Starcounter.XSON {
             int realValueSize;
 
             if (!JsonHelper.ParseInt(valuePtr, valueSize, out value, out realValueSize)) {
-                parent.MarkAsReplaced(property);
+                parent.MarkAsDirty(property);
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             }
             property.ProcessInput(parent, value);
@@ -109,7 +109,7 @@ namespace Starcounter.XSON {
             int size;
 
             if (!JsonHelper.ParseString(valuePtr, valueSize, out value, out size)) {
-                parent.MarkAsReplaced(property);
+                parent.MarkAsDirty(property);
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
             }
             property.ProcessInput(parent, value);
