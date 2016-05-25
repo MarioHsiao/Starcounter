@@ -163,8 +163,7 @@ namespace Starcounter.Internal.XSON.Tests {
             
             // Resetting dirtyflags.
             changeArr = json.ChangeLog.Generate(true);
-            json.ChangeLog.Checkpoint();
-
+            
             json.Set(tname, "Apa Papa");
             Assert.IsTrue(json.IsDirty(tname));
 
@@ -783,7 +782,7 @@ namespace Starcounter.Internal.XSON.Tests {
             session.Data = root;
 
             Change[] changes = root.ChangeLog.Generate(true);
-
+            
             dynamic siblingRoot = new Json();
             dynamic sibling = new Json();
             siblingRoot.Current = sibling;
@@ -802,7 +801,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
 
             changes = root.ChangeLog.Generate(true);
-
+            
             sibling = new Json();
             sibling.Header = "New sibling";
             siblingRoot.Current = sibling;
@@ -810,7 +809,9 @@ namespace Starcounter.Internal.XSON.Tests {
             changes = root.ChangeLog.Generate(true);
 
             Assert.AreEqual(1, changes.Length);
-            Assert.AreEqual(sibling, changes[0].Parent);
+            if (sibling != changes[0].Parent) {
+                throw new Exception("Instances of json are not the same.");
+            }
             Assert.IsNull(changes[0].Property);
         }
 
@@ -839,24 +840,17 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Nils Nilsson", data.NameSkipCounter);
 
             data.ResetCount();
-
-            // Adding a Session (i.e. json will be stateful and propertyaccess during serialization cached).
+            
             var session = new Session();
             session.Data = json;
 
             str = json.ToJson();
 
-            Assert.AreEqual(1, data.GetNameCount);
+            Assert.AreEqual(2, data.GetNameCount);
             Assert.AreEqual(0, data.SetNameCount);
 
             json.VerifyDirtyFlags();
-
-            // Verifying that name is cached in unbound storage.
-            Assert.AreEqual(data.NameSkipCounter, tName.UnboundGetter(json));
-
-            // Resetting cached value.
-            tName.UnboundSetter(json, "");
-
+            
             data.ResetCount();
             session.Use(() => {
                 var jsonPatch = new JsonPatch();
@@ -930,10 +924,10 @@ namespace Starcounter.Internal.XSON.Tests {
             json.VerifyDirtyFlags();
 
             // Verifying that name is cached in unbound storage.
-            Assert.AreEqual(data.AgentSkipCounter, tAgent.UnboundGetter(json));
+            Assert.AreSame(data.AgentSkipCounter, tAgent.UnboundGetter(json).Data);
 
             // Resetting cached value.
-            tAgent.UnboundSetter(json, null);
+            tAgent.UnboundSetter(json, (Json)tAgent.CreateInstance());
 
             data.ResetCount();
             session.Use(() => {
@@ -963,7 +957,7 @@ namespace Starcounter.Internal.XSON.Tests {
             });
 
             // Verifying that name is cached in unbound storage.
-            Assert.AreEqual(data.AgentSkipCounter, tAgent.UnboundGetter(json));
+            Assert.AreEqual(data.AgentSkipCounter, tAgent.UnboundGetter(json).Data);
         }
     }
 }
