@@ -81,14 +81,18 @@ namespace Starcounter.XSON {
             }
 
             var session = json.Session;
-            if (session != null)
+            if (session != null) {
                 session.enableNamespaces = true;
+                session.EnableCachedReads = true;
+            }
 
             try {
                 patchSize = Generate(changeLog, includeNamespace, flushLog, out patches);
             } finally {
-                if (session != null)
+                if (session != null) {
                     session.enableNamespaces = false;
+                    session.EnableCachedReads = false;
+                }
             }
             return patchSize;
         }
@@ -106,7 +110,7 @@ namespace Starcounter.XSON {
             Change[] changes;
             bool versioning = (changeLog.Version != null);
             
-            changes = changeLog.Generate(flushLog);
+            changes = changeLog.Generate(false);
             
             size = 2; // [ ]
 
@@ -202,7 +206,10 @@ namespace Starcounter.XSON {
                             + "\r\nJson: " + JsonDebugHelper.ToBasicString(changeLog.Employer);
                 throw new Exception(errMsg);
             }
-            
+
+            if (flushLog)
+                changeLog.Checkpoint();
+
             patches = buffer;
             return size;
         }
@@ -260,7 +267,6 @@ namespace Starcounter.XSON {
                         try {
                             serializer = change.Parent.JsonSerializer;
                             size = serializer.Serialize(change.Parent, (IntPtr)writer.Buffer, int.MaxValue);
-                            change.Parent.CheckpointChangeLog(!change.SuppressNamespace);
                         } finally {
                             change.Parent.calledFromStepSibling = false;
                         }
@@ -269,16 +275,11 @@ namespace Starcounter.XSON {
                         try {
                             serializer = ((TValue)change.Item.Template).JsonSerializer;
                             size = serializer.Serialize(change.Item, (IntPtr)writer.Buffer, int.MaxValue);
-                            change.Item.CheckpointChangeLog(!change.SuppressNamespace);
                         } finally {
                             change.Parent.calledFromStepSibling = false;
                         }
                     } else {
                         size = change.Parent.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
-                        
-                        change.Parent.Scope<Json, TValue>((p, t) => {
-                            t.Checkpoint(p);
-                        }, change.Parent, change.Property);
                     }
                     writer.Skip(size);
                 }

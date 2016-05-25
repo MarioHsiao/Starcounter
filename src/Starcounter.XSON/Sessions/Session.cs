@@ -560,12 +560,17 @@ namespace Starcounter {
                 return true;
             }
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
         public bool HaveAddedOrRemovedObjects { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        internal bool EnableCachedReads { get; set; }
+        
         internal TransactionHandle RegisterTransaction(TransactionHandle handle) {
             TransactionRef tref = null;
 
