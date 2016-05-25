@@ -300,18 +300,22 @@ namespace Administrator.Server.Managers {
                 lock (ServerManager.ServerInstance) {
                     // Database properties changed and/or database application(s) started/stopped
 
-                    Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
-                    if (database == null) {
-                        ServerManager.ServerInstance.InvalidateDatabases();
-                        database = ServerManager.ServerInstance.GetDatabase(databaseName);
-                    }
-
-                    if (database == null) {
-                        // Error;
+                    bool result = ServerManager.ServerInstance.InvalidateDatabase(databaseName);
+                    if(result == false) {
                         return 500;
                     }
+                    //Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+                    //if (database == null) {
+                    //    ServerManager.ServerInstance.InvalidateDatabases();
+                    //    database = ServerManager.ServerInstance.GetDatabase(databaseName);
+                    //}
 
-                    database.InvalidateModel();
+                    //if (database == null) {
+                    //    // Error;
+                    //    return 500;
+                    //}
+
+                    //database.InvalidateModel();
                     return 200;
                 }
             });
