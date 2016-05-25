@@ -82,7 +82,6 @@ namespace Starcounter.XSON {
 
             if (brandNew) {
                 changes.Add(Change.Add(employer));
-                brandNew = false;
             } else {
                 employer.LogValueChangesWithDatabase(this, true);
             }
@@ -94,7 +93,7 @@ namespace Starcounter.XSON {
             var arr = changes.ToArray();
 
             if (flushLog) {
-                changes.Clear();
+                this.Checkpoint();
             }
             return arr;
         }
@@ -122,6 +121,7 @@ namespace Starcounter.XSON {
         /// 
         /// </summary>
         public void Checkpoint() {
+            changes.Clear();
             employer.CheckpointChangeLog();
             brandNew = false;
         }
