@@ -121,7 +121,26 @@ namespace Starcounter.Templates {
 				TemplateDelegateGenerator.GenerateUnboundDelegates(this, false);
 		}
 
-		internal override void Checkpoint(Json parent) {
+        /// <summary>
+        /// If the property is bound, it reads the bound value and stores it
+        /// using the unbound delegate and marks the property as cached. 
+        /// All reads after this will read the from the unbound delegate,
+        /// until the cache is resetted when checkpointing.
+        /// </summary>
+        /// <param name="json"></param>
+        internal void SetCachedReads(Json json) {
+            // We don't have to check if th property is already cached.
+            // That is done when checking if binding should be used.
+            if (json.IsTrackingChanges && UseBinding(json) && json.Session.enableCachedReads) {
+                Json value = UnboundGetter(json);
+                if (value != null && json.checkBoundProperties) {
+                    value.CheckBoundArray(BoundGetter(json));
+                }
+                json.MarkAsCached(this.TemplateIndex);
+            }
+        }
+
+        internal override void Checkpoint(Json parent) {
 			Json arr = UnboundGetter(parent);
 
 			for (int i = 0; i < ((IList)arr).Count; i++) {
@@ -129,8 +148,8 @@ namespace Starcounter.Templates {
 				row.CheckpointChangeLog();
 				arr.CheckpointAt(i);
 			}
-			arr.ArrayAddsAndDeletes = null;
-			arr._Dirty = false;
+			arr.arrayAddsAndDeletes = null;
+			arr.dirty = false;
 			base.Checkpoint(parent);
 		}
 
@@ -141,8 +160,10 @@ namespace Starcounter.Templates {
 		internal override Json GetValue(Json parent) {
 			var arr = UnboundGetter(parent);
 
-            if (parent._checkBoundProperties && UseBinding(parent)) {
-				arr.CheckBoundArray(BoundGetter(parent));	
+            if (parent.checkBoundProperties && UseBinding(parent)) {
+				arr.CheckBoundArray(BoundGetter(parent));
+                if (arr.Session.enableCachedReads)
+                    parent.MarkAsCached(this.TemplateIndex);
 			}
 
 			return arr;
@@ -156,8 +177,8 @@ namespace Starcounter.Templates {
 				current.InternalClear();
 				current.SetParent(null);
 			}
-			newArr._PendingEnumeration = true;
-			newArr._data = value;
+			newArr.pendingEnumeration = true;
+			newArr.data = value;
 			newArr.Array_InitializeAfterImplicitConversion(parent, this);
 
 			if (UseBinding(parent))
@@ -165,7 +186,7 @@ namespace Starcounter.Templates {
 			UnboundSetter(parent, newArr);
 
 			if (parent.HasBeenSent)
-				parent.MarkAsReplaced(TemplateIndex);
+				parent.MarkAsDirty(TemplateIndex);
 
 			parent.CallHasChanged(this);
 		}
@@ -203,7 +224,7 @@ namespace Starcounter.Templates {
 
 			Json arr = UnboundGetter(parent);
 
-            if (parent._checkBoundProperties && UseBinding(parent)) {
+            if (parent.checkBoundProperties && UseBinding(parent)) {
 				var data = BoundGetter(parent);
 				arr.CheckBoundArray(data);
 			}
@@ -216,12 +237,12 @@ namespace Starcounter.Templates {
 			}
 			UnboundSetter(parent, value);
 
-			if (value._PendingEnumeration) {
+			if (value.pendingEnumeration) {
 				value.Array_InitializeAfterImplicitConversion(parent, this);
 			}
 
 			if (parent.HasBeenSent)
-				parent.MarkAsReplaced(TemplateIndex);
+				parent.MarkAsDirty(TemplateIndex);
 
 			parent.CallHasChanged(this);
 		}

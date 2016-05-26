@@ -25,6 +25,8 @@
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
 - Rewrote the Typed JSON code-behind parser, now driven by Roslyn [#3439](https://github.com/Starcounter/Starcounter/issues/3439)
+- Cache value of bound properties in TypedJSON when gathering changes and generating patches to avoid excessive access to bound data [#2551](https://github.com/Starcounter/Starcounter/issues/2551)
+- CLI command `staradmin delete db` will no longer fail when, but instead stop, database is running [#3649](https://github.com/Starcounter/Starcounter/issues/3649)
 
 ## [2.2.1834] - 2016-04-19
 ### Added

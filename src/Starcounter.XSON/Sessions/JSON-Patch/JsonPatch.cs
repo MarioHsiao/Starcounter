@@ -81,16 +81,19 @@ namespace Starcounter.XSON {
             }
 
             var session = json.Session;
-            if (session != null)
+            if (session != null) {
                 session.enableNamespaces = true;
+                session.enableCachedReads = true;
+            }
 
             try {
                 patchSize = Generate(changeLog, includeNamespace, flushLog, out patches);
             } finally {
-                if (session != null)
+                if (session != null) {
                     session.enableNamespaces = false;
+                    session.enableCachedReads = false;
+                }
             }
-            
             return patchSize;
         }
 
@@ -107,7 +110,7 @@ namespace Starcounter.XSON {
             Change[] changes;
             bool versioning = (changeLog.Version != null);
             
-            changes = changeLog.Generate(flushLog);
+            changes = changeLog.Generate(false);
             
             size = 2; // [ ]
 
@@ -184,13 +187,6 @@ namespace Starcounter.XSON {
 
                         WritePatch(change, ref writer, includeNamespace);
 
-                        if (change.Property != null) {
-                            Json parent = change.Parent;
-                            parent.Scope<Json, TValue>((p, t) => {
-                                t.Checkpoint(p);
-                            }, parent, change.Property);
-                        }
-
                         if ((i + 1) < changes.Length)
                             writer.Write(',');
                     }
@@ -210,6 +206,9 @@ namespace Starcounter.XSON {
                             + "\r\nJson: " + JsonDebugHelper.ToBasicString(changeLog.Employer);
                 throw new Exception(errMsg);
             }
+
+            if (flushLog)
+                changeLog.Checkpoint();
 
             patches = buffer;
             return size;
@@ -272,8 +271,13 @@ namespace Starcounter.XSON {
                             change.Parent.calledFromStepSibling = false;
                         }
                     } else if (change.Index != -1) {
-                        serializer = change.Item.JsonSerializer;
-                        size = serializer.Serialize(change.Item, (IntPtr)writer.Buffer, int.MaxValue);
+                        change.Item.calledFromStepSibling = change.SuppressNamespace;
+                        try {
+                            serializer = ((TValue)change.Item.Template).JsonSerializer;
+                            size = serializer.Serialize(change.Item, (IntPtr)writer.Buffer, int.MaxValue);
+                        } finally {
+                            change.Parent.calledFromStepSibling = false;
+                        }
                     } else {
                         size = change.Parent.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
                     }
@@ -365,8 +369,8 @@ namespace Starcounter.XSON {
 
             size = -1;
             totalSize = 0;
-            if (!calledFromStepSibling && json.StepSiblings != null) {
-                foreach (Json stepSibling in json.StepSiblings) {
+            if (!calledFromStepSibling && json.Siblings != null) {
+                foreach (Json stepSibling in json.Siblings) {
                     if (stepSibling == json)
                         continue;
                     size = EstimateSizeOfPath(stepSibling, includeNamespace, true);
@@ -389,15 +393,15 @@ namespace Starcounter.XSON {
             if (parent != null) {
                 totalSize++;
                 if (parent.IsArray) {
-                    if (json._cacheIndexInArr == -1)
+                    if (json.cacheIndexInArr == -1)
                         json.UpdateCachedIndex();
-                    totalSize += GetSizeOfIntAsUtf8(json._cacheIndexInArr);
+                    totalSize += GetSizeOfIntAsUtf8(json.cacheIndexInArr);
                 } else {
                     // We use the cacheIndexInArr to keep track of obj that is set
                     // in the parent as an untyped object since the template here is not
                     // the template in the parent (which we want).
-                    if (json._cacheIndexInArr != -1) {
-                        template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
+                    if (json.cacheIndexInArr != -1) {
+                        template = ((TObject)parent.Template).Properties[json.cacheIndexInArr];
                     } else {
                         template = json.Template;
                     }
@@ -405,8 +409,8 @@ namespace Starcounter.XSON {
                 }
             }
 
-            if (includeNamespace && !calledFromStepSibling && json._wrapInAppName) {
-                totalSize += json._appName.Length + 1;
+            if (includeNamespace && !calledFromStepSibling && json.wrapInAppName) {
+                totalSize += json.appName.Length + 1;
             } 
 
             return totalSize;
@@ -432,8 +436,8 @@ namespace Starcounter.XSON {
                 return true;
 
             pathWritten = false;
-            if (!calledFromStepSibling && json.StepSiblings != null) {
-                foreach (Json stepSibling in json.StepSiblings) {
+            if (!calledFromStepSibling && json.Siblings != null) {
+                foreach (Json stepSibling in json.Siblings) {
                     if (stepSibling == json)
                         continue;
 
@@ -454,16 +458,16 @@ namespace Starcounter.XSON {
 
             if (parent != null) {
                 if (parent.IsArray) {
-                    if (json._cacheIndexInArr == -1)
+                    if (json.cacheIndexInArr == -1)
                         json.UpdateCachedIndex();
                     writer.Write('/');
-                    writer.Write(json._cacheIndexInArr);
+                    writer.Write(json.cacheIndexInArr);
                 } else {
                     // We use the cacheIndexInArr to keep track of obj that is set
                     // in the parent as an untyped object since the template here is not
                     // the template in the parent (which we want).
-                    if (json._cacheIndexInArr != -1) {
-                        template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
+                    if (json.cacheIndexInArr != -1) {
+                        template = ((TObject)parent.Template).Properties[json.cacheIndexInArr];
                     } else {
                         template = json.Template;
                     }
@@ -472,9 +476,9 @@ namespace Starcounter.XSON {
                 }
             }
 
-            if (includeNamespace && !calledFromStepSibling && json._wrapInAppName) {
+            if (includeNamespace && !calledFromStepSibling && json.wrapInAppName) {
                 writer.Write('/');
-                writer.Write(json._appName);
+                writer.Write(json.appName);
             }
             return true;
         }

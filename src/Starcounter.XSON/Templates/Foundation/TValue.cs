@@ -178,7 +178,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		internal virtual void OnPropertySet(Json parent) {
 			if (parent.HasBeenSent)
-				parent.MarkAsReplaced(TemplateIndex);
+				parent.MarkAsDirty(TemplateIndex);
 		}
 
 		/// <summary>
@@ -224,7 +224,7 @@ namespace Starcounter.Templates {
 
             if (BindingStrategy == BindingStrategy.Unbound || isVerifiedUnbound)
                 return false;
-
+            
             // TODO:
             // Workaround for having a property bound to codebehind, but
             // Data-property is always null. Since we want to avoid recreate
@@ -239,6 +239,9 @@ namespace Starcounter.Templates {
                 if (isVerifiedUnbound)
                     return false;
             }
+
+            if (parent.IsCached(this.TemplateIndex))
+                return false;
 
             if (isBoundToParent)
                 return true;

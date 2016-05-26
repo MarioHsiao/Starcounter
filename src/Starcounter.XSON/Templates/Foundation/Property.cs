@@ -34,8 +34,8 @@ namespace Starcounter.Templates {
 				return BoundGetter(parent);
 			return UnboundGetter(parent);
 		}
-
-		private void BoundOrUnboundSet(Json parent, T value) {
+        
+        private void BoundOrUnboundSet(Json parent, T value) {
 			if (UseBinding(parent)) {
 				if (BoundSetter != null)
 					BoundSetter(parent, value);
@@ -43,11 +43,11 @@ namespace Starcounter.Templates {
 				UnboundSetter(parent, value);
 
 			if (parent.HasBeenSent)
-				parent.MarkAsReplaced(TemplateIndex);
+				parent.MarkAsDirty(TemplateIndex);
 
 			parent.CallHasChanged(this);
 		}
-
+        
         protected abstract bool ValueEquals(T value1, T value2);
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Starcounter.Templates {
 
                 if (hasChanged) {
                     if (parent.HasBeenSent)
-                        parent.MarkAsReplaced(this.TemplateIndex);
+                        parent.MarkAsDirty(this.TemplateIndex);
                     parent.CallHasChanged(this);
                 }
             } else {
@@ -169,13 +169,32 @@ namespace Starcounter.Templates {
 			Setter(parent, (T)value);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="parent"></param>
-		internal override void Checkpoint(Json parent) {
-			if (UseBinding(parent))
-				UnboundSetter(parent, BoundGetter(parent));
+        /// <summary>
+        /// If the property is bound, it reads the bound value and stores it
+        /// using the unbound delegate and marks the property as cached. 
+        /// All reads after this will read the from the unbound delegate,
+        /// until the cache is resetted when checkpointing.
+        /// </summary>
+        /// <param name="json"></param>
+        internal void SetCachedReads(Json json) {
+            // We don't have to check if th property is already cached.
+            // That is done when checking if binding should be used.
+            if (json.IsTrackingChanges && UseBinding(json) && json.Session.enableCachedReads) {
+                UnboundSetter(json, BoundGetter(json));
+                json.MarkAsCached(this.TemplateIndex);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parent"></param>
+        internal override void Checkpoint(Json parent) {
+            // We don't have to check if the property is cached.
+            // That is done when checking if binding should be used.
+            if (UseBinding(parent)) {
+                UnboundSetter(parent, BoundGetter(parent));
+            }
 			base.Checkpoint(parent);
 		}
 
@@ -194,6 +213,9 @@ namespace Starcounter.Templates {
                     if (addToChangeLog)
                         parent.ChangeLog.UpdateValue(parent, this);
                 }
+
+                if (parent.Session.enableCachedReads)
+                    parent.MarkAsCached(this.TemplateIndex);
             }
 		}
 
@@ -236,7 +258,7 @@ namespace Starcounter.Templates {
             // Setting the application name of the input handler owner.
             String savedAppName = StarcounterEnvironment.AppName;
             try {
-                StarcounterEnvironment.AppName = parent._appName;
+                StarcounterEnvironment.AppName = parent.appName;
                 _inputHandler.Invoke(parent, input);
             } finally {
                 StarcounterEnvironment.AppName = savedAppName;
@@ -271,7 +293,7 @@ namespace Starcounter.Templates {
                 } else {
                     Debug.WriteLine("Handler cancelled: " + value);
                     // Incoming value was cancelled. Mark as dirty so client gets the correct value.
-                    parent.MarkAsReplaced(this);
+                    parent.MarkAsDirty(this);
                 }
             } else {
                 if (BasedOn == null) {

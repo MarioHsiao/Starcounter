@@ -102,7 +102,7 @@ namespace Starcounter.XSON {
                 Json list = tObjArr.Getter(json);
 
                 if (version != null) {
-                    if (version.RemoteLocalVersion != version.LocalVersion || (list._Dirty == true)) {
+                    if (version.RemoteLocalVersion != version.LocalVersion || (list.dirty == true)) {
                         if (!list.IsValidForVersion(version.RemoteLocalVersion))
                             throw new JsonPatchException("The array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
 
@@ -124,19 +124,19 @@ namespace Starcounter.XSON {
                     throw new NotImplementedException();
                 }
 
-                if (json._wrapInAppName && Session.Current.PublicViewModel != json) {
+                if (json.wrapInAppName && Session.Current.PublicViewModel != json) {
                     // We have a possible attachpoint. The current token in pointer points to a stepsibling.
                     // If no stepsiblings exists (or only one) it is the current json. Otherwise we need to 
                     // find the correct sibling.
                     bool found = false;
-                    if (json.StepSiblings == null) {
-                        if (json._appName == ptr.Current) {
+                    if (json.Siblings == null) {
+                        if (json.appName == ptr.Current) {
                             ptr.MoveNext();
                             found = true;
                         }
                     } else {
-                        foreach (Json stepSibling in json.StepSiblings) {
-                            if (stepSibling._appName == ptr.Current) {
+                        foreach (Json stepSibling in json.Siblings) {
+                            if (stepSibling.appName == ptr.Current) {
                                 json = stepSibling;
                                 ptr.MoveNext();
                                 found = true;
@@ -154,7 +154,7 @@ namespace Starcounter.XSON {
                     }
 
                     // Setting the current name to the correct app after we found an attachpoint to another app.
-                    StarcounterEnvironment.AppName = json._appName;
+                    StarcounterEnvironment.AppName = json.appName;
                 } 
 
                 // Here we have moved to a stepsibling or no stepsiblings exists and the current token 
