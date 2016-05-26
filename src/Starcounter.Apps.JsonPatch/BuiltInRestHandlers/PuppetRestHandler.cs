@@ -128,15 +128,17 @@ namespace Starcounter.Internal {
 
                     byte[] body = null;
                     session.enableNamespaces = true;
+                    session.enableCachedReads = true;
                     try {
                         body = root.ToJsonUtf8();
+
+                        if (root.ChangeLog != null)
+                            root.ChangeLog.Checkpoint();
                     } finally {
                         session.enableNamespaces = false;
+                        session.enableCachedReads = false;
                     }
-
-                    if (root.ChangeLog != null)
-                        root.ChangeLog.Checkpoint();
-
+                    
                     return new Response() {
                         BodyBytes = body,
                         ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
