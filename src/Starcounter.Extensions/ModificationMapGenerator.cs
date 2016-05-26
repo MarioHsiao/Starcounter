@@ -141,7 +141,8 @@ namespace Starcounter.Extensions {
 
         private static bool IsKeyColumn(Column column) {
             return column.Name.Equals("__id")
-                    || column.Name.Equals("__setspecifier");
+                    || column.Name.Equals("__setspecifier")
+                    || column.Name.Equals("__type_id");
         }
 
         [Conditional("DEBUG")]

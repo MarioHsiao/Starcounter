@@ -97,7 +97,7 @@ namespace Starcounter.XSON {
                 if (json.Data != null) {
                     sb.Append(" <data=" + json.Data.GetType().Name + ">");
                 }
-                if (json._Dirty) {
+                if (json.IsDirty()) {
                     sb.Append(" <dirty>");
                 }
                 if (json.Parent != null) {
@@ -118,12 +118,12 @@ namespace Starcounter.XSON {
 
         private static void WriteAdditionalInfo(Json json, StringBuilder sb) {
             sb.Append("<app: ");
-            if (json._appName != null)
-                sb.Append(json._appName);
+            if (json.appName != null)
+                sb.Append(json.appName);
             else
                 sb.Append("<null>");
 
-            if (json._wrapInAppName)
+            if (json.wrapInAppName)
                 sb.Append(", addNamespaces");
 
             sb.Append('>');
@@ -173,7 +173,7 @@ namespace Starcounter.XSON {
                 sb.Append('"');
                 sb.Append(prop.PropertyName);
                 sb.Append("\":");
-                if (json.IsTrackingChanges && json.WasReplacedAt(prop.TemplateIndex)) {
+                if (json.IsTrackingChanges && json.IsDirty(prop.TemplateIndex)) {
                     sb.Append("<changed>");
                 }
 
@@ -191,8 +191,8 @@ namespace Starcounter.XSON {
             sb.Append(' ', i);
             sb.Append("}");
 
-            if (includeStepsiblings && json.StepSiblings != null && json.StepSiblings.Count > 1) {
-                foreach (var stepSibling in json.StepSiblings) {
+            if (includeStepsiblings && json.Siblings != null && json.Siblings.Count > 1) {
+                foreach (var stepSibling in json.Siblings) {
                     if (stepSibling == json)
                         continue;
                     sb.AppendLine();

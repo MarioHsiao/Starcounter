@@ -10,7 +10,7 @@ namespace Starcounter.XSON {
 	internal static class TemplateDelegateGenerator {
 		private static MethodInfo dateTimeToStringInfo = typeof(DateTime).GetMethod("ToString", new Type[] { typeof(string) });
 		private static MethodInfo dateTimeParseInfo = typeof(DateTime).GetMethod("Parse", new Type[] { typeof(string) });
-		private static MethodInfo valueListInfo = typeof(Json).GetMethod("get_list", BindingFlags.NonPublic | BindingFlags.Instance);
+		private static FieldInfo valueListInfo = typeof(Json).GetField("valueList", BindingFlags.NonPublic | BindingFlags.Instance);
 		private static MethodInfo listGetMethodInfo = typeof(IList).GetMethod("get_Item");
 		private static MethodInfo listSetMethodInfo = typeof(IList).GetMethod("set_Item");
 		private static MethodInfo jsonGetDataInfo = typeof(Json).GetMethod("get_Data");
@@ -352,7 +352,7 @@ namespace Starcounter.XSON {
 
 			var jsonParam = Expression.Parameter(typeof(Json));
 			var valueParam = Expression.Parameter(typeof(T));
-			Expression expr = Expression.Call(jsonParam, valueListInfo);
+			Expression expr = Expression.Field(jsonParam, valueListInfo);
 
 			expr = Expression.Call(expr, listGetMethodInfo, Expression.Constant(templateIndex));
 			expr = Expression.Convert(expr, typeof(T));
@@ -378,7 +378,7 @@ namespace Starcounter.XSON {
                                                    );
             }
 
-			Expression expr = Expression.Call(jsonParam, valueListInfo);
+			Expression expr = Expression.Field(jsonParam, valueListInfo);
 			expr = Expression.Call(expr, 
 								   listSetMethodInfo, 
 								   Expression.Constant(templateIndex), 

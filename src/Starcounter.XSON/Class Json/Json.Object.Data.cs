@@ -20,7 +20,7 @@ namespace Starcounter {
         /// </summary>
         internal IBindable DataAsBindable {
             get {
-                return (IBindable)_data;
+                return (IBindable)this.data;
             }
         }
 
@@ -32,28 +32,28 @@ namespace Starcounter {
         /// <value>The bound data object (often a database Entity)</value>
         public object Data {
             get {
-                return _data;
+                return this.data;
             }
             set {
                 this.Scope<Json, object>((j, v) => {
                     if (j.IsArray) {
                         ((IList)this).Clear(); // Clear any existing items since a new dataobject is set.
-                        j._PendingEnumeration = true;
-                        j._data = (IEnumerable)v;
+                        j.pendingEnumeration = true;
+                        j.data = (IEnumerable)v;
                         j.Array_InitializeAfterImplicitConversion((Json)j.Parent, (TObjArr)j.Template);
                     } else {
                         if (j.Template == null) {
                             j.CreateDynamicTemplate(); // If there is no template, we'll create a template
                         }
-                        j.InternalSetData(v, (TValue)j.Template, false);
+                        j.InternalSetData(v, (TValue)j.Template, true);
                     }
                 },
                 this, value);
             }
         }
 
-        internal void AttachData(object data) {
-            InternalSetData(data, (TValue)Template, true);
+        internal void AttachData(object data, bool updateParentBinding) {
+            InternalSetData(data, (TValue)Template, updateParentBinding);
         }
         
         /// <summary>
@@ -62,11 +62,11 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(object data, TValue template, bool updateBinding) {
+        protected virtual void InternalSetData(object data, TValue template, bool updateParentBinding) {
             TObject tobj;
             TValue child;
 
-            this._data = data;
+            this.data = data;
 
             if (template == null)
                 return;
@@ -76,11 +76,11 @@ namespace Starcounter {
 
                 // Since dataobject is set we want to do a reverse update of the binding,
                 // i.e. if the template is bound we want to update the parents dataobject.
-                InitTemplateAfterData(data, template, false);
+//                InitTemplateAfterData(data, template, updateBinding);
                 
                 if (template.BindingStrategy != BindingStrategy.Unbound) {
                     var parent = ((Json)this.Parent);
-                    if (!updateBinding && parent != null && template.UseBinding(parent)) {
+                    if (updateParentBinding && parent != null && template.UseBinding(parent)) {
                         if (tobj.BoundSetter != null)
                             tobj.BoundSetter(parent, data);
                     }
@@ -92,30 +92,24 @@ namespace Starcounter {
                     if (child == null)
                         continue;
 
-                    InitTemplateAfterData(data, child, true);
+                    InitTemplateAfterData(data, child);
                 }
             } else {
-                InitTemplateAfterData(data, template, true);
+                InitTemplateAfterData(data, template);
             }
             
             OnData();
         }
         
-        private void InitTemplateAfterData(object data, TValue template, bool updateBinding) {
+        private void InitTemplateAfterData(object data, TValue template) {
             if (template.BindingStrategy != BindingStrategy.Unbound) {
                 if (data != null) {
                     if (template.isVerifiedUnbound) {
                         if (!template.VerifyBoundDataType(data.GetType(), template.dataTypeForBinding))
                             template.InvalidateBoundGetterAndSetter();
                     }
-
-                    if (updateBinding && (template.TemplateTypeId == TemplateTypeEnum.Object 
-                                            || template.TemplateTypeId == TemplateTypeEnum.Array)) {
-                        if (template.UseBinding(this))
-                            Refresh(template);
-                    }
                 } else {
-                    if (updateBinding && template.HasBinding()) {
+                    if (template.HasBinding()) {
                         if (template.TemplateTypeId == TemplateTypeEnum.Object) {
                             (((TObject)template).Getter(this)).Data = null;
                         } else {
@@ -150,11 +144,11 @@ namespace Starcounter {
             TransactionHandle handle;
 
             // Returning first available transaction climbing up the tree starting from this node.
-            if (_transaction != TransactionHandle.Invalid)
-                return _transaction;
+            if (this.transaction != TransactionHandle.Invalid)
+                return this.transaction;
 
-            if (lookInStepSiblings == true && _stepSiblings != null) {
-                foreach (Json stepSibling in _stepSiblings) {
+            if (lookInStepSiblings == true && this.siblings != null) {
+                foreach (Json stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
                     handle = stepSibling.GetTransactionHandle(false);
@@ -163,8 +157,8 @@ namespace Starcounter {
                 }
             }
 
-            if (_parent != null)
-                return _parent.GetTransactionHandle(true);
+            if (this.parent != null)
+                return this.parent.GetTransactionHandle(true);
 
             return TransactionHandle.Invalid;
         }
@@ -178,12 +172,12 @@ namespace Starcounter {
                         // Need to register a reference directly here and properly deregister any existing 
                         // transaction.
                         var session = Session;
-                        if (_transaction != TransactionHandle.Invalid)
-                            session.DeregisterTransaction(_transaction);
+                        if (this.transaction != TransactionHandle.Invalid)
+                            session.DeregisterTransaction(this.transaction);
                         current = session.RegisterTransaction(current);
                     }
 
-                    _transaction = current;
+                    this.transaction = current;
                     StarcounterBase.TransactionManager.SetTemporaryRef(current);
                 }
             }

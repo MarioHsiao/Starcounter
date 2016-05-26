@@ -539,8 +539,11 @@ uint32_t HttpProto::HttpUriDispatcher(
     if (sd->get_to_database_direction_flag())
     {
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->is_web_socket())
-            return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
+		if (sd->is_web_socket()) {
+			return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
+		}
+
+		GW_ASSERT(sd->get_accumulated_len_bytes() == (sd->get_cur_network_buf_ptr() - sd->get_data_blob_start()));
 
         // Obtaining method and URI.
         char* method_space_uri_space = (char*) sd->get_data_blob_start();
@@ -1006,7 +1009,7 @@ ALL_DATA_ACCUMULATED:
             sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes());
 
             // Push chunk to corresponding channel/scheduler.
-            err_code = gw->PushSocketDataToDb(sd, handler_id);
+            err_code = gw->PushSocketDataToDb(sd, handler_id, false);
             if (err_code)
                 return err_code;
 
@@ -1033,6 +1036,14 @@ ALL_DATA_ACCUMULATED:
 
         // Handled successfully.
         *is_handled = true;
+
+		// Checking if it was a WebSocket upgrade.
+		if (sd->get_ws_upgrade_approved_flag()) {
+
+			// Changing network protocol because WebSocket upgrade succeeded.
+			sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
+			sd->reset_ws_upgrade_approved_flag();
+		}
 
         // Checking if we want to disconnect the socket.
         if (sd->get_disconnect_socket_flag())

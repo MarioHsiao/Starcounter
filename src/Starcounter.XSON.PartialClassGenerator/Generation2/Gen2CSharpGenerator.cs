@@ -802,13 +802,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         static internal void WriteFooter(StringBuilder f) {
-#if !DEBUG
-            string s = "apa";
-            Console.Write(s);
-            s = null;
-
-#endif
-
             f.AppendLine("#pragma warning restore 1591");
             f.AppendLine("#pragma warning restore 0108");
         }
