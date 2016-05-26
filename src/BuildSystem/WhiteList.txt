@@ -12,9 +12,8 @@ cli-apps\
 cli-config\
 cli-templates\
 Configuration\
-Input\
+
 ItemTemplates\
-Json\
 ProjectTemplates\
 
 # Libraries containing database classes.
@@ -302,13 +301,6 @@ Starcounter.VS14.vsix
 Starcounter.XSON.dll
 Starcounter.XSON.pdb
 Starcounter.XSON.XML
-Starcounter.XSON.DeserializerCompiler.dll
-Starcounter.XSON.DeserializerCompiler.pdb
-Starcounter.XSON.HtmlReader.dll
-Starcounter.XSON.HtmlReader.pdb
-Starcounter.XSON.HtmlReader.xml
-Starcounter.XSON.JsonByExample.dll
-Starcounter.XSON.JsonByExample.pdb
 Starcounter.XSON.JsTemplateParser.dll
 Starcounter.XSON.JsTemplateParser.pdb
 Starcounter.XSON.PartialClassGenerator.dll
