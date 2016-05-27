@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal;
@@ -9,24 +10,26 @@ using Starcounter.Templates;
 using Starcounter.XSON;
 
 namespace Starcounter {
-	partial class Json {
+    partial class Json {
         internal bool IsTrackingChanges {
-            get { return _trackChanges; }
+            get {
+                return this.trackChanges;
+            }
         }
 
 		/// <summary>
 		/// 
 		/// </summary>
 		internal void Dirtyfy(bool callStepSiblings = true) {
-            if (!_trackChanges || (_Dirty == true))
+            if (!this.trackChanges || (this.dirty == true))
                 return;
             
-			_Dirty = true;
+			this.dirty = true;
 			if (Parent != null)
 				Parent.Dirtyfy();
 
-            if (callStepSiblings == true && _stepSiblings != null) {
-                foreach (Json stepSibling in _stepSiblings) {
+            if (callStepSiblings == true && this.siblings != null) {
+                foreach (Json stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
                     stepSibling.Dirtyfy(false);
@@ -35,22 +38,108 @@ namespace Starcounter {
 		}
         
         /// <summary>
+        /// Returns true if any property is marked as dirty.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsDirty() {
+            return trackChanges && this.dirty;
+        }
+
+        /// <summary>
+        /// Returns true if the property is marked as dirty.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
+        public bool IsDirty(Template property) {
+#if DEBUG
+            this.Template.VerifyProperty(property);
+#endif
+            if (this.trackChanges)
+                return (IsDirty(property.TemplateIndex));
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the template with the specified index is marked as dirty.
+        /// </summary>
+        /// <param name="templateIndex"></param>
+        /// <returns></returns>
+        internal bool IsDirty(int templateIndex) {
+            return ((stateFlags[templateIndex] & PropertyState.Dirty) == PropertyState.Dirty);
+        }
+
+        internal bool IsCached(Template template) {
+#if DEBUG
+            this.Template.VerifyProperty(template);
+#endif
+            return IsCached(template.TemplateIndex);
+        }
+
+        /// <summary>
+        /// Returns true if the template with the specified index is marked as cached.
+        /// </summary>
+        /// <param name="templateIndex"></param>
+        /// <returns></returns>
+        internal bool IsCached(int templateIndex) {
+            if (stateFlags != null && templateIndex != -1) 
+                return ((stateFlags[templateIndex] & PropertyState.Cached) == PropertyState.Cached);
+            return false;
+        }
+        
+        /// <summary>
+        /// Marks the specified property as dirty.
+        /// </summary>
+        /// <param name="property"></param>
+        internal void MarkAsDirty(Template property) {
+            this.MarkAsDirty(property.TemplateIndex);
+        }
+
+        /// <summary>
+        /// Marks the property with the specified index as dirty.
+        /// </summary>
+        /// <param name="index"></param>
+        internal void MarkAsDirty(int templateIndex) {
+            stateFlags[templateIndex] |= PropertyState.Dirty;
+            this.Dirtyfy();
+        }
+
+        private void MarkAsNonDirty(int templateIndex) {
+            stateFlags[templateIndex] &= ~PropertyState.Dirty;
+        }
+
+        /// <summary>
+        /// Marks the property with the specified index as cached.
+        /// </summary>
+        /// <param name="templateIndex"></param>
+        internal void MarkAsCached(int templateIndex) {
+            stateFlags[templateIndex] |= PropertyState.Cached;
+        }
+        
+        /// <summary>
+        /// Resets the stateflags for the property with the specified index.
+        /// </summary>
+        /// <param name="templateIndex"></param>
+        internal void CheckpointAt(int templateIndex) {
+            stateFlags[templateIndex] = PropertyState.Default;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         internal void CheckpointChangeLog(bool callStepSiblings = true) {
-            if (!_trackChanges)
+            if (!this.trackChanges)
                 return;
 
-			if (this.IsArray) {
-                this.ArrayAddsAndDeletes = null;
+            if (this.IsArray) {
+                this.arrayAddsAndDeletes = null;
                 for (int i = 0; i < ((IList)this).Count; i++) {
                     var row = (Json)this._GetAt(i);
                     row.CheckpointChangeLog();
                     this.CheckpointAt(i);
                 }
             } else {
-				if (Template != null) {
-                    this.Scope<Json, TValue>( 
+                if (Template != null) {
+                    this.Scope<Json, TValue>(
                         (parent, tjson) => {
                             if (parent.IsObject) {
                                 TObject tobj = (TObject)tjson;
@@ -66,38 +155,25 @@ namespace Starcounter {
                         },
                         this,
                         (TValue)Template);
-				}
-			}
-			_Dirty = false;
+                }
+            }
 
-            if (callStepSiblings == true && this._stepSiblings != null) {
-                for (int i = 0; i < _stepSiblings.Count; i++) {
-                    var sibling = _stepSiblings[i];
-                    _stepSiblings.MarkAsSent(i);
+            if (callStepSiblings == true && this.siblings != null) {
+                for (int i = 0; i < this.siblings.Count; i++) {
+                    var sibling = siblings[i];
+                    this.siblings.MarkAsSent(i);
 
                     if (sibling == this)
                         continue;
 
                     sibling.CheckpointChangeLog(false);
-                    if (sibling.Parent != null) {
+                    if (sibling.Parent != null && sibling.Parent.IsTrackingChanges) {
                         sibling.Parent.CheckpointAt(sibling.IndexInParent);
                     }
                 }
             }
-        }
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="prop"></param>
-		/// <returns></returns>
-		public bool IsDirty(Template prop) {
-#if DEBUG
-			this.Template.VerifyProperty(prop);
-#endif
-            if (_trackChanges)
-                return (WasReplacedAt(prop.TemplateIndex));
-            return false;
+        
+			dirty = false;
 		}
 
 		/// <summary>
@@ -105,7 +181,7 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="changeLog">Log of changes</param>
 		internal void LogValueChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings) {
-            if (!_trackChanges)
+            if (!this.trackChanges)
                 return;
 
 			if (this.IsArray) {
@@ -123,24 +199,25 @@ namespace Starcounter {
             bool logChanges;
             Json item;
 
-            if (ArrayAddsAndDeletes != null && ArrayAddsAndDeletes.Count > 0) {
-                for (int i = 0; i < ArrayAddsAndDeletes.Count; i++) {
-                    var change = ArrayAddsAndDeletes[i];
+            if (this.arrayAddsAndDeletes != null && this.arrayAddsAndDeletes.Count > 0) {
+                for (int i = 0; i < this.arrayAddsAndDeletes.Count; i++) {
+                    var change = this.arrayAddsAndDeletes[i];
 
                     changeLog.Add(change);
-                    var index = change.Item._cacheIndexInArr;
-                    if (change.ChangeType != Change.REMOVE && index >= 0 && index < list.Count) {
-                        CheckpointAt(index);
+                    var index = change.Item.cacheIndexInArr;
+                    if (change.ChangeType != Change.REMOVE && index >= 0 && index < this.valueList.Count) {
+                        //CheckpointAt(index);
+                        this.MarkAsNonDirty(index);
                         item = change.Item;
                         item.SetBoundValuesInTuple();
-                        item._Dirty = false;
+                        item.dirty = false;
                     }
                 }
                 
-                for (int i = 0; i < _list.Count; i++) {
+                for (int i = 0; i < this.valueList.Count; i++) {
                     // Skip all items we have already added to the changelog.
                     logChanges = true;
-                    foreach (Change change in ArrayAddsAndDeletes) {
+                    foreach (Change change in this.arrayAddsAndDeletes) {
                         if (change.ChangeType != Change.REMOVE && change.Index == i) {
                             logChanges = false;
                             break;
@@ -148,27 +225,29 @@ namespace Starcounter {
                     }
 
                     if (logChanges) {
-                        ((Json)_list[i]).LogValueChangesWithDatabase(changeLog, callStepSiblings);
+                        ((Json)this.valueList[i]).LogValueChangesWithDatabase(changeLog, callStepSiblings);
                      }
                 }
 
                 if (changeLog.Version != null) {
                     if (versionLog == null)
                         versionLog = new List<ArrayVersionLog>();
-                    versionLog.Add(new ArrayVersionLog(changeLog.Version.LocalVersion, ArrayAddsAndDeletes));
+                    versionLog.Add(new ArrayVersionLog(changeLog.Version.LocalVersion, this.arrayAddsAndDeletes));
                 }
-                ArrayAddsAndDeletes = null;
+                this.arrayAddsAndDeletes = null;
             } else {
-                for (int t = 0; t < _list.Count; t++) {
-                    var arrItem = ((Json)_list[t]);
-                    if (this.WasReplacedAt(t)) { // A refresh of an existing row (that is not added or removed)
+                for (int t = 0; t < this.valueList.Count; t++) {
+                    var arrItem = ((Json)this.valueList[t]);
+                    if (this.IsDirty(t)) { // A refresh of an existing row (that is not added or removed)
                         changeLog.Add(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
-                        this.CheckpointAt(t);
+//                        this.CheckpointAt(t);
+                        this.MarkAsNonDirty(t);
                     } else {
                         arrItem.LogValueChangesWithDatabase(changeLog, callStepSiblings);
                     }
                 }
             }
+            this.dirty = false;
 		}
 
 		/// <summary>
@@ -195,9 +274,9 @@ namespace Starcounter {
 
                 if (json.IsObject) {
                     var exposed = ((TObject)template).Properties.ExposedProperties;
-                    if (json._Dirty) {
+                    if (json.dirty) {
                         for (int t = 0; t < exposed.Count; t++) {
-                            if (json.WasReplacedAt(exposed[t].TemplateIndex)) {
+                            if (json.IsDirty(exposed[t].TemplateIndex)) {
                                 if (clog != null) {
                                     if (json.IsArray) {
                                         throw new NotImplementedException();
@@ -215,7 +294,8 @@ namespace Starcounter {
                                         }
                                     }
                                 }
-                                json.CheckpointAt(exposed[t].TemplateIndex);
+                                //json.CheckpointAt(exposed[t].TemplateIndex);
+                                json.MarkAsNonDirty(exposed[t].TemplateIndex);
                             } else {
                                 var p = exposed[t];
                                 if (p is TContainer) {
@@ -227,14 +307,14 @@ namespace Starcounter {
                                         throw new NotImplementedException();
                                     } else {
                                         ((TValue)p).CheckAndSetBoundValue(json, true);
-                                        if (json.WasReplacedAt(p.TemplateIndex))
+                                        if (json.IsDirty(p.TemplateIndex))
                                             clog.UpdateValue(json, (TValue)p);
                                     }
                                 }
                             }
                         }
-                        json._Dirty = false;
-                    } else if (_checkBoundProperties) {
+                        json.dirty = false;
+                    } else if (this.checkBoundProperties) {
                         for (int t = 0; t < exposed.Count; t++) {
                             if (exposed[t] is TContainer) {
                                 var c = ((TContainer)exposed[t]).GetValue(json);
@@ -246,7 +326,7 @@ namespace Starcounter {
                                 } else {
                                     var p = exposed[t] as TValue;
                                     p.CheckAndSetBoundValue(json, true);
-                                    if (json.WasReplacedAt(p.TemplateIndex))
+                                    if (json.IsDirty(p.TemplateIndex))
                                         clog.UpdateValue(json, p);
                                 }
                             }
@@ -254,32 +334,33 @@ namespace Starcounter {
                         }
                     }
                 } else {
-                    if (json._Dirty) {
-                        if (json.WasReplacedAt(template.TemplateIndex)) {
+                    if (json.dirty) {
+                        if (json.IsDirty(template.TemplateIndex)) {
                             if (clog != null)
                                 clog.UpdateValue(json, null);
-                            json.CheckpointAt(template.TemplateIndex);
+                            //json.CheckpointAt(template.TemplateIndex);
+                            json.MarkAsNonDirty(template.TemplateIndex);
                         } else {
                             template.CheckAndSetBoundValue(json, true);
-                            if (json.WasReplacedAt(template.TemplateIndex))
+                            if (json.IsDirty(template.TemplateIndex))
                                 clog.UpdateValue(json, template);
                         }
                     }
                 }
 
-                if (css == true && json._stepSiblings != null) {
-                    for (int i = 0; i < _stepSiblings.Count; i++) {
-                        var sibling = _stepSiblings[i];
+                if (css == true && json.siblings != null) {
+                    for (int i = 0; i < json.siblings.Count; i++) {
+                        var sibling = json.siblings[i];
 
                         if (sibling == json)
                             continue;
 
-                        if (_stepSiblings.HasBeenSent(i)) {
+                        if (json.siblings.HasBeenSent(i)) {
                             sibling.LogValueChangesWithDatabase(clog, false);
                         } else {
                             clog.Add(Change.Update(sibling, null, true));
-                            _stepSiblings.MarkAsSent(i);
-                            sibling.CheckpointChangeLog(false);
+                            json.siblings.MarkAsSent(i);
+                            sibling.dirty = false;
                         }
                     }
                 }
@@ -290,11 +371,11 @@ namespace Starcounter {
 		}
 
 		internal void SetBoundValuesInTuple(bool callStepSiblings = true) {
-            if (!_checkBoundProperties)
+            if (!this.checkBoundProperties)
                 return;
 
 			if (IsArray) {
-				foreach (Json item in _list) {
+				foreach (Json item in this.valueList) {
 					item.SetBoundValuesInTuple();
 				}
 			} else {
@@ -321,8 +402,8 @@ namespace Starcounter {
                         }
                     }
 
-                    if (callStepSiblings == true && json._stepSiblings != null) {
-                        foreach (var stepSibling in json._stepSiblings) {
+                    if (callStepSiblings == true && json.siblings != null) {
+                        foreach (var stepSibling in json.siblings) {
                             if (stepSibling == this)
                                 continue;
                             stepSibling.SetBoundValuesInTuple(false);
@@ -335,7 +416,7 @@ namespace Starcounter {
 
         internal void CheckBoundObject(object boundValue) {
             if (!CompareDataObjects(boundValue, Data))
-                AttachData(boundValue);
+                AttachData(boundValue, false);
         }
 
         private static int IndexOf(IList list, int offset, object value) {
@@ -360,17 +441,17 @@ namespace Starcounter {
             bool hasChanged = false;
 
             foreach (object value in boundValue) {
-                if (_list.Count <= index) {
+                if (this.valueList.Count <= index) {
                     newJson = (Json)tArr.ElementType.CreateInstance();
-                    newJson._data = value;
+                    newJson.data = value;
                     ((IList)this).Add(newJson);
                     newJson.Data = value;
                     hasChanged = true;
                 } else {
-                    oldJson = (Json)_list[index];
+                    oldJson = (Json)this.valueList[index];
                     if (!CompareDataObjects(oldJson.Data, value)) {
                         newJson = (Json)tArr.ElementType.CreateInstance();
-                        newJson._data = value;
+                        newJson.data = value;
                         ((IList)this)[index] = newJson;
                         newJson.Data = value;
                         oldJson.SetParent(null);
@@ -380,7 +461,7 @@ namespace Starcounter {
                 index++;
             }
 
-            for (int i = _list.Count - 1; i >= index; i--) {
+            for (int i = this.valueList.Count - 1; i >= index; i--) {
                 ((IList)this).RemoveAt(i);
                 hasChanged = true;
             }
@@ -397,13 +478,13 @@ namespace Starcounter {
             TObjArr tArr = Template as TObjArr;
             bool hasChanged = false;
             IList jsonList = (IList)this;
-            int offset = (this.ArrayAddsAndDeletes != null) ? this.ArrayAddsAndDeletes.Count : 0;
+            int offset = (this.arrayAddsAndDeletes != null) ? this.arrayAddsAndDeletes.Count : 0;
 
             if (boundValue != null) {
                 foreach (object value in boundValue) {
                     if (jsonList.Count <= index) {
                         newJson = (Json)tArr.ElementType.CreateInstance();
-                        newJson._data = value;
+                        newJson.data = value;
                         jsonList.Add(newJson);
                         newJson.Data = value;
                         hasChanged = true;
@@ -413,7 +494,7 @@ namespace Starcounter {
                             itemIndex = IndexOf(jsonList, index + 1, value);
                             if (itemIndex == -1) {
                                 newJson = (Json)tArr.ElementType.CreateInstance();
-                                newJson._data = value;
+                                newJson.data = value;
                                 jsonList.Insert(index, newJson);
                                 newJson.Data = value;
                             } else {
@@ -428,13 +509,13 @@ namespace Starcounter {
 
             int deleteCount = 0;
             
-            for (int i = _list.Count - 1; i >= index; i--) {
+            for (int i = this.valueList.Count - 1; i >= index; i--) {
                 jsonList.RemoveAt(i);
                 hasChanged = true;
                 deleteCount++;
             }
 
-            ReduceArrayChanges(this.ArrayAddsAndDeletes, offset, deleteCount);
+            ReduceArrayChanges(this.arrayAddsAndDeletes, offset, deleteCount);
 
             if (hasChanged)
                 this.Parent.HasChanged(tArr);
@@ -592,7 +673,7 @@ namespace Starcounter {
             }
 
             if (IsArray) {
-                foreach (Json child in _list) {
+                foreach (Json child in this.valueList) {
                     child.CleanupOldVersionLogs(version, toVersion);
                 }
             } else {
@@ -609,8 +690,8 @@ namespace Starcounter {
                 }
             }
 
-            if (callStepSiblings && _stepSiblings != null) {
-                foreach (var stepSibling in _stepSiblings) {
+            if (callStepSiblings && this.siblings != null) {
+                foreach (var stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
                     stepSibling.CleanupOldVersionLogs(version, toVersion, false);
@@ -623,8 +704,8 @@ namespace Starcounter {
         /// This method will be called on each childjson as well.
         /// </summary>
         private void OnAddedToViewmodel(bool callStepSiblings) {
-            if (callStepSiblings == true && this._stepSiblings != null) {
-                foreach (var stepSibling in this._stepSiblings) {
+            if (callStepSiblings == true && this.siblings != null) {
+                foreach (var stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
                     stepSibling.OnAddedToViewmodel(false);
@@ -644,31 +725,31 @@ namespace Starcounter {
             // up in the tree we set it back to invalid. This will be useful later when
             // json will be stored in blobs.
             
-            if (_parent != null && this._transaction == _parent.GetTransactionHandle(true))
-                this._transaction = TransactionHandle.Invalid;
+            if (this.parent != null && this.transaction == this.parent.GetTransactionHandle(true))
+                this.transaction = TransactionHandle.Invalid;
             
-            if (this._transaction != TransactionHandle.Invalid) {
+            if (this.transaction != TransactionHandle.Invalid) {
                 // We have a transaction attached on this json. We register the transaction 
                 // on the session to keep track of it. This will also mean that the session
                 // is responsible for releasing it when noone uses it anymore.
-                _transaction = Session.RegisterTransaction(_transaction);
+                this.transaction = Session.RegisterTransaction(transaction);
             }
             
-            _trackChanges = true;
+            this.trackChanges = true;
 
             if (this.IsArray) {
-                _SetFlag = new List<bool>(_list.Count);
-                foreach (Json item in _list) {
-                    _SetFlag.Add(false);
+                stateFlags = new List<PropertyState>(this.valueList.Count);
+                foreach (Json item in this.valueList) {
+                    stateFlags.Add(PropertyState.Default);
                     item.OnAddedToViewmodel(true);
                 }
             } else {
                 if (Template != null) {
                     if (IsObject) {
                         var tobj = (TObject)Template;
-                        _SetFlag = new List<bool>(tobj.Properties.Count);
+                        stateFlags = new List<PropertyState>(tobj.Properties.Count);
                         foreach (Template tChild in tobj.Properties) {
-                            _SetFlag.Add(false);
+                            stateFlags.Add(PropertyState.Default);
                             var container = tChild as TContainer;
                             if (container != null) {
                                 var childJson = (Json)container.GetUnboundValueAsObject(this);
@@ -677,8 +758,8 @@ namespace Starcounter {
                             }
                         }
                     } else {
-                        _SetFlag = new List<bool>(1);
-                        _SetFlag.Add(false);
+                        stateFlags = new List<PropertyState>(1);
+                        stateFlags.Add(PropertyState.Default);
                     }
                 }
             }
@@ -694,15 +775,15 @@ namespace Starcounter {
 
             isAddedToViewmodel = false;
             addedInVersion = -1;
-            if (_transaction != TransactionHandle.Invalid) {
-                Session.DeregisterTransaction(_transaction);
-                _transaction = TransactionHandle.Invalid;
+            if (this.transaction != TransactionHandle.Invalid) {
+                Session.DeregisterTransaction(this.transaction);
+                this.transaction = TransactionHandle.Invalid;
             }
 
-            _trackChanges = false;
+            this.trackChanges = false;
 
             if (this.IsArray) {
-                foreach (Json item in _list) {
+                foreach (Json item in this.valueList) {
                     item.OnRemovedFromViewmodel(true);
                 }
             } else {
@@ -720,24 +801,24 @@ namespace Starcounter {
                 }
             }
 
-            if (callStepSiblings == true && this._stepSiblings != null) {
-                foreach (var stepSibling in _stepSiblings) {
+            if (callStepSiblings == true && this.siblings != null) {
+                foreach (var stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
 
                     // Check for stepsiblings that might be a part of a stateful viewmodel,
                     // and still be a sibling to another. In that case we don't do the call.
-                    if (stepSibling._Session != null || (stepSibling.Parent != null && stepSibling.Parent.isAddedToViewmodel))
+                    if (stepSibling.session != null || (stepSibling.Parent != null && stepSibling.Parent.isAddedToViewmodel))
                         continue;
                     stepSibling.OnRemovedFromViewmodel(false);
                 }
             }
         }
 
-        internal SiblingList StepSiblings {
-            get { return _stepSiblings; }
+        internal SiblingList Siblings {
+            get { return this.siblings; }
             set {
-                _stepSiblings = value;
+                this.siblings = value;
                 if (this.Session != null) {
                     // We just call OnAdd for this sibling since the list will be set on each one.
                     // If the sibling is already added the method will just return so no need to 
@@ -748,38 +829,128 @@ namespace Starcounter {
         }
 
         public bool AutoRefreshBoundProperties {
-            get {
-                return _checkBoundProperties;
-            }
+            get { return this.checkBoundProperties; }
             set {
-                _checkBoundProperties = value;
-
-                // If we have siblings we reflect this value to them as well, to make 
-                // it possible to enable/disable autoupdates on whole tree starting
-                // from this point.
-                if (_stepSiblings != null) {
-                    foreach (Json sibling in _stepSiblings) {
-                        if ((sibling == null) || (sibling == this))
+                this.checkBoundProperties = value;
+                if (this.Siblings != null) {
+                    foreach (var sibling in this.Siblings) {
+                        if (sibling == this)
                             continue;
-                        sibling._checkBoundProperties = value;
+                        sibling.checkBoundProperties = value;
                     }
                 }
             } 
         }
         
         /// <summary>
+        /// If true, this object has been flushed from the change log (usually an
+        /// indication that the object has been sent to its client.
+        /// </summary>
+        internal bool HasBeenSent {
+            get {
+                if (!this.trackChanges)
+                    return false;
+
+                if (this.siblings != null) {
+                    return this.siblings.HasBeenSent(this.siblings.IndexOf(this));
+                }
+
+                if (Parent != null) {
+                    return ((IndexInParent != -1) && (!Parent.IsDirty(IndexInParent)));
+                } else {
+                    var log = ChangeLog;
+                    if (log == null) {
+                        return false;
+                    }
+                    return !log.BrandNew;
+                }
+            }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="newValue"></param>
         internal void CheckAndUpdateSibling(Json newValue) {
-            if (this._stepSiblings != null) {
-                int index = this._stepSiblings.IndexOf(this);
+            if (this.Siblings != null) {
+                int index = this.Siblings.IndexOf(this);
 
                 if (index != -1) {
-                    this._stepSiblings[index] = newValue;                    
-                    this._stepSiblings = null;
+                    this.Siblings[index] = newValue;
+                    this.Siblings = null;
                 }
             }
         }
-	}
+
+        internal void VerifyDirtyFlags(bool verifySiblings = true) {
+            if (!this.trackChanges)
+                return;
+
+            switch (this.Template.TemplateTypeId) {
+                case TemplateTypeEnum.Object:
+                    VerifyDirtyFlagsForObject();
+                    break;
+                case TemplateTypeEnum.Array:
+                    VerifyDirtyFlagsForArray();
+                    break;
+                default: // Single value
+                    VerifyDirtyFlagsForSingleValue();
+                    break;
+            }
+
+            if (verifySiblings && this.siblings != null) {
+                foreach (var sibling in this.siblings) {
+                    if (this.Equals(sibling))
+                        continue;
+                    sibling.VerifyDirtyFlags(false);
+                }
+            }
+        }
+
+        private void VerifyDirtyFlagsForSingleValue() {
+            AssertOrThrow((this.stateFlags.Count == 1), this.Template);
+            AssertOrThrow((this.stateFlags[0] == PropertyState.Default), this.Template);
+            AssertOrThrow((this.dirty == false), this.Template);
+        }
+
+        private void VerifyDirtyFlagsForArray() {
+            Json row;
+            var tArr = (TObjArr)this.Template;
+
+            AssertOrThrow((this.dirty == false), tArr);
+            AssertOrThrow((this.stateFlags.Count == this.valueList.Count), tArr);
+            for (int i = 0; i < this.stateFlags.Count; i++) {
+                AssertOrThrow((this.stateFlags[i] == PropertyState.Default), tArr);
+
+                row = (Json)this.valueList[i];
+                if (row != null)
+                    row.VerifyDirtyFlags();
+            }
+        }
+
+        private void VerifyDirtyFlagsForObject() {
+            Json child;
+            TContainer tCon;
+            var tObj = (TObject)this.Template;
+
+            AssertOrThrow((this.stateFlags.Count == tObj.Properties.Count), tObj);
+            for (int i = 0; i < this.stateFlags.Count; i++) {
+                AssertOrThrow((this.stateFlags[i] == PropertyState.Default), tObj.Properties[i]);
+
+                tCon = tObj.Properties[i] as TContainer;
+                if (tCon != null) {
+                    child = (Json)tCon.GetUnboundValueAsObject(this);
+                    if (child != null)
+                        child.VerifyDirtyFlags();
+                }
+            }
+        }
+
+        private void AssertOrThrow(bool expression, Template template) {
+            if (!expression) {
+                //                Json.logSource.LogWarning("Verification of dirtyflags failed for " + GetTemplateName(template) + "\n" + (new StackTrace(true)).ToString());
+                throw new System.Exception("Verification of dirtyflags failed for " + JsonDebugHelper.GetFullName(this, template));
+            }
+        }
+    }
 }

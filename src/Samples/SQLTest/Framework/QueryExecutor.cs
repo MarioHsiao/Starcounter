@@ -59,17 +59,19 @@ namespace SQLTest
                         else
                             resultList = CreateResultSingleton(sqlEnum);
 
+                        order_result(queryList[i], resultList);
+
                         // Save execution plan and result.
                         if (firstExecution)
                         {
                             queryList[i].ActualExecutionPlan1 = sqlEnum.ToString();
-                            queryList[i].ActualResult1 = CreateResultString(resultList, queryList[i].ShouldBeReordered);
+                            queryList[i].ActualResult1 = CreateResultString(resultList);
                             queryList[i].ActualUseBisonParser1 = sqlEnum.IsBisonParserUsed;
                         }
                         else
                         {
                             queryList[i].ActualExecutionPlan2 = sqlEnum.ToString();
-                            queryList[i].ActualResult2 = CreateResultString(resultList, queryList[i].ShouldBeReordered);
+                            queryList[i].ActualResult2 = CreateResultString(resultList);
                             queryList[i].ActualUseBisonParser2 = sqlEnum.IsBisonParserUsed;
                         }
                     }
@@ -108,6 +110,18 @@ namespace SQLTest
                     }
                 }
             });
+        }
+
+        private static void order_result(TestQuery testQuery, List<string> resultList)
+        {
+            if ( testQuery.ShouldBeReordered || testQuery.NumberOfPartialResultsExpected != 0 )
+            {
+                resultList.Sort(StringComparer.InvariantCulture);
+            }
+            else if ( testQuery.ResultReorderIndexes != null )
+            {
+                resultList.Sort(testQuery.ResultReorderIndexes.Item1, testQuery.ResultReorderIndexes.Item2 - testQuery.ResultReorderIndexes.Item1 + 1, StringComparer.InvariantCulture);
+            }
         }
 
 #if false // not used anywhere
@@ -166,12 +180,8 @@ namespace SQLTest
             return resultList;
         }
 
-        private static String CreateResultString(List<String> resultList, Boolean shouldBeReordered)
+        private static String CreateResultString(List<String> resultList)
         {
-            if (shouldBeReordered)
-            {
-                resultList.Sort(StringComparer.InvariantCulture);
-            }
             StringBuilder stringBuilder = new StringBuilder();
             for (Int32 i = 0; i < resultList.Count; i++)
             {

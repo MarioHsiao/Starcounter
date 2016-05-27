@@ -98,6 +98,26 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestDirtyCheckForNewRootObject() {
+            dynamic json = new Json();
+            var session = new Session();
+            var jsonPatch = new JsonPatch();
+
+            session.Data = json;
+            json.Header = "Test";
+
+            Assert.IsFalse(json.HasBeenSent);
+            Assert.IsTrue(json.dirty);
+            Assert.IsTrue(json.ChangeLog.BrandNew);
+
+            string patch = jsonPatch.Generate(json, true, false);
+
+            Assert.IsTrue(json.HasBeenSent);
+            Assert.IsFalse(json.dirty);
+            Assert.IsFalse(json.ChangeLog.BrandNew);
+        }
+
+        [Test]
         public static void TestDirtyCheckForSingleValue() {
             Person data = new Person();
             data.FirstName = "Hans";
@@ -143,8 +163,7 @@ namespace Starcounter.Internal.XSON.Tests {
             
             // Resetting dirtyflags.
             changeArr = json.ChangeLog.Generate(true);
-            json.ChangeLog.Checkpoint();
-
+            
             json.Set(tname, "Apa Papa");
             Assert.IsTrue(json.IsDirty(tname));
 
@@ -527,21 +546,21 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestSerializeWithNamespacesDisabled() {
             person p = new person();
-            p._appName = "MainApp";
-            p._wrapInAppName = true;
-            p.ExtraInfo._appName = "MainApp";
-            p.ExtraInfo._wrapInAppName = true;
+            p.appName = "MainApp";
+            p.wrapInAppName = true;
+            p.ExtraInfo.appName = "MainApp";
+            p.ExtraInfo.wrapInAppName = true;
 
             supersimple ss = new supersimple();
-            ss._appName = "PartialApp";
-            ss._wrapInAppName = true;
+            ss.appName = "PartialApp";
+            ss.wrapInAppName = true;
 
             SiblingList stepSiblings = new SiblingList();
             stepSiblings.Add(p.ExtraInfo);
             stepSiblings.Add(ss);
 
-            p.ExtraInfo.StepSiblings = stepSiblings;
-            ss.StepSiblings = stepSiblings;
+            p.ExtraInfo.Siblings = stepSiblings;
+            ss.Siblings = stepSiblings;
 
             var session = new Session(SessionOptions.IncludeNamespaces);
             p.Session = session;
@@ -563,21 +582,21 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestSerializeWithNamespacesEnabled() {
             person p = new person();
-            p._appName = "MainApp";
-            p._wrapInAppName = true;
-            p.ExtraInfo._appName = "MainApp";
-            p.ExtraInfo._wrapInAppName = true;
+            p.appName = "MainApp";
+            p.wrapInAppName = true;
+            p.ExtraInfo.appName = "MainApp";
+            p.ExtraInfo.wrapInAppName = true;
 
             supersimple ss = new supersimple();
-            ss._appName = "PartialApp";
-            ss._wrapInAppName = true;
+            ss.appName = "PartialApp";
+            ss.wrapInAppName = true;
 
             SiblingList stepSiblings = new SiblingList();
             stepSiblings.Add(p.ExtraInfo);
             stepSiblings.Add(ss);
 
-            p.ExtraInfo.StepSiblings = stepSiblings;
-            ss.StepSiblings = stepSiblings;
+            p.ExtraInfo.Siblings = stepSiblings;
+            ss.Siblings = stepSiblings;
 
             var session = new Session(SessionOptions.IncludeNamespaces);
             session.enableNamespaces = true;
@@ -704,19 +723,19 @@ namespace Starcounter.Internal.XSON.Tests {
             siblings.Add(page);
             siblings.Add(sibling);
 
-            ((Json)page).StepSiblings = siblings;
-            ((Json)sibling).StepSiblings = siblings;
+            ((Json)page).Siblings = siblings;
+            ((Json)sibling).Siblings = siblings;
 
             sibling.Name = "Sibling";
             
-            Assert.IsTrue(sibling._Dirty);
+            Assert.IsTrue(sibling.dirty);
             Assert.IsFalse(sibling.HasBeenSent);
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
             
             changes = root.ChangeLog.Generate(true);
 
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0]));
-            Assert.IsFalse(sibling._Dirty);
+            Assert.IsFalse(sibling.dirty);
             Assert.IsTrue(sibling.HasBeenSent);
         }
 
@@ -763,7 +782,7 @@ namespace Starcounter.Internal.XSON.Tests {
             session.Data = root;
 
             Change[] changes = root.ChangeLog.Generate(true);
-
+            
             dynamic siblingRoot = new Json();
             dynamic sibling = new Json();
             siblingRoot.Current = sibling;
@@ -772,17 +791,17 @@ namespace Starcounter.Internal.XSON.Tests {
             siblings.Add(page);
             siblings.Add(sibling);
 
-            ((Json)page).StepSiblings = siblings;
-            ((Json)sibling).StepSiblings = siblings;
+            ((Json)page).Siblings = siblings;
+            ((Json)sibling).Siblings = siblings;
 
             sibling.Name = "Sibling";
 
-            Assert.IsTrue(sibling._Dirty);
+            Assert.IsTrue(sibling.IsDirty());
             Assert.IsFalse(sibling.HasBeenSent);
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
 
             changes = root.ChangeLog.Generate(true);
-
+            
             sibling = new Json();
             sibling.Header = "New sibling";
             siblingRoot.Current = sibling;
@@ -790,8 +809,155 @@ namespace Starcounter.Internal.XSON.Tests {
             changes = root.ChangeLog.Generate(true);
 
             Assert.AreEqual(1, changes.Length);
-            Assert.AreEqual(sibling, changes[0].Parent);
+            if (sibling != changes[0].Parent) {
+                throw new Exception("Instances of json are not the same.");
+            }
             Assert.IsNull(changes[0].Property);
+        }
+
+        [Test]
+        public void TestAccessToBoundPrimitiveProperty() {
+            var schema = new TObject();
+            var tName = schema.Add<TString>("Name");
+            var data = new PropertyAccessCounter();
+
+            Json json = (Json)schema.CreateInstance();
+            json.Data = data;
+
+            data.Name = "JohnDoe";
+            data.ResetCount();
+
+            // First test simple serialization. 
+            string str = json.ToJson();
+
+            // No caching should be enabled. Each property is accessed twice (estimate, serialize)
+            Assert.AreEqual(2, data.GetNameCount);
+            Assert.AreEqual(0, data.SetNameCount);
+
+            json.Set(tName, "Nils Nilsson");
+            Assert.AreEqual(2, data.GetNameCount);
+            Assert.AreEqual(1, data.SetNameCount);
+            Assert.AreEqual("Nils Nilsson", data.NameSkipCounter);
+
+            data.ResetCount();
+            
+            var session = new Session();
+            session.Data = json;
+
+            str = json.ToJson();
+
+            Assert.AreEqual(2, data.GetNameCount);
+            Assert.AreEqual(0, data.SetNameCount);
+
+            json.VerifyDirtyFlags();
+            
+            data.ResetCount();
+            session.Use(() => {
+                var jsonPatch = new JsonPatch();
+                str = jsonPatch.Generate(json, true, false);
+                json.Set(tName, "Arne Anka");
+                
+                data.ResetCount();
+                str = jsonPatch.Generate(json, true, false);
+
+                json.VerifyDirtyFlags();
+
+                Assert.AreEqual(1, data.GetNameCount);
+                Assert.AreEqual(0, data.SetNameCount);
+                Assert.IsFalse(json.IsCached(tName));
+         
+                data.Name = "John Doe";
+                data.ResetCount();
+
+                str = jsonPatch.Generate(json, true, false);
+
+                json.VerifyDirtyFlags();
+
+                Assert.AreEqual(1, data.GetNameCount);
+                Assert.AreEqual(0, data.SetNameCount);
+                Assert.IsFalse(json.IsCached(tName));
+            });
+            
+            // Verifying that name is cached in unbound storage.
+            Assert.AreEqual(data.NameSkipCounter, tName.UnboundGetter(json));
+        }
+
+        [Test]
+        public void TestAccessToBoundObjectProperty() {
+            var schema = new TObject();
+            var tAgent = schema.Add<TObject>("Agent");
+            
+            tAgent.Add<TString>("Name");
+            var data = new PropertyAccessCounter();
+            data.Agent = new Agent() { Name = "John Doe" };
+
+            Json json = (Json)schema.CreateInstance();
+            json.Data = data;
+            
+            data.ResetCount();
+
+            // First test simple serialization. 
+            string str = json.ToJson();
+            
+            Assert.AreEqual(1, data.GetAgentCount);
+            Assert.AreEqual(0, data.SetAgentCount);
+
+            data.ResetCount();
+
+            var newAgent = new Agent() { Name = "Nils Nilsson" };
+            json.Set(tAgent, newAgent);
+            Assert.AreEqual(0, data.GetAgentCount);
+            Assert.AreEqual(1, data.SetAgentCount);
+            Assert.AreEqual(newAgent, data.AgentSkipCounter);
+
+            data.ResetCount();
+
+            // Adding a Session (i.e. json will be stateful and propertyaccess during serialization cached).
+            var session = new Session();
+            session.Data = json;
+
+            str = json.ToJson();
+
+            Assert.AreEqual(1, data.GetAgentCount);
+            Assert.AreEqual(0, data.SetAgentCount);
+
+            json.VerifyDirtyFlags();
+
+            // Verifying that name is cached in unbound storage.
+            Assert.AreSame(data.AgentSkipCounter, tAgent.UnboundGetter(json).Data);
+
+            // Resetting cached value.
+            tAgent.UnboundSetter(json, (Json)tAgent.CreateInstance());
+
+            data.ResetCount();
+            session.Use(() => {
+                var jsonPatch = new JsonPatch();
+                str = jsonPatch.Generate(json, true, false);
+                json.Set(tAgent, new Agent() { Name = "Apa Papa" });
+
+                data.ResetCount();
+                str = jsonPatch.Generate(json, true, false);
+
+                json.VerifyDirtyFlags();
+
+                Assert.AreEqual(1, data.GetAgentCount);
+                Assert.AreEqual(0, data.SetAgentCount);
+                Assert.IsFalse(json.IsCached(tAgent));
+
+                data.Agent = new Agent() { Name = "John Doe" };
+                data.ResetCount();
+
+                str = jsonPatch.Generate(json, true, false);
+
+                json.VerifyDirtyFlags();
+
+                Assert.AreEqual(1, data.GetAgentCount);
+                Assert.AreEqual(0, data.SetAgentCount);
+                Assert.IsFalse(json.IsCached(tAgent));
+            });
+
+            // Verifying that name is cached in unbound storage.
+            Assert.AreEqual(data.AgentSkipCounter, tAgent.UnboundGetter(json).Data);
         }
     }
 }

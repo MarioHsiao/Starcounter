@@ -21,23 +21,27 @@ namespace Starcounter {
 		/// </summary>
 		/// <returns></returns>
 		public string ToJson() {
+            byte[] buffer;
+            int exactSize;
+
             if (Template == null) {
                 // TODO:
                 // We probably should return null here instead of empty object since it can be anything.
                 return "{}";
             }
-
+            
             var serializer = ((TValue)Template).JsonSerializer;
             int estimatedSize = serializer.EstimateSizeBytes(this);
-            byte[] buffer = new byte[estimatedSize];
-            int exactSize;
-
-            unsafe {
-                fixed (byte* pdest = buffer) {
+            buffer = new byte[estimatedSize];
+                
+            unsafe
+            {
+                fixed (byte* pdest = buffer)
+                {
                     exactSize = serializer.Serialize(this, (IntPtr)pdest, buffer.Length);
                 }
             }
-
+            
             return Encoding.UTF8.GetString(buffer, 0, exactSize);
         }
 
@@ -46,17 +50,21 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public byte[] ToJsonUtf8() {
+            byte[] buffer;
+
             if (Template == null) {
                 return new byte[] { (byte)'{', (byte)'}' };
             }
 
             var serializer = ((TValue)Template).JsonSerializer;
             int estimatedSize = serializer.EstimateSizeBytes(this);
-            byte[] buffer = new byte[estimatedSize];
+            buffer = new byte[estimatedSize];
             int exactSize;
 
-            unsafe {
-                fixed (byte* pdest = buffer) {
+            unsafe
+            {
+                fixed (byte* pdest = buffer)
+                {
                     exactSize = serializer.Serialize(this, (IntPtr)pdest, buffer.Length);
                 }
             }
@@ -66,7 +74,6 @@ namespace Starcounter {
                 Buffer.BlockCopy(buffer, 0, tmp, 0, exactSize);
                 buffer = tmp;
             }
-
             return buffer;
         }
 
