@@ -167,43 +167,10 @@ namespace Starcounter.XSON.Metadata {
         public static CodeBehindClassInfo EvaluateAttributeString(string attribute, CodeBehindClassInfo existing) {
             if (attribute == null)
                 return null;
-
-			if (attribute.Contains("BindChildren")) {
-				int count;
-				int index = attribute.IndexOf("Bound.");
-				if (index == -1)
-					throw new Exception("Invalid value for BindChildren attribute");
-
-				index += 6;
-				count = attribute.Length - index - 1;
-
-				BindingStrategy bound;
-				if (!Enum.TryParse<BindingStrategy>(attribute.Substring(index, count), out bound))
-					throw new Exception("Unable to get correct value from BindChildren attribute");
-
-				if (existing == null)
-					existing = new CodeBehindClassInfo(null);
-				existing.BindChildren = bound;
-				return existing;
-			}
-
+            
             var strings = attribute.Split('.');
 
-            // First attempt the old syntax "[MyClass.json.Somestuff]
-            for (int t = 0; t < strings.Length; t++) {
-                if (strings[t].Equals("json")) {
-					if (existing == null)
-						existing = new CodeBehindClassInfo(attribute);
-					else
-						existing.RawDebugJsonMapAttribute = attribute;
-
-					existing.IsRootClass = (t == strings.Length - 1);
-					existing.ClassPath = CreateClassPathFromOldSyntax(attribute);
-					return existing;
-                }
-            }
-
-            // Then try the new syntax "[MyFile_json.Somestuff]
+            // Example: "[MyFile_json.Somestuff]
             for (int t = 0; t < strings.Length; t++) {
                 if (strings[t].EndsWith("_json")) {
 					if (existing == null)
@@ -212,47 +179,15 @@ namespace Starcounter.XSON.Metadata {
 						existing.RawDebugJsonMapAttribute = attribute;
 
 					existing.IsRootClass = (t == strings.Length - 1);
-					existing.ClassPath = CreateClassPathFromNewSyntax(strings);
+					existing.ClassPath = CreateClassPathFromSplitAttributeString(strings);
 					return existing;
                 }
             }
 
-
-#if DEBUG
-            if (attribute.Contains("json.")) {
-                throw new Exception("Internal error when detecting .json attribute in code-behind");
-            }
-#endif
             return null;
         }
 
-
-
-
-
-        private static string CreateClassPathFromOldSyntax(string raw) {
-
-            if (raw.StartsWith("json.")) {
-                raw = raw.Substring(5);
-            }
-            else {
-                int index = raw.IndexOf(".json.");
-                if (index != -1) {
-                    // Remove the json part before searching for the template.
-                    raw = raw.Substring(index + 6);
-                }
-                else {
-                    if (raw == "json" || raw.EndsWith(".json")) {
-                        return "*"; // This is a root class
-                    }
-                }
-            }
-            return "*." + raw;
-        }
-
-
-
-        private static string CreateClassPathFromNewSyntax(string[] raw) {
+        private static string CreateClassPathFromSplitAttributeString(string[] raw) {
 
             string output = "*";
             bool inFileClassQualifier = true;

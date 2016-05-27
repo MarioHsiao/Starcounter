@@ -10,6 +10,7 @@ using System.IO;
 using System.Text;
 using Mono.CSharp;
 using Starcounter.XSON.Metadata;
+using Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.XSON.Compiler.Mono {
     /// <summary>
@@ -22,15 +23,36 @@ namespace Starcounter.XSON.Compiler.Mono {
         /// </summary>
         /// <param name="className">Name of the class.</param>
         /// <param name="codeBehindFilename">The codebehind filename.</param>
+        /// <param name="useRoslynParser">Instruct the analyzer to use the newer
+        /// Roslyn-based parser</param>
         /// <returns>CodeBehindMetadata.</returns>
-        public static CodeBehindMetadata Analyze(string className, string codebehind, string filePathNote ) {
+        public static CodeBehindMetadata Analyze(string className, string codebehind, string filePathNote, bool? useRoslynParser = null) {
             CodeBehindMetadata metadata;
             CSharpToken token;
             MonoCSharpEnumerator mce;
 			bool beforeNS = true;
-           
+            bool useRoslyn = true;
+
+            if (useRoslynParser.HasValue) {
+                // Caller made explicit choice; respect that.
+                useRoslyn = useRoslynParser.Value;
+            }
+            else {
+                // We use Roslyn parser if not the temporary labs-like
+                // setting instruct to enable the Mono-based one.
+                var useMono = Environment.GetEnvironmentVariable("SC_LABS_JSON_CODEBEHIND_MONO_PARSER");
+                if (!string.IsNullOrEmpty(useMono)) {
+                    useRoslyn = false;
+                }
+            }
+
             if ((codebehind == null) || codebehind.Equals("") ) {
                 return CodeBehindMetadata.Empty;
+            }
+
+            if (useRoslyn) {
+                var parser = new RoslynCodeBehindParser(className, codebehind, filePathNote);
+                return parser.ParseToMetadata();
             }
 
             mce = new MonoCSharpEnumerator(codebehind, filePathNote );
@@ -398,7 +420,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                 }
 
                 //                    classInfo.AutoBindToDataObject = (genericArg != null);
-                metadata.JsonPropertyMapList.Add(classInfo);
+                metadata.CodeBehindClasses.Add(classInfo);
 
 #if DEBUG
                 if (metadata.RootClassInfo == null)
@@ -416,7 +438,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                     //               info.JsonMapName = attribute.Raw;
                     info.Namespace = mce.CurrentNamespace;
                     info.ParentClasses = mce.ClassList;
-                    metadata.JsonPropertyMapList.Add(info);
+                    metadata.CodeBehindClasses.Add(info);
                 }
             }
             mce.PushClass(foundClassName);

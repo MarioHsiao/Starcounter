@@ -22,7 +22,7 @@ namespace MySampleNamespace
         {
         }
 
-        [json.ActivePage.SubPage1.SubPage2.SubPage3]
+        [MySampleApp_json.ActivePage.SubPage1.SubPage2.SubPage3]
         public partial class SubPage3Impl : Json<Order>, IFoo, IFoo3
         {
             public void Handle(Input.StringValue input)
@@ -30,19 +30,19 @@ namespace MySampleNamespace
             }
         }
 
-        [json.ActivePage]
+        [MySampleApp_json.ActivePage]
         public partial class ActivePageImpl : Json, IFoo
         {
             
         }
 
-        [json.ActivePage.SubPage1.SubPage2]
+        [MySampleApp_json.ActivePage.SubPage1.SubPage2]
         public partial class SubPage2Impl : Json
         {
             
         }
 
-        [json.ActivePage.SubPage1]
+        [MySampleApp_json.ActivePage.SubPage1]
         public partial class SubPage1Impl : Json
         {
         }
