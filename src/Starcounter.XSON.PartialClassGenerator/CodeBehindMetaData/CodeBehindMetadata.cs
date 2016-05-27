@@ -38,7 +38,7 @@ namespace Starcounter.XSON.Metadata
         /// <returns></returns>
         public CodeBehindClassInfo FindClassInfo(string fullClassPath) {
             //throw new Exception(fullClassPath);
-            foreach (var ci in JsonPropertyMapList) {
+            foreach (var ci in CodeBehindClasses) {
                 if (ci.ClassPath == fullClassPath)
                     return ci;
             }
@@ -51,17 +51,18 @@ namespace Starcounter.XSON.Metadata
 		public List<string> UsingDirectives = new List<string>();
 
         /// <summary>
-        /// A list of classes from the code-behind file that should be connected
-        /// to the correct app in the generated code.
+        /// A list of classes from the code-behind file that reference the JSON-by-example
+        /// object's object nodes.
         /// </summary>
-        public List<CodeBehindClassInfo> JsonPropertyMapList = new List<CodeBehindClassInfo>();
+        public List<CodeBehindClassInfo> CodeBehindClasses = new List<CodeBehindClassInfo>();
 
         /// <summary>
-        /// Class information for the root in the Json object
+        /// Class information for the root in the Json object, i.e. the one that correspond
+        /// to the most outer object node in the JSON-by-example file.
         /// </summary>
         public CodeBehindClassInfo RootClassInfo {
             get {
-                foreach (var ci in JsonPropertyMapList) {
+                foreach (var ci in CodeBehindClasses) {
                     if (ci.IsRootClass)
                         return ci;
                 }

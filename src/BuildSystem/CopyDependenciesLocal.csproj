@@ -35,6 +35,7 @@
     <LocalServiceConfig Include="..\scservicelib\config\$(ServiceConfigFile)" />
     
 	<ClientFiles Include="ClientFiles\**\*" />
+        <Licenses Include="Licenses\**\*" />
 	
   </ItemGroup>
   
@@ -67,8 +68,8 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PrologSQLParserBinary)" DestinationFolder="$(OutputPath32)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClangGatewayUriMatcherBinary)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="!Exists('$(ServiceConfigTargetFile)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalServiceConfig)" DestinationFolder="$(OutputPathConfig)" />
-	<Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClientFiles)" DestinationFiles="@(ClientFiles->'$(OutputPath)\ClientFiles\%(RecursiveDir)%(Filename)%(Extension)')" />
-
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClientFiles)" DestinationFiles="@(ClientFiles->'$(OutputPath)\ClientFiles\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(Licenses)" DestinationFiles="@(Licenses->'$(OutputPath)\Licenses\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
   
   <Target Name="Rebuild" DependsOnTargets="CopyLocalFiles" />

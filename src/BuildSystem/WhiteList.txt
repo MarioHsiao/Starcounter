@@ -1,5 +1,8 @@
 # Folders should end with backslash
 
+#Licenses
+Licenses\
+
 # 32-bit components
 32BitComponents\
 
@@ -96,6 +99,10 @@ log_writer_client.lib
 log_writer_client.pdb
 Microsoft.VisualStudio.Settings.dll
 Microsoft.VisualStudio.Settings.xml
+Microsoft.CodeAnalysis.dll
+Microsoft.CodeAnalysis.xml
+Microsoft.CodeAnalysis.CSharp.dll
+Microsoft.CodeAnalysis.CSharp.xml
 misplaced.html
 Mono.Cecil.dll
 Mono.Cecil.Pdb.dll
