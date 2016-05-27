@@ -1012,55 +1012,61 @@ namespace Administrator.Server.Model {
             // Execute Command
             var c = runtime.Execute(command, (commandId) => {
 
-                if (command is StartExecutableCommand &&
-                    (this.Status.HasFlag(ApplicationStatus.Stopping) ||
-                    this.Status.HasFlag(ApplicationStatus.Deleting))) {
+                lock (ServerManager.ServerInstance) {
 
-                    return true;    // return true to cancel
+                    if (command is StartExecutableCommand &&
+                        (this.Status.HasFlag(ApplicationStatus.Stopping) ||
+                        this.Status.HasFlag(ApplicationStatus.Deleting))) {
+
+                        return true;    // return true to cancel
+                    }
+                    else if (command is StopExecutableCommand && this.Status.HasFlag(ApplicationStatus.Starting)) {
+
+                        return true;    // return true to cancel
+                    }
+
+
+                    return false;   // return true to cancel
                 }
-                else if (command is StopExecutableCommand && this.Status.HasFlag(ApplicationStatus.Starting)) {
-
-                    return true;    // return true to cancel
-                }
-
-
-                return false;   // return true to cancel
-
 
             }, (commandId) => {
 
-                CommandInfo commandInfo = runtime.GetCommand(commandId);
+                lock (ServerManager.ServerInstance) {
 
-                this.IsRunning = this.ApplicationRunningState();
+                    CommandInfo commandInfo = runtime.GetCommand(commandId);
 
-                this.StatusText = string.Empty;
+                    this.IsRunning = this.ApplicationRunningState();
 
-                if (commandInfo.HasError) {
+                    this.StatusText = string.Empty;
 
-                    //Check if command was Canceled
-                    bool wasCancelled = false;
-                    if (commandInfo.HasProgress) {
-                        foreach (var p in commandInfo.Progress) {
-                            if (p.WasCancelled == true) {
-                                wasCancelled = true;
-                                break;
+                    if (commandInfo.HasError) {
+
+                        //Check if command was Canceled
+                        bool wasCancelled = false;
+                        if (commandInfo.HasProgress) {
+                            foreach (var p in commandInfo.Progress) {
+                                if (p.WasCancelled == true) {
+                                    wasCancelled = true;
+                                    break;
+                                }
                             }
                         }
+
+                        ErrorInfo single = commandInfo.Errors.PickSingleServerError();
+                        var msg = single.ToErrorMessage();
+
+                        if (errorCallback != null) {
+                            errorCallback(this, wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                        }
                     }
+                    else {
 
-                    ErrorInfo single = commandInfo.Errors.PickSingleServerError();
-                    var msg = single.ToErrorMessage();
-
-                    if (errorCallback != null) {
-                        errorCallback(this, wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                        if (completionCallback != null) {
+                            completionCallback(this);
+                        }
                     }
                 }
-                else {
 
-                    if (completionCallback != null) {
-                        completionCallback(this);
-                    }
-                }
             });
 
             this.StatusText = c.Description;
