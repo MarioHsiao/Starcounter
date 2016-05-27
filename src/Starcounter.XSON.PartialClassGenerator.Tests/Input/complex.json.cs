@@ -51,6 +51,10 @@ namespace MySampleNamespace {
             return new Complex();
         }
 
+        [Random5]
+        public int Foo123;
+
+        [Obsolete, NonSerialized]
         public void Handle(Input.userLink input) {
         }
 
@@ -62,10 +66,11 @@ namespace MySampleNamespace {
         }
 
         [Another(Fake = true), Test]
-        [json.ActivePage.SubPage1.SubPage2.SubPage3]
+        [Complex_json.ActivePage.SubPage1.SubPage2.SubPage3]
         [SomeOther]
+        [Random2][Random8][Random9]
         public partial class SubPage3Impl : Json, IFoo, IFoo3, IBound<OrderItem> {
-            [json.Blabla.bla]
+            [Complex_json.Blabla.bla]
             public partial class SubPage3Sub1 : Json {
             }
 
@@ -76,19 +81,19 @@ namespace MySampleNamespace {
         /// <summary>
         /// Testing comments in code for the analyzer.
         /// </summary>
-        [json.ActivePage]
+        [Complex_json.ActivePage]
         public partial class ActivePageImpl : Json, IFoo {
             public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input) {
             }
         }
 
-        [json.ActivePage.SubPage1.SubPage2]
+        [Complex_json.ActivePage.SubPage1.SubPage2]
         public partial class SubPage2Impl : Json {
             public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input) {
             }
         }
 
-        [json.ActivePage.SubPage1]
+        [Complex_json.ActivePage.SubPage1]
         public partial class SubPage1Impl : Json {
             public void Handle(Input.ActivePage.SubPage1.SubPage2.SubPage3.StringValue input) {
             }

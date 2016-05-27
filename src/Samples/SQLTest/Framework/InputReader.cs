@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Starcounter;
+using System.Linq;
 
 namespace SQLTest
 {
@@ -115,6 +116,15 @@ namespace SQLTest
                             continue;
                         }
 
+                        if (line.StartsWith("ShouldBeReorderedPartially:"))
+                        {
+                            var range = line.Substring(27).Split('-').Select(s => int.Parse(s.Trim()));
+
+                            testQuery.ResultReorderIndexes = Tuple.Create( range.First(), range.Skip(1).First() );
+                            testQuery.ShouldBeReordered = false;
+                            continue;
+                        }
+
                         if (line.StartsWith("UseBisonParser:")) {
                             testQuery.UseBisonParser = Boolean.Parse(line.Substring(15).Trim());
                             continue;
@@ -139,8 +149,13 @@ namespace SQLTest
                             continue;
                         }
 
-                        if (line == "ExpectedResult:")
+                        if ((line == "ExpectedResult:") || (line.StartsWith("ExpectedPartialResult:")))
                         {
+                            if ( line.StartsWith("ExpectedPartialResult:"))
+                            {
+                                testQuery.NumberOfPartialResultsExpected = int.Parse(line.Substring(22).Trim());
+                            }
+
                             stringBuilder = new StringBuilder();
                             while (!reader.EndOfStream && line != "")
                             {

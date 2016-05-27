@@ -2,7 +2,7 @@
 
 namespace Starcounter.XSON.CodeGeneration.Tests {
     partial class databound : Json<Person> {
-        [json.SingleNumber]
+        [databound_json.SingleNumber]
         partial class PhoneNumberJson : Json<PhoneNumber> {
         }
     }
