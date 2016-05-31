@@ -606,6 +606,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestArrayChangesWithRemoveAndUpdate_3669() {
+            var jsonPatch = new JsonPatch();
+            Change[] changes;
             var schema = new TObject();
             var tArr = schema.Add<TArray<Json>>("Recursives");
 
@@ -627,12 +629,12 @@ namespace Starcounter.Internal.XSON.Tests {
             var changeLog = json.ChangeLog;
 
             session.Use(() => {
-                changeLog.Generate(true);
+                jsonPatch.Generate(json, true, false);
 
                 data.Recursives[1].Name = "Karl Urban";
                 data.Recursives.RemoveAt(0);
 
-                Change[] changes = json.ChangeLog.Generate(true);
+                changes = changeLog.Generate(true);
 
                 Assert.AreEqual(2, changes.Length);
                 Assert.AreEqual(Change.REMOVE, changes[0].ChangeType);
