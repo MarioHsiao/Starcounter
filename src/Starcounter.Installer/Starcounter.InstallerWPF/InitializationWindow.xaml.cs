@@ -300,7 +300,7 @@ namespace Starcounter.InstallerWPF {
 
                     Process prevSetupProcess = new Process();
                     prevSetupProcess.StartInfo.FileName = prevSetupExeFile;
-                    prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances forceuninstall keepsettings";
+                    prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances forceuninstall keepsettings autoclose";
                     prevSetupProcess.Start();
 
                     // Waiting until previous installer finishes its work.
@@ -486,6 +486,7 @@ namespace Starcounter.InstallerWPF {
             MainWindow mainWindow = new MainWindow();
             mainWindow.Configuration.ForceUninstall = this.forceuninstall;
             mainWindow.Configuration.KeepSettings = this.keepsettings;
+            mainWindow.Configuration.AutoClose = this.autoclose;
             App.Current.MainWindow = mainWindow;
             this.CloseWindow();
 
@@ -644,6 +645,7 @@ namespace Starcounter.InstallerWPF {
         Boolean silentMode = false;
         Boolean forceuninstall = false;
         Boolean keepsettings = false;
+        Boolean autoclose = true;
 
         internal static String ScEnvVarName = "StarcounterBin";
 
@@ -679,6 +681,9 @@ namespace Starcounter.InstallerWPF {
                 }
                 else if (param.Equals("keepsettings", StringComparison.InvariantCultureIgnoreCase)) {
                     this.keepsettings = true;
+                }
+                else if (param.Equals("autoclose", StringComparison.InvariantCultureIgnoreCase)) {
+                    this.autoclose = true;
                 }
                 else {
                     internalMode = true;

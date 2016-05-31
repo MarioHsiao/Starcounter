@@ -82,6 +82,16 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
+        private bool _AutoClose = false;
+        public bool AutoClose {
+            get {
+                return this._AutoClose;
+            }
+            set {
+                this._AutoClose = value;
+                this.OnPropertyChanged("AutoClose");
+            }
+        }
 
         #endregion
 

@@ -224,7 +224,15 @@ namespace Starcounter.InstallerWPF.Pages {
                 this.IsInstalling = false;
                 this.StopAnimation();
                 this._CanGoNext = true;
-                NavigationCommands.NextPage.Execute(null, this);
+
+                Configuration config = (Configuration)DataContext;
+                if (config.AutoClose) {
+                    MainWindow.StartRoutedCommand.Execute(null, this);
+                }
+                else {
+                    NavigationCommands.NextPage.Execute(null, this);
+                }
+
                 CommandManager.InvalidateRequerySuggested();
             }
             catch (Exception e) {

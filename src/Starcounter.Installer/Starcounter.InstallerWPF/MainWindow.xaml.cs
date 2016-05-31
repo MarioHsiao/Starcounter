@@ -475,7 +475,7 @@ namespace Starcounter.InstallerWPF {
         }
 
         public static Boolean[] InstalledComponents;
-        
+
 
         #endregion
 
@@ -1042,7 +1042,9 @@ namespace Starcounter.InstallerWPF {
             //            this.RegisterPage(new MovieProgressPage());
 
             this.RegisterPage(new InstallProgressPage());
-            this.RegisterPage(new InstallFinishedPage());
+            if (!this.Configuration.AutoClose) {
+                this.RegisterPage(new InstallFinishedPage());
+            }
         }
 
         /// <summary>
@@ -1055,8 +1057,9 @@ namespace Starcounter.InstallerWPF {
             }
 
             this.RegisterPage(new UninstallProgressPage());
-
-            this.RegisterPage(new UninstallFinishedPage());
+            if (!this.Configuration.AutoClose) {
+                this.RegisterPage(new UninstallFinishedPage());
+            }
         }
 
         /// <summary>
