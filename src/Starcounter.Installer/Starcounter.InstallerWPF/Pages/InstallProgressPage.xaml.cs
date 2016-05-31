@@ -179,15 +179,15 @@ namespace Starcounter.InstallerWPF.Pages {
                     vs2013IntegrationComponent != null && vs2013IntegrationComponent.IsExecuteCommandEnabled && vs2013IntegrationComponent.ExecuteCommand);
 
                 config.ExecuteSettings(
-                          delegate(object sender, Utilities.InstallerProgressEventArgs args) {
+                          delegate (object sender, Utilities.InstallerProgressEventArgs args) {
                               this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                                                       new Action(delegate {
-                                  this.Progress = args.Progress;
-                                  this.ProgressText = args.Text;
-                              }
+                                                          this.Progress = args.Progress;
+                                                          this.ProgressText = args.Text;
+                                                      }
                                                   ));
                           },
-                            delegate(object sender, Utilities.MessageBoxEventArgs args) {
+                            delegate (object sender, Utilities.MessageBoxEventArgs args) {
                                 this._dispatcher.Invoke(new Action(() => {
                                     args.MessageBoxResult = WpfMessageBox.Show(args.MessageBoxText, args.Caption, args.Button, args.Icon, args.DefaultResult);
                                 }));
@@ -201,10 +201,10 @@ namespace Starcounter.InstallerWPF.Pages {
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
 
-                    Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullInstallation, true);
+                        Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullInstallation, true);
 
-                    this.OnSuccess();
-                }
+                        this.OnSuccess();
+                    }
                 ));
                 //((Configuration)state).RunInstallerEngine(ConstantsBank.ScGlobalSettingsIniName, null);
             }
@@ -213,10 +213,10 @@ namespace Starcounter.InstallerWPF.Pages {
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
 
-                    Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullInstallation, false);
+                        Starcounter.Tracking.Client.Instance.SendInstallerFinish(Tracking.Client.InstallationMode.FullInstallation, false);
 
-                    this.OnError(installException);
-                }
+                        this.OnError(installException);
+                    }
                 ));
             }
 
@@ -230,16 +230,29 @@ namespace Starcounter.InstallerWPF.Pages {
         /// <param name="server">The server.</param>
         /// <param name="internalDatabases">The internal databases.</param>
         private void OnSuccess() {
-            this.IsInstalling = false;
 
-            StopAnimation();
-            _CanGoNext = true;
+            try {
+                this.IsInstalling = false;
 
-            NavigationCommands.NextPage.Execute(null, this);
-            CommandManager.InvalidateRequerySuggested();
+                StopAnimation();
+                _CanGoNext = true;
 
-            this.DisplayName = "Finished";
+                Configuration config = (Configuration)DataContext;
+                if (config.AutoClose) {
+                    this.GoToWiki = false;
+                    MainWindow.StartRoutedCommand.Execute(null, this);
+                }
+                else {
+                    NavigationCommands.NextPage.Execute(null, this);
+                }
 
+                CommandManager.InvalidateRequerySuggested();
+
+                this.DisplayName = "Finished";
+            }
+            catch (Exception e) {
+                this.OnError(e);
+            }
         }
 
         /// <summary>
@@ -300,7 +313,7 @@ namespace Starcounter.InstallerWPF.Pages {
 
 
                 config.ExecuteSettings(
-                           delegate(object sender, Utilities.InstallerProgressEventArgs args) {
+                           delegate (object sender, Utilities.InstallerProgressEventArgs args) {
                                this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                                                        new Action(delegate {
 
@@ -309,7 +322,7 @@ namespace Starcounter.InstallerWPF.Pages {
                                                        }
                                                    ));
                            },
-                             delegate(object sender, Utilities.MessageBoxEventArgs args) {
+                             delegate (object sender, Utilities.MessageBoxEventArgs args) {
                                  this._dispatcher.Invoke(new Action(() => {
                                      args.MessageBoxResult = WpfMessageBox.Show(args.MessageBoxText, args.Caption, args.Button, args.Icon, args.DefaultResult);
                                  }));
