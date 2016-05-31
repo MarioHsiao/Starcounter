@@ -142,6 +142,7 @@
     <Compile Include="LicenseAgreementWindow.xaml.cs">
       <DependentUpon>LicenseAgreementWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\IProgressPage.cs" />
     <Compile Include="Pages\InstallProgressPage.xaml.cs">
       <DependentUpon>InstallProgressPage.xaml</DependentUpon>
     </Compile>

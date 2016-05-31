@@ -61,6 +61,9 @@ namespace Starcounter.InstallerWPF {
         }
 
         private bool _ForceUninstall = false;
+        /// <summary>
+        /// No need to confirm uninstallation by user
+        /// </summary>
         public bool ForceUninstall {
             get {
                 return this._ForceUninstall;
@@ -72,6 +75,9 @@ namespace Starcounter.InstallerWPF {
         }
 
         private bool _KeepSettings = false;
+        /// <summary>
+        /// Keep settings when uninstalling (set to true when updateing starcounter)
+        /// </summary>
         public bool KeepSettings {
             get {
                 return this._KeepSettings;
@@ -83,6 +89,9 @@ namespace Starcounter.InstallerWPF {
         }
 
         private bool _AutoClose = false;
+        /// <summary>
+        /// Close executable when action was successfull (install/uninstall/add-remove components)
+        /// </summary>
         public bool AutoClose {
             get {
                 return this._AutoClose;
@@ -487,7 +496,6 @@ namespace Starcounter.InstallerWPF {
             Utilities.InstallerProgressEventArgs args = new Utilities.InstallerProgressEventArgs();
 
             try {
-                this.HandleUserCustomSettings();
 
                 // Simulate installation....
 #if SIMULATE_INSTALLATION
@@ -532,6 +540,7 @@ namespace Starcounter.InstallerWPF {
                 RunInstallerEngine(progressCallback, messageboxCallback);
 
 #endif
+                this.HandleUserCustomSettings();
 
             }
             catch (Exception e) {
