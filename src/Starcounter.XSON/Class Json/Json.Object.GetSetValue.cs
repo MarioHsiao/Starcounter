@@ -273,7 +273,6 @@ namespace Starcounter {
                 }
                 this.arrayAddsAndDeletes.Add(Change.Move(this.Parent, tarr, fromIndex, toIndex, item));
                 Dirtyfy();
-                item.SetBoundValuesInTuple();
             }
 
             if (Parent != null)

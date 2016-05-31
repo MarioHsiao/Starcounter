@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Administrator.Server.Managers {
     public class ExternalAPI {
@@ -20,9 +21,11 @@ namespace Administrator.Server.Managers {
 
                 lock (ServerManager.ServerInstance) {
 
+                    string id = HttpUtility.UrlDecode(taskID);
+
                     // TODO: Make hashtable or ExternalAPI.Tasks
                     foreach (Task task in ExternalAPI.Tasks) {
-                        if (task.ID == taskID) {
+                        if (task.ID == id) {
                             TaskJson taskItemJson = new TaskJson();
                             taskItemJson.Data = task;
                             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, Body = taskItemJson.ToJson() };
@@ -377,7 +380,7 @@ namespace Administrator.Server.Managers {
                                 taskItem.Channel = startedApplication.Channel;
                                 taskItem.Version = startedApplication.Version;
                                 taskItem.VersionDate = startedApplication.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-                                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", HttpUtility.UrlEncode(databaseApplication.DatabaseName), HttpUtility.UrlEncode(databaseApplication.ID));
                                 taskItem.ResourceID = databaseApplication.ID;
                                 taskItem.Status = 0; // Done;
                             }, (startedApplication, wasCancelled, title, message, helpLink) => {
@@ -393,7 +396,7 @@ namespace Administrator.Server.Managers {
                             taskItem.Channel = databaseApplication.Channel;
                             taskItem.Version = databaseApplication.Version;
                             taskItem.VersionDate = databaseApplication.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-                            taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                            taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", HttpUtility.UrlEncode(databaseApplication.DatabaseName), HttpUtility.UrlEncode(databaseApplication.ID));
                             taskItem.ResourceID = databaseApplication.ID;
                             taskItem.Status = 0; // Done;
                         }
@@ -448,7 +451,7 @@ namespace Administrator.Server.Managers {
                     taskItem.Channel = deployedApplication.Channel;
                     taskItem.Version = deployedApplication.Version;
                     taskItem.VersionDate = deployedApplication.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-                    taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", deployedApplication.DatabaseName, deployedApplication.ID); // TODO: Fix hardcodes IP and Port
+                    taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", HttpUtility.UrlEncode(deployedApplication.DatabaseName), HttpUtility.UrlEncode(deployedApplication.ID));
                     taskItem.ResourceID = deployedApplication.ID;
                     taskItem.Status = 0; // Done;
 
@@ -483,9 +486,6 @@ namespace Administrator.Server.Managers {
 
             // TODO: Force delete
             databaseApplication.DeleteApplication(true, (startedApplication) => {
-
-                //                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
-                //                taskItem.ResourceID = databaseApplication.ID;
                 taskItem.Status = 0; // Done;
             }, (startedApplication, wasCancelled, title, message, helpLink) => {
 
@@ -517,7 +517,7 @@ namespace Administrator.Server.Managers {
                 taskItem.Channel = startedApplication.Channel;
                 taskItem.Version = startedApplication.Version;
                 taskItem.VersionDate = startedApplication.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", HttpUtility.UrlEncode(databaseApplication.DatabaseName), HttpUtility.UrlEncode(databaseApplication.ID));
                 taskItem.ResourceID = databaseApplication.ID;
                 taskItem.Status = 0; // Done;
             }, (startedApplication, wasCancelled, title, message, helpLink) => {

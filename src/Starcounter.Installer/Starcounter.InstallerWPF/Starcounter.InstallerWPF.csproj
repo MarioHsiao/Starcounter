@@ -152,6 +152,7 @@
       <DependentUpon>SlidesPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Rules\PortRule.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="Slides\ISlide.cs" />
     <Compile Include="Slides\Movie.xaml.cs">
       <DependentUpon>Movie.xaml</DependentUpon>
@@ -463,6 +464,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

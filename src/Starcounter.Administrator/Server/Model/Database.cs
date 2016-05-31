@@ -1086,69 +1086,73 @@ namespace Administrator.Server.Model {
 
             // Execute Command
             var c = runtime.Execute(command, (commandId) => {
+                lock (ServerManager.ServerInstance) {
 
-                if (command is StartDatabaseCommand &&
-                    (this.Status.HasFlag(DatabaseStatus.Stopping) ||
-                    this.Status.HasFlag(DatabaseStatus.Deleting))) {
+                    if (command is StartDatabaseCommand &&
+                        (this.Status.HasFlag(DatabaseStatus.Stopping) ||
+                        this.Status.HasFlag(DatabaseStatus.Deleting))) {
 
-                    return true;    // return true to cancel
+                        return true;    // return true to cancel
+                    }
+                    else if (command is StopDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
+
+                        return true;    // return true to cancel
+                    }
+                    else if (command is DeleteDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
+
+                        return true;    // return true to cancel
+                    }
+                    else if (command is CreateDatabaseCommand && this.Status != DatabaseStatus.Creating) {
+
+                        return true;    // return true to cancel
+                    }
+
+                    return false;   // return true to cancel
+
+                    //if (command is DeleteDatabaseCommand) {
+                    //    return this.WantDeleted == this.IsDeleted;  // return true to cancel
+                    //}
+
+                    //return this.WantRunning == this.IsRunning;  // return true to cancel
                 }
-                else if (command is StopDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
-
-                    return true;    // return true to cancel
-                }
-                else if (command is DeleteDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
-
-                    return true;    // return true to cancel
-                }
-                else if (command is CreateDatabaseCommand && this.Status != DatabaseStatus.Creating) {
-
-                    return true;    // return true to cancel
-                }
-
-                return false;   // return true to cancel
-
-                //if (command is DeleteDatabaseCommand) {
-                //    return this.WantDeleted == this.IsDeleted;  // return true to cancel
-                //}
-
-                //return this.WantRunning == this.IsRunning;  // return true to cancel
-
             }, (commandId) => {
 
-                CommandInfo commandInfo = runtime.GetCommand(commandId);
+                lock (ServerManager.ServerInstance) {
 
-                this.IsRunning = this.DatabaseRunningState();
+                    CommandInfo commandInfo = runtime.GetCommand(commandId);
 
-                if (this.IsRunning) {
-                    this.RunPlayList();
-                }
-                this.StatusText = string.Empty;
+                    this.IsRunning = this.DatabaseRunningState();
 
-                if (commandInfo.HasError) {
+                    if (this.IsRunning) {
+                        this.RunPlayList();
+                    }
+                    this.StatusText = string.Empty;
 
-                    //Check if command was Canceled
-                    bool wasCancelled = false;
-                    if (commandInfo.HasProgress) {
-                        foreach (var p in commandInfo.Progress) {
-                            if (p.WasCancelled == true) {
-                                wasCancelled = true;
-                                break;
+                    if (commandInfo.HasError) {
+
+                        //Check if command was Canceled
+                        bool wasCancelled = false;
+                        if (commandInfo.HasProgress) {
+                            foreach (var p in commandInfo.Progress) {
+                                if (p.WasCancelled == true) {
+                                    wasCancelled = true;
+                                    break;
+                                }
                             }
                         }
+
+                        ErrorInfo single = commandInfo.Errors.PickSingleServerError();
+                        var msg = single.ToErrorMessage();
+
+                        if (errorCallback != null) {
+                            errorCallback(this, wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                        }
                     }
+                    else {
 
-                    ErrorInfo single = commandInfo.Errors.PickSingleServerError();
-                    var msg = single.ToErrorMessage();
-
-                    if (errorCallback != null) {
-                        errorCallback(this, wasCancelled, command.Description, msg.Brief, msg.Helplink);
-                    }
-                }
-                else {
-
-                    if (completionCallback != null) {
-                        completionCallback(this);
+                        if (completionCallback != null) {
+                            completionCallback(this);
+                        }
                     }
                 }
             });

@@ -4,6 +4,7 @@ using Starcounter.Administrator.Server.Utilities;
 using Starcounter.Server.PublicModel;
 using System;
 using System.Collections.Generic;
+using System.Web;
 
 namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
@@ -97,7 +98,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
                         }
 
-                        DatabaseApplication application = database.GetApplication(nameSpace, channel, version);
+                        DatabaseApplication application = database.GetApplication(HttpUtility.UrlDecode(nameSpace), HttpUtility.UrlDecode(channel), HttpUtility.UrlDecode(version));
                         if (application == null) {
                             // Application not found
                             ErrorResponse errorResponse = new ErrorResponse();
@@ -131,7 +132,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
                         }
 
-                        IList<DatabaseApplication> applications = database.GetApplications(nameSpace, channel);
+                        IList<DatabaseApplication> applications = database.GetApplications(HttpUtility.UrlDecode(nameSpace), HttpUtility.UrlDecode(channel));
 
                         DatabaseApplicationsJson result = new DatabaseApplicationsJson();
 

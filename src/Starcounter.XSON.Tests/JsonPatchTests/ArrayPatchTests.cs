@@ -604,6 +604,44 @@ namespace Starcounter.Internal.XSON.Tests {
             });
         }
 
+        [Test]
+        public static void TestArrayChangesWithRemoveAndUpdate_3669() {
+            var jsonPatch = new JsonPatch();
+            Change[] changes;
+            var schema = new TObject();
+            var tArr = schema.Add<TArray<Json>>("Recursives");
+
+            var itemSchema = new TObject();
+            var itemName = itemSchema.Add<TString>("Name");
+            tArr.ElementType = itemSchema;
+
+
+            var data = new Recursive();
+            data.Recursives.Add(new Recursive() { Name = "John Doe" });
+            data.Recursives.Add(new Recursive() { Name = "Nils Nilsson" });
+
+            Json json = (Json)schema.CreateInstance();
+            json.Data = data;
+
+            var session = new Session();
+            session.Data = json;
+
+            var changeLog = json.ChangeLog;
+
+            session.Use(() => {
+                jsonPatch.Generate(json, true, false);
+
+                data.Recursives[1].Name = "Karl Urban";
+                data.Recursives.RemoveAt(0);
+
+                changes = changeLog.Generate(true);
+
+                Assert.AreEqual(2, changes.Length);
+                Assert.AreEqual(Change.REMOVE, changes[0].ChangeType);
+                Assert.AreEqual(itemName, changes[1].Property);
+            });
+        }
+
         private static void AssertArray(IList actual, long[] expected) {
             Assert.AreEqual(expected.Length, actual.Count);
             for (int i = 0; i < expected.Length; i++) {
