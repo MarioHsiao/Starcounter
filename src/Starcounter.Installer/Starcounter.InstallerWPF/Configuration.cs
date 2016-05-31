@@ -448,11 +448,11 @@ namespace Starcounter.InstallerWPF {
         /// Executes the settings.
         /// Note, This is not done in the Main thread!
         /// </summary>
-        public void ExecuteSettings(
-            EventHandler<Utilities.InstallerProgressEventArgs> progressCallback,
-            EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback) {
+        public void ExecuteSettings(EventHandler<Utilities.InstallerProgressEventArgs> progressCallback, EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback) {
             Utilities.InstallerProgressEventArgs args = new Utilities.InstallerProgressEventArgs();
+
             try {
+                this.HandleUserCustomSettings();
 
                 // Simulate installation....
 #if SIMULATE_INSTALLATION
@@ -504,6 +504,49 @@ namespace Starcounter.InstallerWPF {
             }
 
         }
+
+        private void HandleUserCustomSettings() {
+
+            // If uninstalling and it's not un upgrade then we reset the settings to default.
+            //if (this.SetupOptions == SetupOptions.Uninstall) {
+            //    String installDir = InitializationWindow.GetInstalledDirFromEnv();
+            //    string prevSetupExeFile;
+            //    InitializationWindow.FindSetupExe(installDir, out prevSetupExeFile);
+            //    if (prevSetupExeFile != null) {
+            //        // If startup exe is started in current installation dir, then we assume that it's an uninstallation
+            //        var path1 = Path.GetFullPath(prevSetupExeFile);
+            //        var path2 = Path.GetFullPath(System.Reflection.Assembly.GetEntryAssembly().Location);
+
+            //        if (string.Equals(path1, path2, StringComparison.InvariantCultureIgnoreCase)) {
+            //            Properties.Settings.Default.Reset();
+            //            return;
+            //        }
+            //    }
+            //}
+
+
+            PersonalServer personalServer = this.Components[PersonalServer.Identifier] as PersonalServer;
+            Properties.Settings.Default.DatabasesRepositoryPath = personalServer.Path;
+            Properties.Settings.Default.DefaultUserHttpPort = personalServer.DefaultUserHttpPort;
+            Properties.Settings.Default.DefaultSystemHttpPort = personalServer.DefaultSystemHttpPort;
+            Properties.Settings.Default.DefaultAggregationPort = personalServer.DefaultAggregationPort;
+            Properties.Settings.Default.InstallPersonalServer = personalServer.ExecuteCommand;
+
+
+            InstallationBase installationBase = this.Components[InstallationBase.Identifier] as InstallationBase;
+            Properties.Settings.Default.InstallationBasePath = installationBase.BasePath;
+            Properties.Settings.Default.SendUsageAndCrashReports = installationBase.SendUsageAndCrashReports;
+
+            VisualStudio2012Integration vs2012Integration = this.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
+            Properties.Settings.Default.Vs2012Integration = vs2012Integration.ExecuteCommand;
+            VisualStudio2013Integration vs2013Integration = this.Components[VisualStudio2013Integration.Identifier] as VisualStudio2013Integration;
+            Properties.Settings.Default.Vs2013Integration = vs2013Integration.ExecuteCommand;
+            VisualStudio2015Integration vs2015Integration = this.Components[VisualStudio2015Integration.Identifier] as VisualStudio2015Integration;
+            Properties.Settings.Default.Vs2015Integration = vs2015Integration.ExecuteCommand;
+
+            Properties.Settings.Default.Save();
+        }
+
 
         #region INotifyPropertyChanged Members
 

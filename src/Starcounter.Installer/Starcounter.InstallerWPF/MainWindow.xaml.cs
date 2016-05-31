@@ -477,9 +477,26 @@ namespace Starcounter.InstallerWPF {
 
         public static Boolean[] InstalledComponents;
 
+        private bool _IsUpgrade = false;
+        public bool IsUpgrade {
+            get {
+                return this._IsUpgrade;
+            }
+            set {
+                this._IsUpgrade = value;
+                this.OnPropertyChanged("IsUpgrade");
+            }
+        }
+
         #endregion
 
         public MainWindow() {
+
+            if (Properties.Settings.Default.UpgradeRequired) {
+                Properties.Settings.Default.Upgrade();
+                Properties.Settings.Default.UpgradeRequired = false;
+            }
+
             this.Closing += new CancelEventHandler(MainWindow_Closing);
             this.PropertyChanged += new PropertyChangedEventHandler(MainWindow_PropertyChanged);
             this.Loaded += new RoutedEventHandler(MainWindow_Loaded);

@@ -44,7 +44,7 @@ namespace Starcounter.InstallerWPF {
         /// Returns the directory path where Starcounter is installed,
         /// obtained from environment variables.
         /// </summary>
-        String GetInstalledDirFromEnv() {
+        internal static String GetInstalledDirFromEnv() {
             // First checking the user-wide installation directory.
             String scInstDir = Environment.GetEnvironmentVariable(StarcounterBin, EnvironmentVariableTarget.User);
 
@@ -79,7 +79,8 @@ namespace Starcounter.InstallerWPF {
 
                     // NOTE: We are getting only first element.
                     installedVersion = (versionXML.GetElementsByTagName("Version"))[0].InnerText;
-                } catch { }
+                }
+                catch { }
             }
 
             // Reading CURRENT embedded Starcounter version XML file.
@@ -124,7 +125,7 @@ namespace Starcounter.InstallerWPF {
             Boolean promptedKillMessage = false;
 
             foreach (String procName in procNames) {
-                
+
                 Process[] procs = Process.GetProcessesByName(procName);
 
                 foreach (Process proc in procs) {
@@ -147,7 +148,8 @@ namespace Starcounter.InstallerWPF {
                         proc.Kill();
                         proc.WaitForExit();
 
-                    } catch (Exception exc) {
+                    }
+                    catch (Exception exc) {
 
                         String processCantBeKilled = "Process " + proc.ProcessName + " can not be killed:" + Environment.NewLine +
                             exc.ToString() + Environment.NewLine +
@@ -157,7 +159,8 @@ namespace Starcounter.InstallerWPF {
 
                         return false;
 
-                    } finally {
+                    }
+                    finally {
                         proc.Close();
                     }
                 }
@@ -206,7 +209,7 @@ namespace Starcounter.InstallerWPF {
             var serverConfig = ServerConfiguration.Load(serverConfigPath);
 
             foreach (var databaseConfig in DatabaseConfiguration.LoadAll(serverConfig)) {
-                
+
                 var image = ImageFile.Read(databaseConfig.Runtime.ImageDirectory, databaseConfig.Name);
 
                 // Checking if image files not found.
@@ -241,7 +244,8 @@ namespace Starcounter.InstallerWPF {
 
                 try {
                     CheckExistingDatabasesForCompatibility(out dbListToUnload);
-                } catch (Exception exc) {
+                }
+                catch (Exception exc) {
                     errorString = exc.ToString();
                 }
 
@@ -258,10 +262,11 @@ namespace Starcounter.InstallerWPF {
                             "to unload/reload databases.";
 
                     }
-                } else {
+                }
+                else {
 
                     // Some error occurred during the check.
-                    uninstallQuestion += 
+                    uninstallQuestion +=
                         "Error occurred during verification of existing database image files versions." + Environment.NewLine +
                         "Please follow the instructions at: " + Environment.NewLine +
                         "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions " + Environment.NewLine +
@@ -285,7 +290,7 @@ namespace Starcounter.InstallerWPF {
                     String installDir = GetInstalledDirFromEnv();
 
                     String prevSetupExeFile;
-                    this.FindSetupExe(installDir, out prevSetupExeFile );
+                    FindSetupExe(installDir, out prevSetupExeFile);
                     if (prevSetupExeFile == null) {
                         System.Windows.MessageBox.Show(
                             "Can't find previous setup exe for Starcounter " + previousVersion +
@@ -295,7 +300,7 @@ namespace Starcounter.InstallerWPF {
 
                     Process prevSetupProcess = new Process();
                     prevSetupProcess.StartInfo.FileName = prevSetupExeFile;
-                    prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances";
+                    prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances upgrade";
                     prevSetupProcess.Start();
 
                     // Waiting until previous installer finishes its work.
@@ -330,7 +335,7 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         /// <param name="folder"></param>
         /// <param name="file"></param>
-        private void FindSetupExe(string folder, out string file) {
+        internal static void FindSetupExe(string folder, out string file) {
             var files = Directory.EnumerateFiles(folder, "*.*", SearchOption.TopDirectoryOnly).Where(s => System.IO.Path.GetFileName(s).StartsWith("starcounter-", StringComparison.InvariantCultureIgnoreCase) && s.EndsWith("-setup.exe", StringComparison.InvariantCultureIgnoreCase));
             file = files.FirstOrDefault();
         }
@@ -396,14 +401,14 @@ namespace Starcounter.InstallerWPF {
 
             this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                            new Action(delegate {
-                // Checking if another Starcounter version is installed.
-                // NOTE: Environment.Exit is used on purpose here, not just "return";
-                if (IsAnotherVersionInstalled())
-                    Environment.Exit(0);
+                               // Checking if another Starcounter version is installed.
+                               // NOTE: Environment.Exit is used on purpose here, not just "return";
+                               if (IsAnotherVersionInstalled())
+                                   Environment.Exit(0);
 
-                    this.Visibility = Visibility.Hidden;
-                    ThreadPool.QueueUserWorkItem(this.InitInstallerWrapper);
-                }
+                               this.Visibility = Visibility.Hidden;
+                               ThreadPool.QueueUserWorkItem(this.InitInstallerWrapper);
+                           }
             ));
 
         }
@@ -421,13 +426,13 @@ namespace Starcounter.InstallerWPF {
                 // Starting animation.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
-                    // Show window
-                    this.StartAnimation();
-                    this.Visibility = System.Windows.Visibility.Visible;
+                        // Show window
+                        this.StartAnimation();
+                        this.Visibility = System.Windows.Visibility.Visible;
 
-                    //this.Focus();
-                    this.Activate();
-                }));
+                        //this.Focus();
+                        this.Activate();
+                    }));
 
                 // Initializing installer.
                 InitInstaller();
@@ -439,33 +444,33 @@ namespace Starcounter.InstallerWPF {
                 // Stopping animation.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                             new Action(delegate {
-                    // Show window
-                    this.StopAnimation();
-                }));
+                                // Show window
+                                this.StopAnimation();
+                            }));
 
                 // Bringing window on top.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
-                    // Show window
-                    this.Visibility = System.Windows.Visibility.Visible;
+                        // Show window
+                        this.Visibility = System.Windows.Visibility.Visible;
 
-                    //this.Focus();
-                    this.Activate();
-                }));
+                        //this.Focus();
+                        this.Activate();
+                    }));
 
                 // Success.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
-                    this.OnSuccess();
-                }
+                        this.OnSuccess();
+                    }
                 ));
             }
             catch (Exception e) {
                 // Error / Message
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
-                    this.OnError(e);
-                }
+                        this.OnError(e);
+                    }
                 ));
             }
         }
@@ -479,6 +484,7 @@ namespace Starcounter.InstallerWPF {
             System.Windows.Forms.Screen screen = this.GetCurrentScreen();
 
             MainWindow mainWindow = new MainWindow();
+            mainWindow.IsUpgrade = this.upgrade;
             App.Current.MainWindow = mainWindow;
             this.CloseWindow();
 
@@ -529,7 +535,7 @@ namespace Starcounter.InstallerWPF {
             Dispatcher disp = Dispatcher.FromThread(Thread.CurrentThread);
 
             Starcounter.Tracking.Client.Instance.SendInstallerException(e,
-                              delegate(object sender2, Starcounter.Tracking.CompletedEventArgs args) {
+                              delegate (object sender2, Starcounter.Tracking.CompletedEventArgs args) {
                                   // Send compleated (success or error)
                                   disp.BeginInvoke(DispatcherPriority.Normal, new Action(delegate {
 
@@ -611,7 +617,7 @@ namespace Starcounter.InstallerWPF {
         // http://www.starcounter.com/forum/showthread.php?1216-Installing-Sc-Failed
         // This thread in turn links to the MS bug thread.
         static String[] StaticInstallerDependencies =
-        { 
+        {
             "Starcounter.InstallerNativeHelper.dll",
             "Starcounter.REST.dll",
             "scerrres.dll",
@@ -635,7 +641,7 @@ namespace Starcounter.InstallerWPF {
 
         // Indicates if setup started in silent mode.
         Boolean silentMode = false;
-
+        Boolean upgrade = false;
         internal static String ScEnvVarName = "StarcounterBin";
 
         // First installer function that needs to be called.
@@ -650,7 +656,6 @@ namespace Starcounter.InstallerWPF {
 
             // Don't check for other setups running.
             Boolean dontCheckOtherInstances = false;
-
             // Checking command line parameters.
             String[] args = Environment.GetCommandLineArgs();
 
@@ -665,6 +670,9 @@ namespace Starcounter.InstallerWPF {
                 }
                 else if (param.StartsWith(ConstantsBank.DontCheckOtherInstancesArg, StringComparison.InvariantCultureIgnoreCase)) {
                     dontCheckOtherInstances = true;
+                }
+                else if (param.Equals("upgrade", StringComparison.InvariantCultureIgnoreCase)) {
+                    this.upgrade = true;
                 }
                 else {
                     internalMode = true;
@@ -696,8 +704,7 @@ namespace Starcounter.InstallerWPF {
                 RunInternalSetup(userArgsArray);
 
                 // Have to throw general exception because of problems resolving Starcounter.Framework library.
-                throw new Exception(silentMsg,
-                    new InstallerException(silentMsg, InstallerErrorCode.QuietExit));
+                throw new Exception(silentMsg, new InstallerException(silentMsg, InstallerErrorCode.QuietExit));
             }
         }
 
@@ -839,7 +846,7 @@ namespace Starcounter.InstallerWPF {
             // we expect to be statically linked; if it is, we don't try to resolve
             // it because it will break something else
 
-            bool shouldBeStaticallyResolved = StaticInstallerDependencies.Any<string>(delegate(string candidate) {
+            bool shouldBeStaticallyResolved = StaticInstallerDependencies.Any<string>(delegate (string candidate) {
                 return candidate.Equals(asmName.Name, StringComparison.InvariantCultureIgnoreCase);
             });
             if (shouldBeStaticallyResolved)
@@ -887,8 +894,8 @@ namespace Starcounter.InstallerWPF {
         void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e) {
             App.Current.Dispatcher.Invoke(DispatcherPriority.Send,
                                           new Action(delegate {
-                this.ShowError((Exception)e.ExceptionObject);
-            }));
+                                              this.ShowError((Exception)e.ExceptionObject);
+                                          }));
         }
 
         void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e) {
