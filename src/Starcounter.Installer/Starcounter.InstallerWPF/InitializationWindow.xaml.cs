@@ -645,7 +645,7 @@ namespace Starcounter.InstallerWPF {
         Boolean silentMode = false;
         Boolean forceuninstall = false;
         Boolean keepsettings = false;
-        Boolean autoclose = true;
+        Boolean autoclose = false;
 
         internal static String ScEnvVarName = "StarcounterBin";
 
