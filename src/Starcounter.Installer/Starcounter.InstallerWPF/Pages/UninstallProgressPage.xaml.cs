@@ -25,7 +25,7 @@ namespace Starcounter.InstallerWPF.Pages {
     /// <summary>
     /// Interaction logic for UninstallProgressPage.xaml
     /// </summary>
-    public partial class UninstallProgressPage : BasePage {
+    public partial class UninstallProgressPage : BasePage, IFinishedPage {
 
         #region Win32 import
 
@@ -45,6 +45,17 @@ namespace Starcounter.InstallerWPF.Pages {
         #endregion
 
         #region Properties
+
+        private bool _GoToWiki = false;
+        public bool GoToWiki {
+            get {
+                return _GoToWiki;
+            }
+            set {
+                this._GoToWiki = value;
+                this.OnPropertyChanged("GoToWiki");
+            }
+        }
 
         private bool _CanGoNext = false;
         public override bool CanGoNext {
