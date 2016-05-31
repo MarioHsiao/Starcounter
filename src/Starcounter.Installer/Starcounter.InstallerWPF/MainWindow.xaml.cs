@@ -398,7 +398,6 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
-
         private bool _ChangeAdditionalSettings = false;
         public bool ChangeAdditionalSettings {
             get {
@@ -430,7 +429,7 @@ namespace Starcounter.InstallerWPF {
 
                     if (this.SetupOptions == InstallerWPF.Pages.SetupOptions.RemoveComponents ||
                         this.SetupOptions == InstallerWPF.Pages.SetupOptions.Uninstall) {
-                            return "_Uninstall";
+                        return "_Uninstall";
                     }
 
                     return "_Install";
@@ -476,17 +475,7 @@ namespace Starcounter.InstallerWPF {
         }
 
         public static Boolean[] InstalledComponents;
-
-        private bool _IsUpgrade = false;
-        public bool IsUpgrade {
-            get {
-                return this._IsUpgrade;
-            }
-            set {
-                this._IsUpgrade = value;
-                this.OnPropertyChanged("IsUpgrade");
-            }
-        }
+        
 
         #endregion
 
@@ -628,7 +617,7 @@ namespace Starcounter.InstallerWPF {
 
                 WpfMessageBox.Show(
                     "To be productive Starcounter recommends that your machine has at least 4Gb of RAM and 2 CPU logical processors." +
-                    Environment.NewLine + faults + 
+                    Environment.NewLine + faults +
                     Environment.NewLine + "You can now proceed with installation.",
                     "Recommended hardware requirements are not met.",
                     WpfMessageBoxButton.OK, WpfMessageBoxImage.Exclamation);
@@ -639,7 +628,7 @@ namespace Starcounter.InstallerWPF {
             this._InternalComponents.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(_InternalComponents_CollectionChanged);
 
             this.Pages.CollectionChanged += Pages_CollectionChanged;
-            this.pages_lb.SelectionChanged+=pages_lb_SelectionChanged;
+            this.pages_lb.SelectionChanged += pages_lb_SelectionChanged;
 
             // Retrieve Version of setup package
             this.Version = this.GetVersionString();
@@ -667,11 +656,19 @@ namespace Starcounter.InstallerWPF {
                 // Checking system recommendations.
                 CheckHardwareStatus();
 
-            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
+                this.RegisterPage(new WelcomeAndLicenseAgreementPage());
                 this.SetupOptions = SetupOptions.Install;
             }
             else {
-                this.SetupOptions = SetupOptions.Ask;
+
+                if (this.Configuration.ForceUninstall) {
+                    this.SetupOptions = SetupOptions.Uninstall;
+                }
+                else {
+
+                    this.SetupOptions = SetupOptions.Ask;
+                }
+
             }
 #endif
             this.Activate();
@@ -752,7 +749,7 @@ namespace Starcounter.InstallerWPF {
                 Dispatcher disp = Dispatcher.FromThread(Thread.CurrentThread);
 
                 Starcounter.Tracking.Client.Instance.SendInstallerEnd(this.linksUserClickedOn,
-                      delegate(object sender2, Starcounter.Tracking.CompletedEventArgs args) {
+                      delegate (object sender2, Starcounter.Tracking.CompletedEventArgs args) {
                           // Send compleated (success or error)
                           disp.BeginInvoke(DispatcherPriority.Normal, new Action(delegate {
                               // Close down on our main thread
@@ -1042,7 +1039,7 @@ namespace Starcounter.InstallerWPF {
             //    this.RegisterPage(new DeveloperToolsPage());
             //}
 
-//            this.RegisterPage(new MovieProgressPage());
+            //            this.RegisterPage(new MovieProgressPage());
 
             this.RegisterPage(new InstallProgressPage());
             this.RegisterPage(new InstallFinishedPage());
@@ -1052,7 +1049,10 @@ namespace Starcounter.InstallerWPF {
         /// Registers the uninstall pages.
         /// </summary>
         private void RegisterUninstallPages() {
-            this.RegisterPage(new UninstallPage());
+
+            if (!this.Configuration.ForceUninstall) {
+                this.RegisterPage(new UninstallPage());
+            }
 
             this.RegisterPage(new UninstallProgressPage());
 
@@ -1114,7 +1114,7 @@ namespace Starcounter.InstallerWPF {
 
             Dispatcher _dispatcher = Dispatcher.FromThread(Thread.CurrentThread);
 
-            _dispatcher.BeginInvoke(DispatcherPriority.Render,  new Action(delegate {  this.DoMarker();    }   ));
+            _dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { this.DoMarker(); }));
 
             this.OnPropertyChanged("NextButtonTitle");
         }

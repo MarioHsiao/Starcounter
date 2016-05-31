@@ -59,7 +59,32 @@ namespace Starcounter.InstallerWPF {
             }
 
         }
+
+        private bool _ForceUninstall = false;
+        public bool ForceUninstall {
+            get {
+                return this._ForceUninstall;
+            }
+            set {
+                this._ForceUninstall = value;
+                this.OnPropertyChanged("ForceUninstall");
+            }
+        }
+
+        private bool _KeepSettings = false;
+        public bool KeepSettings {
+            get {
+                return this._KeepSettings;
+            }
+            set {
+                this._KeepSettings = value;
+                this.OnPropertyChanged("KeepSettings");
+            }
+        }
+
+
         #endregion
+
 
 
         /// <summary>
@@ -507,23 +532,10 @@ namespace Starcounter.InstallerWPF {
 
         private void HandleUserCustomSettings() {
 
-            // If uninstalling and it's not un upgrade then we reset the settings to default.
-            //if (this.SetupOptions == SetupOptions.Uninstall) {
-            //    String installDir = InitializationWindow.GetInstalledDirFromEnv();
-            //    string prevSetupExeFile;
-            //    InitializationWindow.FindSetupExe(installDir, out prevSetupExeFile);
-            //    if (prevSetupExeFile != null) {
-            //        // If startup exe is started in current installation dir, then we assume that it's an uninstallation
-            //        var path1 = Path.GetFullPath(prevSetupExeFile);
-            //        var path2 = Path.GetFullPath(System.Reflection.Assembly.GetEntryAssembly().Location);
-
-            //        if (string.Equals(path1, path2, StringComparison.InvariantCultureIgnoreCase)) {
-            //            Properties.Settings.Default.Reset();
-            //            return;
-            //        }
-            //    }
-            //}
-
+            if (this.SetupOptions == SetupOptions.Uninstall && !this.KeepSettings) {
+                Properties.Settings.Default.Reset();
+                return;
+            }
 
             PersonalServer personalServer = this.Components[PersonalServer.Identifier] as PersonalServer;
             Properties.Settings.Default.DatabasesRepositoryPath = personalServer.Path;

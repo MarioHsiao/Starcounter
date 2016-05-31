@@ -44,7 +44,7 @@ namespace Starcounter.InstallerWPF {
         /// Returns the directory path where Starcounter is installed,
         /// obtained from environment variables.
         /// </summary>
-        internal static String GetInstalledDirFromEnv() {
+        String GetInstalledDirFromEnv() {
             // First checking the user-wide installation directory.
             String scInstDir = Environment.GetEnvironmentVariable(StarcounterBin, EnvironmentVariableTarget.User);
 
@@ -300,7 +300,7 @@ namespace Starcounter.InstallerWPF {
 
                     Process prevSetupProcess = new Process();
                     prevSetupProcess.StartInfo.FileName = prevSetupExeFile;
-                    prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances upgrade";
+                    prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances forceuninstall keepsettings";
                     prevSetupProcess.Start();
 
                     // Waiting until previous installer finishes its work.
@@ -335,7 +335,7 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         /// <param name="folder"></param>
         /// <param name="file"></param>
-        internal static void FindSetupExe(string folder, out string file) {
+        void FindSetupExe(string folder, out string file) {
             var files = Directory.EnumerateFiles(folder, "*.*", SearchOption.TopDirectoryOnly).Where(s => System.IO.Path.GetFileName(s).StartsWith("starcounter-", StringComparison.InvariantCultureIgnoreCase) && s.EndsWith("-setup.exe", StringComparison.InvariantCultureIgnoreCase));
             file = files.FirstOrDefault();
         }
@@ -484,7 +484,8 @@ namespace Starcounter.InstallerWPF {
             System.Windows.Forms.Screen screen = this.GetCurrentScreen();
 
             MainWindow mainWindow = new MainWindow();
-            mainWindow.IsUpgrade = this.upgrade;
+            mainWindow.Configuration.ForceUninstall = this.forceuninstall;
+            mainWindow.Configuration.KeepSettings = this.keepsettings;
             App.Current.MainWindow = mainWindow;
             this.CloseWindow();
 
@@ -641,7 +642,9 @@ namespace Starcounter.InstallerWPF {
 
         // Indicates if setup started in silent mode.
         Boolean silentMode = false;
-        Boolean upgrade = false;
+        Boolean forceuninstall = false;
+        Boolean keepsettings = false;
+
         internal static String ScEnvVarName = "StarcounterBin";
 
         // First installer function that needs to be called.
@@ -671,8 +674,11 @@ namespace Starcounter.InstallerWPF {
                 else if (param.StartsWith(ConstantsBank.DontCheckOtherInstancesArg, StringComparison.InvariantCultureIgnoreCase)) {
                     dontCheckOtherInstances = true;
                 }
-                else if (param.Equals("upgrade", StringComparison.InvariantCultureIgnoreCase)) {
-                    this.upgrade = true;
+                else if (param.Equals("forceuninstall", StringComparison.InvariantCultureIgnoreCase)) {
+                    this.forceuninstall = true;
+                }
+                else if (param.Equals("keepsettings", StringComparison.InvariantCultureIgnoreCase)) {
+                    this.keepsettings = true;
                 }
                 else {
                     internalMode = true;
@@ -995,7 +1001,7 @@ namespace Starcounter.InstallerWPF {
 
         }
 
-        #endregion
+#endregion
     }
 
     public enum InstallerErrorCode {
