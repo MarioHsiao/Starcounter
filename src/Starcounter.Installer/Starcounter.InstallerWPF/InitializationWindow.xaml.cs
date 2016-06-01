@@ -646,7 +646,7 @@ namespace Starcounter.InstallerWPF {
         Boolean silentMode = false;
         // unattended setup is not the same as silent, silent should not show any qui.
         Boolean unattended = false;
-        SetupOptions setupOptions;
+        SetupOptions setupOptions = SetupOptions.None;
 
         // Keep settings when uninstalling (set to true when updateing starcounter
         Boolean isUpgrade = false;
