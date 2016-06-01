@@ -236,8 +236,8 @@ namespace Starcounter.InstallerWPF {
 
                 WpfMessageBoxResult userChoice = WpfMessageBoxResult.None;
 
-                String uninstallQuestion = "Would you like to uninstall previous (" + previousVersion + ") version of Starcounter now?",
-                    headingMessage = "Starcounter is already installed...";
+                String uninstallQuestion = string.Format("Do you want to upgrade from version {0} to {1} ?", ScVersion, previousVersion),
+                    headingMessage = "Upgrade Starcounter";
 
                 // Checking for the existing databases compatibility.
                 List<String> dbListToUnload = new List<String>();
