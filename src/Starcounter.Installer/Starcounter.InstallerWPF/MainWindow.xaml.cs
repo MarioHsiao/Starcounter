@@ -481,11 +481,11 @@ namespace Starcounter.InstallerWPF {
 
         public MainWindow() {
 
-            if (Properties.Settings.Default.UpgradeRequired) {
-                Properties.Settings.Default.Upgrade();
-                Properties.Settings.Default.UpgradeRequired = false;
-                Properties.Settings.Default.Save();
-            }
+            //if (Properties.Settings.Default.UpgradeRequired) {
+            //    Properties.Settings.Default.Upgrade();
+            //    Properties.Settings.Default.UpgradeRequired = false;
+            //    Properties.Settings.Default.Save();
+            //}
 
             this.Closing += new CancelEventHandler(MainWindow_Closing);
             this.PropertyChanged += new PropertyChangedEventHandler(MainWindow_PropertyChanged);
@@ -650,7 +650,14 @@ namespace Starcounter.InstallerWPF {
                 this.SetupOptions = SetupOptions.Install;
             }
             else {
-                this.SetupOptions = SetupOptions.Ask;
+
+                if (this.Configuration.ForceUninstall) {
+                    this.SetupOptions = SetupOptions.Uninstall;
+                }
+                else {
+
+                    this.SetupOptions = SetupOptions.Ask;
+                }
             }
 #else
             if (!this.HasCurrentInstalledComponents()) {
