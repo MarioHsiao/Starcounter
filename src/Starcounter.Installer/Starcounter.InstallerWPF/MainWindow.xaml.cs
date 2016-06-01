@@ -476,6 +476,8 @@ namespace Starcounter.InstallerWPF {
 
         public static Boolean[] InstalledComponents;
 
+        public SetupOptions DefaultSetupOptions = SetupOptions.None;
+
 
         #endregion
 
@@ -625,6 +627,7 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
+
         void MainWindow_Loaded(object sender, RoutedEventArgs e) {
             this._InternalComponents.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(_InternalComponents_CollectionChanged);
 
@@ -642,7 +645,7 @@ namespace Starcounter.InstallerWPF {
             // Setup available components
             this.SetupComponents();
 
-#if SIMULATE_CLEAN_INSTALLATION
+#if SIMULATE_INSTALLATION
             WpfMessageBoxResult result = WpfMessageBox.Show("Simulate Clean installation?", "DEBUG", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
 
             if (!this.HasCurrentInstalledComponents() || (result == WpfMessageBoxResult.Yes)) {
@@ -651,12 +654,11 @@ namespace Starcounter.InstallerWPF {
             }
             else {
 
-                if (this.Configuration.ForceUninstall) {
-                    this.SetupOptions = SetupOptions.Uninstall;
+                if (this.DefaultSetupOptions == SetupOptions.None) {
+                    this.SetupOptions = SetupOptions.Ask;
                 }
                 else {
-
-                    this.SetupOptions = SetupOptions.Ask;
+                    this.SetupOptions = this.DefaultSetupOptions;
                 }
             }
 #else
@@ -669,14 +671,12 @@ namespace Starcounter.InstallerWPF {
             }
             else {
 
-                if (this.Configuration.ForceUninstall) {
-                    this.SetupOptions = SetupOptions.Uninstall;
-                }
-                else {
-
+                if (this.DefaultSetupOptions == SetupOptions.None) {
                     this.SetupOptions = SetupOptions.Ask;
                 }
-
+                else {
+                    this.SetupOptions = this.DefaultSetupOptions;
+                }
             }
 #endif
             this.Activate();
@@ -1058,7 +1058,7 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         private void RegisterUninstallPages() {
 
-            if (!this.Configuration.ForceUninstall) {
+            if (!this.Configuration.Unattended) {
                 this.RegisterPage(new UninstallPage());
             }
 

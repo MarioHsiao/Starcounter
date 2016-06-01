@@ -28,6 +28,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Starcounter.Advanced.Configuration;
 using Starcounter.Server;
+using Starcounter.InstallerWPF.Pages;
 
 namespace Starcounter.InstallerWPF {
 
@@ -300,7 +301,7 @@ namespace Starcounter.InstallerWPF {
 
                     Process prevSetupProcess = new Process();
                     prevSetupProcess.StartInfo.FileName = prevSetupExeFile;
-                    prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances forceuninstall keepsettings autoclose";
+                    prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances";
                     prevSetupProcess.Start();
 
                     // Waiting until previous installer finishes its work.
@@ -484,9 +485,9 @@ namespace Starcounter.InstallerWPF {
             System.Windows.Forms.Screen screen = this.GetCurrentScreen();
 
             MainWindow mainWindow = new MainWindow();
-            mainWindow.Configuration.ForceUninstall = this.forceuninstall;
-            mainWindow.Configuration.KeepSettings = this.keepsettings;
-            mainWindow.Configuration.AutoClose = this.autoclose;
+            mainWindow.DefaultSetupOptions = this.setupOptions;
+            mainWindow.Configuration.Unattended = this.unattended;
+            mainWindow.Configuration.IsUpgrade = this.isUpgrade;
             App.Current.MainWindow = mainWindow;
             this.CloseWindow();
 
@@ -643,12 +644,12 @@ namespace Starcounter.InstallerWPF {
 
         // Indicates if setup started in silent mode.
         Boolean silentMode = false;
-        // No need to confirm uninstallation by user
-        Boolean forceuninstall = false;
+        // unattended setup is not the same as silent, silent should not show any qui.
+        Boolean unattended = false;
+        SetupOptions setupOptions;
+
         // Keep settings when uninstalling (set to true when updateing starcounter
-        Boolean keepsettings = false;
-        // Close executable when action was successfull (install/uninstall/add-remove components)
-        Boolean autoclose = false;
+        Boolean isUpgrade = false;
 
         internal static String ScEnvVarName = "StarcounterBin";
 
@@ -678,15 +679,9 @@ namespace Starcounter.InstallerWPF {
                 }
                 else if (param.StartsWith(ConstantsBank.DontCheckOtherInstancesArg, StringComparison.InvariantCultureIgnoreCase)) {
                     dontCheckOtherInstances = true;
-                }
-                else if (param.Equals("forceuninstall", StringComparison.InvariantCultureIgnoreCase)) {
-                    this.forceuninstall = true;
-                }
-                else if (param.Equals("keepsettings", StringComparison.InvariantCultureIgnoreCase)) {
-                    this.keepsettings = true;
-                }
-                else if (param.Equals("autoclose", StringComparison.InvariantCultureIgnoreCase)) {
-                    this.autoclose = true;
+                    this.unattended = true;
+                    this.isUpgrade = true;
+                    this.setupOptions = SetupOptions.Uninstall;
                 }
                 else {
                     internalMode = true;
@@ -1009,7 +1004,7 @@ namespace Starcounter.InstallerWPF {
 
         }
 
-#endregion
+        #endregion
     }
 
     public enum InstallerErrorCode {

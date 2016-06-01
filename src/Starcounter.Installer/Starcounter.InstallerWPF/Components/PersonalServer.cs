@@ -38,7 +38,7 @@ namespace Starcounter.InstallerWPF.Components {
         protected override void SetDefaultValues() {
             base.SetDefaultValues();
 
-#if !SIMULATE_CLEAN_INSTALLATION
+#if !SIMULATE_INSTALLATION
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.PersonalServer];
 #endif
 

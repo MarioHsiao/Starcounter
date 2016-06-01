@@ -141,7 +141,7 @@ namespace Starcounter.InstallerWPF.Components {
 
 
             // Setting installation path (new path is created if not installed).
-#if !SIMULATE_CLEAN_INSTALLATION
+#if !SIMULATE_INSTALLATION
 
             if (string.IsNullOrEmpty(this.BasePath)) {
                 string currentInstallationPath = CInstallationBase.GetInstalledDirFromEnv();

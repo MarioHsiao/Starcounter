@@ -62,31 +62,31 @@ namespace Starcounter.InstallerWPF {
 
         }
 
-        private bool _ForceUninstall = false;
+        private bool _Unattended = false;
         /// <summary>
         /// No need to confirm uninstallation by user
         /// </summary>
-        public bool ForceUninstall {
+        public bool Unattended {
             get {
-                return this._ForceUninstall;
+                return this._Unattended;
             }
             set {
-                this._ForceUninstall = value;
-                this.OnPropertyChanged("ForceUninstall");
+                this._Unattended = value;
+                this.OnPropertyChanged("Unattended");
             }
         }
 
-        private bool _KeepSettings = false;
+        private bool _IsUpgrade = false;
         /// <summary>
         /// Keep settings when uninstalling (set to true when updateing starcounter)
         /// </summary>
-        public bool KeepSettings {
+        public bool IsUpgrade {
             get {
-                return this._KeepSettings;
+                return this._IsUpgrade;
             }
             set {
-                this._KeepSettings = value;
-                this.OnPropertyChanged("KeepSettings");
+                this._IsUpgrade = value;
+                this.OnPropertyChanged("IsUpgrade");
             }
         }
 
@@ -128,7 +128,7 @@ namespace Starcounter.InstallerWPF {
 
                 return this._SetupOptions;
             }
-            private set {
+            set {
                 this._SetupOptions = value;
             }
         }
@@ -561,34 +561,10 @@ namespace Starcounter.InstallerWPF {
 
         private void HandleUserCustomSettings() {
 
-            if (this.SetupOptions == SetupOptions.Uninstall && !this.KeepSettings) {
-                //                Properties.Settings.Default.Reset();
+            if (this.SetupOptions == SetupOptions.Uninstall && !this.IsUpgrade) {
                 this.SetupUserSettings.Delete();
                 return;
             }
-
-            //PersonalServer personalServer = this.Components[PersonalServer.Identifier] as PersonalServer;
-            //Properties.Settings.Default.DatabasesRepositoryPath = personalServer.Path;
-            //Properties.Settings.Default.DefaultUserHttpPort = personalServer.DefaultUserHttpPort;
-            //Properties.Settings.Default.DefaultSystemHttpPort = personalServer.DefaultSystemHttpPort;
-            //Properties.Settings.Default.DefaultAggregationPort = personalServer.DefaultAggregationPort;
-            //Properties.Settings.Default.InstallPersonalServer = personalServer.ExecuteCommand;
-
-
-            //InstallationBase installationBase = this.Components[InstallationBase.Identifier] as InstallationBase;
-            //Properties.Settings.Default.InstallationBasePath = installationBase.BasePath;
-            //Properties.Settings.Default.SendUsageAndCrashReports = installationBase.SendUsageAndCrashReports;
-
-            //VisualStudio2012Integration vs2012Integration = this.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
-            //Properties.Settings.Default.Vs2012Integration = vs2012Integration.ExecuteCommand;
-            //VisualStudio2013Integration vs2013Integration = this.Components[VisualStudio2013Integration.Identifier] as VisualStudio2013Integration;
-            //Properties.Settings.Default.Vs2013Integration = vs2013Integration.ExecuteCommand;
-            //VisualStudio2015Integration vs2015Integration = this.Components[VisualStudio2015Integration.Identifier] as VisualStudio2015Integration;
-            //Properties.Settings.Default.Vs2015Integration = vs2015Integration.ExecuteCommand;
-
-            //Properties.Settings.Default.Save();
-
-
             SaveSetupUserSettings();
         }
 
@@ -628,8 +604,6 @@ namespace Starcounter.InstallerWPF {
             settings.Save();
 
         }
-
-
 
         #region INotifyPropertyChanged Members
 

@@ -41,7 +41,7 @@ namespace Starcounter.InstallerWPF.Components
 
             MainWindow win = System.Windows.Application.Current.MainWindow as MainWindow;
 
-#if !SIMULATE_CLEAN_INSTALLATION
+#if !SIMULATE_INSTALLATION
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.VS2012Integration];
 #endif
             switch (this.Command)
