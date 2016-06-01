@@ -562,7 +562,7 @@ namespace Starcounter.InstallerWPF {
         private void HandleUserCustomSettings() {
 
             if (this.SetupOptions == SetupOptions.Uninstall && !this.KeepSettings) {
-//                Properties.Settings.Default.Reset();
+                //                Properties.Settings.Default.Reset();
                 this.SetupUserSettings.Delete();
                 return;
             }
@@ -697,6 +697,11 @@ namespace Starcounter.InstallerWPF {
         private static string getFullFilePath(string fileName) {
 
             string baseFolder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ConstantsBank.SCProductName);
+
+            if (!Directory.Exists(baseFolder)) {
+                Directory.CreateDirectory(baseFolder);
+            }
+
             return Path.Combine(baseFolder, fileName);
         }
     }
