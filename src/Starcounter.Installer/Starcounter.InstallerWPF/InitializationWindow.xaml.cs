@@ -28,6 +28,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Starcounter.Advanced.Configuration;
 using Starcounter.Server;
+using System.Globalization;
 
 namespace Starcounter.InstallerWPF {
 
@@ -36,7 +37,17 @@ namespace Starcounter.InstallerWPF {
     /// </summary>
     public partial class InitializationWindow : Window {
 
+        ///////////////////////////////////////////////////
+        // BEGIN WARNING!!!
+        // Do not modify, even whitespace here!!!
+        // Used for direct replacement by installer.
+        ///////////////////////////////////////////////////
         const String ScVersion = "2.0.0.0";
+        private readonly DateTime ScVersionDate = DateTime.Parse("1900-01-01 01:01:01Z", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+        ///////////////////////////////////////////////////
+        // END WARNING!!!
+        ///////////////////////////////////////////////////
+
         const String StarcounterBin = "StarcounterBin";
         const String ScInstallerGUI = "Starcounter-Setup";
 
