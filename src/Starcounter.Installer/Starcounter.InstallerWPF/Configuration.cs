@@ -489,6 +489,16 @@ namespace Starcounter.InstallerWPF {
                 args = new String[] { "--uninstall" };
             }
 
+            if (this.Unattended) {
+                if (args != null) {
+                    Array.Resize(ref args, args.Length + 1);
+                    args[args.Length - 1] = "--silent";
+                }
+                else {
+                    args = new String[] { "--silent" };
+                }
+            }
+
             // Creating new installation file.
             GenerateSetupXmlFile();
 
