@@ -128,18 +128,20 @@ namespace Starcounter.InstallerWPF.Components {
         protected override void SetDefaultValues() {
             base.SetDefaultValues();
 
+            MainWindow win = System.Windows.Application.Current.MainWindow as MainWindow;
+
             // Setting the installation flag.
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.InstallationBase];
 
-            this.SendUsageAndCrashReports = Properties.Settings.Default.SendUsageAndCrashReports;
+            this.SendUsageAndCrashReports = win.Configuration.SetupUserSettings.SendUsageAndCrashReports;
 
-            if (!string.IsNullOrEmpty(Properties.Settings.Default.InstallationBasePath)) {
-                this.BasePath = Properties.Settings.Default.InstallationBasePath;
+            if (!string.IsNullOrEmpty(win.Configuration.SetupUserSettings.InstallationBasePath)) {
+                this.BasePath = win.Configuration.SetupUserSettings.InstallationBasePath;
             }
 
 
             // Setting installation path (new path is created if not installed).
-#if !SIMULATE_CLEAN_INSTALLATION
+#if !SIMULATE_INSTALLATION
 
             if (string.IsNullOrEmpty(this.BasePath)) {
                 string currentInstallationPath = CInstallationBase.GetInstalledDirFromEnv();

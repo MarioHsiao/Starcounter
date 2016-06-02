@@ -283,7 +283,7 @@ namespace Starcounter.InstallerWPF {
 
             IFinishedPage finishPage = this.pages_lb.Items.CurrentItem as IFinishedPage;
 
-            if (finishPage != null && finishPage.GoToWiki && this.Configuration.AutoClose == false) {
+            if (finishPage != null && finishPage.GoToWiki && this.Configuration.Unattended == false) {
 
                 try {
                     string link = @"https://starcounter.io/docs/";
@@ -476,15 +476,18 @@ namespace Starcounter.InstallerWPF {
 
         public static Boolean[] InstalledComponents;
 
+        public SetupOptions DefaultSetupOptions = SetupOptions.None;
+
 
         #endregion
 
         public MainWindow() {
 
-            if (Properties.Settings.Default.UpgradeRequired) {
-                Properties.Settings.Default.Upgrade();
-                Properties.Settings.Default.UpgradeRequired = false;
-            }
+            //if (Properties.Settings.Default.UpgradeRequired) {
+            //    Properties.Settings.Default.Upgrade();
+            //    Properties.Settings.Default.UpgradeRequired = false;
+            //    Properties.Settings.Default.Save();
+            //}
 
             this.Closing += new CancelEventHandler(MainWindow_Closing);
             this.PropertyChanged += new PropertyChangedEventHandler(MainWindow_PropertyChanged);
@@ -624,6 +627,7 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
+
         void MainWindow_Loaded(object sender, RoutedEventArgs e) {
             this._InternalComponents.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(_InternalComponents_CollectionChanged);
 
@@ -641,15 +645,21 @@ namespace Starcounter.InstallerWPF {
             // Setup available components
             this.SetupComponents();
 
-#if SIMULATE_CLEAN_INSTALLATION
-            WpfMessageBoxResult result = WpfMessageBox.Show("Simulate Clean installation?", "DEBUG", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
+#if SIMULATE_INSTALLATION
+            WpfMessageBoxResult result = WpfMessageBox.Show("Simulate First time installation?", "DEBUG", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
 
-            if (!this.HasCurrentInstalledComponents() || (result == WpfMessageBoxResult.Yes)) {
+            if (result == WpfMessageBoxResult.Yes) {
                 this.RegisterPage(new WelcomeAndLicenseAgreementPage());
                 this.SetupOptions = SetupOptions.Install;
             }
             else {
-                this.SetupOptions = SetupOptions.Ask;
+
+                if (this.DefaultSetupOptions == SetupOptions.None) {
+                    this.SetupOptions = SetupOptions.Ask;
+                }
+                else {
+                    this.SetupOptions = this.DefaultSetupOptions;
+                }
             }
 #else
             if (!this.HasCurrentInstalledComponents()) {
@@ -661,14 +671,12 @@ namespace Starcounter.InstallerWPF {
             }
             else {
 
-                if (this.Configuration.ForceUninstall) {
-                    this.SetupOptions = SetupOptions.Uninstall;
-                }
-                else {
-
+                if (this.DefaultSetupOptions == SetupOptions.None) {
                     this.SetupOptions = SetupOptions.Ask;
                 }
-
+                else {
+                    this.SetupOptions = this.DefaultSetupOptions;
+                }
             }
 #endif
             this.Activate();
@@ -1050,7 +1058,7 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         private void RegisterUninstallPages() {
 
-            if (!this.Configuration.ForceUninstall) {
+            if (!this.Configuration.Unattended) {
                 this.RegisterPage(new UninstallPage());
             }
 
@@ -1109,7 +1117,7 @@ namespace Starcounter.InstallerWPF {
                 foreach (BasePage page in e.AddedItems) {
 
 
-                    if (page is IFinishedPage && this.Configuration.AutoClose) {
+                    if (page is IFinishedPage && this.Configuration.Unattended) {
                         MainWindow.StartRoutedCommand.Execute(null, this);
                         CommandManager.InvalidateRequerySuggested();
                     }
@@ -1215,7 +1223,12 @@ namespace Starcounter.InstallerWPF {
         /// <returns></returns>
         public static bool DirectoryContainsFiles(string targetDirectory, bool recursive) {
 
-            if (!Directory.Exists(targetDirectory)) {
+            try {
+                if (!Directory.Exists(targetDirectory)) {
+                    return false;
+                }
+            }
+            catch {
                 return false;
             }
 
