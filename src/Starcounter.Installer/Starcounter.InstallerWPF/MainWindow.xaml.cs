@@ -283,7 +283,7 @@ namespace Starcounter.InstallerWPF {
 
             IFinishedPage finishPage = this.pages_lb.Items.CurrentItem as IFinishedPage;
 
-            if (finishPage != null && finishPage.GoToWiki && this.Configuration.AutoClose == false) {
+            if (finishPage != null && finishPage.GoToWiki && this.Configuration.Unattended == false) {
 
                 try {
                     string link = @"https://starcounter.io/docs/";
@@ -1117,7 +1117,7 @@ namespace Starcounter.InstallerWPF {
                 foreach (BasePage page in e.AddedItems) {
 
 
-                    if (page is IFinishedPage && this.Configuration.AutoClose) {
+                    if (page is IFinishedPage && this.Configuration.Unattended) {
                         MainWindow.StartRoutedCommand.Execute(null, this);
                         CommandManager.InvalidateRequerySuggested();
                     }

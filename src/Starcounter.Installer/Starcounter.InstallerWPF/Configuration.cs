@@ -90,20 +90,6 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
-        private bool _AutoClose = false;
-        /// <summary>
-        /// Close executable when action was successfull (install/uninstall/add-remove components)
-        /// </summary>
-        public bool AutoClose {
-            get {
-                return this._AutoClose;
-            }
-            set {
-                this._AutoClose = value;
-                this.OnPropertyChanged("AutoClose");
-            }
-        }
-
         private SetupUserSettings _SetupUserSettings = null;
         public SetupUserSettings SetupUserSettings {
             get {
