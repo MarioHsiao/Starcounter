@@ -316,12 +316,16 @@ namespace Starcounter.InstallerWPF {
                     prevSetupProcess.StartInfo.FileName = prevSetupExeFile;
 
                     DateTime fixedDate = new DateTime(2016, 6, 2, 0, 0, 0, DateTimeKind.Utc);
+
                     if (installedVersionDate >= fixedDate) {
                         prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances uninstall unattended upgrade";
                     }
                     else {
                         prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances";
                     }
+                    WpfMessageBox.Show(string.Format("fixedDate:{0}, installedVersionDate={1}, Arguments:{2}", fixedDate.ToString(), installedVersionDate.ToString(), prevSetupProcess.StartInfo.Arguments), "Debug");  // REMOVE!!
+
+
                     prevSetupProcess.Start();
 
                     // Waiting until previous installer finishes its work.
@@ -502,6 +506,9 @@ namespace Starcounter.InstallerWPF {
             }
 
             System.Windows.Forms.Screen screen = this.GetCurrentScreen();
+
+            WpfMessageBox.Show(string.Format("new Mainwindow: DefaultSetupOptions:{0}, Unattended:{1}, IsUpgrade:{2}",this.setupOptions, this.unattended, this.isUpgrade), "Debug");  // REMOVE!!
+
 
             MainWindow mainWindow = new MainWindow();
             mainWindow.DefaultSetupOptions = this.setupOptions;
@@ -687,10 +694,13 @@ namespace Starcounter.InstallerWPF {
             // Checking command line parameters.
             String[] args = Environment.GetCommandLineArgs();
 
+
             // Checking if special parameters are supplied.
             List<String> userArgs = new List<String>();
             for (Int32 i = 1; i < args.Length; i++) {
                 String param = args[i];
+
+                WpfMessageBox.Show(string.Format("param[{0}]:{1}", i, param), "Debug");  // REMOVE!!
 
                 if (param.StartsWith(ConstantsBank.SilentArg, StringComparison.InvariantCultureIgnoreCase)) {
                     silentMode = true;
@@ -700,16 +710,20 @@ namespace Starcounter.InstallerWPF {
                     dontCheckOtherInstances = true;
                 }
                 else if (param.Equals("unattended", StringComparison.InvariantCultureIgnoreCase)) {
+                    WpfMessageBox.Show(string.Format("unattended"), "Debug");  // REMOVE!!
+
                     args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
                     this.unattended = true;
                 }
                 else if (param.Equals("uninstall", StringComparison.InvariantCultureIgnoreCase)) {
                     args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
                     this.setupOptions = SetupOptions.Uninstall;
+                    WpfMessageBox.Show(string.Format("uninstall"), "Debug");  // REMOVE!!
                 }
                 else if (param.Equals("upgrade", StringComparison.InvariantCultureIgnoreCase)) {
                     args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
                     this.isUpgrade = true;
+                    WpfMessageBox.Show(string.Format("upgrade"), "Debug");  // REMOVE!!
                 }
                 else {
                     internalMode = true;

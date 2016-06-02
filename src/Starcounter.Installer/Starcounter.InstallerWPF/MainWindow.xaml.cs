@@ -646,9 +646,9 @@ namespace Starcounter.InstallerWPF {
             this.SetupComponents();
 
 #if SIMULATE_INSTALLATION
-            WpfMessageBoxResult result = WpfMessageBox.Show("Simulate Clean installation?", "DEBUG", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
+            WpfMessageBoxResult result = WpfMessageBox.Show("Simulate First time installation?", "DEBUG", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
 
-            if (!this.HasCurrentInstalledComponents() || (result == WpfMessageBoxResult.Yes)) {
+            if (result == WpfMessageBoxResult.Yes) {
                 this.RegisterPage(new WelcomeAndLicenseAgreementPage());
                 this.SetupOptions = SetupOptions.Install;
             }
