@@ -317,6 +317,8 @@ sunflower.dll
 sunflower.exp
 sunflower.lib
 sunflower.pdb
+System.Collections.Immutable.dll
+System.Reflection.Metadata.dll
 testtemplate.html
 TurboText_en-GB_3.dll
 TurboText_en-GB_3.exp
