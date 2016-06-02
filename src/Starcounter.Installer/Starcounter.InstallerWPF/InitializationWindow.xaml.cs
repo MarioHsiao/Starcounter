@@ -724,16 +724,19 @@ namespace Starcounter.InstallerWPF {
                     WriteLog(string.Format("unattended"));
 
                     args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
+                    i--;
                     this.unattended = true;
                 }
                 else if (param.Equals("uninstall", StringComparison.InvariantCultureIgnoreCase)) {
                     args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
+                    i--;
                     this.setupOptions = SetupOptions.Uninstall;
                     WriteLog(string.Format("uninstall"));
 
                 }
                 else if (param.Equals("upgrade", StringComparison.InvariantCultureIgnoreCase)) {
                     args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
+                    i--;
                     this.isUpgrade = true;
                     WriteLog(string.Format("upgrade"));
                 }
