@@ -289,12 +289,10 @@ namespace Starcounter {
                                             var childJson = container.GetValue(json);
                                             if (childJson != null) {
                                                 childJson.SetBoundValuesInTuple();
-                                                childJson.CheckpointChangeLog();
                                             }
                                         }
                                     }
                                 }
-                                //json.CheckpointAt(exposed[t].TemplateIndex);
                                 json.MarkAsNonDirty(exposed[t].TemplateIndex);
                             } else {
                                 var p = exposed[t];
