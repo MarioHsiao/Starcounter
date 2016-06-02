@@ -19,7 +19,9 @@ using Starcounter.InstallerEngine;
 using Starcounter.Internal;
 using System.IO.Compression;
 using System.Xml;
+
 using System.Diagnostics;
+using System.Web.Script.Serialization;
 
 namespace Starcounter.InstallerWPF {
     public class Configuration : INotifyPropertyChanged {
@@ -60,42 +62,45 @@ namespace Starcounter.InstallerWPF {
 
         }
 
-        private bool _ForceUninstall = false;
-        public bool ForceUninstall {
+        private bool _Unattended = false;
+        /// <summary>
+        /// No need to confirm uninstallation by user
+        /// </summary>
+        public bool Unattended {
             get {
-                return this._ForceUninstall;
+                return this._Unattended;
             }
             set {
-                this._ForceUninstall = value;
-                this.OnPropertyChanged("ForceUninstall");
+                this._Unattended = value;
+                this.OnPropertyChanged("Unattended");
             }
         }
 
-        private bool _KeepSettings = false;
-        public bool KeepSettings {
+        private bool _IsUpgrade = false;
+        /// <summary>
+        /// Keep settings when uninstalling (set to true when updateing starcounter)
+        /// </summary>
+        public bool IsUpgrade {
             get {
-                return this._KeepSettings;
+                return this._IsUpgrade;
             }
             set {
-                this._KeepSettings = value;
-                this.OnPropertyChanged("KeepSettings");
+                this._IsUpgrade = value;
+                this.OnPropertyChanged("IsUpgrade");
             }
         }
 
-        private bool _AutoClose = false;
-        public bool AutoClose {
+        private SetupUserSettings _SetupUserSettings = null;
+        public SetupUserSettings SetupUserSettings {
             get {
-                return this._AutoClose;
-            }
-            set {
-                this._AutoClose = value;
-                this.OnPropertyChanged("AutoClose");
+                if (_SetupUserSettings == null) {
+                    _SetupUserSettings = SetupUserSettings.Load();
+                }
+                return _SetupUserSettings;
             }
         }
 
         #endregion
-
-
 
         /// <summary>
         /// 
@@ -109,7 +114,7 @@ namespace Starcounter.InstallerWPF {
 
                 return this._SetupOptions;
             }
-            private set {
+            set {
                 this._SetupOptions = value;
             }
         }
@@ -470,6 +475,16 @@ namespace Starcounter.InstallerWPF {
                 args = new String[] { "--uninstall" };
             }
 
+            if (this.Unattended) {
+                if (args != null) {
+                    Array.Resize(ref args, args.Length + 1);
+                    args[args.Length - 1] = "--silent";
+                }
+                else {
+                    args = new String[] { "--silent" };
+                }
+            }
+
             // Creating new installation file.
             GenerateSetupXmlFile();
 
@@ -487,7 +502,6 @@ namespace Starcounter.InstallerWPF {
             Utilities.InstallerProgressEventArgs args = new Utilities.InstallerProgressEventArgs();
 
             try {
-                this.HandleUserCustomSettings();
 
                 // Simulate installation....
 #if SIMULATE_INSTALLATION
@@ -532,6 +546,7 @@ namespace Starcounter.InstallerWPF {
                 RunInstallerEngine(progressCallback, messageboxCallback);
 
 #endif
+                this.HandleUserCustomSettings();
 
             }
             catch (Exception e) {
@@ -542,33 +557,49 @@ namespace Starcounter.InstallerWPF {
 
         private void HandleUserCustomSettings() {
 
-            if (this.SetupOptions == SetupOptions.Uninstall && !this.KeepSettings) {
-                Properties.Settings.Default.Reset();
+            if (this.SetupOptions == SetupOptions.Uninstall && !this.IsUpgrade) {
+                this.SetupUserSettings.Delete();
                 return;
             }
-
-            PersonalServer personalServer = this.Components[PersonalServer.Identifier] as PersonalServer;
-            Properties.Settings.Default.DatabasesRepositoryPath = personalServer.Path;
-            Properties.Settings.Default.DefaultUserHttpPort = personalServer.DefaultUserHttpPort;
-            Properties.Settings.Default.DefaultSystemHttpPort = personalServer.DefaultSystemHttpPort;
-            Properties.Settings.Default.DefaultAggregationPort = personalServer.DefaultAggregationPort;
-            Properties.Settings.Default.InstallPersonalServer = personalServer.ExecuteCommand;
-
-
-            InstallationBase installationBase = this.Components[InstallationBase.Identifier] as InstallationBase;
-            Properties.Settings.Default.InstallationBasePath = installationBase.BasePath;
-            Properties.Settings.Default.SendUsageAndCrashReports = installationBase.SendUsageAndCrashReports;
-
-            VisualStudio2012Integration vs2012Integration = this.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
-            Properties.Settings.Default.Vs2012Integration = vs2012Integration.ExecuteCommand;
-            VisualStudio2013Integration vs2013Integration = this.Components[VisualStudio2013Integration.Identifier] as VisualStudio2013Integration;
-            Properties.Settings.Default.Vs2013Integration = vs2013Integration.ExecuteCommand;
-            VisualStudio2015Integration vs2015Integration = this.Components[VisualStudio2015Integration.Identifier] as VisualStudio2015Integration;
-            Properties.Settings.Default.Vs2015Integration = vs2015Integration.ExecuteCommand;
-
-            Properties.Settings.Default.Save();
+            SaveSetupUserSettings();
         }
 
+
+        private void SaveSetupUserSettings() {
+            // Save in user documents/starcounter
+            SetupUserSettings settings = SetupUserSettings.Load();
+
+            PersonalServer personalServer = this.Components[PersonalServer.Identifier] as PersonalServer;
+            if (personalServer != null) {
+                settings.DatabasesRepositoryPath = personalServer.Path;
+                settings.DefaultUserHttpPort = personalServer.DefaultUserHttpPort;
+                settings.DefaultSystemHttpPort = personalServer.DefaultSystemHttpPort;
+                settings.DefaultAggregationPort = personalServer.DefaultAggregationPort;
+                settings.InstallPersonalServer = personalServer.ExecuteCommand;
+            }
+
+            InstallationBase installationBase = this.Components[InstallationBase.Identifier] as InstallationBase;
+            if (installationBase != null) {
+                settings.InstallationBasePath = installationBase.BasePath;
+                settings.SendUsageAndCrashReports = installationBase.SendUsageAndCrashReports;
+            }
+
+            VisualStudio2012Integration vs2012Integration = this.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
+            if (vs2012Integration != null) {
+                settings.Vs2012Integration = vs2012Integration.ExecuteCommand;
+            }
+            VisualStudio2013Integration vs2013Integration = this.Components[VisualStudio2013Integration.Identifier] as VisualStudio2013Integration;
+            if (vs2013Integration != null) {
+                settings.Vs2013Integration = vs2013Integration.ExecuteCommand;
+            }
+            VisualStudio2015Integration vs2015Integration = this.Components[VisualStudio2015Integration.Identifier] as VisualStudio2015Integration;
+            if (vs2015Integration != null) {
+                settings.Vs2015Integration = vs2015Integration.ExecuteCommand;
+            }
+
+            settings.Save();
+
+        }
 
         #region INotifyPropertyChanged Members
 
@@ -604,4 +635,60 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         Update
     }
+
+    public class AppSettings<T> where T : new() {
+        private const string DEFAULT_FILENAME = "setupusersettings.json";
+
+        public void Save(string fileName = DEFAULT_FILENAME) {
+            string file = getFullFilePath(fileName);
+            File.WriteAllText(file, (new JavaScriptSerializer()).Serialize(this));
+        }
+
+        public static void Save(T pSettings, string fileName = DEFAULT_FILENAME) {
+            string file = getFullFilePath(fileName);
+            File.WriteAllText(file, (new JavaScriptSerializer()).Serialize(pSettings));
+        }
+
+        public void Delete(string fileName = DEFAULT_FILENAME) {
+            string file = getFullFilePath(fileName);
+            if (File.Exists(file)) {
+                File.Delete(file);
+            }
+        }
+
+        public static T Load(string fileName = DEFAULT_FILENAME) {
+            T t = new T();
+            string file = getFullFilePath(fileName);
+            if (File.Exists(file))
+                t = (new JavaScriptSerializer()).Deserialize<T>(File.ReadAllText(file));
+            return t;
+        }
+
+        private static string getFullFilePath(string fileName) {
+
+            string baseFolder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ConstantsBank.SCProductName);
+
+            if (!Directory.Exists(baseFolder)) {
+                Directory.CreateDirectory(baseFolder);
+            }
+
+            return Path.Combine(baseFolder, fileName);
+        }
+    }
+
+    public class SetupUserSettings : AppSettings<SetupUserSettings> {
+        public string DatabasesRepositoryPath = null;
+        public ushort DefaultUserHttpPort = 0;
+        public ushort DefaultSystemHttpPort = 0;
+        public ushort DefaultAggregationPort = 0;
+        public bool InstallPersonalServer = true;
+
+        public string InstallationBasePath = null;
+        public bool SendUsageAndCrashReports = true;
+        public bool Vs2012Integration = true;
+        public bool Vs2013Integration = true;
+        public bool Vs2015Integration = true;
+
+    }
+
 }

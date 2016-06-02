@@ -25,8 +25,7 @@ namespace Starcounter.InstallerWPF.Pages
     /// <summary>
     /// Interaction logic for RemoveComponentsProgressPage.xaml
     /// </summary>
-    public partial class RemoveComponentsProgressPage : BasePage, IFinishedPage
-    {
+    public partial class RemoveComponentsProgressPage : BasePage, IProgressPage {
 
         #region Win32 import
 

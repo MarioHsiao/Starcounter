@@ -26,7 +26,7 @@ namespace Starcounter.InstallerWPF.Pages {
     /// <summary>
     /// Interaction logic for ProgressPage.xaml
     /// </summary>
-    public partial class InstallProgressPage : BasePage, IFinishedPage {
+    public partial class InstallProgressPage : BasePage, IProgressPage {
 
         #region Win32 import
 
@@ -159,8 +159,6 @@ namespace Starcounter.InstallerWPF.Pages {
         /// <param name="state">The state.</param>
         private void StartInstallationThread(object state) {
 
-
-
             // Starting the installation process.
             try {
 
@@ -236,19 +234,8 @@ namespace Starcounter.InstallerWPF.Pages {
 
                 StopAnimation();
                 _CanGoNext = true;
-
-                Configuration config = (Configuration)DataContext;
-                if (config.AutoClose) {
-                    this.GoToWiki = false;
-                    MainWindow.StartRoutedCommand.Execute(null, this);
-                }
-                else {
-                    NavigationCommands.NextPage.Execute(null, this);
-                }
-
+                NavigationCommands.NextPage.Execute(null, this);
                 CommandManager.InvalidateRequerySuggested();
-
-                this.DisplayName = "Finished";
             }
             catch (Exception e) {
                 this.OnError(e);

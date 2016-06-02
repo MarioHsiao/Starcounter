@@ -20,7 +20,9 @@
 - Fixed bug in jsonmerger, that in some specific cases returned a response belonging to another app [#3622](https://github.com/Starcounter/Starcounter/issues/3622)  
 - Fixed buffer overrun when serializing really large double values in TypedJSON [#3585](https://github.com/Starcounter/Starcounter/issues/3585), [#3589](https://github.com/Starcounter/Starcounter/issues/3589)
 - Fixed so that Typed JSON code-behind classes can derive generic classes [#3640](https://github.com/Starcounter/Starcounter/issues/3640)
-- Enabled Typed JSON code-behind classes with naked IBound-declaration, resloving [#3624](https://github.com/Starcounter/Starcounter/issues/3624)
+- Enabled Typed JSON code-behind classes with naked IBound-declaration, resolving [#3624](https://github.com/Starcounter/Starcounter/issues/3624)
+- Fixed a bug where patches in a databound array were not properly generated, after an item was removed [#3669](https://github.com/Starcounter/Starcounter/issues/3669)
+- Fixed a bug relating to reference failures sometimes showing with new Roslyn-based code-behind parser, [#3666](https://github.com/Starcounter/Starcounter/issues/3666)
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
