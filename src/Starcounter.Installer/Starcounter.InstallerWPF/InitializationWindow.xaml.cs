@@ -317,7 +317,7 @@ namespace Starcounter.InstallerWPF {
 
                     DateTime fixedDate = new DateTime(2016, 6, 2, 0, 0, 0, DateTimeKind.Utc);
                     if (installedVersionDate >= fixedDate) {
-                        prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances uninstall unattached upgrade";
+                        prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances uninstall unattended upgrade";
                     }
                     else {
                         prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances";
@@ -700,12 +700,15 @@ namespace Starcounter.InstallerWPF {
                     dontCheckOtherInstances = true;
                 }
                 else if (param.Equals("unattended", StringComparison.InvariantCultureIgnoreCase)) {
+                    args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
                     this.unattended = true;
                 }
                 else if (param.Equals("uninstall", StringComparison.InvariantCultureIgnoreCase)) {
+                    args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
                     this.setupOptions = SetupOptions.Uninstall;
                 }
                 else if (param.Equals("upgrade", StringComparison.InvariantCultureIgnoreCase)) {
+                    args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
                     this.isUpgrade = true;
                 }
                 else {
