@@ -799,7 +799,7 @@ namespace Starcounter.Internal.Weaver {
                     ScMessageSource.WriteError(
                                 MessageLocation.Unknown,
                                 Error.SCERRUNSPECIFIED,
-                                "Illegal element for the SynonymousTo attribute");
+                                "Illegal element for the SynonymousTo attribute: " + synonymToEnumerator.Current.TargetElement);
                 }
             }
         }
