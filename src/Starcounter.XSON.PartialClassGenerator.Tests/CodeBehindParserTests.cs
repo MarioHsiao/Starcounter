@@ -264,5 +264,23 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.True(ex.Error == InvalidCodeBehindError.InputHandlerNotVoidReturnType);
             Assert.True(ex.Line == 3);
         }
+
+        [Test]
+        public static void CodeBehindBoundtoNullableTest() {
+            // Using IBound<T> where T is a nullable type does not get parsed correctly
+            // in the old Mono-parser, there it's simply gets truncated.
+
+            var source = "public partial class Foo : Json, IBound<MyStruct?> {}";
+            var roslyn = ParserAnalyzeCode("Foo", source, true);
+
+            Assert.IsNotNull(roslyn.RootClassInfo);
+            Assert.AreEqual("MyStruct?", roslyn.RootClassInfo.BoundDataClass);
+
+            source = "public partial class Foo : Json, IBound<Nullable<MyStruct>> {}";
+            roslyn = ParserAnalyzeCode("Foo", source, true);
+
+            Assert.IsNotNull(roslyn.RootClassInfo);
+            Assert.AreEqual("Nullable<MyStruct>", roslyn.RootClassInfo.BoundDataClass);
+        }
     }
 }

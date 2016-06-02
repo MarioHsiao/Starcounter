@@ -381,8 +381,6 @@ namespace Starcounter.InstallerWPF.Pages {
                 }
             }
 
-            this.DisplayName = "Finished";
-
             CommandManager.InvalidateRequerySuggested();
         }
 

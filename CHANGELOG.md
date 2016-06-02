@@ -18,16 +18,19 @@
 - Added a check for responses so they doesn't exceed a fixed maximum size to avoid buffer overruns and corrupting managed memory [#3608](https://github.com/Starcounter/Starcounter/issues/3608)
 - Fixed problem with WebSocket disconnect procedure [#38](https://github.com/StarcounterSamples/KitchenSink/issues/38)
 - Fixed bug in jsonmerger, that in some specific cases returned a response belonging to another app [#3622](https://github.com/Starcounter/Starcounter/issues/3622)  
-- Fixed buffer overrun when serializing really large double values in TypedJSON [#3585](https://github.com/Starcounter/Starcounter/issues/3585), [#3589](https://github.com/Starcounter/Starcounter/issues/3589) 
+- Fixed buffer overrun when serializing really large double values in TypedJSON [#3585](https://github.com/Starcounter/Starcounter/issues/3585), [#3589](https://github.com/Starcounter/Starcounter/issues/3589)
 - Fixed so that Typed JSON code-behind classes can derive generic classes [#3640](https://github.com/Starcounter/Starcounter/issues/3640)
 - Enabled Typed JSON code-behind classes with naked IBound-declaration, resolving [#3624](https://github.com/Starcounter/Starcounter/issues/3624)
 - Fixed a bug where patches in a databound array were not properly generated, after an item was removed [#3669](https://github.com/Starcounter/Starcounter/issues/3669)
+- Fixed a bug relating to reference failures sometimes showing with new Roslyn-based code-behind parser, [#3666](https://github.com/Starcounter/Starcounter/issues/3666)
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
 - Rewrote the Typed JSON code-behind parser, now driven by Roslyn [#3439](https://github.com/Starcounter/Starcounter/issues/3439)
 - Cache value of bound properties in TypedJSON when gathering changes and generating patches to avoid excessive access to bound data [#2551](https://github.com/Starcounter/Starcounter/issues/2551)
 - CLI command `staradmin delete db` will no longer fail when, but instead stop, database is running [#3649](https://github.com/Starcounter/Starcounter/issues/3649)
+- `PartialToStandaloneHtmlProvider` middleware no longer forces Shadow DOM in Polymer [#3562](https://github.com/Starcounter/Starcounter/issues/3562)
+- `PartialToStandaloneHtmlProvider` middleware no longer overwrites default Bootstrap font size [#3665](https://github.com/Starcounter/Starcounter/issues/3665)
 
 ## [2.2.1834] - 2016-04-19
 ### Added
@@ -55,7 +58,7 @@
 - Extended weaver diagnostics emitted by `scweaver --verbosity=diagnostic according to [#3420](https://github.com/Starcounter/Starcounter/issues/3420)
 - Introduced support to provision HTML (views) from JSON (view models) by means of middleware. See [#3444](https://github.com/Starcounter/Starcounter/issues/3444)
 - Added possibility to register internal codehost handlers with `HandlerOptions.SelfOnly`. See [#3339](https://github.com/Starcounter/Starcounter/issues/3339)
-- Added overloads for `Db.Transact` that allows specifying delegates that take input and output parameters. See [#2822](https://github.com/Starcounter/Starcounter/issues/2822) and documentation on http://starcounter.io/guides/transactions/ 
+- Added overloads for `Db.Transact` that allows specifying delegates that take input and output parameters. See [#2822](https://github.com/Starcounter/Starcounter/issues/2822) and documentation on http://starcounter.io/guides/transactions/
 - Added property `Request.HandlerAppName` to know to which application this request belongs.
 - Changed signature of MIME providers, and gave them access to the Request. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
 - Introduced support for multiple MIME providers / MIME type. See [#3451](https://github.com/Starcounter/Starcounter/issues/3451)
@@ -113,7 +116,7 @@
 - Made Handle.AddRequestFilter and Handle.AddResponseFilter obsolete in favor new Application.Use() API. See [#3296](https://github.com/Starcounter/Starcounter/issues/3296)
 - Syntax for getting headers in request and response changed from `r["Headername"]` to `r.Headers["Headername"]`.
 - Changed API for getting all headers string to `r.GetAllHeaders()` for both request and response.
-- In `Http` and `Node` receive timeout parameter has changed from milliseconds to seconds (no reasons to have it with milliseconds precision). 
+- In `Http` and `Node` receive timeout parameter has changed from milliseconds to seconds (no reasons to have it with milliseconds precision).
 - In `Http` and `Node` functions the `userObject` parameter is gone. Because of that the `userDelegate` parameter which was previously `Action<Response, Object>` became just `Action<Response>`.
 - Static files from /sys/ folder migrated to Polymer 1.3. See [#3384](https://github.com/Starcounter/Starcounter/issues/3384), [#3022](https://github.com/Starcounter/Starcounter/issues/3022)
 - Deprecate usage of `<dom-bind-notifier>` in HTML partial templates. Since Polymer 1.3 upgrade, it is not needed. See [#2922](https://github.com/Starcounter/Starcounter/issues/2922)
