@@ -314,7 +314,9 @@ namespace Starcounter.InstallerWPF {
 
                     Process prevSetupProcess = new Process();
                     prevSetupProcess.StartInfo.FileName = prevSetupExeFile;
-                    if (installedVersionDate >= this.ScVersionDate) {
+
+                    DateTime fixedDate = new DateTime(2016, 6, 2, 0, 0, 0, DateTimeKind.Utc);
+                    if (installedVersionDate >= fixedDate) {
                         prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances uninstall unattached upgrade";
                     }
                     else {
