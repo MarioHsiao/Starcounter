@@ -25,7 +25,7 @@ namespace Starcounter.InstallerWPF.Pages {
     /// <summary>
     /// Interaction logic for UninstallProgressPage.xaml
     /// </summary>
-    public partial class UninstallProgressPage : BasePage, IFinishedPage {
+    public partial class UninstallProgressPage : BasePage, IProgressPage {
 
         #region Win32 import
 
@@ -45,17 +45,6 @@ namespace Starcounter.InstallerWPF.Pages {
         #endregion
 
         #region Properties
-
-        private bool _GoToWiki = false;
-        public bool GoToWiki {
-            get {
-                return _GoToWiki;
-            }
-            set {
-                this._GoToWiki = value;
-                this.OnPropertyChanged("GoToWiki");
-            }
-        }
 
         private bool _CanGoNext = false;
         public override bool CanGoNext {
@@ -236,14 +225,14 @@ namespace Starcounter.InstallerWPF.Pages {
                 this.StopAnimation();
                 this._CanGoNext = true;
 
-                Configuration config = (Configuration)DataContext;
-                if (config.AutoClose) {
-                    MainWindow.StartRoutedCommand.Execute(null, this);
-                }
-                else {
-                    NavigationCommands.NextPage.Execute(null, this);
-                }
+                //Configuration config = (Configuration)DataContext;
+                //if (config.AutoClose) {
+                //    MainWindow.StartRoutedCommand.Execute(null, this);
+                //}
+                //else {
+                //}
 
+                NavigationCommands.NextPage.Execute(null, this);
                 CommandManager.InvalidateRequerySuggested();
             }
             catch (Exception e) {

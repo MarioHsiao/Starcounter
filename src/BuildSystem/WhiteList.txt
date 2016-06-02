@@ -337,6 +337,8 @@ synccommit.dll
 synccommit.exp
 synccommit.lib
 synccommit.pdb
+System.Collections.Immutable.dll
+System.Reflection.Metadata.dll
 testtemplate.html
 TurboText_en-GB_4.dll
 TurboText_en-GB_4.exp

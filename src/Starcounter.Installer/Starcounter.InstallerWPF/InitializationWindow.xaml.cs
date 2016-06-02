@@ -643,10 +643,12 @@ namespace Starcounter.InstallerWPF {
 
         // Indicates if setup started in silent mode.
         Boolean silentMode = false;
+        // No need to confirm uninstallation by user
         Boolean forceuninstall = false;
+        // Keep settings when uninstalling (set to true when updateing starcounter
         Boolean keepsettings = false;
+        // Close executable when action was successfull (install/uninstall/add-remove components)
         Boolean autoclose = false;
-    
 
         internal static String ScEnvVarName = "StarcounterBin";
 

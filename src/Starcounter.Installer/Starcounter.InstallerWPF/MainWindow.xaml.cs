@@ -283,7 +283,7 @@ namespace Starcounter.InstallerWPF {
 
             IFinishedPage finishPage = this.pages_lb.Items.CurrentItem as IFinishedPage;
 
-            if (finishPage != null && finishPage.GoToWiki) {
+            if (finishPage != null && finishPage.GoToWiki && this.Configuration.AutoClose == false) {
 
                 try {
                     string link = @"https://starcounter.io/docs/";
@@ -425,7 +425,7 @@ namespace Starcounter.InstallerWPF {
                 }
 
                 BasePage nextPage = this.pages_lb.Items[this.pages_lb.Items.CurrentPosition + 1] as BasePage;
-                if (nextPage is IFinishedPage) {
+                if (nextPage is IProgressPage) {
 
                     if (this.SetupOptions == InstallerWPF.Pages.SetupOptions.RemoveComponents ||
                         this.SetupOptions == InstallerWPF.Pages.SetupOptions.Uninstall) {
@@ -1042,9 +1042,7 @@ namespace Starcounter.InstallerWPF {
             //            this.RegisterPage(new MovieProgressPage());
 
             this.RegisterPage(new InstallProgressPage());
-            if (!this.Configuration.AutoClose) {
-                this.RegisterPage(new InstallFinishedPage());
-            }
+            this.RegisterPage(new InstallFinishedPage());
         }
 
         /// <summary>
@@ -1057,9 +1055,7 @@ namespace Starcounter.InstallerWPF {
             }
 
             this.RegisterPage(new UninstallProgressPage());
-            if (!this.Configuration.AutoClose) {
-                this.RegisterPage(new UninstallFinishedPage());
-            }
+            this.RegisterPage(new UninstallFinishedPage());
         }
 
         /// <summary>
@@ -1111,7 +1107,15 @@ namespace Starcounter.InstallerWPF {
             // OnSelected
             if (e.AddedItems != null) {
                 foreach (BasePage page in e.AddedItems) {
-                    page.OnSelected();
+
+
+                    if (page is IFinishedPage && this.Configuration.AutoClose) {
+                        MainWindow.StartRoutedCommand.Execute(null, this);
+                        CommandManager.InvalidateRequerySuggested();
+                    }
+                    else {
+                        page.OnSelected();
+                    }
                 }
             }
 

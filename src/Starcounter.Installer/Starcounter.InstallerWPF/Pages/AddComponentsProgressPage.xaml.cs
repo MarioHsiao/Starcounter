@@ -26,7 +26,7 @@ namespace Starcounter.InstallerWPF.Pages {
     /// <summary>
     /// Interaction logic for AddComponentsProgressPage.xaml
     /// </summary>
-    public partial class AddComponentsProgressPage : BasePage, IFinishedPage {
+    public partial class AddComponentsProgressPage : BasePage, IProgressPage {
 
         #region Win32 import
 
@@ -180,7 +180,7 @@ namespace Starcounter.InstallerWPF.Pages {
 
 
                 config.ExecuteSettings(
-                           delegate(object sender, Utilities.InstallerProgressEventArgs args) {
+                           delegate (object sender, Utilities.InstallerProgressEventArgs args) {
                                this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                                                        new Action(delegate {
 
@@ -189,7 +189,7 @@ namespace Starcounter.InstallerWPF.Pages {
                                                        }
                                                    ));
                            },
-                             delegate(object sender, Utilities.MessageBoxEventArgs args) {
+                             delegate (object sender, Utilities.MessageBoxEventArgs args) {
                                  this._dispatcher.Invoke(new Action(() => {
                                      args.MessageBoxResult = WpfMessageBox.Show(args.MessageBoxText, args.Caption, args.Button, args.Icon, args.DefaultResult);
                                  }));
