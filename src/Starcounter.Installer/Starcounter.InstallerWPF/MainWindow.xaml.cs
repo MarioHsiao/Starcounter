@@ -1223,7 +1223,12 @@ namespace Starcounter.InstallerWPF {
         /// <returns></returns>
         public static bool DirectoryContainsFiles(string targetDirectory, bool recursive) {
 
-            if (!Directory.Exists(targetDirectory)) {
+            try {
+                if (!Directory.Exists(targetDirectory)) {
+                    return false;
+                }
+            }
+            catch {
                 return false;
             }
 

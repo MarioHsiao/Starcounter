@@ -44,7 +44,7 @@ namespace Starcounter.InstallerWPF {
         // Used for direct replacement by installer.
         ///////////////////////////////////////////////////
         const String ScVersion = "2.0.0.0";
-        private readonly DateTime VersionDate = DateTime.Parse("1900-01-01 01:01:01Z", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+        private readonly DateTime ScVersionDate = DateTime.Parse("1900-01-01 01:01:01Z", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
         ///////////////////////////////////////////////////
         // END WARNING!!!
         ///////////////////////////////////////////////////
@@ -249,7 +249,7 @@ namespace Starcounter.InstallerWPF {
 
                 WpfMessageBoxResult userChoice = WpfMessageBoxResult.None;
 
-                String uninstallQuestion = string.Format("Do you want to {0} from version {1} to {2} ?", (VersionDate > installedVersionDate) ? "upgrade" : "downgrade", installedVersion, ScVersion),
+                String uninstallQuestion = string.Format("Do you want to {0} from version {1} to {2} ?", (ScVersionDate > installedVersionDate) ? "upgrade" : "downgrade", installedVersion, ScVersion),
                     headingMessage = "Starcounter Installation";
 
                 // Checking for the existing databases compatibility.
@@ -314,7 +314,7 @@ namespace Starcounter.InstallerWPF {
 
                     Process prevSetupProcess = new Process();
                     prevSetupProcess.StartInfo.FileName = prevSetupExeFile;
-                    if (this.VersionDate >= installedVersionDate) {
+                    if (this.ScVersionDate >= installedVersionDate) {
                         prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances uninstall unattached upgrade";
                     }
                     else {
