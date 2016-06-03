@@ -143,5 +143,14 @@ namespace Starcounter {
         internal bool calledFromStepSibling;
 
         private bool isAddedToViewmodel;
+
+#if JSONINSTANCECOUNTER
+        private static long globalInstanceCounter = 0;
+        internal long instanceNo = -1;
+        
+        private void AssignInstanceNumber() {
+            instanceNo = System.Threading.Interlocked.Increment(ref globalInstanceCounter);
+        }
+#endif 
     }   
 }
