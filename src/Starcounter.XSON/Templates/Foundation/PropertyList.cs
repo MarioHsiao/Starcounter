@@ -52,6 +52,25 @@ namespace Starcounter.Templates {
         /// <param name="parent"></param>
         internal PropertyList(TObject parent) {
             this.parent = parent;
+
+#if JSONINSTANCECOUNTER
+//            System.Diagnostics.Debugger.Launch();
+
+            var tInst = new TLong();
+            tInst.TemplateName = "InstanceNo";
+            tInst.BindingStrategy = BindingStrategy.Unbound;
+            
+            tInst._parent = this.parent;
+            tInst.TemplateIndex = this.Count;
+            tInst.SetCustomAccessors(
+                (json) => { return json.instanceNo; },
+                (json, value) => { }
+            );
+            
+            list.Add(tInst);
+            Expose(tInst);
+            parent.OnPropertyAdded(tInst);
+#endif
         }
 
         /// <summary>
@@ -60,6 +79,10 @@ namespace Starcounter.Templates {
         public void ClearExposed() {
             exposedProperties.Clear();
             exposedPropertyLookup.Clear();
+
+#if JSONINSTANCECOUNTER
+            Expose(list[0]);
+#endif
         }
 
         /// <summary>

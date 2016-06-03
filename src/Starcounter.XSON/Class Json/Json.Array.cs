@@ -28,6 +28,9 @@ namespace Starcounter {
         }
         
         internal Json(Json parent, TObjArr templ) {
+#if JSONINSTANCECOUNTER
+            AssignInstanceNumber();
+#endif
             trackChanges = false;
             checkBoundProperties = true;
             cacheIndexInArr = -1;
@@ -44,6 +47,9 @@ namespace Starcounter {
         /// </summary>
         /// <param name="result">The data source</param>
         protected Json(IEnumerable result) {
+#if JSONINSTANCECOUNTER
+            AssignInstanceNumber();
+#endif
             trackChanges = false;
             checkBoundProperties = true;
             cacheIndexInArr = -1;
