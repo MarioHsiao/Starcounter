@@ -26,7 +26,7 @@ namespace SQLTest
         internal Boolean Evaluated;
         internal Boolean CorrectResult;
         internal int NumberOfPartialResultsExpected;
-        internal Tuple<int, int> ResultReorderIndexes;
+        internal IEnumerable<Tuple<int, int>> ResultReorderIndexes;
 
 
         // First execution (not using cache).
