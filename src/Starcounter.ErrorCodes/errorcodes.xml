@@ -3384,6 +3384,12 @@
     <code hex="0008" severity="Error" name="ScErrAcquireSessionTimeout">
       <message>Exclusive access to the session could not be obtained.</message>
     </code>
+    <code hex="0009" severity="Error" name="ScErrAccessToSessionNotAcquired">
+      <message>Access to the session needs to be obtained before using it.</message>
+    </code>
+    <code hex="000A" severity="Error" name="ScErrSessionIncorrectScheduler">
+      <message>The session is bound to a different scheduler and cannot be used on this one.</message>
+    </code>
   </facility>
 
   <!-- Internal error codes. -->
