@@ -115,6 +115,8 @@ namespace Starcounter {
 
             // Getting current scheduler on which the session was created.
             schedulerId = StarcounterEnvironment.CurrentSchedulerId;
+
+            StartUsing();
         }
 
         /// <summary>
@@ -123,7 +125,8 @@ namespace Starcounter {
         private void CheckCorrectScheduler() {
             if (schedulerId == StarcounterEnvironment.CurrentSchedulerId)
                 return;
-            throw new InvalidOperationException("You are trying to use the session on different scheduler.");
+
+            throw ErrorCode.ToException(Error.SCERRSESSIONINCORRECTSCHEDULER);
         }
 
         /// <summary>
@@ -135,7 +138,7 @@ namespace Starcounter {
             if (this == current)
                 return;
 
-            throw new InvalidOperationException("TODO: message");
+            throw ErrorCode.ToException(Error.SCERRACCESSTOSESSIONNOTACQUIRED);
         }
 
         /// <summary>
@@ -335,7 +338,7 @@ namespace Starcounter {
                 if (value != null)
                     value.StartUsing();
                 else if (current != null)
-                    current.StopUsing();
+                    current.StopUsing(true);
             }
         }
 
@@ -470,7 +473,7 @@ namespace Starcounter {
         }
 
         void IAppsSession.StopUsing() {
-            this.StopUsing();
+            this.StopUsing(true);
         }
 
         /// <summary>
@@ -513,11 +516,13 @@ namespace Starcounter {
         /// <summary>
         /// Stop using specific session.
         /// </summary>
-        private void StopUsing() {
+        private void StopUsing(bool disposeUnrefTrans) {
             try {
                 Debug.Assert(current == this);
 
-                DisposeUnreferencedTransactions();
+                if (disposeUnrefTrans)
+                    DisposeUnreferencedTransactions();
+
                 Session.current = null;
                 isInUse = false;
             } finally {
@@ -670,12 +675,19 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use(Action action) {
+            Session oldCurrent = Session.current;
+            if (oldCurrent != null && oldCurrent != this)
+                oldCurrent.StopUsing(false);
+            
             bool started = this.StartUsing();
             try {
                 action();
             } finally {
                 if (started)
-                    this.StopUsing();
+                    this.StopUsing(true);
+
+                if (oldCurrent != null)
+                    oldCurrent.StartUsing();
             }
         }
 
@@ -685,12 +697,19 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         void Use(SessionTask action, String sessionId) {
+            Session oldCurrent = Session.current;
+            if (oldCurrent != null && oldCurrent != this)
+                oldCurrent.StopUsing(false);
+
             bool started = this.StartUsing();
             try {
                 action(this, sessionId);
             } finally {
                 if (started)
-                    this.StopUsing();
+                    this.StopUsing(true);
+
+                if (oldCurrent != null)
+                    oldCurrent.StartUsing();
             }
         }
 
@@ -700,12 +719,19 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use<T>(Action<T> action, T arg) {
+            Session oldCurrent = Session.current;
+            if (oldCurrent != null && oldCurrent != this)
+                oldCurrent.StopUsing(false);
+
             bool started = this.StartUsing();
             try {
                 action(arg);
             } finally {
                 if (started)
-                    this.StopUsing();
+                    this.StopUsing(true);
+
+                if (oldCurrent != null)
+                    oldCurrent.StartUsing();
             }
         }
 
@@ -715,12 +741,19 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
+            Session oldCurrent = Session.current;
+            if (oldCurrent != null && oldCurrent != this)
+                oldCurrent.StopUsing(false);
+
             bool started = this.StartUsing();
             try {
                 action(arg1, arg2);
             } finally {
                 if (started)
-                    this.StopUsing();
+                    this.StopUsing(true);
+
+                if (oldCurrent != null)
+                    oldCurrent.StartUsing();
             }
         }
 
@@ -730,12 +763,19 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
+            Session oldCurrent = Session.current;
+            if (oldCurrent != null && oldCurrent != this)
+                oldCurrent.StopUsing(false);
+
             bool started = this.StartUsing();
             try {
                 action(arg1, arg2, arg3);
             } finally {
                 if (started)
-                    this.StopUsing();
+                    this.StopUsing(true);
+
+                if (oldCurrent != null)
+                    oldCurrent.StartUsing();
             }
         }
 
@@ -745,12 +785,19 @@ namespace Starcounter {
         /// </summary>
         /// <param name="func"></param>
         public T Use<T>(Func<T> func) {
+            Session oldCurrent = Session.current;
+            if (oldCurrent != null && oldCurrent != this)
+                oldCurrent.StopUsing(false);
+
             bool started = this.StartUsing();
             try {
                 return func();
             } finally {
                 if (started)
-                    this.StopUsing();
+                    this.StopUsing(true);
+
+                if (oldCurrent != null)
+                    oldCurrent.StartUsing();
             }
         }
 
@@ -760,12 +807,19 @@ namespace Starcounter {
         /// </summary>
         /// <param name="func"></param>
         public TRet Use<T, TRet>(Func<T, TRet> func, T arg) {
+            Session oldCurrent = Session.current;
+            if (oldCurrent != null && oldCurrent != this)
+                oldCurrent.StopUsing(false);
+
             bool started = this.StartUsing();
             try {
                 return func(arg);
             } finally {
                 if (started)
-                    this.StopUsing();
+                    this.StopUsing(true);
+
+                if (oldCurrent != null)
+                    oldCurrent.StartUsing();
             }
         }
 
@@ -775,12 +829,19 @@ namespace Starcounter {
         /// </summary>
         /// <param name="func"></param>
         public TRet Use<T1, T2, TRet>(Func<T1, T2, TRet> func, T1 arg1, T2 arg2) {
+            Session oldCurrent = Session.current;
+            if (oldCurrent != null && oldCurrent != this)
+                oldCurrent.StopUsing(false);
+
             bool started = this.StartUsing();
             try {
                 return func(arg1, arg2);
             } finally {
                 if (started)
-                    this.StopUsing();
+                    this.StopUsing(true);
+
+                if (oldCurrent != null)
+                    oldCurrent.StartUsing();
             }
         }
     }
