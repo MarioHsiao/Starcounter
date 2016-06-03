@@ -24,6 +24,7 @@
 - Enabled Typed JSON code-behind classes with naked IBound-declaration, resolving [#3624](https://github.com/Starcounter/Starcounter/issues/3624)
 - Fixed a bug where patches in a databound array were not properly generated, after an item was removed [#3669](https://github.com/Starcounter/Starcounter/issues/3669)
 - Fixed a bug relating to reference failures sometimes showing with new Roslyn-based code-behind parser, [#3666](https://github.com/Starcounter/Starcounter/issues/3666)
+- Fixed a bug where a part of the jsontree was prematurely checkpointed when gathering changes for creating patches. 
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
