@@ -455,12 +455,14 @@ namespace Starcounter.CLI {
         /// </remarks>
         /// <param name="args">Command-line arguments to consult.</param>
         /// <param name="name">The name of the database.</param>
-        public static void ResolveDatabase(ApplicationArguments args, out string name) {
+        public static bool ResolveDatabase(ApplicationArguments args, out string name) {
             string database;
-            if (!args.TryGetProperty(Option.Db, out database)) {
+            var stated = args.TryGetProperty(Option.Db, out database);
+            if (!stated) {
                 database = SharedCLI.DefaultDatabaseName;
             }
             name = database;
+            return stated;
         }
 
         /// <summary>
