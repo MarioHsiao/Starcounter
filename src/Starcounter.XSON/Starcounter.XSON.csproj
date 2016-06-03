@@ -97,6 +97,7 @@
     <Compile Include="Sessions\JSON-Patch\JsonPatchException.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatchOperation.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonProperty.cs" />
+    <Compile Include="Sessions\SessionOptions.cs" />
     <Compile Include="TemplateDelegateGenerator.cs" />
     <Compile Include="Templates\DynamicFunctions.cs" />
     <Compile Include="Templates\Foundation\TValue.cs" />

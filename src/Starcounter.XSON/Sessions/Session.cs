@@ -14,57 +14,54 @@ using Starcounter.Logging;
 using Starcounter.XSON;
 
 namespace Starcounter {
-    [Flags]
-    public enum SessionOptions : int {
-        Default = 0,
-        IncludeSchema = 1,
-        PatchVersioning = 2,
-        StrictPatchRejection = 4,
-//        DisableProtocolOT = 8,
-        IncludeNamespaces = 16
-    }
-
-    /// <summary>
-    /// Session destroy delegate.
-    /// </summary>
-    class SessionDestroyInfo {
-        internal String AppName;
-        internal Action<Session> DestroyDelegate;
-    }
-
     /// <summary>
     /// Class representing session.
     /// </summary>
     public sealed class Session : IAppsSession, IDisposable {
+        /// <summary>
+        /// Resembles session task to be used in Session.ScheduleTask and Session.ForAll.
+        /// </summary>
+        /// <param name="session">Session on which this task is to be called. Note that Session value can still be null (if session was destroyed in the meantime).</param>
+        /// <param name="sessionId">Session ASCII representation (useful in case if Session value is null).</param>
+        public delegate void SessionTask(Session session, String sessionId);
+
+        /// <summary>
+        /// 
+        /// </summary>
         private class TransactionRef {
             internal int Refs;
             internal TransactionHandle Handle;
         }
 
+        /// <summary>
+        /// Session destroy delegate.
+        /// </summary>
+        private class SessionDestroyInfo {
+            internal String AppName;
+            internal Action<Session> DestroyDelegate;
+        }
+
         [ThreadStatic]
-        private static Session _current;
+        private static Session current;
 
-        private static JsonPatch jsonPatch_ = new JsonPatch();
-
+        private static JsonPatch jsonPatch = new JsonPatch();
         private static LogSource log = new LogSource("Starcounter");
 
         /// <summary>
         /// To which scheduler this session belongs.
         /// </summary>
-        Byte schedulerId_;
+        private byte schedulerId;
 
         /// <summary>
         /// List of destroy delegates for this session.
         /// </summary>
-        List<SessionDestroyInfo> destroyDelegates_;
+        private List<SessionDestroyInfo> destroyDelegates;
 
-        private bool _isInUse;
-        private Dictionary<string, int> _indexPerApplication;
-       
-        private List<Json> _stateList;
+        private bool isInUse;
+        private Dictionary<string, int> indexPerApplication;
+        private List<Json> stateList;
         private SessionOptions sessionOptions;
         private int publicViewModelIndex;
-
         private AutoResetEvent waitObj;
 
         /// <summary>
@@ -88,15 +85,16 @@ namespace Starcounter {
         internal bool enableCachedReads = false;
 
         public Session() : this(SessionOptions.Default) {
+
         }
 
         public Session(SessionOptions options, bool? includeNamespaces = null) {
-            _indexPerApplication = new Dictionary<string, int>();
-            _stateList = new List<Json>();
+            indexPerApplication = new Dictionary<string, int>();
+            stateList = new List<Json>();
             sessionOptions = options;
             transactions = new List<TransactionRef>();
             publicViewModelIndex = -1;
-
+            
             bool b = StarcounterEnvironment.WrapJsonInNamespaces;
             if (includeNamespaces.HasValue)
                 b = includeNamespaces.Value;
@@ -115,44 +113,51 @@ namespace Starcounter {
             waitObj = new AutoResetEvent(true);
 
             // Getting current scheduler on which the session was created.
-            schedulerId_ = StarcounterEnvironment.CurrentSchedulerId;
+            schedulerId = StarcounterEnvironment.CurrentSchedulerId;
         }
 
         /// <summary>
         /// Checks if session is used on the owning scheduler.
         /// </summary>
-        void CheckCorrectScheduler() {
+        private void CheckCorrectScheduler() {
+            if (schedulerId == StarcounterEnvironment.CurrentSchedulerId)
+                return;
+            throw new InvalidOperationException("You are trying to use the session on different scheduler.");
+        }
 
-            // Checking if on the owning scheduler.
-            if (schedulerId_ != StarcounterEnvironment.CurrentSchedulerId) {
-                throw new InvalidOperationException("You are trying to use the session on different scheduler.");
-            }
+        /// <summary>
+        /// Verify that the caller have access to the session.
+        /// </summary>
+        private void VerifyAccess() {
+            CheckCorrectScheduler();
+
+            if (this == current)
+                return;
+
+            throw new InvalidOperationException("TODO: message");
         }
 
         /// <summary>
         /// Event which is called when session is being destroyed (timeout, manual, etc).
         /// </summary>
         public void AddDestroyDelegate(Action<Session> destroyDelegate) {
-
             SessionDestroyInfo sdi = new SessionDestroyInfo() {
                 AppName = StarcounterEnvironment.AppName,
                 DestroyDelegate = destroyDelegate
             };
 
-            if (destroyDelegates_ == null) {
-                destroyDelegates_ = new List<SessionDestroyInfo>();
+            if (destroyDelegates == null) {
+                destroyDelegates = new List<SessionDestroyInfo>();
             }
 
-            destroyDelegates_.Add(sdi);
+            destroyDelegates.Add(sdi);
         }
 
         /// <summary>
         /// Runs session destruction delegates.
         /// </summary>
         void RunDestroyDelegates(Session s) {
-
-            foreach (SessionDestroyInfo sdi in destroyDelegates_) {
-
+            foreach (SessionDestroyInfo sdi in destroyDelegates) {
                 StarcounterEnvironment.RunWithinApplication(sdi.AppName, () => {
                     sdi.DestroyDelegate(s);
                 });
@@ -167,7 +172,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Checks if given option exists in session options.
+        /// Checks if given option is set in sessionoptions.
         /// </summary>
         /// <param name="option"></param>
         /// <returns></returns>
@@ -179,17 +184,15 @@ namespace Starcounter {
         /// Calculates the patch and pushes it on WebSocket.
         /// </summary>
         public void CalculatePatchAndPushOnWebSocket() {
-
-            // Checking if on the owning scheduler.
-            CheckCorrectScheduler();
+            VerifyAccess();
 
             // Checking if there is an active WebSocket.
             if (ActiveWebSocket == null)
                 return;
 
             // Calculating the patch.
-            Byte[] patch;
-            Int32 sizeBytes = jsonPatch_.Generate(
+            byte[] patch;
+            int sizeBytes = jsonPatch.Generate(
                 PublicViewModel, 
                 true, 
                 CheckOption(SessionOptions.IncludeNamespaces), 
@@ -198,34 +201,24 @@ namespace Starcounter {
             // Sending the patch bytes to the client.
             ActiveWebSocket.Send(patch, sizeBytes, true);
         }
-
-        /// <summary>
-        /// Resembles session task to be used in Session.ScheduleTask and Session.ForAll.
-        /// </summary>
-        /// <param name="session">Session on which this task is to be called. Note that Session value can still be null (if session was destroyed in the meantime).</param>
-        /// <param name="sessionId">Session ASCII representation (useful in case if Session value is null).</param>
-        public delegate void SessionTask(Session session, String sessionId);
-
+        
         /// <summary>
         /// Runs a given session for each task on current scheduler.
         /// </summary>
-        static void RunForSessionsOnCurrentScheduler(SessionTask task) {
-
+        private static void RunForSessionsOnCurrentScheduler(SessionTask task) {
             SchedulerSessions ss =
                 GlobalSessions.AllGlobalSessions.GetSchedulerSessions(StarcounterEnvironment.CurrentSchedulerId);
 
-            LinkedListNode<UInt32> usedSessionIndexNode = ss.UsedSessionIndexes.First;
+            LinkedListNode<uint> usedSessionIndexNode = ss.UsedSessionIndexes.First;
 
             while (usedSessionIndexNode != null) {
-
-                LinkedListNode<UInt32> nextUsedSessionIndexNode = usedSessionIndexNode.Next;
+                LinkedListNode<uint> nextUsedSessionIndexNode = usedSessionIndexNode.Next;
 
                 // Getting session instance.
                 ScSessionClass sessionClass = ss.GetAppsSessionIfAlive(usedSessionIndexNode.Value);
 
                 // Checking if session is created at all.
                 if (null != sessionClass) {
-
                     Session s = (Session) sessionClass.apps_session_int_;
                     if (null != s) {
                         s.Use(task, s.SessionId);
@@ -243,10 +236,8 @@ namespace Starcounter {
         /// <param name="task">Task to run on session. Second string parameter is the session ASCII representation.</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
         public static void ForAll(SessionTask task, Boolean waitForCompletion = false) {
-
-            for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
-
-                Byte schedId = i;
+            for (byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+                byte schedId = i;
 
                 Scheduling.ScheduleTask(() => { RunForSessionsOnCurrentScheduler(task); },
                     waitForCompletion,
@@ -262,13 +253,10 @@ namespace Starcounter {
         /// Second string parameter is the session ASCII representation (useful in case if Session value is null).</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
         public static void ScheduleTask(String sessionId, SessionTask task, Boolean waitForCompletion = false) {
-
-            // Getting session structure from string.
             ScSessionStruct ss = new ScSessionStruct();
             ss.ParseFromString(sessionId);
 
             Scheduling.ScheduleTask(() => {
-
                 Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
 
                 // Checking if session is dead.
@@ -289,7 +277,6 @@ namespace Starcounter {
         /// Second string parameter is the session ASCII representation (useful in case if Session value is null).</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
         public static void ScheduleTask(IEnumerable<String> sessionIds, SessionTask task, Boolean waitForCompletion = false) {
-
             List<String> sessionIdsList = new List<string>();
             foreach (String s in sessionIds) {
                 sessionIdsList.Add(s);
@@ -332,13 +319,13 @@ namespace Starcounter {
         /// </summary>
         public static Session Current {
             get {
-                return _current;
+                return current;
             }
             set {
                 if (value != null)
                     value.StartUsing();
-                else if (_current != null)
-                    _current.StopUsing();
+                else if (current != null)
+                    current.StopUsing();
             }
         }
 
@@ -347,28 +334,22 @@ namespace Starcounter {
         /// </summary>
         public Json Data {
             get {
-
-                // Checking if on the owning scheduler.
-                CheckCorrectScheduler();
+                VerifyAccess();
 
                 int stateIndex;
-                string appName;
-
-                appName = StarcounterEnvironment.AppName;
+                string appName = StarcounterEnvironment.AppName;
                 if (appName == null)
                     return null;
 
-                if (!_indexPerApplication.TryGetValue(appName, out stateIndex))
+                if (!indexPerApplication.TryGetValue(appName, out stateIndex))
                     return null;
 
-                return _stateList[stateIndex];
+                return stateList[stateIndex];
             }
             set {
+                VerifyAccess();
+
                 Json oldJson = null;
-
-                // Checking if on the owning scheduler.
-                CheckCorrectScheduler();
-
                 int stateIndex;
                 string appName;
 
@@ -382,13 +363,13 @@ namespace Starcounter {
 
                 appName = StarcounterEnvironment.AppName;
                 if (appName != null) {
-                    if (!_indexPerApplication.TryGetValue(appName, out stateIndex)) {
-                        stateIndex = _stateList.Count;
-                        _stateList.Add(value);
-                        _indexPerApplication.Add(appName, stateIndex);
+                    if (!indexPerApplication.TryGetValue(appName, out stateIndex)) {
+                        stateIndex = stateList.Count;
+                        stateList.Add(value);
+                        indexPerApplication.Add(appName, stateIndex);
                     } else {
-                        oldJson = _stateList[stateIndex];
-                        _stateList[stateIndex] = value;
+                        oldJson = stateList[stateIndex];
+                        stateList[stateIndex] = value;
                     }
 
                     if (value != null) {
@@ -414,7 +395,7 @@ namespace Starcounter {
                         value.OnSessionSet();
                     }
 
-                    if (_current == null) {
+                    if (current == null) {
                         StartUsing();
                     }
                 }
@@ -475,7 +456,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public bool IsBeingUsed() {
-            return _isInUse;
+            return isInUse;
         }
 
         void IAppsSession.StartUsing() {
@@ -494,10 +475,10 @@ namespace Starcounter {
         /// already was current.
         /// </returns>
         private bool StartUsing() {
-            if (_current == this) 
+            if (current == this) 
                 return false;
 
-            if (_current != null) {
+            if (current != null) {
                 throw ErrorCode.ToException(Error.SCERRANOTHERSESSIONACTIVE);
             }
 
@@ -518,8 +499,8 @@ namespace Starcounter {
                 break;
             }
             
-            _isInUse = true;
-            Session._current = this;
+            isInUse = true;
+            Session.current = this;
             return true;
         }
 
@@ -528,11 +509,11 @@ namespace Starcounter {
         /// </summary>
         private void StopUsing() {
             try {
-                Debug.Assert(_current == this);
+                Debug.Assert(current == this);
 
                 DisposeUnreferencedTransactions();
-                Session._current = null;
-                _isInUse = false;
+                Session.current = null;
+                isInUse = false;
             } finally {
                 waitObj.Set();
             }
@@ -552,8 +533,10 @@ namespace Starcounter {
         /// <returns></returns>
         public Json PublicViewModel {
             get {
+                VerifyAccess();
+
                 if (publicViewModelIndex != -1)
-                    return _stateList[publicViewModelIndex];
+                    return stateList[publicViewModelIndex];
                 return null;
             }
         }
@@ -566,12 +549,7 @@ namespace Starcounter {
                 return true;
             }
         }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool HaveAddedOrRemovedObjects { get; set; }
-        
+       
         internal TransactionHandle RegisterTransaction(TransactionHandle handle) {
             TransactionRef tref = null;
 
@@ -646,22 +624,22 @@ namespace Starcounter {
         /// Destroys the session.
         /// </summary>
         public void Destroy() {
+            VerifyAccess();
 
-            _indexPerApplication.Clear();
+            indexPerApplication.Clear();
             DisposeAllTransactions();
 
             // Checking if there is an active WebSocket.
             if (ActiveWebSocket != null) {
-
                 ActiveWebSocket.Disconnect("Session is expired.", WebSocket.WebSocketCloseCodes.WS_CLOSE_GOING_DOWN);
                 ActiveWebSocket.Session = null;
                 ActiveWebSocket = null;
             }
 
             // Checking if destroy callback is supplied.
-            if (null != destroyDelegates_) {
+            if (null != destroyDelegates) {
                 RunDestroyDelegates(this);
-                destroyDelegates_ = null;
+                destroyDelegates = null;
             }
 
             // NOTE: Preventing recursive destroy call.
@@ -670,8 +648,7 @@ namespace Starcounter {
                 InternalSession.Destroy();
                 InternalSession = null;
             }
-
-            Session._current = null;
+            Session.current = null;
         }
 
         /// <summary>
