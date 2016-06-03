@@ -1,6 +1,7 @@
 ## [Unreleased] - Unreleased
 
 ### Added
+- Better error message when a synonym target an illegal element, [#3677](https://github.com/Starcounter/Starcounter/issues/3677)
 
 ### Fixed
 - Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
