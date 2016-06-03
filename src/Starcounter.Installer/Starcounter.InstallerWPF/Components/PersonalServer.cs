@@ -38,20 +38,23 @@ namespace Starcounter.InstallerWPF.Components {
         protected override void SetDefaultValues() {
             base.SetDefaultValues();
 
-#if !SIMULATE_CLEAN_INSTALLATION
+#if !SIMULATE_INSTALLATION
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.PersonalServer];
 #endif
 
-            if (!string.IsNullOrEmpty(Properties.Settings.Default.DatabasesRepositoryPath)) {
-                this.Path = Properties.Settings.Default.DatabasesRepositoryPath;
+            MainWindow win = System.Windows.Application.Current.MainWindow as MainWindow;
+            
+           
+            if (!string.IsNullOrEmpty(win.Configuration.SetupUserSettings.DatabasesRepositoryPath)) {
+                this.Path = win.Configuration.SetupUserSettings.DatabasesRepositoryPath;
             }
             else {
                 this.Path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), ConstantsBank.SCProductName);
             }
 
-            this.DefaultUserHttpPort = (Properties.Settings.Default.DefaultUserHttpPort != 0) ? Properties.Settings.Default.DefaultUserHttpPort : StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
-            this.DefaultSystemHttpPort = (Properties.Settings.Default.DefaultSystemHttpPort != 0) ? Properties.Settings.Default.DefaultSystemHttpPort : StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
-            this.DefaultAggregationPort = (Properties.Settings.Default.DefaultAggregationPort != 0) ? Properties.Settings.Default.DefaultAggregationPort : StarcounterConstants.NetworkPorts.DefaultPersonalServerAggregationPort;
+            this.DefaultUserHttpPort = (win.Configuration.SetupUserSettings.DefaultUserHttpPort != 0) ? win.Configuration.SetupUserSettings.DefaultUserHttpPort : StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
+            this.DefaultSystemHttpPort = (win.Configuration.SetupUserSettings.DefaultSystemHttpPort != 0) ? win.Configuration.SetupUserSettings.DefaultSystemHttpPort : StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+            this.DefaultAggregationPort = (win.Configuration.SetupUserSettings.DefaultAggregationPort != 0) ? win.Configuration.SetupUserSettings.DefaultAggregationPort : StarcounterConstants.NetworkPorts.DefaultPersonalServerAggregationPort;
 
             this.DefaultPrologSqlProcessPort = StarcounterConstants.NetworkPorts.DefaultPersonalPrologSqlProcessPort;
 
@@ -61,7 +64,7 @@ namespace Starcounter.InstallerWPF.Components {
 
             switch (this.Command) {
                 case ComponentCommand.Install:
-                    this.ExecuteCommand = !this.IsInstalled && Properties.Settings.Default.InstallPersonalServer;
+                    this.ExecuteCommand = !this.IsInstalled && win.Configuration.SetupUserSettings.InstallPersonalServer;
                     break;
                 case ComponentCommand.None:
                     this.ExecuteCommand = false;

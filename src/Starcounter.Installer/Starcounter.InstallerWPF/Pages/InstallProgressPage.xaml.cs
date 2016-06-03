@@ -236,8 +236,6 @@ namespace Starcounter.InstallerWPF.Pages {
                 _CanGoNext = true;
                 NavigationCommands.NextPage.Execute(null, this);
                 CommandManager.InvalidateRequerySuggested();
-
-                this.DisplayName = "Finished";
             }
             catch (Exception e) {
                 this.OnError(e);
