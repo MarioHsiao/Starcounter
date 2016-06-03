@@ -13,7 +13,8 @@ namespace staradmin.Commands {
             var cli = new AdminCLI(Context.ServerReference);
             
             try {
-                var apps = cli.GetApplications();
+                var db = Context.IsExcplicitDatabase ? Context.Database : null;
+                var apps = cli.GetApplications(db);
                 if (apps.Count == 0) {
                     SharedCLI.ShowInformationAndSetExitCode(
                         "No applications running",
