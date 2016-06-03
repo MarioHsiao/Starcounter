@@ -797,9 +797,9 @@ namespace Starcounter.Internal.Weaver {
 
                 if (databaseClass == null || (databaseAttribute = databaseClass.Attributes[field.Name]) == null || !databaseAttribute.IsPersistent) {
                     ScMessageSource.WriteError(
-                                MessageLocation.Unknown,
-                                Error.SCERRUNSPECIFIED,
-                                "Illegal element for the SynonymousTo attribute");
+                        MessageLocation.Unknown,
+                        Error.SCERRILLEGALSYNONYMELEMENT,
+                        "Illegal synonym: " + synonymToEnumerator.Current.TargetElement);
                 }
             }
         }

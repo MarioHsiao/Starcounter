@@ -3342,6 +3342,11 @@
         Unable to allocate a handle table since the maximum number of handles tables are reached.
       </message>
     </code>
+    <code hex="012F" severity="Error" name="ScErrIllegalSynonymElement">
+      <message>
+        Illegal element for the SynonymousTo attribute.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
