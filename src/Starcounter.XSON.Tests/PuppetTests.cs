@@ -28,19 +28,22 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestSingleSessionState() {
             Json root = new Json();
             Session session = new Session();
-            Session session2 = new Session();
 
             StarcounterEnvironment.AppName = "SingleApp";
             session.Data = root;
 
             Assert.IsTrue(session == root.Session);
             Assert.IsTrue(root == session.Data);
-
+            
             root.Session = null;
+            Assert.IsTrue(session.Data == null);
+
+            Session.Current = null;
+
+            Session session2 = new Session();
             StarcounterEnvironment.AppName = "SingleApp2";
             session2.Data = root;
-
-            Assert.IsTrue(session.Data == null);
+            
             Assert.IsTrue(session2 == root.Session);
 
             StarcounterEnvironment.AppName = "Test";
