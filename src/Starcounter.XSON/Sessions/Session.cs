@@ -63,6 +63,7 @@ namespace Starcounter {
         private SessionOptions sessionOptions;
         private int publicViewModelIndex;
         private AutoResetEvent waitObj;
+        private WebSocket activeWebSocket;
 
         /// <summary>
         /// Array of transactions that is managed by this session. All transaction here 
@@ -102,7 +103,7 @@ namespace Starcounter {
             if (b)
                 sessionOptions |= SessionOptions.IncludeNamespaces;
             
-            UInt32 errCode = 0;
+            uint errCode = 0;
            
             ScSessionStruct sss = new ScSessionStruct(true);
             errCode = GlobalSessions.AllGlobalSessions.CreateNewSession(ref sss, this);
@@ -307,12 +308,21 @@ namespace Starcounter {
         /// <summary>
         /// Getting internal session.
         /// </summary>
-        public ScSessionClass InternalSession { get; set; }
+        public ScSessionClass InternalSession { get; set; } 
 
         /// <summary>
         /// Currently active WebSocket.
         /// </summary>
-        public WebSocket ActiveWebSocket { get; set; }
+        public WebSocket ActiveWebSocket {
+            get {
+                VerifyAccess();
+                return activeWebSocket;
+            }
+            set {
+                VerifyAccess();
+                activeWebSocket = value;
+            }
+        }
 
         /// <summary>
         /// Current static session object.
@@ -393,10 +403,6 @@ namespace Starcounter {
                         }
 
                         value.OnSessionSet();
-                    }
-
-                    if (current == null) {
-                        StartUsing();
                     }
                 }
             }
@@ -630,10 +636,10 @@ namespace Starcounter {
             DisposeAllTransactions();
 
             // Checking if there is an active WebSocket.
-            if (ActiveWebSocket != null) {
-                ActiveWebSocket.Disconnect("Session is expired.", WebSocket.WebSocketCloseCodes.WS_CLOSE_GOING_DOWN);
-                ActiveWebSocket.Session = null;
-                ActiveWebSocket = null;
+            if (activeWebSocket != null) {
+                activeWebSocket.Disconnect("Session is expired.", WebSocket.WebSocketCloseCodes.WS_CLOSE_GOING_DOWN);
+                activeWebSocket.Session = null;
+                activeWebSocket = null;
             }
 
             // Checking if destroy callback is supplied.
