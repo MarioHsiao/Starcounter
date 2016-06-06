@@ -296,6 +296,10 @@ namespace Starcounter.InstallerWPF {
                 }
             }
 
+            if (finishPage != null && this.Configuration.Unattended && !string.IsNullOrEmpty(this.FinishedMessageInUnattendedMode)) {
+                WpfMessageBox.Show("Starcounter Installation", this.FinishedMessageInUnattendedMode);
+            }
+
             this.Close();   // Close Installer program and lets the waiting parent process continue
         }
 
@@ -477,7 +481,7 @@ namespace Starcounter.InstallerWPF {
         public static Boolean[] InstalledComponents;
 
         public SetupOptions DefaultSetupOptions = SetupOptions.None;
-
+        public string FinishedMessageInUnattendedMode = null;
 
         #endregion
 
