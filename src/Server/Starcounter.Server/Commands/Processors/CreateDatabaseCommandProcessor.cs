@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Starcounter.Server.PublicModel.Commands;
+using System.Text.RegularExpressions;
 
 namespace Starcounter.Server.Commands {
     
@@ -28,6 +29,7 @@ namespace Starcounter.Server.Commands {
         /// <inheritdoc />
         protected override void Execute() {
             CreateDatabaseCommand command = (CreateDatabaseCommand)this.Command;
+            AssureAllowedName(command);
             AssureUniqueName(command);
 
             var setup = new DatabaseSetup(this.Engine, command.SetupProperties);
@@ -40,6 +42,13 @@ namespace Starcounter.Server.Commands {
             string candidate = command.SetupProperties.Name;
             if (Engine.Databases.ContainsKey(candidate)) {
                 throw ErrorCode.ToException(Error.SCERRDATABASEALREADYEXISTS, string.Format("Database '{0}'.", candidate));
+            }
+        }
+
+        void AssureAllowedName(CreateDatabaseCommand command) {
+            string candidate = command.SetupProperties.Name;
+            if (!new Regex("^[a-zA-Z0-9]*$").IsMatch(candidate)) {
+                throw ErrorCode.ToException(Error.SCERRFORBIDDENDATABASENAME, string.Format("Name '{0}'.", candidate));
             }
         }
     }
