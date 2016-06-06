@@ -15,7 +15,7 @@ schema_upgrade_test.bat 180
 udp_test.bat 100
 HttpStreams_test.exe 900
 3LevelSchemaChange_test.bat 120
-umbrella_node_test.bat 240
+umbrella_node_test.bat 400
 star_loop_test.bat 140
 star_loop_exception_test.bat 140
 SimpleAggregation_test.bat 120
