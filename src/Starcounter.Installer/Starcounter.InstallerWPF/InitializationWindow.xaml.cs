@@ -303,6 +303,7 @@ namespace Starcounter.InstallerWPF {
                     this.isUpgrade = true;
                     this.unattended = true;
                     this.setupOptions = SetupOptions.Install;
+                    this.finishedMessage = string.Format("Successfully {0} to version {1} from {2}.", (ScVersionDate > installedVersionDate) ? "upgraded" : "downgraded", ScVersion, installedVersion);
 
                     // Asking to launch current installed version uninstaller.
                     String installDir = GetInstalledDirFromEnv();
@@ -509,7 +510,7 @@ namespace Starcounter.InstallerWPF {
             System.Windows.Forms.Screen screen = this.GetCurrentScreen();
 
             MainWindow mainWindow = new MainWindow();
-            mainWindow.Closed += MainWindow_Closed;
+            mainWindow.FinishedMessageInUnattendedMode = this.finishedMessage;
             mainWindow.DefaultSetupOptions = this.setupOptions;
             mainWindow.Configuration.Unattended = this.unattended;
             mainWindow.Configuration.IsUpgrade = this.isUpgrade;
@@ -533,19 +534,6 @@ namespace Starcounter.InstallerWPF {
                 mainWindow.Activate();
             }
 
-        }
-
-        private void MainWindow_Closed(object sender, EventArgs e) {
-
-            MessageBox.Show("MainWindow_Closed");
-
-            MainWindow mainWindow = sender as MainWindow;
-            if (mainWindow != null) {
-                IFinishedPage finishPage = mainWindow.pages_lb.Items.CurrentItem as IFinishedPage;
-                if (finishPage != null && this.isUpgrade && this.unattended && this.setupOptions == SetupOptions.Install) {
-                   MessageBox.Show("Starcounter was successfully installed");
-                }
-            }
         }
 
         private System.Windows.Forms.Screen GetCurrentScreen() {
@@ -684,7 +672,8 @@ namespace Starcounter.InstallerWPF {
         // unattended setup is not the same as silent, silent should not show any qui.
         Boolean unattended = false;
         SetupOptions setupOptions = SetupOptions.None;
-
+        // Message boxtext after upgrade
+        string finishedMessage = string.Empty;
         // Keep settings when uninstalling (set to true when updating starcounter)
         Boolean isUpgrade = false;
 
