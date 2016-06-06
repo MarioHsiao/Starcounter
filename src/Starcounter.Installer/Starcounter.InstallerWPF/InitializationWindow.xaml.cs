@@ -537,13 +537,13 @@ namespace Starcounter.InstallerWPF {
 
         private void MainWindow_Closed(object sender, EventArgs e) {
 
-            WpfMessageBox.Show("MainWindow_Closed");
+            MessageBox.Show("MainWindow_Closed");
 
             MainWindow mainWindow = sender as MainWindow;
             if (mainWindow != null) {
                 IFinishedPage finishPage = mainWindow.pages_lb.Items.CurrentItem as IFinishedPage;
                 if (finishPage != null && this.isUpgrade && this.unattended && this.setupOptions == SetupOptions.Install) {
-                    WpfMessageBox.Show("Starcounter was successfully installed");
+                   MessageBox.Show("Starcounter was successfully installed");
                 }
             }
         }
