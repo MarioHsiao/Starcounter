@@ -300,6 +300,7 @@ namespace Starcounter.InstallerWPF {
 
                 if (userChoice == WpfMessageBoxResult.Yes) {
 
+                    this.isUpgrade = true;
                     this.unattended = true;
                     this.setupOptions = SetupOptions.Install;
 
@@ -508,6 +509,7 @@ namespace Starcounter.InstallerWPF {
             System.Windows.Forms.Screen screen = this.GetCurrentScreen();
 
             MainWindow mainWindow = new MainWindow();
+            mainWindow.Closed += MainWindow_Closed;
             mainWindow.DefaultSetupOptions = this.setupOptions;
             mainWindow.Configuration.Unattended = this.unattended;
             mainWindow.Configuration.IsUpgrade = this.isUpgrade;
@@ -531,6 +533,19 @@ namespace Starcounter.InstallerWPF {
                 mainWindow.Activate();
             }
 
+        }
+
+        private void MainWindow_Closed(object sender, EventArgs e) {
+
+            MessageBox.Show("MainWindow_Closed");
+
+            MainWindow mainWindow = sender as MainWindow;
+            if (mainWindow != null) {
+                IFinishedPage finishPage = mainWindow.pages_lb.Items.CurrentItem as IFinishedPage;
+                if (finishPage != null && this.isUpgrade && this.unattended) {
+                    MessageBox.Show("Starcounter was successfully installed");
+                }
+            }
         }
 
         private System.Windows.Forms.Screen GetCurrentScreen() {
