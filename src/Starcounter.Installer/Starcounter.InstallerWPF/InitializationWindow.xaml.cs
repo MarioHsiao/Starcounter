@@ -249,8 +249,7 @@ namespace Starcounter.InstallerWPF {
 
                 WpfMessageBoxResult userChoice = WpfMessageBoxResult.None;
 
-                String upgradeQuestion = string.Format("Do you want to {0} from version {1} to {2} ?", (ScVersionDate > installedVersionDate) ? "upgrade" : "downgrade", installedVersion, ScVersion),
-                    headingMessage = "Starcounter Installation";
+                String upgradeQuestion = string.Format("Would you like to {0} Starcounter v{1} to v{2}?", (ScVersionDate > installedVersionDate) ? "upgrade" : "downgrade", installedVersion, ScVersion), headingMessage = "Starcounter Installation";
 
                 // Checking for the existing databases compatibility.
                 List<String> dbListToUnload = new List<String>();
@@ -303,7 +302,7 @@ namespace Starcounter.InstallerWPF {
                     this.isUpgrade = true;
                     this.unattended = true;
                     this.setupOptions = SetupOptions.Install;
-                    this.finishedMessage = string.Format("Successfully {0} to version {1} from {2}.", (ScVersionDate > installedVersionDate) ? "upgraded" : "downgraded", ScVersion, installedVersion);
+                    this.finishedMessage = string.Format("{0} successful.", (ScVersionDate > installedVersionDate) ? "Upgrade" : "Downgrade");
 
                     // Asking to launch current installed version uninstaller.
                     String installDir = GetInstalledDirFromEnv();
