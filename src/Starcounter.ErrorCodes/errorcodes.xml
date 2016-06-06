@@ -3347,6 +3347,12 @@
         Illegal element for the SynonymousTo attribute.
       </message>
     </code>
+    <code hex="0130" severity="Error" name="ScErrForbiddenDatabaseName">
+      <message>Invalid database name.</message>
+      <remarks>
+        The database name must follow this [a-z,A-Z,0-9] naming scheme.
+      </remarks>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
