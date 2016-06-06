@@ -297,7 +297,9 @@ namespace Starcounter.InstallerWPF {
             }
 
             if (finishPage != null && this.Configuration.Unattended && !string.IsNullOrEmpty(this.FinishedMessageInUnattendedMode)) {
-                WpfMessageBox.Show("Starcounter Installation", this.FinishedMessageInUnattendedMode);
+                this.Hide();
+                //                this.Visibility = Visibility.Hidden;
+                WpfMessageBox.Show(this.FinishedMessageInUnattendedMode, "Starcounter Installation");
             }
 
             this.Close();   // Close Installer program and lets the waiting parent process continue
