@@ -249,7 +249,7 @@ namespace Starcounter.InstallerWPF {
 
                 WpfMessageBoxResult userChoice = WpfMessageBoxResult.None;
 
-                String uninstallQuestion = string.Format("Do you want to {0} from version {1} to {2} ?", (ScVersionDate > installedVersionDate) ? "upgrade" : "downgrade", installedVersion, ScVersion),
+                String upgradeQuestion = string.Format("Do you want to {0} from version {1} to {2} ?", (ScVersionDate > installedVersionDate) ? "upgrade" : "downgrade", installedVersion, ScVersion),
                     headingMessage = "Starcounter Installation";
 
                 // Checking for the existing databases compatibility.
@@ -269,7 +269,7 @@ namespace Starcounter.InstallerWPF {
 
                         String dbListToUnloadText = String.Join(Environment.NewLine, dbListToUnload);
 
-                        uninstallQuestion += Environment.NewLine + Environment.NewLine +
+                        upgradeQuestion += Environment.NewLine + Environment.NewLine +
                             "Existing database image files are incompatible with this installation (database(s): " + dbListToUnloadText + "). " +
                             "Please follow the instructions at: " + Environment.NewLine +
                             "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions " + Environment.NewLine +
@@ -280,7 +280,7 @@ namespace Starcounter.InstallerWPF {
                 else {
 
                     // Some error occurred during the check.
-                    uninstallQuestion +=
+                    upgradeQuestion +=
                         "Error occurred during verification of existing database image files versions." + Environment.NewLine +
                         "Please follow the instructions at: " + Environment.NewLine +
                         "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions " + Environment.NewLine +
@@ -294,11 +294,14 @@ namespace Starcounter.InstallerWPF {
 
                 // Asking for user choice about uninstalling.
                 userChoice = WpfMessageBox.Show(
-                    uninstallQuestion,
+                    upgradeQuestion,
                     headingMessage,
                     WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
 
                 if (userChoice == WpfMessageBoxResult.Yes) {
+
+                    this.unattended = true;
+                    this.setupOptions = SetupOptions.Install;
 
                     // Asking to launch current installed version uninstaller.
                     String installDir = GetInstalledDirFromEnv();
@@ -406,7 +409,6 @@ namespace Starcounter.InstallerWPF {
             Storyboard Element_Storyboard = this.PART_Canvas.FindResource("canvasAnimation") as Storyboard;
             Element_Storyboard.Stop(this.PART_Canvas);
         }
-
 
         void InitializationWindow_Loaded(object sender, RoutedEventArgs e) {
 
@@ -553,7 +555,6 @@ namespace Starcounter.InstallerWPF {
         }
 
         private void OnError(Exception e) {
-
 
             // Send the tracking error before we close down.
             Dispatcher disp = Dispatcher.FromThread(Thread.CurrentThread);
@@ -711,6 +712,11 @@ namespace Starcounter.InstallerWPF {
                     args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
                     i--;
                     this.setupOptions = SetupOptions.Uninstall;
+                }
+                else if (param.Equals("install", StringComparison.InvariantCultureIgnoreCase)) {
+                    args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
+                    i--;
+                    this.setupOptions = SetupOptions.Install;
                 }
                 else if (param.Equals("upgrade", StringComparison.InvariantCultureIgnoreCase)) {
                     args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
