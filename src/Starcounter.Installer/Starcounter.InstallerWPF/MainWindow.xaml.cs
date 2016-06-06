@@ -290,7 +290,7 @@ namespace Starcounter.InstallerWPF {
                     this.OpenBrowser(link);
                 }
                 catch (Win32Exception ee) {
-                    string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
+                    string message = "Failed to open web browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
                     this.OnError(new Exception(message));
                     return;
                 }
