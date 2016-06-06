@@ -88,6 +88,9 @@ namespace Starcounter {
         /// </summary>
         public Json()
             : base() {
+#if JSONINSTANCECOUNTER
+            AssignInstanceNumber();
+#endif
             cacheIndexInArr = -1;
             transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();

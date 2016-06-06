@@ -2605,6 +2605,22 @@ uint32_t Gateway::RegisterGatewayHandlers() {
     if (err_code)
         return err_code;
 
+	// Registering URI handler for gateway statistics.
+	err_code = AddUriHandler(
+		&gw_workers_[0],
+		setting_internal_system_port_,
+		"gateway",
+		"GET /gw/updateconfig",
+		NULL,
+		0,
+		bmx::BMX_INVALID_HANDLER_INFO,
+		INVALID_DB_INDEX,
+		GatewayUpdateConfiguration,
+		true);
+
+	if (err_code)
+		return err_code;
+
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(
         &gw_workers_[0],

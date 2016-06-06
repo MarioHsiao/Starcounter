@@ -289,12 +289,10 @@ namespace Starcounter {
                                             var childJson = container.GetValue(json);
                                             if (childJson != null) {
                                                 childJson.SetBoundValuesInTuple();
-                                                childJson.CheckpointChangeLog();
                                             }
                                         }
                                     }
                                 }
-                                //json.CheckpointAt(exposed[t].TemplateIndex);
                                 json.MarkAsNonDirty(exposed[t].TemplateIndex);
                             } else {
                                 var p = exposed[t];
@@ -516,6 +514,9 @@ namespace Starcounter {
             }
 
             ReduceArrayChanges(this.arrayAddsAndDeletes, offset, deleteCount);
+            // TODO:
+            // Temorary workaround until jsonpatch generation supports move operation.
+            SplitMoves(this.arrayAddsAndDeletes);
 
             if (hasChanged)
                 this.Parent.HasChanged(tArr);
@@ -646,6 +647,28 @@ namespace Starcounter {
                 if (arrayChanges.Count > 1 && lastIndex != -1) {
                     arrayChanges.RemoveAt(lastIndex);
                     arrayChanges.Insert(offset, delete);
+                }
+            }
+        }
+
+        private static void SplitMoves(List<Change> changes) {
+            Change current;
+            Change toSplit;
+
+            if (changes == null)
+                return;
+
+            for (int i = 0; i < changes.Count; i++) {
+                current = changes[i];
+                if (current.ChangeType == Change.MOVE) {
+                    toSplit = Change.Remove(current.Parent, (TObjArr)current.Property, current.FromIndex, current.Item);
+                    changes[i] = toSplit;
+                    toSplit = Change.Add(current.Parent, (TObjArr)current.Property, current.Index, current.Item);
+                    changes.Insert(i + 1, toSplit);
+                    i++;
+
+                    if (current.Item != null)
+                        current.Item.SetBoundValuesInTuple();
                 }
             }
         }

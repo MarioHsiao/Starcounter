@@ -396,34 +396,36 @@ namespace Administrator.Server.Model {
 
             }, (commandId) => {
 
-                CommandInfo commandInfo = runtime.GetCommand(commandId);
+                lock (ServerManager.ServerInstance) {
+                    CommandInfo commandInfo = runtime.GetCommand(commandId);
 
-                this.StatusText = string.Empty;
+                    this.StatusText = string.Empty;
 
-                if (commandInfo.HasError) {
+                    if (commandInfo.HasError) {
 
-                    //Check if command was Canceled
-                    bool wasCancelled = false;
-                    if (commandInfo.HasProgress) {
-                        foreach (var p in commandInfo.Progress) {
-                            if (p.WasCancelled == true) {
-                                wasCancelled = true;
-                                break;
+                        //Check if command was Canceled
+                        bool wasCancelled = false;
+                        if (commandInfo.HasProgress) {
+                            foreach (var p in commandInfo.Progress) {
+                                if (p.WasCancelled == true) {
+                                    wasCancelled = true;
+                                    break;
+                                }
                             }
                         }
+
+                        ErrorInfo single = commandInfo.Errors.PickSingleServerError();
+                        var msg = single.ToErrorMessage();
+
+                        if (errorCallback != null) {
+                            errorCallback(wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                        }
                     }
+                    else {
 
-                    ErrorInfo single = commandInfo.Errors.PickSingleServerError();
-                    var msg = single.ToErrorMessage();
-
-                    if (errorCallback != null) {
-                        errorCallback(wasCancelled, command.Description, msg.Brief, msg.Helplink);
-                    }
-                }
-                else {
-
-                    if (completionCallback != null) {
-                        completionCallback();
+                        if (completionCallback != null) {
+                            completionCallback();
+                        }
                     }
                 }
             });

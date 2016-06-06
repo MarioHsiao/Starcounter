@@ -210,7 +210,7 @@ namespace Starcounter.XSON {
             if (index == -1) {
                 template = (TValue)json.Template;
             } else if (json.IsArray) {
-                template = ((TObjArr)(json.Template)).ElementType as TValue;
+                template = null;//((TObjArr)(json.Template)).ElementType as TValue;
             } else {
                 template = (json.Template as TObject).Properties[index] as TValue;
             }

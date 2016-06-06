@@ -16,34 +16,26 @@ namespace Starcounter.InstallerWPF.Components {
 
         public const string Identifier = "StarcounterInstallation";
 
-        public override string ComponentIdentifier
-        {
-            get
-            {
+        public override string ComponentIdentifier {
+            get {
                 return InstallationBase.Identifier;
             }
         }
 
-        public override string Name
-        {
-            get
-            {
+        public override string Name {
+            get {
                 return "Starcounter Installation Path";
             }
         }
 
-        public override bool ShowProperties
-        {
-            get
-            {
+        public override bool ShowProperties {
+            get {
                 return true;
             }
         }
 
-        public override bool IsExecuteCommandEnabled
-        {
-            get
-            {
+        public override bool IsExecuteCommandEnabled {
+            get {
                 return false;
             }
         }
@@ -56,10 +48,8 @@ namespace Starcounter.InstallerWPF.Components {
         //    }
         //}
 
-        public string Path
-        {
-            get
-            {
+        public string Path {
+            get {
 
                 if (string.IsNullOrEmpty(this.BasePath)) {
                     return null;
@@ -75,15 +65,12 @@ namespace Starcounter.InstallerWPF.Components {
         }
 
         private string _BasePath;
-        public string BasePath
-        {
+        public string BasePath {
 
-            get
-            {
+            get {
                 return this._BasePath;
             }
-            set
-            {
+            set {
 
                 if (string.Compare(this._BasePath, value) == 0) return;
                 this._BasePath = value;
@@ -96,10 +83,8 @@ namespace Starcounter.InstallerWPF.Components {
         }
 
 
-        public bool DirectoryContainsFiles
-        {
-            get
-            {
+        public bool DirectoryContainsFiles {
+            get {
                 if (this.BasePath != null && this.BasePath is String) {
                     // Add Starcounter
                     string folder = System.IO.Path.Combine(this.BasePath, ConstantsBank.SCProductName);
@@ -111,14 +96,11 @@ namespace Starcounter.InstallerWPF.Components {
 
 
         private bool _SendUsageAndCrashReports;
-        public bool SendUsageAndCrashReports
-        {
-            get
-            {
+        public bool SendUsageAndCrashReports {
+            get {
                 return this._SendUsageAndCrashReports;
             }
-            set
-            {
+            set {
                 if (this._SendUsageAndCrashReports == value) return;
                 this._SendUsageAndCrashReports = value;
                 this.OnPropertyChanged("SendUsageAndCrashReports");
@@ -127,14 +109,11 @@ namespace Starcounter.InstallerWPF.Components {
 
 
         private bool _AddToStartMenu;
-        public bool AddToStartMenu
-        {
-            get
-            {
+        public bool AddToStartMenu {
+            get {
                 return this._AddToStartMenu;
             }
-            set
-            {
+            set {
                 if (this._AddToStartMenu == value) return;
                 this._AddToStartMenu = value;
                 this.OnPropertyChanged("AddToStartMenu");
@@ -149,34 +128,37 @@ namespace Starcounter.InstallerWPF.Components {
         protected override void SetDefaultValues() {
             base.SetDefaultValues();
 
+            MainWindow win = System.Windows.Application.Current.MainWindow as MainWindow;
+
             // Setting the installation flag.
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.InstallationBase];
 
-            this.SendUsageAndCrashReports = true;
+            this.SendUsageAndCrashReports = win.Configuration.SetupUserSettings.SendUsageAndCrashReports;
+
+            if (!string.IsNullOrEmpty(win.Configuration.SetupUserSettings.InstallationBasePath)) {
+                this.BasePath = win.Configuration.SetupUserSettings.InstallationBasePath;
+            }
 
 
             // Setting installation path (new path is created if not installed).
-#if !SIMULATE_CLEAN_INSTALLATION
+#if !SIMULATE_INSTALLATION
 
-            //this.Path = CInstallationBase.GetInstalledDirFromEnv();
-            string currentInstallationPath = CInstallationBase.GetInstalledDirFromEnv();
-
-            string installationBaseFolder = this.GetInstallationBaseFolder(currentInstallationPath);
-            if (string.IsNullOrEmpty(installationBaseFolder)) {
-                // Invalid folder
-                this.BasePath = null;
-            }
-            else {
-                this.BasePath = installationBaseFolder;
+            if (string.IsNullOrEmpty(this.BasePath)) {
+                string currentInstallationPath = CInstallationBase.GetInstalledDirFromEnv();
+                string installationBaseFolder = this.GetInstallationBaseFolder(currentInstallationPath);
+                if (string.IsNullOrEmpty(installationBaseFolder)) {
+                    // Invalid folder
+                    this.BasePath = null;
+                }
+                else {
+                    this.BasePath = installationBaseFolder;
+                }
             }
 
 #endif
             if (string.IsNullOrEmpty(this.Path)) {
                 String programFilesPath = ConstantsBank.ProgramFilesPath;
-
-                //this.Path = System.IO.Path.Combine(programFilesPath, System.IO.Path.Combine(ConstantsBank.SCProductName, CurrentVersion.Version));
                 this.BasePath = programFilesPath;
-                //                this.BasePath = System.IO.Path.Combine(programFilesPath, ConstantsBank.SCProductName);
             }
 
             switch (this.Command) {

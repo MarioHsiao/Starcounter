@@ -88,6 +88,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq">
@@ -142,6 +143,7 @@
     <Compile Include="LicenseAgreementWindow.xaml.cs">
       <DependentUpon>LicenseAgreementWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\IProgressPage.cs" />
     <Compile Include="Pages\InstallProgressPage.xaml.cs">
       <DependentUpon>InstallProgressPage.xaml</DependentUpon>
     </Compile>
@@ -152,6 +154,7 @@
       <DependentUpon>SlidesPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Rules\PortRule.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="Slides\ISlide.cs" />
     <Compile Include="Slides\Movie.xaml.cs">
       <DependentUpon>Movie.xaml</DependentUpon>
@@ -451,11 +454,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
     <Compile Include="Rules\DirectoryContainsFilesRule.cs" />
     <Compile Include="Rules\StringRule.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -463,10 +461,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
+    <None Include="app.config" />
     <EmbeddedResource Include="resources\Archive.zip" />
     <AppDesigner Include="Properties\" />
   </ItemGroup>

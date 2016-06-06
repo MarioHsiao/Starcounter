@@ -18,6 +18,12 @@ namespace staradmin {
         public string Database { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating if the database was explicitiy
+        /// stated on the command line.
+        /// </summary>
+        public bool IsExcplicitDatabase { get; set; }
+
+        /// <summary>
         /// Gets or sets the admin server host.
         /// </summary>
         public string ServerHost { get; set; }

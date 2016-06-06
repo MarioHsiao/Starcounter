@@ -120,7 +120,8 @@ namespace SQLTest
             }
             else if ( testQuery.ResultReorderIndexes != null )
             {
-                resultList.Sort(testQuery.ResultReorderIndexes.Item1, testQuery.ResultReorderIndexes.Item2 - testQuery.ResultReorderIndexes.Item1 + 1, StringComparer.InvariantCulture);
+                foreach( var r in testQuery.ResultReorderIndexes)
+                    resultList.Sort(r.Item1, r.Item2 - r.Item1 + 1, StringComparer.InvariantCulture);
             }
         }
 
