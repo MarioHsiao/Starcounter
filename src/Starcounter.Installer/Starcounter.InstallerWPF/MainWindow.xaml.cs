@@ -290,10 +290,15 @@ namespace Starcounter.InstallerWPF {
                     this.OpenBrowser(link);
                 }
                 catch (Win32Exception ee) {
-                    string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
+                    string message = "Failed to open web browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
                     this.OnError(new Exception(message));
                     return;
                 }
+            }
+
+            if (finishPage != null && this.Configuration.Unattended && !string.IsNullOrEmpty(this.FinishedMessageInUnattendedMode)) {
+                this.Hide();
+                WpfMessageBox.Show(this.FinishedMessageInUnattendedMode, "Starcounter Installation");
             }
 
             this.Close();   // Close Installer program and lets the waiting parent process continue
@@ -477,7 +482,7 @@ namespace Starcounter.InstallerWPF {
         public static Boolean[] InstalledComponents;
 
         public SetupOptions DefaultSetupOptions = SetupOptions.None;
-
+        public string FinishedMessageInUnattendedMode = null;
 
         #endregion
 
@@ -666,7 +671,9 @@ namespace Starcounter.InstallerWPF {
                 // Checking system recommendations.
                 CheckHardwareStatus();
 
-                this.RegisterPage(new WelcomeAndLicenseAgreementPage());
+                if (!this.Configuration.Unattended) {
+                    this.RegisterPage(new WelcomeAndLicenseAgreementPage());
+                }
                 this.SetupOptions = SetupOptions.Install;
             }
             else {
@@ -1034,20 +1041,6 @@ namespace Starcounter.InstallerWPF {
                 (vs2015 != null && vs2015.ValidateSettings() == false))) {
                 this.RegisterPage(new DeveloperToolsPage());
             }
-
-            ////            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
-
-            //if (this.ChangeAdditionalSettings) {
-            //    //this.RegisterPage(new WelcomePage());
-            //    //this.RegisterPage(new LicenseAgreementPage());
-            //    this.RegisterPage(new InstallationPathPage());
-            //    this.RegisterPage(new DatabaseEnginesPage());
-            //    //this.RegisterPage(new AdministrationToolsPage());
-            //    //this.RegisterPage(new ConnectivityPage());
-            //    this.RegisterPage(new DeveloperToolsPage());
-            //}
-
-            //            this.RegisterPage(new MovieProgressPage());
 
             this.RegisterPage(new InstallProgressPage());
             this.RegisterPage(new InstallFinishedPage());

@@ -13,9 +13,9 @@ urls_test.bat 300
 websockets_test.bat 900
 udp_test.bat 100
 HttpStreams_test.exe 900
-umbrella_node_test.bat 240
-star_loop_test.bat 100
-star_loop_exception_test.bat 100
+umbrella_node_test.bat 400
+star_loop_test.bat 140
+star_loop_exception_test.bat 140
 SimpleAggregation_test.bat 120
 SimpleAggregationRemote_test.bat 200
 SimpleIndependentTests_hosted_test.exe 500
