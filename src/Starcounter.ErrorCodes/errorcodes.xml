@@ -3392,9 +3392,15 @@
     </code>
     <code hex="0009" severity="Error" name="ScErrAccessToSessionNotAcquired">
       <message>Access to the session needs to be obtained before using it.</message>
+      <remarks>
+        Call Session.Use or schedule a task with Session.ScheduleTask to obtain access.
+      </remarks>
     </code>
     <code hex="000A" severity="Error" name="ScErrSessionIncorrectScheduler">
       <message>The session is bound to a different scheduler and cannot be used on this one.</message>
+      <remarks>
+        Use Session.ScheduleTask to add a task that will be executed on the correct scheduler for the session.
+      </remarks>
     </code>
   </facility>
 
