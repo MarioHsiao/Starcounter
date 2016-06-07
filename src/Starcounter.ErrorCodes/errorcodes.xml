@@ -3402,6 +3402,9 @@
         Use Session.ScheduleTask to add a task that will be executed on the correct scheduler for the session.
       </remarks>
     </code>
+    <code hex="000B" severity="Error" name="ScErrSessionDestroyed">
+      <message>The session have been destroyed and cannot be used.</message>
+    </code>
   </facility>
 
   <!-- Internal error codes. -->
