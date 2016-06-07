@@ -776,8 +776,8 @@ namespace Starcounter
                 if (appsSession != null)
                 {
                     session = (Session)appsSession;
-                    session.ActiveWebSocket = ws;
                     appsSession.StartUsing();
+                    session.ActiveWebSocket = ws;
                 }
 
                 // Setting statically available current WebSocket.
