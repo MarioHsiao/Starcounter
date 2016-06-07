@@ -119,25 +119,23 @@ namespace Starcounter {
             StartUsing();
         }
 
-        /// <summary>
-        /// Checks if session is used on the owning scheduler.
-        /// </summary>
         private void CheckCorrectScheduler() {
             if (schedulerId == StarcounterEnvironment.CurrentSchedulerId)
                 return;
 
             throw ErrorCode.ToException(Error.SCERRSESSIONINCORRECTSCHEDULER);
         }
-
+        
         /// <summary>
-        /// Verify that the caller have access to the session.
+        /// Verify that the caller is on the correct scheduler and have access to the session.
         /// </summary>
         private void VerifyAccess() {
-            CheckCorrectScheduler();
+            if (!this.IsAlive())
+                throw ErrorCode.ToException(Error.SCERRSESSIONDESTROYED);
 
-            if (this == current)
+            if (current == this)
                 return;
-
+            
             throw ErrorCode.ToException(Error.SCERRACCESSTOSESSIONNOTACQUIRED);
         }
 
@@ -635,6 +633,9 @@ namespace Starcounter {
         /// Destroys the session.
         /// </summary>
         public void Destroy() {
+            if (!IsAlive())
+                return; // Calling Destroy on already destroyed session, just return.
+
             VerifyAccess();
 
             indexPerApplication.Clear();
@@ -659,7 +660,7 @@ namespace Starcounter {
                 InternalSession.Destroy();
                 InternalSession = null;
             }
-            Session.current = null;
+            this.StopUsing(false);
         }
 
         /// <summary>
@@ -675,6 +676,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use(Action action) {
+            CheckCorrectScheduler();
+
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
                 oldCurrent.StopUsing(false);
@@ -697,6 +700,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         void Use(SessionTask action, String sessionId) {
+            CheckCorrectScheduler();
+
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
                 oldCurrent.StopUsing(false);
@@ -719,6 +724,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use<T>(Action<T> action, T arg) {
+            CheckCorrectScheduler();
+
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
                 oldCurrent.StopUsing(false);
@@ -741,6 +748,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
+            CheckCorrectScheduler();
+
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
                 oldCurrent.StopUsing(false);
@@ -763,6 +772,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
+            CheckCorrectScheduler();
+
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
                 oldCurrent.StopUsing(false);
@@ -785,6 +796,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="func"></param>
         public T Use<T>(Func<T> func) {
+            CheckCorrectScheduler();
+
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
                 oldCurrent.StopUsing(false);
@@ -807,6 +820,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="func"></param>
         public TRet Use<T, TRet>(Func<T, TRet> func, T arg) {
+            CheckCorrectScheduler();
+
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
                 oldCurrent.StopUsing(false);
@@ -829,6 +844,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="func"></param>
         public TRet Use<T1, T2, TRet>(Func<T1, T2, TRet> func, T1 arg1, T2 arg2) {
+            CheckCorrectScheduler();
+
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
                 oldCurrent.StopUsing(false);
