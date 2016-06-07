@@ -25,24 +25,29 @@ namespace Starcounter.Internal.Test {
 
             String testString = "";
 
-            // Setting the destroyed events.
-            s.AddDestroyDelegate((Session session) => {
-                testString += "One";
-            });
-
-            s.AddDestroyDelegate((Session session) => {
-                testString += "Two";
-            });
-
-            // Destroying the session.
-            s.Destroy();
-            Assert.AreEqual("OneTwo", testString);
-
-            // NOTE: Testing once again that we don't have a double call.
             s.Use(() => {
+                // Setting the destroyed events.
+                s.AddDestroyDelegate((Session session) => {
+                    testString += "One";
+                });
+
+                s.AddDestroyDelegate((Session session) => {
+                    testString += "Two";
+                });
+
+                // Destroying the session.
                 s.Destroy();
                 Assert.AreEqual("OneTwo", testString);
             });
+
+            // NOTE: Testing once again that we don't have a double call.
+            Exception ex = Assert.Throws<Exception>(() => {
+                s.Use(() => { });
+            });
+
+            uint ec;
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out ec));
+            Assert.AreEqual(Error.SCERRSESSIONDESTROYED, ec);
         }
     }
 }
