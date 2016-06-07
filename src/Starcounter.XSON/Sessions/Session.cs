@@ -119,10 +119,13 @@ namespace Starcounter {
             StartUsing();
         }
 
-        private void CheckCorrectScheduler() {
+        private void VerifySchedulerAndIsAlive() {
+            if (!this.IsAlive())
+                throw ErrorCode.ToException(Error.SCERRSESSIONDESTROYED);
+
             if (schedulerId == StarcounterEnvironment.CurrentSchedulerId)
                 return;
-
+            
             throw ErrorCode.ToException(Error.SCERRSESSIONINCORRECTSCHEDULER);
         }
         
@@ -143,6 +146,8 @@ namespace Starcounter {
         /// Event which is called when session is being destroyed (timeout, manual, etc).
         /// </summary>
         public void AddDestroyDelegate(Action<Session> destroyDelegate) {
+            VerifyAccess();
+
             SessionDestroyInfo sdi = new SessionDestroyInfo() {
                 AppName = StarcounterEnvironment.AppName,
                 DestroyDelegate = destroyDelegate
@@ -676,7 +681,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use(Action action) {
-            CheckCorrectScheduler();
+            VerifySchedulerAndIsAlive();
 
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
@@ -700,7 +705,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         void Use(SessionTask action, String sessionId) {
-            CheckCorrectScheduler();
+            VerifySchedulerAndIsAlive();
 
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
@@ -724,7 +729,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use<T>(Action<T> action, T arg) {
-            CheckCorrectScheduler();
+            VerifySchedulerAndIsAlive();
 
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
@@ -748,7 +753,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
-            CheckCorrectScheduler();
+            VerifySchedulerAndIsAlive();
 
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
@@ -772,7 +777,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action"></param>
         public void Use<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
-            CheckCorrectScheduler();
+            VerifySchedulerAndIsAlive();
 
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
@@ -796,7 +801,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="func"></param>
         public T Use<T>(Func<T> func) {
-            CheckCorrectScheduler();
+            VerifySchedulerAndIsAlive();
 
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
@@ -820,7 +825,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="func"></param>
         public TRet Use<T, TRet>(Func<T, TRet> func, T arg) {
-            CheckCorrectScheduler();
+            VerifySchedulerAndIsAlive();
 
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
@@ -844,7 +849,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="func"></param>
         public TRet Use<T1, T2, TRet>(Func<T1, T2, TRet> func, T1 arg1, T2 arg2) {
-            CheckCorrectScheduler();
+            VerifySchedulerAndIsAlive();
 
             Session oldCurrent = Session.current;
             if (oldCurrent != null && oldCurrent != this)
