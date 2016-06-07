@@ -639,6 +639,7 @@ namespace Starcounter {
             VerifyAccess();
 
             indexPerApplication.Clear();
+            stateList.Clear();
             DisposeAllTransactions();
 
             // Checking if there is an active WebSocket.
@@ -660,7 +661,6 @@ namespace Starcounter {
                 InternalSession.Destroy();
                 InternalSession = null;
             }
-            this.StopUsing(false);
         }
 
         /// <summary>
