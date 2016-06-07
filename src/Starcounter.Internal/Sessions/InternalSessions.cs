@@ -601,20 +601,24 @@ namespace Starcounter.Internal
             // Checking that salt is correct.
             if (s.session_struct_.randomSalt_ == random_salt)
             {
-                // Checking that session is not being used at the moment.
-                if (s.IsBeingUsed()) {
-                    throw new Exception("Trying to destroy a session that is already used in some task!");
+                IAppsSession appSession = s.apps_session_int_;
+                if (appSession != null)
+                    appSession.StartUsing(); // Obtain exclusive access to the session.
+
+                try {
+                    // Removing used session index node.
+                    LinkedListNode<UInt32> linear_index_node = s.linear_index_node_;
+                    used_session_indexes_.Remove(linear_index_node);
+
+                    // Destroys existing Apps session.
+                    s.Destroy();
+
+                    // Restoring the free index back.
+                    free_session_indexes_.AddFirst(linear_index_node);
+                } finally {
+                    if (appSession != null)
+                        appSession.StopUsing();
                 }
-
-                // Removing used session index node.
-                LinkedListNode<UInt32> linear_index_node = s.linear_index_node_;
-                used_session_indexes_.Remove(linear_index_node);
-
-                // Destroys existing Apps session.
-                s.Destroy();
-
-                // Restoring the free index back.
-                free_session_indexes_.AddFirst(linear_index_node);
             }
 
             return 0;
