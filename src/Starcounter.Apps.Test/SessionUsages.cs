@@ -39,8 +39,10 @@ namespace Starcounter.Internal.Test {
             Assert.AreEqual("OneTwo", testString);
 
             // NOTE: Testing once again that we don't have a double call.
-            s.Destroy();
-            Assert.AreEqual("OneTwo", testString);
+            s.Use(() => {
+                s.Destroy();
+                Assert.AreEqual("OneTwo", testString);
+            });
         }
     }
 }
