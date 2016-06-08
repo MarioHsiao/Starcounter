@@ -348,7 +348,7 @@ namespace CommitHooksTest
                 Hook<TestClass>.CommitInsert += (s, t) => { ++inserts; };
 
                 //act
-                using (var tran = new Transaction(false, true, false))
+                using (var tran = new Transaction(false, false))
                 {
                     tran.Scope(() =>
                     {
@@ -383,7 +383,7 @@ namespace CommitHooksTest
 
 
                 //act
-                using (var tran = new Transaction(false, true, false))
+                using (var tran = new Transaction(false, false))
                 {
                     tran.Scope(() =>
                     {
@@ -412,7 +412,7 @@ namespace CommitHooksTest
                     };
                 });
 
-                using (var tran = new Transaction(false, true, false))
+                using (var tran = new Transaction(false, false))
                 {
                     tran.Scope(() =>
                     {
@@ -441,7 +441,7 @@ namespace CommitHooksTest
                 });
 
                 //act
-                using (var tran = new Transaction(false, true, false))
+                using (var tran = new Transaction(false, false))
                 {
                     tran.Scope(() =>
                     {
