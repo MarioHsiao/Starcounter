@@ -29,14 +29,13 @@ namespace Starcounter {
         public Transaction()
             : this(false) {
         }
-
+        
         /// <summary>
         /// New transaction constructor.
         /// </summary>
         /// <param name="readOnly">Transaction read-only flag.</param>
-        /// <param name="detectConflicts">Transaction conflicts detection flag (merging writes are used if False).</param>
-        public Transaction(bool readOnly, bool detectConflicts = true, bool applyHooks = true) {
-            _handle = StarcounterBase.TransactionManager.Create(readOnly, detectConflicts, applyHooks);
+        public Transaction(bool readOnly, bool applyHooks = true) {
+            _handle = StarcounterBase.TransactionManager.Create(readOnly, applyHooks);
         }
 
         internal Transaction(TransactionHandle handle) {
