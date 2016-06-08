@@ -64,7 +64,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                             errorResponse.Helplink = msg.Helplink;
                             errorResponse.ServerCode = single.GetErrorCode();
 
-                            if (single.GetErrorCode() == Error.SCERRDATABASEALREADYEXISTS) {
+                            if (single.GetErrorCode() == Error.SCERRDATABASEALREADYEXISTS || single.GetErrorCode() == Error.SCERRFORBIDDENDATABASENAME) {
                                 return new Response() { StatusCode = (ushort)422, Body = errorResponse.ToJson() };
                             }
 

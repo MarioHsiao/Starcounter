@@ -35,7 +35,7 @@ namespace Starcounter.Administrator.API.Handlers {
 
             single = null;
             if (ErrorInfoExtensions.TryGetSingleReasonErrorBasedOnServerConvention(commandInfo.Errors, out single)) {
-                if (single.GetErrorCode() == Error.SCERRDATABASEALREADYEXISTS) {
+                if (single.GetErrorCode() == Error.SCERRDATABASEALREADYEXISTS || single.GetErrorCode() == Error.SCERRFORBIDDENDATABASENAME) {
                     msg = single.ToErrorMessage();
                     detail = RESTUtility.JSON.CreateError(msg.Code, msg.Body, msg.Helplink);
                     return RESTUtility.JSON.CreateResponse(detail.ToJson(), 422);

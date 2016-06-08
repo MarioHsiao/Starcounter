@@ -92,6 +92,10 @@ namespace Starcounter.Internal {
 
             try {
 
+                // Workaround for the newline problems in the parser.
+                query = query.Replace('\r', ' ');
+                query = query.Replace('\n', ' ');
+
                 QueryResultRows<dynamic> sqlResult = Db.SlowSQL(query);
 
                 if (sqlResult != null) {

@@ -2,6 +2,7 @@
 
 ### Added
 - Better error message when a synonym target an illegal element, [#3677](https://github.com/Starcounter/Starcounter/issues/3677)
+- Made `staradmin list apps` support filtering on a specific database by giving `-d|--database`, [#3521](https://github.com/Starcounter/Starcounter/issues/3521)
 
 ### Fixed
 - Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
@@ -33,6 +34,7 @@
 - CLI command `staradmin delete db` will no longer fail when, but instead stop, database is running [#3649](https://github.com/Starcounter/Starcounter/issues/3649)
 - `PartialToStandaloneHtmlProvider` middleware no longer forces Shadow DOM in Polymer [#3562](https://github.com/Starcounter/Starcounter/issues/3562)
 - `PartialToStandaloneHtmlProvider` middleware no longer overwrites default Bootstrap font size [#3665](https://github.com/Starcounter/Starcounter/issues/3665)
+- Upgraded Polymer to 1.5.0 [#3673](https://github.com/Starcounter/Starcounter/issues/3673)
 
 ## [2.2.1834] - 2016-04-19
 ### Added
