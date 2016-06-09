@@ -237,10 +237,11 @@ namespace Starcounter.InstallerWPF {
         /// Checks if another version of Starcounter is installed.
         /// </summary>
         /// <returns></returns>
-        Boolean IsAnotherVersionInstalled() {
+        Boolean IsAnotherVersionInstalled(out InstallationSettings previousSettings) {
 
             String installedVersion;
             DateTime installedVersionDate;
+            previousSettings = null;
 
             bool success = GetInstalledVersionInfo(out installedVersion, out installedVersionDate);
 
@@ -315,6 +316,9 @@ namespace Starcounter.InstallerWPF {
                             " in '" + installDir + "'. Please uninstall previous version of Starcounter manually.");
                         return true;
                     }
+
+                    previousSettings = new InstallationSettings();
+                    previousSettings.InitilizeWithCurrentInstallationValues();
 
                     Process prevSetupProcess = new Process();
                     prevSetupProcess.StartInfo.FileName = prevSetupExeFile;
@@ -428,11 +432,12 @@ namespace Starcounter.InstallerWPF {
                            new Action(delegate {
                                // Checking if another Starcounter version is installed.
                                // NOTE: Environment.Exit is used on purpose here, not just "return";
-                               if (IsAnotherVersionInstalled())
+                               InstallationSettings previousSettings;
+                               if (IsAnotherVersionInstalled(out previousSettings))
                                    Environment.Exit(0);
 
                                this.Visibility = Visibility.Hidden;
-                               ThreadPool.QueueUserWorkItem(this.InitInstallerWrapper);
+                               ThreadPool.QueueUserWorkItem(this.InitInstallerWrapper, previousSettings);
                            }
             ));
 
@@ -486,7 +491,7 @@ namespace Starcounter.InstallerWPF {
                 // Success.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
-                        this.OnSuccess();
+                        this.OnSuccess(state as InstallationSettings);
                     }
                 ));
             }
@@ -500,7 +505,7 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
-        private void OnSuccess() {
+        private void OnSuccess(InstallationSettings previousSettings) {
             bool bWaitWindowGotFocus = false;
             if (this.IsFocused || this.IsKeyboardFocused) {
                 bWaitWindowGotFocus = true;
@@ -509,6 +514,7 @@ namespace Starcounter.InstallerWPF {
             System.Windows.Forms.Screen screen = this.GetCurrentScreen();
 
             MainWindow mainWindow = new MainWindow();
+            mainWindow.Configuration.CurrentInstallationSettings = previousSettings;
             mainWindow.FinishedMessageInUnattendedMode = this.finishedMessage;
             mainWindow.DefaultSetupOptions = this.setupOptions;
             mainWindow.Configuration.Unattended = this.unattended;

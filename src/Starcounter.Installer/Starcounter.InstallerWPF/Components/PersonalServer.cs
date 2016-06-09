@@ -44,7 +44,7 @@ namespace Starcounter.InstallerWPF.Components {
 
             MainWindow win = System.Windows.Application.Current.MainWindow as MainWindow;
 
-            if (win.Configuration.CurrentInstallationSettings.HasSettings) {
+            if (win.Configuration.CurrentInstallationSettings != null) {
                 this.Path = win.Configuration.CurrentInstallationSettings.DatabasesRepositoryPath;
                 this.DefaultUserHttpPort = win.Configuration.CurrentInstallationSettings.DefaultUserHttpPort;
                 this.DefaultSystemHttpPort = win.Configuration.CurrentInstallationSettings.DefaultSystemHttpPort;
@@ -61,7 +61,7 @@ namespace Starcounter.InstallerWPF.Components {
 
             switch (this.Command) {
                 case ComponentCommand.Install:
-                    this.ExecuteCommand = !this.IsInstalled && win.Configuration.CurrentInstallationSettings.HasSettings && win.Configuration.CurrentInstallationSettings.InstallPersonalServer;
+                    this.ExecuteCommand = !this.IsInstalled && win.Configuration.CurrentInstallationSettings != null && win.Configuration.CurrentInstallationSettings.InstallPersonalServer;
                     break;
                 case ComponentCommand.None:
                     this.ExecuteCommand = false;
