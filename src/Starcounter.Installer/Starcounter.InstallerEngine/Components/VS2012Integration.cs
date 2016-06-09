@@ -6,34 +6,26 @@ using Starcounter;
 using System.Diagnostics;
 using System.IO;
 
-namespace Starcounter.InstallerEngine
-{
-    public class VS2012Integration : VSIntegration
-    {
-        public VS2012Integration()
-        {
+namespace Starcounter.InstallerEngine {
+    public class VS2012Integration : VSIntegration {
+        public VS2012Integration() {
         }
 
         /// <inheritdoc/>
-        public override string BuildNumber
-        {
+        public override string BuildNumber {
             get { return VisualStudioVersion.VS2012.BuildNumber; }
         }
 
         /// <inheritdoc/>
-        public override String DescriptiveName
-        {
-            get
-            {
+        public override String DescriptiveName {
+            get {
                 return "Starcounter Visual Studio 2012 Integration Component";
             }
         }
 
         /// <inheritdoc/>
-        public override String SettingName
-        {
-            get
-            {
+        public override String SettingName {
+            get {
                 return ConstantsBank.Setting_InstallVS2012Integration;
             }
         }
@@ -41,8 +33,7 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Installs component.
         /// </summary>
-        public override void Install()
-        {
+        public override void Install() {
             // Logging event.
             Utilities.ReportSetupEvent("Evaluating if Visual Studio 2012 integration should and can be installed...");
 
@@ -82,12 +73,9 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Removes component.
         /// </summary>
-        public override void Uninstall()
-        {
-            if (!UninstallEngine.CompleteCleanupSetting)
-            {
-                if (UninstallEngine.RollbackSetting)
-                {
+        public override void Uninstall() {
+            if (!UninstallEngine.CompleteCleanupSetting) {
+                if (UninstallEngine.RollbackSetting) {
                     // Checking if component was installed in this session.
                     if (!ShouldBeInstalled())
                         return;
@@ -123,22 +111,18 @@ namespace Starcounter.InstallerEngine
             // Checking if Visual Studio is running (that can lock certain libraries like MSBuild.dll).
             CheckVStudioRunning();
 
-            try
-            {
+            try {
                 // Running Visual Studio setup (which includes uninstallation of templates).
                 VSInstaller.UninstallVs2012(InstallerMain.InstallationDir.TrimEnd(new char[] { '\\' }));
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 uint errorCode;
                 bool ignoreException;
 
                 ignoreException = false;
 
-                if (ErrorCode.TryGetCode(ex, out errorCode))
-                {
-                    if (errorCode == Error.SCERRVSIXENGINENOTFOUND)
-                    {
+                if (ErrorCode.TryGetCode(ex, out errorCode)) {
+                    if (errorCode == Error.SCERRVSIXENGINENOTFOUND) {
                         // When uninstalling, we can't trust any state at all,
                         // not even that Visual Studio is installed. We just let
                         // this error slip after logging a notice that it
@@ -162,8 +146,12 @@ namespace Starcounter.InstallerEngine
         /// Checks if components is already installed.
         /// </summary>
         /// <returns>True if already installed.</returns>
-        public override Boolean IsInstalled()
-        {
+        public override Boolean IsInstalled() {
+
+            return IsComponentInstalled();
+        }
+
+        public static bool IsComponentInstalled() {
             if (!DependenciesCheck.VStudio2012Installed())
                 return false;
 
@@ -178,10 +166,8 @@ namespace Starcounter.InstallerEngine
         /// Checks if component can be installed.
         /// </summary>
         /// <returns>True if can.</returns>
-        public override Boolean CanBeInstalled()
-        {
-            if (!DependenciesCheck.VStudio2012Installed())
-            {
+        public override Boolean CanBeInstalled() {
+            if (!DependenciesCheck.VStudio2012Installed()) {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERVS2012NOTFOUND,
                     "Microsoft Visual Studio 2012 is required to install the Starcounter integration.");
             }
@@ -193,8 +179,7 @@ namespace Starcounter.InstallerEngine
         /// Checks if component can be installed.
         /// </summary>
         /// <returns>True if can.</returns>
-        public override Boolean CanBeRemoved()
-        {
+        public override Boolean CanBeRemoved() {
             return IsInstalled();
         }
 
@@ -203,8 +188,7 @@ namespace Starcounter.InstallerEngine
         /// in this session.
         /// </summary>
         /// <returns>True if component should be installed.</returns>
-        public override Boolean ShouldBeInstalled()
-        {
+        public override Boolean ShouldBeInstalled() {
             return InstallerMain.InstallationSettingCompare(ConstantsBank.Setting_InstallVS2012Integration, ConstantsBank.Setting_True);
         }
 
@@ -213,8 +197,7 @@ namespace Starcounter.InstallerEngine
         /// in this session.
         /// </summary>
         /// <returns>True if component should be uninstalled.</returns>
-        public override Boolean ShouldBeRemoved()
-        {
+        public override Boolean ShouldBeRemoved() {
             return UninstallEngine.UninstallationSettingCompare(ConstantsBank.Setting_RemoveVS2012Integration, ConstantsBank.Setting_True);
         }
     }

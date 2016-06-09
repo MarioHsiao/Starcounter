@@ -65,7 +65,7 @@ namespace Starcounter.InstallerWPF.Components
             switch (this.Command)
             {
                 case ComponentCommand.Install:
-                    this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2015Installed()) && win.Configuration.SetupUserSettings.Vs2015Integration;
+                    this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2015Installed()) && win.Configuration.CurrentInstallationSettings.HasSettings && win.Configuration.CurrentInstallationSettings.Vs2015Integration;
                     break;
                 case ComponentCommand.None:
                     this.ExecuteCommand = false;

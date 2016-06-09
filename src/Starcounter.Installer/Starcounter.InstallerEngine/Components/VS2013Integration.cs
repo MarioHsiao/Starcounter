@@ -137,6 +137,10 @@ namespace Starcounter.InstallerEngine {
         /// <inheritdoc/>
         public override Boolean IsInstalled() {
 
+            return IsComponentInstalled();
+        }
+
+        public static bool IsComponentInstalled() {
             if (!DependenciesCheck.VStudio2013Installed())
                 return false;
 
@@ -146,6 +150,7 @@ namespace Starcounter.InstallerEngine {
 
             return manifest != null;
         }
+
 
         /// <inheritdoc/>
         public override Boolean CanBeInstalled() {

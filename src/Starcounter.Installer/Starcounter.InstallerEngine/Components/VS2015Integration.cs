@@ -134,8 +134,13 @@ namespace Starcounter.InstallerEngine {
         /// <inheritdoc/>
         public override Boolean IsInstalled() {
 
+            return IsComponentInstalled();
+
+        }
+
+        public static bool IsComponentInstalled() {
             if (!DependenciesCheck.VStudio2015Installed())
-               return false;
+                return false;
 
             var manifest = VSIXUtilities.FindManifestFile(
                GetUserExtensionsRootFolder(VisualStudioVersion.VS2015),
