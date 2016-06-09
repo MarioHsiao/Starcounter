@@ -3,24 +3,18 @@ using System.Collections.ObjectModel;
 using Starcounter.InstallerEngine;
 using System;
 
-namespace Starcounter.InstallerWPF.Components
-{
-    public class VisualStudio2013Integration : BaseComponent
-    {
+namespace Starcounter.InstallerWPF.Components {
+    public class VisualStudio2013Integration : BaseComponent {
         public const string Identifier = "VisualStudio2013Integration";
 
-        public override string ComponentIdentifier
-        {
-            get
-            {
+        public override string ComponentIdentifier {
+            get {
                 return VisualStudio2013Integration.Identifier;
             }
         }
 
-        public override string Name
-        {
-            get
-            {
+        public override string Name {
+            get {
                 return "VisualStudio 2013 Integration";
             }
         }
@@ -44,17 +38,14 @@ namespace Starcounter.InstallerWPF.Components
 
 
         private readonly string[] _Dependencys = new string[] { VisualStudio2013.Identifier, PersonalServer.Identifier };
-        public override string[] Dependencys
-        {
-            get
-            {
+        public override string[] Dependencys {
+            get {
                 return this._Dependencys;
             }
         }
 
 
-        protected override void SetDefaultValues()
-        {
+        protected override void SetDefaultValues() {
             base.SetDefaultValues();
 
             MainWindow win = System.Windows.Application.Current.MainWindow as MainWindow;
@@ -63,10 +54,16 @@ namespace Starcounter.InstallerWPF.Components
 #if !SIMULATE_INSTALLATION
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.VS2013Integration];
 #endif
-            switch (this.Command)
-            {
+            switch (this.Command) {
                 case ComponentCommand.Install:
-                    this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2013Installed()) && win.Configuration.CurrentInstallationSettings != null && win.Configuration.CurrentInstallationSettings.Vs2013Integration;
+
+                    if (win.Configuration.CurrentInstallationSettings != null) {
+                        this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2013Installed()) && win.Configuration.CurrentInstallationSettings.Vs2013Integration;
+                    }
+                    else {
+                        this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2013Installed());
+                    }
+
                     break;
                 case ComponentCommand.None:
                     this.ExecuteCommand = false;
@@ -80,8 +77,7 @@ namespace Starcounter.InstallerWPF.Components
             }
         }
         public VisualStudio2013Integration(ObservableCollection<BaseComponent> components)
-            : base(components)
-        {
+            : base(components) {
         }
 
         public override bool ValidateSettings() {
