@@ -94,11 +94,15 @@ namespace Starcounter.InstallerWPF {
         private InstallationSettings _CurrentInstallationSettings = null;
         public InstallationSettings CurrentInstallationSettings {
             get {
-                if (_CurrentInstallationSettings == null) {
-                    _CurrentInstallationSettings = new InstallationSettings();
-                    this.OnPropertyChanged("CurrentInstallationSettings");
-                }
+                //if (_CurrentInstallationSettings == null) {
+                //    _CurrentInstallationSettings = new InstallationSettings();
+                //    this.OnPropertyChanged("CurrentInstallationSettings");
+                //}
                 return _CurrentInstallationSettings;
+            }
+            set {
+                this._CurrentInstallationSettings = value;
+                this.OnPropertyChanged("CurrentInstallationSettings");
             }
         }
 
@@ -613,13 +617,7 @@ namespace Starcounter.InstallerWPF {
         public bool Vs2013Integration = true;
         public bool Vs2015Integration = true;
 
-        public bool HasSettings = false;
-
-        public InstallationSettings() {
-            this.HasSettings = InitilizeWithCurrentInstallationValues();
-        }
-
-        private bool InitilizeWithCurrentInstallationValues() {
+        public bool InitilizeWithCurrentInstallationValues() {
 
             // c:\program files\starcounter
             string installationFolder = CInstallationBase.GetInstalledDirFromEnv();
@@ -692,6 +690,8 @@ namespace Starcounter.InstallerWPF {
             this.Vs2012Integration = VS2012Integration.IsComponentInstalled();
             this.Vs2013Integration = VS2013Integration.IsComponentInstalled();
             this.Vs2015Integration = VS2015Integration.IsComponentInstalled();
+
+//            this._HasSettings = true;
 
             return true;
         }
