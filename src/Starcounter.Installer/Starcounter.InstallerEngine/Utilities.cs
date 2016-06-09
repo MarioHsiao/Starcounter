@@ -17,22 +17,18 @@ using Starcounter.Internal;
 using System.Xml;
 using System.Runtime.ExceptionServices;
 
-namespace Starcounter.InstallerEngine
-{
-    public class Utilities
-    {
+namespace Starcounter.InstallerEngine {
+    public class Utilities {
         /// <summary>
         /// Returns true if running on build server.
         /// </summary>
         static Nullable<Boolean> _runningOnBuildServer = null;
-        public static Boolean RunningOnBuildServer()
-        {
+        public static Boolean RunningOnBuildServer() {
             if (_runningOnBuildServer != null)
                 return _runningOnBuildServer.Value;
 
             // Checking if running on build server.
-            if (Environment.GetEnvironmentVariable("SC_RUNNING_ON_BUILD_SERVER") == "True")
-            {
+            if (Environment.GetEnvironmentVariable("SC_RUNNING_ON_BUILD_SERVER") == "True") {
                 _runningOnBuildServer = true;
                 return true;
             }
@@ -44,11 +40,9 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Checks if child directory is contained within its parent.
         /// </summary>
-        public static bool ParentChildDirectory(String parentDir, String childDir)
-        {
+        public static bool ParentChildDirectory(String parentDir, String childDir) {
             if (Path.GetDirectoryName(childDir).StartsWith(Path.GetDirectoryName(parentDir),
-                StringComparison.InvariantCultureIgnoreCase))
-            {
+                StringComparison.InvariantCultureIgnoreCase)) {
                 return true;
             }
 
@@ -57,8 +51,7 @@ namespace Starcounter.InstallerEngine
 
 
         // Reads server installation path from configuration file.
-        public static String ReadServerInstallationPath(String serverConfigPath)
-        {
+        public static String ReadServerInstallationPath(String serverConfigPath) {
             if (!File.Exists(serverConfigPath))
                 return null;
 
@@ -73,8 +66,7 @@ namespace Starcounter.InstallerEngine
         /// <param name="dirPath1">First directory path.</param>
         /// <param name="dirPath2">Second directory path.</param>
         /// <returns>TRUE if paths are equal.</returns>
-        public static bool EqualDirectories(string dirPath1, string dirPath2)
-        {
+        public static bool EqualDirectories(string dirPath1, string dirPath2) {
             if (string.IsNullOrEmpty(dirPath1))
                 throw new ArgumentNullException("dirPath1");
 
@@ -97,8 +89,7 @@ namespace Starcounter.InstallerEngine
         public static bool ReplaceXMLParameterInFile(
             String pathToXml,
             String paramName,
-            String paramNewValue)
-        {
+            String paramNewValue) {
             if (!File.Exists(pathToXml))
                 return false;
 
@@ -122,13 +113,40 @@ namespace Starcounter.InstallerEngine
             return true;
         }
 
+        public static bool ReadValueFromXMLInFile(String pathToXml, String paramName, out String paramValue) {
+
+            paramValue = null;
+
+            if (!File.Exists(pathToXml))
+                return false;
+
+            String fileContents = File.ReadAllText(pathToXml);
+
+            // Searching for the first entry.
+            Int32 startIndex = fileContents.IndexOf("<" + paramName + ">");
+            if (startIndex <= 0)
+                return false;
+
+            startIndex += paramName.Length + 2;
+
+            // Searching the end of the parameter value.
+            Int32 endIndex = fileContents.IndexOf('<', startIndex);
+            paramValue = fileContents.Substring(startIndex, endIndex - startIndex);
+
+
+            // Replacing with new parameter value.
+            //            fileContents = fileContents.Replace(strToReplace, paramName + ">" + paramValue);
+
+
+            return true;
+        }
+
         /// <summary>
         /// Helping function to copy folders recursively.
         /// </summary>
         /// <param name="source">Source folder.</param>
         /// <param name="target">Destination folder.</param>
-        public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target)
-        {
+        public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target) {
             // Traverse through all directories.
             foreach (DirectoryInfo dir in source.GetDirectories())
                 CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name));
@@ -141,8 +159,7 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Sets normal security attributes for files and folders (recursively).
         /// </summary>
-        public static void SetNormalDirectoryAttributes(FileSystemInfo fsi)
-        {
+        public static void SetNormalDirectoryAttributes(FileSystemInfo fsi) {
             if (fsi == null) return;
 
             // Trying to set file attributes.
@@ -151,16 +168,14 @@ namespace Starcounter.InstallerEngine
 
             // Checking if its a directory and go into recursion if yes.
             var di = fsi as DirectoryInfo;
-            if (di != null)
-            {
+            if (di != null) {
                 // Setting the folder attribute.
                 try { fsi.Attributes = FileAttributes.Directory; }
                 catch { }
 
                 // Trying to obtain sub-information for the folder.
                 FileSystemInfo[] fsis = null;
-                try
-                {
+                try {
                     // Checking if directory exists.
                     if (!Directory.Exists(fsi.FullName))
                         return;
@@ -170,10 +185,8 @@ namespace Starcounter.InstallerEngine
                 catch { }
 
                 // Iterating through each sub-folder.
-                if (fsis != null)
-                {
-                    foreach (var dirInfo in fsis)
-                    {
+                if (fsis != null) {
+                    foreach (var dirInfo in fsis) {
                         // Go into recursion for each sub-directory/file.
                         SetNormalDirectoryAttributes(dirInfo);
                     }
@@ -184,25 +197,21 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Checks if directory is not empty (recursively).
         /// </summary>
-        public static Boolean DirectoryIsNotEmpty(FileSystemInfo fsi)
-        {
+        public static Boolean DirectoryIsNotEmpty(FileSystemInfo fsi) {
             // No file or directory exist.
             if (fsi == null) return false;
 
             // Checking if its a directory and go into recursion if yes.
             var dirInfo = fsi as DirectoryInfo;
-            if (dirInfo != null)
-            {
+            if (dirInfo != null) {
                 // Trying to obtain sub-information for the folder.
                 FileSystemInfo[] subFsis = null;
                 try { subFsis = dirInfo.GetFileSystemInfos(); }
                 catch { }
 
                 // Iterating through each sub-folder element if any.
-                if (subFsis != null)
-                {
-                    foreach (var subFsi in subFsis)
-                    {
+                if (subFsis != null) {
+                    foreach (var subFsi in subFsis) {
                         // Go into recursion for each sub-directory/file.
                         if (DirectoryIsNotEmpty(subFsi)) return true;
                     }
@@ -221,26 +230,22 @@ namespace Starcounter.InstallerEngine
         /// </summary>
         /// <param name="fullRegistryPath">Full path to a registry node.</param>
         /// <param name="systemWide">Indicates the personal or system-wide usage.</param>
-        public static RegistryKey CreateRegistryPathIfNeeded(String fullRegistryPath, Boolean systemWide)
-        {
+        public static RegistryKey CreateRegistryPathIfNeeded(String fullRegistryPath, Boolean systemWide) {
             RegistryKey rk = null;
 
             String[] pathSplitUp = fullRegistryPath.Split('\\');
-            if (!pathSplitUp[0].Equals("SOFTWARE", StringComparison.CurrentCultureIgnoreCase))
-            {
+            if (!pathSplitUp[0].Equals("SOFTWARE", StringComparison.CurrentCultureIgnoreCase)) {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM, "Full registry path should contain SOFTWARE element.");
             }
 
             // Checking for full path existence.
-            if (!systemWide)
-            {
+            if (!systemWide) {
                 // Checking if registry key path already exists.
                 rk = Registry.CurrentUser.OpenSubKey(fullRegistryPath, true);
                 if (rk != null) return rk;
                 rk = Registry.CurrentUser.OpenSubKey(pathSplitUp[0], true);
             }
-            else
-            {
+            else {
                 // Checking if registry key path already exists.
                 rk = Registry.LocalMachine.OpenSubKey(fullRegistryPath, true);
                 if (rk != null) return rk;
@@ -248,11 +253,9 @@ namespace Starcounter.InstallerEngine
             }
 
             // Trying to open other keys in the path.
-            for (int i = 1; i < pathSplitUp.Length; i++)
-            {
+            for (int i = 1; i < pathSplitUp.Length; i++) {
                 RegistryKey tempRk = rk.OpenSubKey(pathSplitUp[i], true);
-                if (tempRk == null)
-                {
+                if (tempRk == null) {
                     rk = rk.CreateSubKey(pathSplitUp[i]);
                 }
                 else rk = tempRk;
@@ -268,14 +271,12 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Removes Zone Identifier from all listed files.
         /// </summary>
-        public static void RemoveZoneIdentifier(String dirPath, String[] filePatterns)
-        {
+        public static void RemoveZoneIdentifier(String dirPath, String[] filePatterns) {
             // Getting list of files with specified pattern.
             LinkedList<String> fileList = GetDirectoryFilesRegex(dirPath, filePatterns);
 
             // Walking through each file.
-            foreach (String filePath in fileList)
-            {
+            foreach (String filePath in fileList) {
                 // Removing zone identifier.
                 DeleteFile(filePath + ":Zone.Identifier");
             }
@@ -285,8 +286,7 @@ namespace Starcounter.InstallerEngine
         /// Recursively searches files satisfying regex pattern and puts them into linked list.
         /// Linked list consists of complete file paths.
         /// </summary>
-        public static LinkedList<String> GetDirectoryFilesRegex(String dirPath, String[] filePatterns)
-        {
+        public static LinkedList<String> GetDirectoryFilesRegex(String dirPath, String[] filePatterns) {
             // Creating empty file list.
             LinkedList<String> fileList = new LinkedList<String>();
 
@@ -298,17 +298,14 @@ namespace Starcounter.InstallerEngine
             String[] allFiles = Directory.GetFiles(dirPath, "*", SearchOption.AllDirectories);
 
             // Looking if any file matches the pattern.
-            foreach (String pattern in filePatterns)
-            {
+            foreach (String pattern in filePatterns) {
                 Regex rgx = new Regex(pattern, RegexOptions.IgnoreCase);
-                foreach (String filePath in allFiles)
-                {
+                foreach (String filePath in allFiles) {
                     // Getting file name from path.
                     String fileName = Path.GetFileName(filePath);
 
                     // Comparing with Regex.
-                    if (rgx.IsMatch(fileName))
-                    {
+                    if (rgx.IsMatch(fileName)) {
                         // Adding file if its not in the list already.
                         if (fileList.Find(filePath) == null)
                             fileList.AddLast(filePath);
@@ -323,16 +320,14 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Checks if the given path is on local drive not network.
         /// </summary>
-        public static Boolean IsLocalPath(String fullDirPath)
-        {
+        public static Boolean IsLocalPath(String fullDirPath) {
             DirectoryInfo dirInfo = new DirectoryInfo(fullDirPath);
             String rootFullName = dirInfo.Root.FullName;
             if (rootFullName.StartsWith("\\"))
                 return false;
 
             // Checking each local drive (including mapped network drives).
-            foreach (DriveInfo d in DriveInfo.GetDrives())
-            {
+            foreach (DriveInfo d in DriveInfo.GetDrives()) {
                 if (String.Compare(rootFullName, d.Name, StringComparison.OrdinalIgnoreCase) == 0)
                     return (d.DriveType != DriveType.Network);
             }
@@ -365,8 +360,7 @@ namespace Starcounter.InstallerEngine
         /// <param name="dirPath">Path to a directory to check.</param>
         /// <param name="filePatterns">List of file REGEX patterns to search for.</param>
         /// <returns>True if any matching file found.</returns>
-        public static Boolean DirectoryContainsFilesRegex(String dirPath, String[] filePatterns)
-        {
+        public static Boolean DirectoryContainsFilesRegex(String dirPath, String[] filePatterns) {
             // First checking if directory exists.
             if (!Directory.Exists(dirPath))
                 return false;
@@ -375,11 +369,9 @@ namespace Starcounter.InstallerEngine
             String[] allFiles = Directory.GetFiles(dirPath, "*", SearchOption.AllDirectories);
 
             // Looking if any file matches the pattern.
-            foreach (String pattern in filePatterns)
-            {
+            foreach (String pattern in filePatterns) {
                 Regex rgx = new Regex(pattern, RegexOptions.IgnoreCase);
-                foreach (String filePath in allFiles)
-                {
+                foreach (String filePath in allFiles) {
                     // Getting file name from path.
                     String fileName = Path.GetFileName(filePath);
 
@@ -404,21 +396,17 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Checks if current platform is 64 bit.
         /// </summary>
-        public static Boolean Platform64Bit()
-        {
+        public static Boolean Platform64Bit() {
             if (IntPtr.Size == 8) // Pure 64-bit platform.
             {
                 return true;
             }
 
             // Checking current Windows version and then if current process is 32 under 64-bit.
-            if ((Environment.OSVersion.Version.Major == 5 && Environment.OSVersion.Version.Minor >= 1) || Environment.OSVersion.Version.Major >= 6)
-            {
-                using (Process p = Process.GetCurrentProcess())
-                {
+            if ((Environment.OSVersion.Version.Major == 5 && Environment.OSVersion.Version.Minor >= 1) || Environment.OSVersion.Version.Major >= 6) {
+                using (Process p = Process.GetCurrentProcess()) {
                     bool retVal;
-                    if (!IsWow64Process(p.Handle, out retVal))
-                    {
+                    if (!IsWow64Process(p.Handle, out retVal)) {
                         return false;
                     }
                     return retVal;
@@ -432,8 +420,7 @@ namespace Starcounter.InstallerEngine
         /// Checks if machine memory is less than 4Gb.
         /// </summary>
         /// <returns>True if less than approximately 4Gb memory.</returns>
-        public static Boolean LessThan4GbMemory()
-        {
+        public static Boolean LessThan4GbMemory() {
             ComputerInfo compInfo = new ComputerInfo();
             UInt64 totalMemoryBytes = compInfo.TotalPhysicalMemory;
 
@@ -455,8 +442,7 @@ namespace Starcounter.InstallerEngine
         /// <returns>True if one core.</returns>
 
         [HandleProcessCorruptedStateExceptions]
-        public static void CheckProcessorRequirements()
-        {
+        public static void CheckProcessorRequirements() {
             // TODO: Check later if this CPU cores requirement is needed at all.
             /*if (Environment.ProcessorCount <= 1)
             {
@@ -466,18 +452,15 @@ namespace Starcounter.InstallerEngine
 
             // Checking processor features.
             Boolean popcntInstr = false;
-            
-            try
-            {
+
+            try {
                 sc_check_cpu_features(ref popcntInstr);
             }
-            catch
-            {
+            catch {
                 popcntInstr = false;
             }
 
-            if (!popcntInstr)
-            {
+            if (!popcntInstr) {
                 //Utilities.MessageBoxWarning(
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "Your processor micro-architecture is not supported by Starcounter." + Environment.NewLine +
@@ -491,10 +474,8 @@ namespace Starcounter.InstallerEngine
         /// Gets a value indicating if the current client process is run with
         /// administrative rights.
         /// </summary>
-        public static bool RunsAsAdministrator
-        {
-            get
-            {
+        public static bool RunsAsAdministrator {
+            get {
                 AssurePrivilegeRightsLookup();
                 return runsAsAdministrator;
             }
@@ -513,46 +494,37 @@ namespace Starcounter.InstallerEngine
         /// really running with administrative rights, see 
         /// <c>RunsAsAdministrator</c>.
         /// </remarks>
-        public static bool? HasAdministrativeRights
-        {
-            get
-            {
+        public static bool? HasAdministrativeRights {
+            get {
                 AssurePrivilegeRightsLookup();
                 return hasAdministrativeRights;
             }
         }
         private static bool? hasAdministrativeRights = null;
 
-        private static void AssurePrivilegeRightsLookup()
-        {
-            if (hasAdministrativeRights.HasValue == false)
-            {
+        private static void AssurePrivilegeRightsLookup() {
+            if (hasAdministrativeRights.HasValue == false) {
                 // Try first determining if the currently running user has
                 // administrative rights on the local computer. If any check
                 // fails, report false.
 
-                try
-                {
+                try {
                     WindowsIdentity cur = WindowsIdentity.GetCurrent();
 
-                    foreach (IdentityReference role in cur.Groups)
-                    {
-                        if (role.IsValidTargetType(typeof(SecurityIdentifier)))
-                        {
+                    foreach (IdentityReference role in cur.Groups) {
+                        if (role.IsValidTargetType(typeof(SecurityIdentifier))) {
                             SecurityIdentifier sid = role as SecurityIdentifier;
 
                             // Checking if user is in either of Administrator groups.
                             if (sid.IsWellKnown(WellKnownSidType.AccountAdministratorSid) ||
-                                sid.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid))
-                            {
+                                sid.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid)) {
                                 hasAdministrativeRights = true;
                                 break;
                             }
                         }
                     }
                 }
-                catch
-                {
+                catch {
                     hasAdministrativeRights = false;
                 }
 
@@ -560,15 +532,13 @@ namespace Starcounter.InstallerEngine
                 // not, try determining if the current client/process actually
                 // runs with such rights.
 
-                try
-                {
+                try {
                     runsAsAdministrator =
                         hasAdministrativeRights.Value
                         ? (new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator)
                         : false;
                 }
-                catch
-                {
+                catch {
                     runsAsAdministrator = false;
                 }
             }
@@ -583,8 +553,7 @@ namespace Starcounter.InstallerEngine
             String commandArgs,
             String workingDir,
             String description,
-            String iconPath)
-        {
+            String iconPath) {
             /*
             // Creating shortcut using our utility.
             ProcessStartInfo shortcutInfo = new ProcessStartInfo();
@@ -624,8 +593,7 @@ namespace Starcounter.InstallerEngine
         /// Checks if its developer installation.
         /// </summary>
         /// <returns></returns>
-        public static Boolean IsDeveloperInstallation()
-        {
+        public static Boolean IsDeveloperInstallation() {
             String curDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
 
             // Checking that we don't remove files if setup is running from installation directory.
@@ -638,15 +606,13 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Checks for basic Starcounter setup requirements.
         /// </summary>
-        public static void CheckInstallationRequirements()
-        {
+        public static void CheckInstallationRequirements() {
             // Checking if we are in developer installation.
             if (IsDeveloperInstallation())
                 return;
 
             // Checking if platform is 64-bit.
-            if (!Utilities.Platform64Bit())
-            {
+            if (!Utilities.Platform64Bit()) {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "Starcounter requires 64-bit operating system to be installed and run on.");
             }
@@ -655,8 +621,7 @@ namespace Starcounter.InstallerEngine
             Utilities.CheckProcessorRequirements();
 
             // Checking who is running this setup.
-            if (!Utilities.RunsAsAdministrator)
-            {
+            if (!Utilities.RunsAsAdministrator) {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "During installation current user must have administrative rights on the local computer and Starcounter installer must be run with administrative rights.");
             }
@@ -664,28 +629,22 @@ namespace Starcounter.InstallerEngine
 
         // Currently logged in user name.
         public static String loggedInUserName = null;
-        public static String LoggedInUserName
-        {
-            get
-            {
-                if (loggedInUserName == null)
-                {
+        public static String LoggedInUserName {
+            get {
+                if (loggedInUserName == null) {
                     ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT UserName FROM Win32_ComputerSystem");
                     String user = String.Empty;
-                    foreach (ManagementObject queryObj in searcher.Get())
-                    {
+                    foreach (ManagementObject queryObj in searcher.Get()) {
                         user = Convert.ToString(queryObj["UserName"]);
                     }
 
                     // Removing the 
                     String[] splitName = user.Split(new Char[] { '\\' });
-                    if (splitName.Length == 1)
-                    {
+                    if (splitName.Length == 1) {
                         loggedInUserName = splitName[0];
                         return loggedInUserName;
                     }
-                    else if (splitName.Length == 2)
-                    {
+                    else if (splitName.Length == 2) {
                         loggedInUserName = splitName[1];
                         return loggedInUserName;
                     }
@@ -698,12 +657,9 @@ namespace Starcounter.InstallerEngine
 
         // Currently logged in user security identifier.
         public static String loggedInUserSid = null;
-        public static String LoggedInUserSid
-        {
-            get
-            {
-                if (loggedInUserSid == null)
-                {
+        public static String LoggedInUserSid {
+            get {
+                if (loggedInUserSid == null) {
                     NTAccount ntAcc = new NTAccount(LoggedInUserName);
                     SecurityIdentifier si = (SecurityIdentifier)ntAcc.Translate(typeof(SecurityIdentifier));
                     loggedInUserSid = si.ToString();
@@ -725,31 +681,26 @@ namespace Starcounter.InstallerEngine
         /// <param name="procNames">Names of processes.</param>
         /// Returns true if processes were killed.
         /// <param name="silentKill"></param>
-        public static Boolean KillDisturbingProcesses(String[] procNames, Boolean silentKill)
-        {
-            foreach (String procName in procNames)
-            {
+        public static Boolean KillDisturbingProcesses(String[] procNames, Boolean silentKill) {
+            foreach (String procName in procNames) {
                 Process[] procs = Process.GetProcessesByName(procName);
-                foreach (Process proc in procs)
-                {
+                foreach (Process proc in procs) {
                     // Asking for user decision about killing processes.
-                    if (!InstallerMain.SilentFlag && !promptedKillMessage && !silentKill)
-                    {
+                    if (!InstallerMain.SilentFlag && !promptedKillMessage && !silentKill) {
                         promptedKillMessage = true;
                         if (!AskUserForDecision("All Starcounter processes will be stopped to continue the setup." + Environment.NewLine +
                             "Are you sure you want to proceed?",
-                            "Stopping Starcounter processes..."))
-                        {
+                            "Stopping Starcounter processes...")) {
                             return false;
                         }
                     }
 
-                    try
-                    {
+                    try {
                         proc.Kill();
                         proc.WaitForExit();
 
-                    } catch (Exception exc) {
+                    }
+                    catch (Exception exc) {
 
                         String processCantBeKilled = "Process " + proc.ProcessName + " can not be killed:" + Environment.NewLine +
                             exc.ToString() + Environment.NewLine +
@@ -758,13 +709,15 @@ namespace Starcounter.InstallerEngine
                         if (InstallerMain.SilentFlag) {
                             // Printing a console message.
                             Utilities.ConsoleMessage(processCantBeKilled);
-                        } else {
+                        }
+                        else {
                             MessageBoxInfo(processCantBeKilled, "Process can not be killed...");
                         }
 
                         return false;
 
-                    } finally {
+                    }
+                    finally {
                         proc.Close();
                     }
                 }
@@ -775,8 +728,7 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Sets normal security attributes for the folder (recursively) and deletes it.
         /// </summary>
-        public static void ForceDeleteDirectory(FileSystemInfo fsi)
-        {
+        public static void ForceDeleteDirectory(FileSystemInfo fsi) {
             if (fsi == null) return;
 
             // Trying to set file attributes.
@@ -785,8 +737,7 @@ namespace Starcounter.InstallerEngine
 
             // Checking if its a directory and go into recursion if yes.
             var di = fsi as DirectoryInfo;
-            if (di != null)
-            {
+            if (di != null) {
                 // Setting the folder attribute.
                 try { fsi.Attributes = FileAttributes.Directory; }
                 catch { }
@@ -797,10 +748,8 @@ namespace Starcounter.InstallerEngine
                 catch { }
 
                 // Iterating through each sub-folder.
-                if (fsis != null)
-                {
-                    foreach (var dirInfo in fsis)
-                    {
+                if (fsis != null) {
+                    foreach (var dirInfo in fsis) {
                         // Go into recursion for each sub-directory/file.
                         ForceDeleteDirectory(dirInfo);
                     }
@@ -818,29 +767,24 @@ namespace Starcounter.InstallerEngine
         /// </summary>
         public static void ForceDeleteDirectoryEntryPatterns(FileSystemInfo fsi,
                                                              String[] filePatterns,
-                                                             Boolean deleteMatchedOnly)
-        {
+                                                             Boolean deleteMatchedOnly) {
             if (fsi == null)
                 return;
 
             // Checking if its a directory and go into recursion if yes.
             var di = fsi as DirectoryInfo;
-            if (di != null)
-            {
+            if (di != null) {
                 // First looking if directory name matches the pattern.
                 Boolean matched = false;
-                foreach (String pattern in filePatterns)
-                {
+                foreach (String pattern in filePatterns) {
                     Regex rgx = new Regex(pattern, RegexOptions.IgnoreCase);
 
                     // Getting directory name from path.
                     String fileName = Path.GetFileName(di.FullName);
 
                     // Comparing with Regex patterns.
-                    if (rgx.IsMatch(fileName))
-                    {
-                        if (deleteMatchedOnly)
-                        {
+                    if (rgx.IsMatch(fileName)) {
+                        if (deleteMatchedOnly) {
                             ForceDeleteDirectory(di); // File name matched so deleting it.
                             return;
                         }
@@ -851,10 +795,8 @@ namespace Starcounter.InstallerEngine
                 }
 
                 // Checking if file didn't match all patterns.
-                if (!matched)
-                {
-                    if (!deleteMatchedOnly)
-                    {
+                if (!matched) {
+                    if (!deleteMatchedOnly) {
                         ForceDeleteDirectory(di); // File name NOT matched so deleting it.
                         return;
                     }
@@ -866,10 +808,8 @@ namespace Starcounter.InstallerEngine
                 catch { }
 
                 // Iterating through each sub-folder.
-                if (fsis != null)
-                {
-                    foreach (var dirInfo in fsis)
-                    {
+                if (fsis != null) {
+                    foreach (var dirInfo in fsis) {
                         // Go into recursion for each sub-directory/file.
                         ForceDeleteDirectoryEntryPatterns(dirInfo, filePatterns, deleteMatchedOnly);
                     }
@@ -880,22 +820,18 @@ namespace Starcounter.InstallerEngine
             }
 
             // If we are here that its a file.
-            try
-            {
+            try {
                 // Looking if a file matches the pattern.
                 Boolean matched = false;
-                foreach (String pattern in filePatterns)
-                {
+                foreach (String pattern in filePatterns) {
                     Regex rgx = new Regex(pattern, RegexOptions.IgnoreCase);
 
                     // Getting file name from path.
                     String fileName = Path.GetFileName(fsi.FullName);
 
                     // Comparing with Regex patterns.
-                    if (rgx.IsMatch(fileName))
-                    {
-                        if (deleteMatchedOnly)
-                        {
+                    if (rgx.IsMatch(fileName)) {
+                        if (deleteMatchedOnly) {
                             fsi.Delete(); // File name matched so deleting it.
                             return;
                         }
@@ -906,10 +842,8 @@ namespace Starcounter.InstallerEngine
                 }
 
                 // Checking if file didn't match all patterns.
-                if (!matched)
-                {
-                    if (!deleteMatchedOnly)
-                    {
+                if (!matched) {
+                    if (!deleteMatchedOnly) {
                         fsi.Delete(); // File name NOT matched so deleting it.
                         return;
                     }
@@ -922,8 +856,7 @@ namespace Starcounter.InstallerEngine
         /// Adds permissions for the current user on directory.
         /// </summary>
         /// <param name="dirPath"></param>
-        public static void AddDirFullPermissionsForCurrentUser(String dirPath)
-        {
+        public static void AddDirFullPermissionsForCurrentUser(String dirPath) {
             FileSystemRights accessRights;
 
             // Getting current user account name.
@@ -958,8 +891,7 @@ namespace Starcounter.InstallerEngine
         /// <param name="fsi">Current file system information (directory or file)</param>
         /// <param name="accessRule">Security access rule.</param>
         public static void RemoveDirectoryAccessRights(FileSystemInfo fsi,
-                                                       FileSystemAccessRule accessRule)
-        {
+                                                       FileSystemAccessRule accessRule) {
             // Checking for dead end.
             if (fsi == null) return;
 
@@ -967,8 +899,7 @@ namespace Starcounter.InstallerEngine
             var dirInfo = fsi as DirectoryInfo;
             if (dirInfo != null) // Its a directory.
             {
-                try
-                {
+                try {
                     // Checking if directory exists.
                     if (!Directory.Exists(fsi.FullName))
                         return;
@@ -988,10 +919,8 @@ namespace Starcounter.InstallerEngine
                 FileSystemInfo[] fsis = dirInfo.GetFileSystemInfos();
 
                 // Iterating through each sub-folder.
-                if (fsis != null)
-                {
-                    foreach (var subDirInfo in fsis)
-                    {
+                if (fsis != null) {
+                    foreach (var subDirInfo in fsis) {
                         // Go into recursion for each sub-directory/file.
                         RemoveDirectoryAccessRights(subDirInfo, accessRule);
                     }
@@ -999,8 +928,7 @@ namespace Starcounter.InstallerEngine
             }
             else // Its a file.
             {
-                try
-                {
+                try {
                     // Checking if file exists.
                     if (!File.Exists(fsi.FullName)) return;
 
@@ -1022,8 +950,7 @@ namespace Starcounter.InstallerEngine
         /// of logging and user notification.
         /// </summary>
         /// <param name="msg">Message to report.</param>
-        public static void ReportSetupEvent(String msg)
-        {
+        public static void ReportSetupEvent(String msg) {
             LogMessage(msg);
             ShowFeedback(msg);
         }
@@ -1037,10 +964,8 @@ namespace Starcounter.InstallerEngine
         /// Logs specified message to the log file.
         /// </summary>
         /// <param name="msg">Message to log.</param>
-        public static void LogMessage(String msg)
-        {
-            if (InstallerMain.SilentFlag)
-            {
+        public static void LogMessage(String msg) {
+            if (InstallerMain.SilentFlag) {
                 // Printing message to console.
                 Console.WriteLine(msg);
             }
@@ -1058,8 +983,7 @@ namespace Starcounter.InstallerEngine
         /// Prints specified message to console.
         /// </summary>
         /// <param name="msg">Message to print.</param>
-        public static void ConsoleMessage(String msg)
-        {
+        public static void ConsoleMessage(String msg) {
             Console.Error.WriteLine(msg);
         }
 
@@ -1067,10 +991,8 @@ namespace Starcounter.InstallerEngine
         /// Calls installer GUI feedback function.
         /// </summary>
         /// <param name="msg">Message to show in feedback.</param>
-        public static void ShowFeedback(String msg)
-        {
-            if (InstallerMain.GuiProgressCallback != null)
-            {
+        public static void ShowFeedback(String msg) {
+            if (InstallerMain.GuiProgressCallback != null) {
                 InstallerMain.GuiProgressCallback(null,
                     new InstallerProgressEventArgs(msg, InstallerMain.ProgressPercent));
             }
@@ -1082,10 +1004,8 @@ namespace Starcounter.InstallerEngine
         /// <param name="question">Question string.</param>
         /// <param name="title">Message box title.</param>
         /// <returns>'True' if user agreed, 'False' otherwise.</returns>
-        public static Boolean AskUserForDecision(String question, String title)
-        {
-            if (InstallerMain.GuiMessageboxCallback != null)
-            {
+        public static Boolean AskUserForDecision(String question, String title) {
+            if (InstallerMain.GuiMessageboxCallback != null) {
                 // Calling installer GUI message box.
                 MessageBoxEventArgs messageBoxEventArgs = new MessageBoxEventArgs(
                     question,
@@ -1103,8 +1023,7 @@ namespace Starcounter.InstallerEngine
 
                 return true;
             }
-            else
-            {
+            else {
                 // Calling standard message box.
                 DialogResult userChoice = MessageBox.Show(
                     question,
@@ -1123,16 +1042,13 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Message box warning alternative.
         /// </summary>
-        public static void MessageBoxWarning(String message, String title)
-        {
-            if (InstallerMain.GuiMessageboxCallback != null)
-            {
+        public static void MessageBoxWarning(String message, String title) {
+            if (InstallerMain.GuiMessageboxCallback != null) {
                 // Calling installer GUI message box.
                 InstallerMain.GuiMessageboxCallback(null,
                     new MessageBoxEventArgs(message, title, WpfMessageBoxButton.OK, WpfMessageBoxImage.Warning));
             }
-            else
-            {
+            else {
                 // Calling standard message box.
                 MessageBox.Show(message,
                     title,
@@ -1146,16 +1062,13 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Message box information alternative.
         /// </summary>
-        public static void MessageBoxInfo(String message, String title, Boolean forceDefaultMsgBox = false)
-        {
-            if ((!forceDefaultMsgBox) && (InstallerMain.GuiMessageboxCallback != null))
-            {
+        public static void MessageBoxInfo(String message, String title, Boolean forceDefaultMsgBox = false) {
+            if ((!forceDefaultMsgBox) && (InstallerMain.GuiMessageboxCallback != null)) {
                 // Calling installer GUI message box.
                 InstallerMain.GuiMessageboxCallback(null,
                     new MessageBoxEventArgs(message, title, WpfMessageBoxButton.OK, WpfMessageBoxImage.Information));
             }
-            else
-            {
+            else {
                 // Calling standard message box.
                 MessageBox.Show(message,
                     title,
@@ -1169,16 +1082,13 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Message box error alternative.
         /// </summary>
-        public static void MessageBoxError(String message, String title)
-        {
-            if (InstallerMain.GuiMessageboxCallback != null)
-            {
+        public static void MessageBoxError(String message, String title) {
+            if (InstallerMain.GuiMessageboxCallback != null) {
                 // Calling installer GUI message box.
                 InstallerMain.GuiMessageboxCallback(null,
                     new MessageBoxEventArgs(message, title, WpfMessageBoxButton.OK, WpfMessageBoxImage.Error));
             }
-            else
-            {
+            else {
                 // Calling standard message box.
                 MessageBox.Show(message,
                     title,
@@ -1192,8 +1102,7 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// Used to show execution progress
         /// </summary>
-        public class InstallerProgressEventArgs : EventArgs
-        {
+        public class InstallerProgressEventArgs : EventArgs {
             private int _Progress;
             /// <summary>
             /// Gets or sets the progress in percent.
@@ -1202,14 +1111,11 @@ namespace Starcounter.InstallerEngine
             /// <value>
             /// The progress.
             /// </value>
-            public int Progress
-            {
-                get
-                {
+            public int Progress {
+                get {
                     return this._Progress;
                 }
-                set
-                {
+                set {
                     _Progress = value;
                 }
             }
@@ -1222,42 +1128,34 @@ namespace Starcounter.InstallerEngine
             /// <value>
             /// The text.
             /// </value>
-            public string Text
-            {
-                get
-                {
+            public string Text {
+                get {
                     return this._Text;
                 }
-                set
-                {
+                set {
                     _Text = value;
                 }
             }
 
-            public bool HasError
-            {
-                get
-                {
+            public bool HasError {
+                get {
                     return this.Error != null;
                 }
             }
 
             public Exception Error { get; protected set; }
 
-            public InstallerProgressEventArgs()
-            {
+            public InstallerProgressEventArgs() {
                 _Progress = 0;
                 _Text = "";
             }
 
-            public InstallerProgressEventArgs(string text, int progress)
-            {
+            public InstallerProgressEventArgs(string text, int progress) {
                 _Text = text;
                 _Progress = progress;
             }
 
-            public InstallerProgressEventArgs(Exception e)
-            {
+            public InstallerProgressEventArgs(Exception e) {
                 this.Error = e;
             }
         }
@@ -1265,8 +1163,7 @@ namespace Starcounter.InstallerEngine
         /// <summary>
         /// 
         /// </summary>
-        public class MessageBoxEventArgs : EventArgs
-        {
+        public class MessageBoxEventArgs : EventArgs {
             /// <summary>
             /// Gets or sets the text.
             /// Note: Please use as short text as possible, less then 20 chars depending of font size etc..
@@ -1281,29 +1178,25 @@ namespace Starcounter.InstallerEngine
             public WpfMessageBoxResult DefaultResult { get; set; }
             public WpfMessageBoxResult MessageBoxResult { get; set; }
 
-            public MessageBoxEventArgs(string messageBoxText)
-            {
+            public MessageBoxEventArgs(string messageBoxText) {
                 //this.MessageBoxText = messageBoxText;
                 this.Init(messageBoxText, null, null, null, null);
             }
 
-            public MessageBoxEventArgs(string messageBoxText, string caption)
-            {
+            public MessageBoxEventArgs(string messageBoxText, string caption) {
                 //this.MessageBoxText = messageBoxText;
                 //this.Caption = caption;
                 this.Init(messageBoxText, caption, null, null, null);
             }
 
-            public MessageBoxEventArgs(string messageBoxText, string caption, WpfMessageBoxButton button)
-            {
+            public MessageBoxEventArgs(string messageBoxText, string caption, WpfMessageBoxButton button) {
                 //this.MessageBoxText = messageBoxText;
                 //this.Caption = caption;
                 this.Init(messageBoxText, caption, button, null, null);
             }
 
 
-            public MessageBoxEventArgs(string messageBoxText, string caption, WpfMessageBoxButton button, WpfMessageBoxImage icon)
-            {
+            public MessageBoxEventArgs(string messageBoxText, string caption, WpfMessageBoxButton button, WpfMessageBoxImage icon) {
                 //this.MessageBoxText = messageBoxText;
                 //this.Caption = caption;
                 //this.Button = button;
@@ -1312,8 +1205,7 @@ namespace Starcounter.InstallerEngine
 
             }
 
-            public MessageBoxEventArgs(string messageBoxText, string caption, WpfMessageBoxButton button, WpfMessageBoxImage icon, WpfMessageBoxResult defaultResult)
-            {
+            public MessageBoxEventArgs(string messageBoxText, string caption, WpfMessageBoxButton button, WpfMessageBoxImage icon, WpfMessageBoxResult defaultResult) {
                 //this.MessageBoxText = messageBoxText;
                 //this.Caption = caption;
                 //this.Button = button;
@@ -1322,52 +1214,41 @@ namespace Starcounter.InstallerEngine
                 this.Init(messageBoxText, caption, button, icon, defaultResult);
             }
 
-            private void Init(string messageBoxText, string caption, WpfMessageBoxButton? button, WpfMessageBoxImage? icon, WpfMessageBoxResult? defaultResult)
-            {
+            private void Init(string messageBoxText, string caption, WpfMessageBoxButton? button, WpfMessageBoxImage? icon, WpfMessageBoxResult? defaultResult) {
                 this.MessageBoxText = messageBoxText;
 
-                if (caption == null)
-                {
+                if (caption == null) {
                     this.Caption = string.Empty;
                 }
-                else
-                {
+                else {
                     this.Caption = caption;
                 }
 
 
-                if (button == null)
-                {
+                if (button == null) {
                     this.Button = WpfMessageBoxButton.OK;
                 }
-                else
-                {
+                else {
                     this.Button = (WpfMessageBoxButton)button;
                 }
 
-                if (icon == null)
-                {
+                if (icon == null) {
                     this.Icon = WpfMessageBoxImage.None;
                 }
-                else
-                {
+                else {
                     this.Icon = (WpfMessageBoxImage)icon;
                 }
 
-                if (defaultResult == null)
-                {
-                    if (this.Button == WpfMessageBoxButton.OK || this.Button == WpfMessageBoxButton.OKCancel)
-                    {
+                if (defaultResult == null) {
+                    if (this.Button == WpfMessageBoxButton.OK || this.Button == WpfMessageBoxButton.OKCancel) {
                         this.DefaultResult = WpfMessageBoxResult.OK;
                     }
-                    else if (this.Button == WpfMessageBoxButton.YesNo || this.Button == WpfMessageBoxButton.YesNoCancel)
-                    {
+                    else if (this.Button == WpfMessageBoxButton.YesNo || this.Button == WpfMessageBoxButton.YesNoCancel) {
                         this.DefaultResult = WpfMessageBoxResult.Yes;
                     }
 
                 }
-                else
-                {
+                else {
                     this.DefaultResult = (WpfMessageBoxResult)defaultResult;
                 }
             }
