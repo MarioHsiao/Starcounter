@@ -282,5 +282,31 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.IsNotNull(roslyn.RootClassInfo);
             Assert.AreEqual("Nullable<MyStruct>", roslyn.RootClassInfo.BoundDataClass);
         }
+
+        [Test]
+        public static void CodeBehindCustomConstructorTest() {
+            InvalidCodeBehindException ex;
+            CodeBehindMetadata roslyn = null;
+            string source;
+
+            // Custom default constructor.
+            // TODO: Should this be allowed?
+            source = "public partial class Foo : Json { public Foo() { } }";
+            ex = Assert.Throws<InvalidCodeBehindException>(() => {
+                roslyn = ParserAnalyzeCode("Foo", source, true);
+            });
+            Assert.AreEqual((uint)ex.Error, Error.SCERRJSONWITHCONSTRUCTOR);
+
+            // Custom constructor with parameter
+            source = "public partial class Foo : Json { public Foo(int bar) { } }";
+            ex = Assert.Throws<InvalidCodeBehindException>(() => {
+                roslyn = ParserAnalyzeCode("Foo", source, true);
+            });
+            Assert.AreEqual((uint)ex.Error, Error.SCERRJSONWITHCONSTRUCTOR);
+            
+            // Inner unmapped class. Should be ignored.
+            source = "public partial class Foo : Json { public class Bar { public Bar(int value) { } } }";
+            roslyn = ParserAnalyzeCode("Foo", source, true);
+        }
     }
 }
