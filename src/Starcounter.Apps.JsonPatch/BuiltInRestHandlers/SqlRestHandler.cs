@@ -48,7 +48,7 @@ namespace Starcounter.Internal {
                     try {
                         Db.Transact(() => {
                             result = ExecuteQuery(req.Body, maxResult);
-                        }, false, 0);
+                        }, 0);
 
                     }
                     catch (Starcounter.DbException e) {

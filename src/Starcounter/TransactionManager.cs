@@ -43,9 +43,8 @@ namespace Starcounter.Internal {
         /// returns a handle to the transaction.
         /// </summary>
         /// <param name="readOnly"></param>
-        /// <param name="detectConflicts"></param>
         /// <returns></returns>
-        public TransactionHandle Create(bool readOnly, bool detectConflicts, bool applyHooks) {
+        public TransactionHandle Create(bool readOnly, bool applyHooks) {
             int index = Used;
 
             ulong handle;
@@ -102,14 +101,14 @@ namespace Starcounter.Internal {
         }
 
         internal static TransactionHandle CreateImplicitAndSetCurrent(bool readOnly) {
-            return CreateAndSetCurrent(readOnly, false, true, true);
+            return CreateAndSetCurrent(readOnly, true, true);
         }
 
-        internal static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts) {
-            return CreateAndSetCurrent(readOnly, detectConflicts, false, true);
+        internal static TransactionHandle CreateAndSetCurrent(bool readOnly) {
+            return CreateAndSetCurrent(readOnly, false, true);
         }
 
-        private static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts, bool isImplicit, bool applyHooks) {
+        private static TransactionHandle CreateAndSetCurrent(bool readOnly, bool isImplicit, bool applyHooks) {
             if (ThreadData.inTransactionScope_ != 0)
                 throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
 

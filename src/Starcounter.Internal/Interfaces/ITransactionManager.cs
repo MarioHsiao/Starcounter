@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Starcounter.Internal {
     internal interface ITransactionManager {
-        TransactionHandle Create(bool readOnly, bool detectConflicts = false, bool applyHooks = true);
+        TransactionHandle Create(bool readOnly, bool applyHooks = true);
         Starcounter.Advanced.ITransaction WrapHandle(TransactionHandle handle);
         void Commit(TransactionHandle handle);
         void Rollback(TransactionHandle handle);

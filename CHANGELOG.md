@@ -35,6 +35,8 @@
 - `PartialToStandaloneHtmlProvider` middleware no longer forces Shadow DOM in Polymer [#3562](https://github.com/Starcounter/Starcounter/issues/3562)
 - `PartialToStandaloneHtmlProvider` middleware no longer overwrites default Bootstrap font size [#3665](https://github.com/Starcounter/Starcounter/issues/3665)
 - Add `Polymer 1.5.0` [#3673](https://github.com/Starcounter/Starcounter/issues/3673)
+- Removed parameter `forceSnapshot` from `Db.Transact()` methods since the parameter is no longer valid. A `Db.Transact()` is always executed in snapshot isolation.
+- Removed parameter `detectConflicts` from `Transaction` since the parameter is no longer valid. A `Transaction` can no longer detect conflicts.
 
 ## [2.2.1834] - 2016-04-19
 ### Added

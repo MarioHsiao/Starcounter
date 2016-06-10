@@ -13,7 +13,7 @@ namespace tpcc
       {
         try
         {
-          Db.Transact(fn,false,1);
+          Db.Transact(fn,1);
           return;
         }
         catch (Exception e) when (e?.InnerException is ITransactionConflictException)
