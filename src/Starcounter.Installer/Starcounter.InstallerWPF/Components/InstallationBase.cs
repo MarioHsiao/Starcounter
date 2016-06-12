@@ -133,12 +133,13 @@ namespace Starcounter.InstallerWPF.Components {
             // Setting the installation flag.
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.InstallationBase];
 
-            this.SendUsageAndCrashReports = win.Configuration.SetupUserSettings.SendUsageAndCrashReports;
-
-            if (!string.IsNullOrEmpty(win.Configuration.SetupUserSettings.InstallationBasePath)) {
-                this.BasePath = win.Configuration.SetupUserSettings.InstallationBasePath;
+            if (win.Configuration.CurrentInstallationSettings != null) {
+                this.SendUsageAndCrashReports = win.Configuration.CurrentInstallationSettings.SendUsageAndCrashReports;
+                this.BasePath = win.Configuration.CurrentInstallationSettings.InstallationBasePath;
             }
-
+            else {
+                this.SendUsageAndCrashReports = true;
+            }
 
             // Setting installation path (new path is created if not installed).
 #if !SIMULATE_INSTALLATION
