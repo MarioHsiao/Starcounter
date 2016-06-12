@@ -22,5 +22,4 @@ set_property(TARGET scipcmonitor PROPERTY FOLDER "level1/Chunks")
 target_link_libraries(scipcmonitor
     sccoreerr
     sccorelog
-    sccoredbg
 )
