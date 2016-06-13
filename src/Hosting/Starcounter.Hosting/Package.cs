@@ -444,9 +444,9 @@ namespace Starcounter.Hosting {
                         OnTypeSpecificationsInitialized();
                     }
 
-                    MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
+                    //MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
 
-                    OnPopulateClrMetadata();
+                    //OnPopulateClrMetadata();
                 }
             }
         }
