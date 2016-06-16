@@ -555,12 +555,12 @@ namespace Starcounter.Internal.XSON.Tests {
             ss.appName = "PartialApp";
             ss.wrapInAppName = true;
 
-            SiblingList stepSiblings = new SiblingList();
+            SiblingList stepSiblings = new SiblingList("Test");
             stepSiblings.Add(p.ExtraInfo);
             stepSiblings.Add(ss);
 
-            p.ExtraInfo.Siblings = stepSiblings;
-            ss.Siblings = stepSiblings;
+            p.ExtraInfo.SetSiblings(stepSiblings);
+            ss.SetSiblings(stepSiblings);
 
             var session = new Session(SessionOptions.IncludeNamespaces);
             p.Session = session;
@@ -591,12 +591,12 @@ namespace Starcounter.Internal.XSON.Tests {
             ss.appName = "PartialApp";
             ss.wrapInAppName = true;
 
-            SiblingList stepSiblings = new SiblingList();
+            SiblingList stepSiblings = new SiblingList("Test");
             stepSiblings.Add(p.ExtraInfo);
             stepSiblings.Add(ss);
 
-            p.ExtraInfo.Siblings = stepSiblings;
-            ss.Siblings = stepSiblings;
+            p.ExtraInfo.SetSiblings(stepSiblings);
+            ss.SetSiblings(stepSiblings);
 
             var session = new Session(SessionOptions.IncludeNamespaces);
             session.enableNamespaces = true;
@@ -719,12 +719,12 @@ namespace Starcounter.Internal.XSON.Tests {
 
             dynamic sibling = new Json();
             
-            SiblingList siblings = new SiblingList();
+            SiblingList siblings = new SiblingList("Test");
             siblings.Add(page);
             siblings.Add(sibling);
 
-            ((Json)page).Siblings = siblings;
-            ((Json)sibling).Siblings = siblings;
+            ((Json)page).SetSiblings(siblings);
+            ((Json)sibling).SetSiblings(siblings);
 
             sibling.Name = "Sibling";
             
@@ -787,12 +787,12 @@ namespace Starcounter.Internal.XSON.Tests {
             dynamic sibling = new Json();
             siblingRoot.Current = sibling;
 
-            SiblingList siblings = new SiblingList();
+            SiblingList siblings = new SiblingList("Test");
             siblings.Add(page);
             siblings.Add(sibling);
 
-            ((Json)page).Siblings = siblings;
-            ((Json)sibling).Siblings = siblings;
+            ((Json)page).SetSiblings(siblings);
+            ((Json)sibling).SetSiblings(siblings);
 
             sibling.Name = "Sibling";
 
@@ -958,6 +958,207 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Verifying that name is cached in unbound storage.
             Assert.AreEqual(data.AgentSkipCounter, tAgent.UnboundGetter(json).Data);
+        }
+
+        [Test]
+        public static void TestServerUpdateForSameSiblingInManyPlaces1_3680() {
+            // Property updated directly on the sibling
+
+            var expectedPatch = "";
+            var patches = "";
+            var session = new Session(SessionOptions.IncludeNamespaces | SessionOptions.StrictPatchRejection);
+            var jsonPatch = new JsonPatch();
+            Json root = null;
+
+            dynamic toUpdate = CreateTreeWithSiblings1(out root);
+
+            session.Use(() => {
+                session.Data = root;
+                patches = jsonPatch.Generate(root, true, true);
+                
+                toUpdate["Text"] = "Updated";
+                patches = jsonPatch.Generate(root, true, true);
+
+                expectedPatch = Helper.CreatePatchArr(
+                                    () => Helper.CreateReplacePatch("/Page1/SiblingApp/Text", Helper.Jsonify("Updated")),
+                                    () => Helper.CreateReplacePatch("/Page2/SiblingApp/Text", Helper.Jsonify("Updated")));
+
+                Assert.AreEqual(expectedPatch, patches);
+            });
+        }
+
+        [Test]
+        public static void TestServerUpdateForSameSiblingInManyPlaces2_3680() {
+            // Property updated on an object below the sibling
+
+            var expectedPatch = "";
+            var patches = "";
+            var session = new Session(SessionOptions.IncludeNamespaces | SessionOptions.StrictPatchRejection);
+            var jsonPatch = new JsonPatch();
+            Json root = null;
+            
+            dynamic toUpdate = CreateTreeWithSiblings2(out root);
+
+            session.Use(() => {
+                session.Data = root;
+                patches = jsonPatch.Generate(root, true, true);
+
+                //  One update should create two patches, since the sibling exists in two places in the virtual tree.
+                toUpdate["Text"] = "Updated";
+                patches = jsonPatch.Generate(root, true, true);
+
+                expectedPatch = Helper.CreatePatchArr(
+                                    () => Helper.CreateReplacePatch("/Page1/SiblingApp/SubPage/Text", Helper.Jsonify("Updated")),
+                                    () => Helper.CreateReplacePatch("/Page2/SiblingApp/SubPage/Text", Helper.Jsonify("Updated"))
+                                );
+
+                Assert.AreEqual(expectedPatch, patches);
+            });
+        }
+
+        [Test]
+        public static void TestClientUpdateForSameSiblingInManyPlaces1_3680() {
+            // Change-request from client for property directly on the sibling
+
+            var patchToApply = "";
+            var expectedPatch = "";
+            var patches = "";
+            var session = new Session(SessionOptions.IncludeNamespaces | SessionOptions.StrictPatchRejection);
+            var jsonPatch = new JsonPatch();
+            Json root = null;
+
+            dynamic toUpdate = CreateTreeWithSiblings1(out root);
+            
+            session.Use(() => {
+                session.Data = root;
+                patches = jsonPatch.Generate(root, true, true);
+
+                var value = "UpdatedFromClient";
+                patchToApply = string.Format(Helper.ONE_PATCH_ARR, "/Page1/SiblingApp/Text", Helper.Jsonify(value));
+                jsonPatch.Apply(root, patchToApply);
+                Assert.AreEqual(value, toUpdate.Text);
+                
+                patches = jsonPatch.Generate(root, true, true);
+                expectedPatch = Helper.CreatePatchArr(
+                                    () => Helper.CreateReplacePatch("/Page1/SiblingApp/Text", Helper.Jsonify(value)),
+                                    () => Helper.CreateReplacePatch("/Page2/SiblingApp/Text", Helper.Jsonify(value)));
+
+                Assert.AreEqual(expectedPatch, patches);
+            });
+        }
+
+        [Test]
+        public static void TestClientUpdateForSameSiblingInManyPlaces2_3680() {
+            // Change-request from client for property on an object below the sibling
+
+            var patchToApply = "";
+            var expectedPatch = "";
+            var patches = "";
+            var session = new Session(SessionOptions.IncludeNamespaces | SessionOptions.StrictPatchRejection);
+            var jsonPatch = new JsonPatch();
+            Json root = null;
+
+            dynamic toUpdate = CreateTreeWithSiblings2(out root);
+
+            session.Use(() => {
+                session.Data = root;
+                patches = jsonPatch.Generate(root, true, true);
+
+                var value = "UpdatedFromClient";
+                patchToApply = string.Format(Helper.ONE_PATCH_ARR, "/Page2/SiblingApp/SubPage/Text", Helper.Jsonify(value));
+                jsonPatch.Apply(root, patchToApply);
+                Assert.AreEqual(value, toUpdate.Text);
+                
+                patches = jsonPatch.Generate(root, true, true);
+                expectedPatch = Helper.CreatePatchArr(
+                                    () => Helper.CreateReplacePatch("/Page1/SiblingApp/SubPage/Text", Helper.Jsonify(value)),
+                                    () => Helper.CreateReplacePatch("/Page2/SiblingApp/SubPage/Text", Helper.Jsonify(value)));
+
+                Assert.AreEqual(expectedPatch, patches);
+            });
+
+        }
+
+        private static Json CreateTreeWithSiblings1(out Json root) {
+            dynamic sibling = null;
+            dynamic page1 = null;
+            dynamic page2 = null;
+            dynamic dynamicRoot = null;
+
+            // Property updated directly on the sibling.
+            StarcounterEnvironment.RunWithinApplication("SiblingApp", () => {
+                sibling = new Json();
+                sibling.Text = "Hello from sibling!";
+                ((TObject)sibling.Template).Properties["Text"].Editable = true;
+            });
+
+            StarcounterEnvironment.RunWithinApplication("TestApp", () => {
+                page1 = new Json();
+                page1.Text = "Hello from Page1";
+
+                page2 = new Json();
+                page2.Text = "Hello from Page2";
+
+                dynamicRoot = new Json();
+                dynamicRoot.Page1 = page1;
+                dynamicRoot.Page2 = page2;
+            });
+
+            ConnectSiblings("/Page1", page1, sibling);
+            ConnectSiblings("/Page2", page2, sibling);
+
+            root = dynamicRoot;
+            return sibling;
+        }
+
+        private static Json CreateTreeWithSiblings2(out Json root) {
+            dynamic sibling = null;
+            dynamic page1 = null;
+            dynamic page2 = null;
+            dynamic subPage = null;
+            dynamic dynamicRoot = null;
+
+            StarcounterEnvironment.RunWithinApplication("SiblingApp", () => {
+                sibling = new Json();
+                sibling.Text = "Hello from sibling!";
+
+                subPage = new Json();
+                subPage.Text = "Hello from subpage";
+                ((TObject)subPage.Template).Properties["Text"].Editable = true;
+
+                sibling.SubPage = subPage;
+            });
+
+            StarcounterEnvironment.RunWithinApplication("TestApp", () => {
+                page1 = new Json();
+                page1.Text = "Hello from Page1";
+                
+                page2 = new Json();
+                page2.Text = "Hello from Page2";
+                
+                dynamicRoot = new Json();
+                dynamicRoot.Page1 = page1;
+                dynamicRoot.Page2 = page2;
+            });
+
+            ConnectSiblings("/Page1", page1, sibling);
+            ConnectSiblings("/Page2", page2, sibling);
+
+            root = dynamicRoot;
+            return subPage;
+        }
+
+        private static void ConnectSiblings(string key, params Json[] siblings) {
+            if (siblings == null || siblings.Length == 0)
+                return;
+
+            var siblingList = new SiblingList(key);
+            foreach (var sibling in siblings) {
+                siblingList.Add(sibling);
+                sibling.wrapInAppName = true;
+
+                sibling.SetSiblings(siblingList);
+            }
         }
     }
 }

@@ -138,15 +138,15 @@ namespace Starcounter.Internal.XSON.Tests {
                 Json hack = json2;
                 hack.appName = "OtherApp";
 
-                SiblingList stepSiblings = new SiblingList();
+                SiblingList stepSiblings = new SiblingList("Test");
                 stepSiblings.Add(json.Page);
                 stepSiblings.Add(json2);
                 Json real = json.Page;
                 real.wrapInAppName = true;
-                real.Siblings = stepSiblings;
+                real.SetSiblings(stepSiblings);
                 real = json2;
                 real.wrapInAppName = true;
-                real.Siblings = stepSiblings;
+                real.SetSiblings(stepSiblings);
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
@@ -173,15 +173,15 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 hack = json2;
                 hack.appName = "OtherApp";
-                stepSiblings = new SiblingList();
+                stepSiblings = new SiblingList("Test");
                 stepSiblings.Add(json.Focused);
                 stepSiblings.Add(json2);
                 real = json.Focused;
                 real.wrapInAppName = true;
-                real.Siblings = stepSiblings;
+                real.SetSiblings(stepSiblings);
                 real = json2;
                 real.wrapInAppName = true;
-                real.Siblings = stepSiblings;
+                real.SetSiblings(stepSiblings);
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch

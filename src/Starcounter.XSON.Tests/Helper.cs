@@ -14,6 +14,9 @@ namespace Starcounter.Internal.XSON.Tests {
         internal const string PATCH_TEST = "{{\"op\":\"test\",\"path\":\"{0}\",\"value\":{1}}}";
         internal const string ONE_PATCH_ARR = "[{{\"op\":\"replace\",\"path\":\"{0}\",\"value\":{1}}}]";
         internal const string ONE_ADD_PATCH_ARR = "[{{\"op\":\"add\",\"path\":\"{0}\",\"value\":{1}}}]";
+
+        internal delegate string PatchCreatorDelegate();
+
         internal static JsonProperty CreateSampleApp() {
             dynamic template = TObject.CreateFromJson(File.ReadAllText("json\\SampleApp.json"));
             dynamic app = new Json() { Template = template };
@@ -57,6 +60,25 @@ namespace Starcounter.Internal.XSON.Tests {
                 Template = prop,
                 Value = value
             }; 
+        }
+
+        internal static string CreateReplacePatch(string path, string value) {
+            return string.Format(PATCH_REPLACE, path, value);
+        }
+
+        internal static string CreatePatchArr(params PatchCreatorDelegate[] creators) {
+            if (creators == null || creators.Length == 0)
+                return "[]";
+
+            string patches = "[";
+            for (int i = 0; i < creators.Length - 1; i++) {
+                patches += creators[i]();
+                patches += ",";
+            }
+            patches += creators[creators.Length - 1]();
+            patches += "]";
+
+            return patches;
         }
 
 #if DEBUG
