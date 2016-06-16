@@ -129,19 +129,23 @@ namespace Starcounter.XSON {
                     // If no stepsiblings exists (or only one) it is the current json. Otherwise we need to 
                     // find the correct sibling.
                     bool found = false;
-                    if (json.Siblings == null) {
-                        if (json.appName == ptr.Current) {
-                            ptr.MoveNext();
-                            found = true;
-                        }
-                    } else {
-                        foreach (Json stepSibling in json.Siblings) {
-                            if (stepSibling.appName == ptr.Current) {
-                                json = stepSibling;
-                                ptr.MoveNext();
-                                found = true;
-                                break;
+
+                    if (json.appName == ptr.Current) {
+                        ptr.MoveNext();
+                        found = true;
+                    } else if (json.allSiblingLists != null) {
+                        // TODO:
+                        // Check this code. Is it ok to check all siblinglists if several exists? Is it possible to get a false positive?
+                        foreach (var siblingList in json.allSiblingLists) {
+                            foreach (Json stepSibling in siblingList) {
+                                if (stepSibling.appName == ptr.Current) {
+                                    json = stepSibling;
+                                    ptr.MoveNext();
+                                    found = true;
+                                    break;
+                                }
                             }
+                            if (found) break;
                         }
                     }
 

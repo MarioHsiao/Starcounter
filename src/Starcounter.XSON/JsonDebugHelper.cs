@@ -191,14 +191,16 @@ namespace Starcounter.XSON {
             sb.Append(' ', i);
             sb.Append("}");
 
-            if (includeStepsiblings && json.Siblings != null && json.Siblings.Count > 1) {
-                foreach (var stepSibling in json.Siblings) {
-                    if (stepSibling == json)
-                        continue;
-                    sb.AppendLine();
-                    sb.Append(' ', i);
-                    sb.Append("<stepsibling> ");
-                    WriteToDebugString(stepSibling, sb, i, false);
+            if (includeStepsiblings && json.HasSiblings) {
+                foreach (var siblingList in json.allSiblingLists) {
+                    foreach (var stepSibling in siblingList) {
+                        if (stepSibling == json)
+                            continue;
+                        sb.AppendLine();
+                        sb.Append(' ', i);
+                        sb.Append("<stepsibling> ");
+                        WriteToDebugString(stepSibling, sb, i, false);
+                    }
                 }
             }
         }

@@ -213,23 +213,28 @@ namespace Starcounter.Advanced.XSON {
             if (wrapInAppName) {
                 sizeBytes += json.appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
                
-                // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
-                // we check if we have more than one stepsibling.
-                if (!json.calledFromStepSibling && json.Siblings != null && json.Siblings.Count != 1) {
+//                // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
+//                // we check if we have more than one stepsibling.
+
+                // TODO:
+                // Check this.
+                if (!json.calledFromStepSibling && json.HasSiblings) {
                     // For comma.
-                    sizeBytes++;
+                    foreach (var siblingList in json.allSiblingLists) {
+                        sizeBytes++;
 
-                    // Calculating the size for each step sibling.
-                    foreach (Json pp in json.Siblings) {
-                        if (pp == json)
-                            continue;
+                        // Calculating the size for each step sibling.
+                        foreach (Json pp in siblingList) {
+                            if (pp == json)
+                                continue;
 
-                        pp.calledFromStepSibling = true;
-                        try {
-                            sizeBytes += pp.appName.Length + 1; // 1 for ":".
-                            sizeBytes += serializer.EstimateSizeBytes(pp) + 2; // 2 for ",".
-                        } finally {
-                            pp.calledFromStepSibling = false;
+                            pp.calledFromStepSibling = true;
+                            try {
+                                sizeBytes += pp.appName.Length + 1; // 1 for ":".
+                                sizeBytes += serializer.EstimateSizeBytes(pp) + 2; // 2 for ",".
+                            } finally {
+                                pp.calledFromStepSibling = false;
+                            }
                         }
                     }
                 }
@@ -430,40 +435,42 @@ namespace Starcounter.Advanced.XSON {
 
                     // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
                     // we check if we have more than one stepsibling.
-                    if (!json.calledFromStepSibling && json.Siblings != null && json.Siblings.Count != 1) {
+                    if (!json.calledFromStepSibling && json.HasSiblings) {
                         bool addComma = true;
 
-                        // Serializing every sibling first.
-                        for (int s = 0; s < json.Siblings.Count; s++) {
-                            var pp = json.Siblings[s];
+                        foreach (var siblingList in json.allSiblingLists) {
+                            // Serializing every sibling first.
+                            for (int s = 0; s < siblingList.Count; s++) {
+                                var pp = siblingList[s];
 
-                            if (pp == json)
-                                continue;
+                                if (pp == json)
+                                    continue;
 
-                            if (addComma) {
-                                addComma = false;
-                                *pfrag++ = (byte)',';
-                                used++;
-                            }
-
-                            pp.calledFromStepSibling = true;
-                            try {
-                                valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, pp.appName);
-                                used += valueSize;
-                                pfrag += valueSize;
-
-                                *pfrag++ = (byte)':';
-                                used++;
-
-                                valueSize = pp.ToJsonUtf8((IntPtr)pfrag, destSize - used);
-                                pfrag += valueSize;
-                                used += valueSize;
-
-                                if ((s + 1) < json.Siblings.Count) {
-                                    addComma = true;
+                                if (addComma) {
+                                    addComma = false;
+                                    *pfrag++ = (byte)',';
+                                    used++;
                                 }
-                            } finally {
-                                pp.calledFromStepSibling = false;
+
+                                pp.calledFromStepSibling = true;
+                                try {
+                                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, pp.appName);
+                                    used += valueSize;
+                                    pfrag += valueSize;
+
+                                    *pfrag++ = (byte)':';
+                                    used++;
+
+                                    valueSize = pp.ToJsonUtf8((IntPtr)pfrag, destSize - used);
+                                    pfrag += valueSize;
+                                    used += valueSize;
+
+                                    if ((s + 1) < siblingList.Count) {
+                                        addComma = true;
+                                    }
+                                } finally {
+                                    pp.calledFromStepSibling = false;
+                                }
                             }
                         }
                     }

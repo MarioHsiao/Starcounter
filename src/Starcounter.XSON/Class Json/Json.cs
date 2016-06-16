@@ -141,11 +141,15 @@ namespace Starcounter {
             if (Parent != null)
                 log = Parent.GetChangeLog(true);
 
-            if (log == null && lookInStepSiblings && this.siblings != null) {
-                foreach (var stepSibling in this.siblings) {
-                    if (stepSibling == this)
-                        continue;
-                    log = stepSibling.GetChangeLog(false);
+            if (log == null && lookInStepSiblings && this.allSiblingLists != null) {
+                foreach (var siblingList in this.allSiblingLists) {
+                    foreach (var stepSibling in siblingList) {
+                        if (stepSibling == this)
+                            continue;
+                        log = stepSibling.GetChangeLog(false);
+                        if (log != null)
+                            break;
+                    }
                     if (log != null)
                         break;
                 }
@@ -197,11 +201,15 @@ namespace Starcounter {
             if (Parent != null)
                 session = Parent.GetSession(true);
 
-            if (session == null && lookInStepSiblings && this.siblings != null) {
-                foreach (var stepSibling in this.siblings) {
-                    if (stepSibling == this)
-                        continue;
-                    session = stepSibling.GetSession(false);
+            if (session == null && lookInStepSiblings && this.allSiblingLists != null) {
+                foreach (var siblingList in this.allSiblingLists) {
+                    foreach (var stepSibling in siblingList) {
+                        if (stepSibling == this)
+                            continue;
+                        session = stepSibling.GetSession(false);
+                        if (session != null)
+                            break;
+                    }
                     if (session != null)
                         break;
                 }

@@ -369,13 +369,19 @@ namespace Starcounter.XSON {
 
             size = -1;
             totalSize = 0;
-            if (!calledFromStepSibling && json.Siblings != null) {
-                foreach (Json stepSibling in json.Siblings) {
-                    if (stepSibling == json)
-                        continue;
-                    size = EstimateSizeOfPath(stepSibling, includeNamespace, true);
-                    if (size != -1) 
-                        break;
+            if (!calledFromStepSibling && json.allSiblingLists != null) {
+                // TODO:
+                // Check this code. If several lists with siblings exists, we should 
+                // create one patch for each list. Now we simply check the first one.
+                foreach (var siblingList in json.allSiblingLists) {
+                    foreach (Json stepSibling in siblingList) {
+                        if (stepSibling == json)
+                            continue;
+                        size = EstimateSizeOfPath(stepSibling, includeNamespace, true);
+                        if (size != -1)
+                            break;
+                    }
+                    break;
                 }
             }
 
@@ -436,14 +442,21 @@ namespace Starcounter.XSON {
                 return true;
 
             pathWritten = false;
-            if (!calledFromStepSibling && json.Siblings != null) {
-                foreach (Json stepSibling in json.Siblings) {
-                    if (stepSibling == json)
-                        continue;
 
-                    pathWritten = WritePath(ref writer, stepSibling, includeNamespace, true);
-                    if (pathWritten)
-                        break;
+            // TODO:
+            // Check this code. If several lists with siblings exists, we should 
+            // create one patch for each list. Now we simply check the first one.
+            if (!calledFromStepSibling && json.allSiblingLists != null) {
+                foreach (var siblingList in json.allSiblingLists) {
+                    foreach (Json stepSibling in siblingList) {
+                        if (stepSibling == json)
+                            continue;
+
+                        pathWritten = WritePath(ref writer, stepSibling, includeNamespace, true);
+                        if (pathWritten)
+                            break;
+                    }
+                    break;
                 }
             }
 

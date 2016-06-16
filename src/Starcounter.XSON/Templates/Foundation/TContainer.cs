@@ -44,7 +44,7 @@ namespace Starcounter.Templates {
                 if (newValue.Parent != parent)
                     newValue.Parent = parent;
                 newValue.cacheIndexInArr = TemplateIndex;
-                if (newValue.Siblings != null) // already merged, don't check old siblings.
+                if (newValue.HasSiblings) // already merged, don't check old siblings.
                     checkSiblings = false; 
             }
 

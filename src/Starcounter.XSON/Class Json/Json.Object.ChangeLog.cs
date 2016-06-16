@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal;
@@ -28,11 +27,13 @@ namespace Starcounter {
 			if (Parent != null)
 				Parent.Dirtyfy();
 
-            if (callStepSiblings == true && this.siblings != null) {
-                foreach (Json stepSibling in this.siblings) {
-                    if (stepSibling == this)
-                        continue;
-                    stepSibling.Dirtyfy(false);
+            if (callStepSiblings == true && this.allSiblingLists != null) {
+                foreach (var siblingList in this.allSiblingLists) {
+                    foreach (Json stepSibling in siblingList) {
+                        if (stepSibling == this)
+                            continue;
+                        stepSibling.Dirtyfy(false);
+                    }
                 }
             }
 		}
@@ -158,17 +159,19 @@ namespace Starcounter {
                 }
             }
 
-            if (callStepSiblings == true && this.siblings != null) {
-                for (int i = 0; i < this.siblings.Count; i++) {
-                    var sibling = siblings[i];
-                    this.siblings.MarkAsSent(i);
+            if (callStepSiblings == true && this.allSiblingLists != null) {
+                foreach (var siblingList in this.allSiblingLists) {
+                    for (int i = 0; i < siblingList.Count; i++) {
+                        var sibling = siblingList[i];
+                        siblingList.MarkAsSent(i);
 
-                    if (sibling == this)
-                        continue;
+                        if (sibling == this)
+                            continue;
 
-                    sibling.CheckpointChangeLog(false);
-                    if (sibling.Parent != null && sibling.Parent.IsTrackingChanges) {
-                        sibling.Parent.CheckpointAt(sibling.IndexInParent);
+                        sibling.CheckpointChangeLog(false);
+                        if (sibling.Parent != null && sibling.Parent.IsTrackingChanges) {
+                            sibling.Parent.CheckpointAt(sibling.IndexInParent);
+                        }
                     }
                 }
             }
@@ -346,19 +349,23 @@ namespace Starcounter {
                     }
                 }
 
-                if (css == true && json.siblings != null) {
-                    for (int i = 0; i < json.siblings.Count; i++) {
-                        var sibling = json.siblings[i];
+                if (css == true && json.HasSiblings) {
+                    // TODO: 
+                    // Check this code. Will it work as intended when we have several lists with siblings?
+                    foreach (var siblingList in json.allSiblingLists) {
+                        for (int i = 0; i < siblingList.Count; i++) {
+                            var sibling = siblingList[i];
 
-                        if (sibling == json)
-                            continue;
+                            if (sibling == json)
+                                continue;
 
-                        if (json.siblings.HasBeenSent(i)) {
-                            sibling.LogValueChangesWithDatabase(clog, false);
-                        } else {
-                            clog.Add(Change.Update(sibling, null, true));
-                            json.siblings.MarkAsSent(i);
-                            sibling.dirty = false;
+                            if (siblingList.HasBeenSent(i)) {
+                                sibling.LogValueChangesWithDatabase(clog, false);
+                            } else {
+                                clog.Add(Change.Update(sibling, null, true));
+                                siblingList.MarkAsSent(i);
+                                sibling.dirty = false;
+                            }
                         }
                     }
                 }
@@ -400,11 +407,15 @@ namespace Starcounter {
                         }
                     }
 
-                    if (callStepSiblings == true && json.siblings != null) {
-                        foreach (var stepSibling in json.siblings) {
-                            if (stepSibling == this)
-                                continue;
-                            stepSibling.SetBoundValuesInTuple(false);
+                    if (callStepSiblings == true && json.HasSiblings) {
+                        // TODO: 
+                        // Check this code. Will it work as intended when we have several lists with siblings?
+                        foreach (var siblingList in json.allSiblingLists) {
+                            foreach (var stepSibling in siblingList) {
+                                if (stepSibling == this)
+                                    continue;
+                                stepSibling.SetBoundValuesInTuple(false);
+                            }
                         }
                     }            
                 }, 
@@ -713,11 +724,15 @@ namespace Starcounter {
                 }
             }
 
-            if (callStepSiblings && this.siblings != null) {
-                foreach (var stepSibling in this.siblings) {
-                    if (stepSibling == this)
-                        continue;
-                    stepSibling.CleanupOldVersionLogs(version, toVersion, false);
+            if (callStepSiblings && this.HasSiblings) {
+                // TODO: 
+                // Check this code. Will it work as intended when we have several lists with siblings?
+                foreach (var siblingList in this.allSiblingLists) {
+                    foreach (var stepSibling in siblingList) {
+                        if (stepSibling == this)
+                            continue;
+                        stepSibling.CleanupOldVersionLogs(version, toVersion, false);
+                    }
                 }
             }
         }
@@ -727,11 +742,15 @@ namespace Starcounter {
         /// This method will be called on each childjson as well.
         /// </summary>
         private void OnAddedToViewmodel(bool callStepSiblings) {
-            if (callStepSiblings == true && this.siblings != null) {
-                foreach (var stepSibling in this.siblings) {
-                    if (stepSibling == this)
-                        continue;
-                    stepSibling.OnAddedToViewmodel(false);
+            if (callStepSiblings == true && this.HasSiblings) {
+                // TODO: 
+                // Check this code. Will it work as intended when we have several lists with siblings?
+                foreach (var siblingList in this.allSiblingLists) {
+                    foreach (var stepSibling in siblingList) {
+                        if (stepSibling == this)
+                            continue;
+                        stepSibling.OnAddedToViewmodel(false);
+                    }
                 }
             }
 
@@ -824,42 +843,87 @@ namespace Starcounter {
                 }
             }
 
-            if (callStepSiblings == true && this.siblings != null) {
-                foreach (var stepSibling in this.siblings) {
-                    if (stepSibling == this)
-                        continue;
+            if (callStepSiblings == true && this.HasSiblings) {
+                // TODO: 
+                // Check this code. Will it work as intended when we have several lists with siblings?
+                foreach (var siblingList in this.allSiblingLists) {
+                    foreach (var stepSibling in siblingList) {
+                        if (stepSibling == this)
+                            continue;
 
-                    // Check for stepsiblings that might be a part of a stateful viewmodel,
-                    // and still be a sibling to another. In that case we don't do the call.
-                    if (stepSibling.session != null || (stepSibling.Parent != null && stepSibling.Parent.isAddedToViewmodel))
-                        continue;
-                    stepSibling.OnRemovedFromViewmodel(false);
+                        // Check for stepsiblings that might be a part of a stateful viewmodel,
+                        // and still be a sibling to another. In that case we don't do the call.
+                        if (stepSibling.session != null || (stepSibling.Parent != null && stepSibling.Parent.isAddedToViewmodel))
+                            continue;
+                        stepSibling.OnRemovedFromViewmodel(false);
+                    }
                 }
             }
         }
 
-        internal SiblingList Siblings {
-            get { return this.siblings; }
-            set {
-                this.siblings = value;
-                if (this.Session != null) {
-                    // We just call OnAdd for this sibling since the list will be set on each one.
-                    // If the sibling is already added the method will just return so no need to 
-                    // do additional checks here.
-                    this.OnAddedToViewmodel(true);
+        internal SiblingList GetSiblings(string key) {
+            SiblingList list = null;
+            if (allSiblingLists != null) {
+                list = allSiblingLists.Find((item) => { return key.Equals(item.Key); });
+            }
+            return list;
+        }
+        
+        internal void SetSiblings(SiblingList siblings) {
+            if (allSiblingLists == null) {
+                allSiblingLists = new List<SiblingList>();
+            }
+
+            int index = allSiblingLists.FindIndex((item) => { return siblings.Key.Equals(item.Key); });
+            if (index == -1)
+                allSiblingLists.Add(siblings);
+            else
+                allSiblingLists[index] = siblings;
+
+            if (this.Session != null) {
+                // We just call OnAdd for this sibling since the list will be set on each one.
+                // If the sibling is already added the method will just return so no need to 
+                // do additional checks here.
+                this.OnAddedToViewmodel(true);
+            }
+        }
+
+        internal bool HasSiblings {
+            get {
+                return (allSiblingLists != null && allSiblingLists.Count > 0);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newValue"></param>
+        internal void CheckAndUpdateSibling(Json newValue) {
+            if (!this.HasSiblings)
+                return;
+
+            foreach (var siblingList in this.allSiblingLists) {
+                int index = siblingList.IndexOf(this);
+                if (index != -1) {
+                    siblingList[index] = newValue;
                 }
             }
+            this.allSiblingLists = null;
         }
 
         public bool AutoRefreshBoundProperties {
             get { return this.checkBoundProperties; }
             set {
                 this.checkBoundProperties = value;
-                if (this.Siblings != null) {
-                    foreach (var sibling in this.Siblings) {
-                        if (sibling == this)
-                            continue;
-                        sibling.checkBoundProperties = value;
+                if (this.HasSiblings) {
+                    // TODO:
+                    // Check this code. Correct to set all siblings?
+                    foreach (var siblingList in this.allSiblingLists) {
+                        foreach (var sibling in siblingList) {
+                            if (sibling == this)
+                                continue;
+                            sibling.checkBoundProperties = value;
+                        }
                     }
                 }
             } 
@@ -874,8 +938,11 @@ namespace Starcounter {
                 if (!this.trackChanges)
                     return false;
 
-                if (this.siblings != null) {
-                    return this.siblings.HasBeenSent(this.siblings.IndexOf(this));
+                if (this.HasSiblings) {
+                    // TODO:
+                    // Check this code. Shouldn't matter which siblinglist we check, so lets take the first one.
+                    var siblingList = this.allSiblingLists[0];
+                    return siblingList.HasBeenSent(siblingList.IndexOf(this));
                 }
 
                 if (Parent != null) {
@@ -889,22 +956,7 @@ namespace Starcounter {
                 }
             }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="newValue"></param>
-        internal void CheckAndUpdateSibling(Json newValue) {
-            if (this.Siblings != null) {
-                int index = this.Siblings.IndexOf(this);
-
-                if (index != -1) {
-                    this.Siblings[index] = newValue;
-                    this.Siblings = null;
-                }
-            }
-        }
-
+        
         internal void VerifyDirtyFlags(bool verifySiblings = true) {
             if (!this.trackChanges)
                 return;
@@ -921,11 +973,13 @@ namespace Starcounter {
                     break;
             }
 
-            if (verifySiblings && this.siblings != null) {
-                foreach (var sibling in this.siblings) {
-                    if (this.Equals(sibling))
-                        continue;
-                    sibling.VerifyDirtyFlags(false);
+            if (verifySiblings && this.allSiblingLists != null) {
+                foreach (var siblingList in this.allSiblingLists) {
+                    foreach (var sibling in siblingList) {
+                        if (this.Equals(sibling))
+                            continue;
+                        sibling.VerifyDirtyFlags(false);
+                    }
                 }
             }
         }

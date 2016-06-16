@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Starcounter.XSON {
     public class SiblingList : IEnumerable<Json> {
         private List<Sibling> list;
-
+        
         /// <summary>
         /// A Sibling is a way to connect differerent viewmodels to achieve a 
         /// virtual tree that is used on the client to achieve blending.
@@ -51,8 +51,9 @@ namespace Starcounter.XSON {
             }
         }
 
-        public SiblingList() {
+        public SiblingList(string key) {
             list = new List<Sibling>();
+            Key = key;
         }
 
         public Json this[int index] {
@@ -67,7 +68,7 @@ namespace Starcounter.XSON {
 
                 if (value != null) {
                     value.wrapInAppName = true;
-                    value.Siblings = this;
+                    value.SetSiblings(this);
                 }
                 sibling.Json = value;
                 sibling.HasBeenSent = false;
@@ -117,7 +118,10 @@ namespace Starcounter.XSON {
         IEnumerator IEnumerable.GetEnumerator() {
             return new JsonEnumerator(this.list);
         }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public string Key { get; private set; }
     }
-
-
 }

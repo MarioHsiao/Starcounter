@@ -38,9 +38,11 @@ namespace Starcounter.Internal {
         /// Default JSON merger function.
         /// </summary>
         internal static Response DefaultMerger(Request req, Response resp, List<Response> responses) {
-            var mainResp = DoMerge(req, resp, responses);
+            SiblingList mergedList;
+
+            var mainResp = DoMerge(req, resp, responses, out mergedList);
             if (mainResp != null)
-                TriggerAfterMergeCallback(req, mainResp.Resource as Json);
+                TriggerAfterMergeCallback(req, mainResp.Resource as Json, mergedList);
             
             return mainResp;
         }
@@ -48,23 +50,25 @@ namespace Starcounter.Internal {
         /// <summary>
         /// Default JSON merger function.
         /// </summary>
-        private static Response DoMerge(Request req, Response resp, List<Response> responses) {
+        private static Response DoMerge(Request req, Response resp, List<Response> responses, out SiblingList mergedList) {
             Json siblingJson;
             Json mainJson;
-            SiblingList stepSiblings;
+            SiblingList stepSiblings = null;
+
+            mergedList = null;
 
             // Checking if there is only one response, which becomes the main response.
             if (resp != null) {
-
                 mainJson = resp.Resource as Json;
-
                 if (mainJson != null) {
-                    if (mainJson.Siblings != null) {
-                        if (mainJson.Siblings.HasBeenSent(mainJson.Siblings.IndexOf(mainJson))) {
-                            stepSiblings = new SiblingList();
+                    stepSiblings = mainJson.GetSiblings(req.Uri);
+                    if (stepSiblings != null) {
+                        if (stepSiblings.HasBeenSent(stepSiblings.IndexOf(mainJson))) {
+                            stepSiblings = new SiblingList(req.Uri);
                             stepSiblings.Add(mainJson);
                             stepSiblings.MarkAsSent(0);
-                            mainJson.Siblings = stepSiblings;
+                            mainJson.SetSiblings(stepSiblings);
+                            mergedList = stepSiblings;
                         }
                     }
                     mainJson.appName = resp.AppName;
@@ -99,25 +103,23 @@ namespace Starcounter.Internal {
 
             // Checking if its a Json response.
             mainJson = mainResponse.Resource as Json;
-
             if (mainJson != null) {
-
                 mainJson.appName = mainResponse.AppName;
                 mainJson.wrapInAppName = true;
                 
-                var oldSiblings = mainJson.Siblings;
+                var oldSiblings = mainJson.GetSiblings(req.Uri);
 
-                stepSiblings = new SiblingList();
+                stepSiblings = new SiblingList(req.Uri);
                 stepSiblings.Add(mainJson);
-                mainJson.Siblings = stepSiblings;
 
+                mainJson.SetSiblings(stepSiblings);
+                
                 if (responses.Count == 1) {
-                    MarkExistingSiblingsAsSent(mainJson, oldSiblings);
+                    MarkExistingSiblingsAsSent(mainJson, stepSiblings, oldSiblings);
                     return mainResponse;
                 }
 
                 for (Int32 i = 0; i < responses.Count; i++) {
-
                     if (mainResponseId != i) {
                         if (responses[i] == null)
                             continue;
@@ -136,9 +138,10 @@ namespace Starcounter.Internal {
                         siblingJson.appName = responses[i].AppName;
                         siblingJson.wrapInAppName = true;
 
-                        if (siblingJson.Siblings != null) {
+                        SiblingList existingSiblings = siblingJson.GetSiblings(req.Uri);
+                        if (existingSiblings != null) {
                             // We have another set of step-siblings. Merge them into one list.
-                            foreach (var existingSibling in siblingJson.Siblings) {
+                            foreach (var existingSibling in existingSiblings) {
                                 // TODO:
                                 // Filtering out existing siblings that comes from the same app.
                                 // This is a hack to avoid having multiple layouts from the launcher
@@ -147,27 +150,28 @@ namespace Starcounter.Internal {
                                 // Issue: https://github.com/Starcounter/Starcounter/issues/3470
                                 if (stepSiblings.ExistsForApp(existingSibling.appName))
                                     continue;
-                                
+
                                 if (!stepSiblings.Contains(existingSibling)) {
                                     stepSiblings.Add(existingSibling);
-                                    existingSibling.Siblings = stepSiblings;
+                                    existingSibling.SetSiblings(stepSiblings);
                                 }
                             }
                         }
-
+                        
                         if (!stepSiblings.Contains(siblingJson)) {
                             stepSiblings.Add(siblingJson);
                         }
-                        siblingJson.Siblings = stepSiblings;
+
+                        siblingJson.SetSiblings(stepSiblings);
                     }
                 }
 
-                MarkExistingSiblingsAsSent(mainJson, oldSiblings);
+                MarkExistingSiblingsAsSent(mainJson, stepSiblings, oldSiblings);
             }
             return mainResponse;
         }
-
-        private static void TriggerAfterMergeCallback(Request request, Json json) {
+        
+        private static void TriggerAfterMergeCallback(Request request, Json json, SiblingList mergedList) {
             SiblingList list;
             Json newSibling = null;
             string callingAppName = request.HandlerAppName;
@@ -177,31 +181,28 @@ namespace Starcounter.Internal {
             if (json == null || afterMergeCallbacks_.Count == 0)
                 return;
 
-            list = json.Siblings;
+            list = mergedList;
             if (list == null) {
-                list = new SiblingList();
+                list = new SiblingList(request.Uri);
                 list.Add(json);
-            }
+            } 
 
             foreach (var hook in afterMergeCallbacks_) {
                 newSibling = hook.Invoke(request, callingAppName, list);
                 if (newSibling != null) {
                     newSibling.wrapInAppName = true;
                     list.Add(newSibling);
-                    newSibling.Siblings = list;
+                    newSibling.SetSiblings(list);
                 }
             }
 
-            if (json.Siblings == null && list.Count > 1) {
-                json.Siblings = list;
+            if (mergedList == null && list.Count > 1) {
+                json.SetSiblings(list);
             }
         }
 
-        private static void MarkExistingSiblingsAsSent(Json mainJson, SiblingList oldSiblings) {
-            SiblingList newSiblings;
-
+        private static void MarkExistingSiblingsAsSent(Json mainJson, SiblingList newSiblings, SiblingList oldSiblings) {
             if (oldSiblings != null && mainJson.Parent != null) {
-                newSiblings = mainJson.Siblings;
                 for (int i = 0; i < newSiblings.Count; i++) {
                     int index = oldSiblings.IndexOf(newSiblings[i]);
                     if (index != -1) {

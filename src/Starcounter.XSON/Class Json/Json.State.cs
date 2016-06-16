@@ -109,10 +109,10 @@ namespace Starcounter {
         internal object data;
 
         /// <summary>
-        /// List containing all siblings that exists on this level.
+        /// 
         /// </summary>
-        private SiblingList siblings;
-
+        internal List<SiblingList> allSiblingLists;
+        
         internal String appName;
 
         internal Boolean wrapInAppName;

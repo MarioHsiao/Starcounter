@@ -36,7 +36,7 @@ namespace Starcounter.Internal.XSON {
         public Int32 Index;
 
         /// <summary>
-        /// If the change is moved, this value will be the old index in the array
+        /// If the change is move, this value will be the old index in the array
         /// </summary>
         public Int32 FromIndex;
 
