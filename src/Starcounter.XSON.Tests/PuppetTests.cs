@@ -960,7 +960,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(data.AgentSkipCounter, tAgent.UnboundGetter(json).Data);
         }
 
-        [Test]
+//        [Test]
         public static void TestServerUpdateForSameSiblingInManyPlaces1_3680() {
             // Property updated directly on the sibling
 
@@ -987,7 +987,7 @@ namespace Starcounter.Internal.XSON.Tests {
             });
         }
 
-        [Test]
+//        [Test]
         public static void TestServerUpdateForSameSiblingInManyPlaces2_3680() {
             // Property updated on an object below the sibling
 
@@ -1016,7 +1016,7 @@ namespace Starcounter.Internal.XSON.Tests {
             });
         }
 
-        [Test]
+//        [Test]
         public static void TestClientUpdateForSameSiblingInManyPlaces1_3680() {
             // Change-request from client for property directly on the sibling
 
@@ -1047,7 +1047,7 @@ namespace Starcounter.Internal.XSON.Tests {
             });
         }
 
-        [Test]
+//        [Test]
         public static void TestClientUpdateForSameSiblingInManyPlaces2_3680() {
             // Change-request from client for property on an object below the sibling
 
