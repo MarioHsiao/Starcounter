@@ -142,7 +142,7 @@ public:
     }
 
     // Running all registered handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled);
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd);
 };
 
 class RegisteredUris
@@ -469,18 +469,17 @@ public:
     void ResetParser(GatewayWorker *gw, SocketDataChunkRef sd);
 
     // Entry point for outer data processing.
-    uint32_t HttpUriDispatcher(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
+    uint32_t HttpUriDispatcher(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
     // Standard HTTP/WS handler once URI is determined.
-    uint32_t AppsHttpWsProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);
+    uint32_t AppsHttpWsProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
     // Parses the HTTP request and pushes processed data to database.
     uint32_t GatewayHttpWsProcessEcho(
         HandlersList* hl,
         GatewayWorker *gw,
         SocketDataChunkRef sd,
-        BMX_HANDLER_TYPE handler_id,
-        bool* is_handled);
+        BMX_HANDLER_TYPE handler_id);
 
     // Reverse proxies the HTTP traffic.
     uint32_t GatewayHttpWsReverseProxy(
@@ -488,7 +487,6 @@ public:
         GatewayWorker *gw,
         SocketDataChunkRef sd,
         BMX_HANDLER_TYPE handler_id,
-        bool* is_handled,
         int32_t reverse_proxy_index);
 };
 
