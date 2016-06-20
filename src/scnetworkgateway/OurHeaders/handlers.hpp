@@ -275,15 +275,9 @@ public:
     }
 
     // Runs port handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd)
     {
-        uint32_t err_code = handler_(this, gw, sd, handler_info_, is_handled);
-
-        // Checking if information was handled and no errors occurred.
-        if (*is_handled || err_code)
-            return err_code;
-
-        return SCERRGWPORTNOTHANDLED;
+        return handler_(this, gw, sd, handler_info_);
     }
 
     // Should be called when whole handlers list should be unregistered.

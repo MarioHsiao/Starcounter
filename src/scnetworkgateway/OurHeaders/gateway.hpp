@@ -105,7 +105,6 @@ enum GatewayErrorCodes
     SCERRGWFAILEDWSASEND,
     SCERRGWDISCONNECTFLAG,
     SCERRGWWEBSOCKETUNKNOWNOPCODE,
-    SCERRGWPORTNOTHANDLED,
     SCERRGWWRONGHTTPDATA,
     SCERRGWRECEIVEMORE,
     SCERRGWHTTPNONWEBSOCKETSUPGRADE,
@@ -419,82 +418,71 @@ typedef uint32_t (*GENERIC_HANDLER_CALLBACK) (
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t UdpPortProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t TcpPortProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t OuterUriProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t AppsUriProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 // HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t GatewayTestSample(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 // Updates configuration for Gateway.
 uint32_t GatewayUpdateConfiguration(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd, 
-    BMX_HANDLER_TYPE handler_id, 
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_id);
 
 // Profilers statistics for Gateway.
 uint32_t GatewayProfilersInfo(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 // Aggregation on gateway.
 uint32_t PortAggregator(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t GatewayUriProcessProxy(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 // Waking up a thread using APC.
 void WakeUpThreadUsingAPC(HANDLE thread_handle);
