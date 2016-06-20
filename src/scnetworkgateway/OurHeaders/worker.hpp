@@ -524,18 +524,8 @@ public:
         // Putting socket data to database.
         sd->PrepareToDb();
 
-        bool is_handled = false;
-
         // Here we have to process socket data using handlers.
-        uint32_t err_code = RunHandlers(this, sd, &is_handled);
-        if (err_code)
-        {
-            // Ban the fucking IP.
-
-            return err_code;
-        }
-
-        return 0;
+        return RunHandlers(this, sd);
     }
 
     // Processes socket data from database.
@@ -544,22 +534,12 @@ public:
         // Putting socket data from database.
         sd->PrepareFromDb();
 
-        bool is_handled = false;
-
         // Here we have to process socket data using handlers.
-        uint32_t err_code = RunHandlers(this, sd, &is_handled);
-        if (err_code)
-        {
-            // Ban the fucking IP.
-
-            return err_code;
-        }
-
-        return 0;
+        return RunHandlers(this, sd);
     }
 
     // Does general data processing using port handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
+    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd)
     {
         port_index_type port_index = sd->GetPortIndex();
         if (INVALID_PORT_INDEX == port_index)
@@ -569,7 +549,7 @@ public:
 
         GW_ASSERT(NULL != ph);
 
-        return ph->RunHandlers(gw, sd, is_handled);
+        return ph->RunHandlers(gw, sd);
     }
 
     // Push given chunk to database queue.
