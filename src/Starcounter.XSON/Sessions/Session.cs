@@ -498,8 +498,15 @@ namespace Starcounter {
             int noRetries = 3;
             while (true) {
                 if (!waitObj.WaitOne(60 * 1000)) {
+                    if (Debugger.IsAttached) {
+                        log.LogNotice("Exclusive access to the session with id {0} could not be obtained "
+                                      + "within the allotted time. Trying again (debugger is attached).",
+                                       this.SessionId);
+                        continue;
+                    }
+
                     if (count++ < noRetries) {
-                        log.LogWarning("Exclusive access to the session with id {0} could "
+                        log.LogNotice("Exclusive access to the session with id {0} could "
                                        +"not be obtained within the allotted time. Trying again ({1}/{2}).",
                                        this.SessionId,
                                        count,
