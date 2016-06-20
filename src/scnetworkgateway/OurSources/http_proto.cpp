@@ -4,7 +4,6 @@
 #include "ws_proto.hpp"
 #include "http_proto.hpp"
 #include "socket_data.hpp"
-#include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
 
@@ -62,6 +61,7 @@ __declspec(thread) http_parser g_ts_http_parser_;
 __declspec(thread) uint8_t g_ts_last_field_;
 __declspec(thread) int32_t g_ts_reverse_proxy_index_;
 __declspec(thread) bool g_ts_xhreferer_read_;
+__declspec(thread) bool g_ts_http_complete_headers_;
 __declspec(thread) SocketDataChunk* g_ts_sd_;
 __declspec(thread) GatewayWorker* g_ts_gw_;
 __declspec(thread) HttpRequest* g_ts_http_request_;
@@ -148,17 +148,11 @@ uri_index_type RegisteredUris::FindRegisteredUri(const char* method_space_uri)
 }
 
 // Running all registered handlers.
-uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
+uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd)
 {
     GW_ASSERT(NULL != handler_);
 
-    uint32_t err_code = handler_->RunHandlers(gw, sd, is_handled);
-
-    // Checking if information was handled and no errors occurred.
-    if (*is_handled || err_code)
-        return err_code;
-
-    return 0;
+    return handler_->RunHandlers(gw, sd);
 }
 
 // Fetches method and URI from HTTP request data.
@@ -239,7 +233,7 @@ inline int HttpProto::OnHeadersComplete(http_parser* p)
 #endif
 
     // Setting complete header flag.
-    g_ts_sd_->set_complete_header_flag();
+    g_ts_http_complete_headers_ = true;
     
     // NOTE: p->nread already points to the content after additional \r\n
     // thats why we subtracting 2 bytes.
@@ -525,14 +519,13 @@ uint32_t HttpProto::HttpUriDispatcher(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
-    bool* is_handled)
+    BMX_HANDLER_TYPE handler_id)
 {
     // Checking if we are proxying on this socket.
     if (sd->HasProxySocket()) {
 
         // Just running proxy processing.
-        return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_id, is_handled, INVALID_RP_INDEX);
+        return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_id, INVALID_RP_INDEX);
     }
 
     // Checking if data goes to user code.
@@ -540,9 +533,153 @@ uint32_t HttpProto::HttpUriDispatcher(
     {
         // Checking if we are already passed the WebSockets handshake.
 		if (sd->is_web_socket()) {
-			return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
+			return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id);
 		}
 
+		// Resetting the parsing structure.
+		ResetParser(gw, sd);
+
+		// We can immediately set the request offset.
+		http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
+
+		// Executing HTTP parser.
+		size_t bytes_parsed = http_parser_execute(
+			&g_ts_http_parser_,
+			&g_httpParserSettings,
+			(const char *)sd->get_data_blob_start(),
+			sd->get_accumulated_len_bytes());
+
+		// Checking if we have a reverse proxy on host.
+		if (INVALID_RP_INDEX != g_ts_reverse_proxy_index_) {
+
+			return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_id, g_ts_reverse_proxy_index_);
+
+		} else if (!g_ts_http_complete_headers_) {
+
+			// NOTE: At this point we don't really know here what the final size of the request will be.
+			// That is why we just extend the chunk to next bigger one, without specifying the size.
+
+			// Checking if any space left in chunk.
+			if (sd->get_num_available_network_bytes() <= 0)
+			{
+				uint32_t err_code = SocketDataChunk::ChangeToBigger(gw, sd);
+
+				if (err_code)
+					return err_code;
+			}
+
+			// Returning socket to receiving state.
+			uint32_t err_code = gw->Receive(sd);
+			if (err_code)
+				return err_code;
+
+			return 0;
+		}
+
+		// Calculating total request size.
+		http_request_.request_len_bytes_ = http_request_.content_offset_ - http_request_.request_offset_ + http_request_.content_len_bytes_;
+
+		// Handle error. Usually just close the connection.
+		if (bytes_parsed != (sd->get_accumulated_len_bytes()))
+		{
+			GW_ASSERT(bytes_parsed < sd->get_accumulated_len_bytes());
+			GW_COUT << "HTTP packet has incorrect data!" << GW_ENDL;
+
+			return SCERRGWHTTPINCORRECTDATA;
+		}
+		else
+		{
+			// Getting the HTTP method.
+			http_method method = (http_method)g_ts_http_parser_.method;
+			switch (method)
+			{
+			case http_method::HTTP_GET:
+				http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::GET;
+				break;
+
+			case http_method::HTTP_POST:
+				http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::POST;
+				break;
+
+			case http_method::HTTP_PUT:
+				http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::PUT;
+				break;
+
+			case http_method::HTTP_DELETE:
+				http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::DELETE;
+				break;
+
+			case http_method::HTTP_HEAD:
+				http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::HEAD;
+				break;
+
+			case http_method::HTTP_OPTIONS:
+				http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::OPTIONS;
+				break;
+
+			case http_method::HTTP_TRACE:
+				http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::TRACE;
+				break;
+
+			case http_method::HTTP_PATCH:
+				http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::PATCH;
+				break;
+
+			default:
+				http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::OTHER;
+				break;
+			}
+
+			// Checking if we have any content at all.
+			if (http_request_.content_len_bytes_ > 0)
+			{
+				GW_ASSERT(http_request_.content_offset_ > http_request_.headers_offset_);
+
+				// Checking if we need to continue receiving the content.
+				if (http_request_.request_len_bytes_ > sd->get_accumulated_len_bytes())
+				{
+					// Checking for maximum supported HTTP request content size.
+					if (http_request_.content_len_bytes_ > g_gateway.setting_maximum_receive_content_length())
+					{
+						wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+						wsprintf(temp, L"Attempt to HTTP upload of more than %d bytes. Closing socket connection.",
+							g_gateway.setting_maximum_receive_content_length());
+						g_gateway.LogWriteWarning(temp);
+
+						// Checking if its a socket representer.
+						if (sd->get_socket_representer_flag()) {
+
+							// Setting disconnect after send flag.
+							sd->set_disconnect_after_send_flag();
+
+							// Sending corresponding HTTP response.
+							return gw->SendPredefinedMessage(sd, kHttpTooBigUpload, kHttpTooBigUploadLength);
+
+						} else {
+
+							return SCERRGWMAXDATASIZEREACHED;
+						}
+					}
+
+					// Setting the desired number of bytes to accumulate.
+					uint32_t err_code = gw->StartAccumulation(
+						sd,
+						http_request_.request_len_bytes_,
+						sd->get_accumulated_len_bytes());
+
+					if (err_code)
+						return err_code;
+
+					// Checking if we have not accumulated everything yet.
+					return gw->Receive(sd);
+				}
+			}
+
+			// Statistics.
+			g_gateway.IncrementNumProcessedHttpRequests();
+		}
+
+		// Checking correct buffers.
 		GW_ASSERT(sd->get_accumulated_len_bytes() == (sd->get_cur_network_buf_ptr() - sd->get_data_blob_start()));
 
         // Obtaining method and URI.
@@ -569,15 +706,12 @@ uint32_t HttpProto::HttpUriDispatcher(
                     sd->set_unknown_proxied_proto_flag();
 
                     // Just running proxy processing.
-                    return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_id, is_handled, INVALID_RP_INDEX);
+                    return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_id, INVALID_RP_INDEX);
                 }
 
                 // Returning socket to receiving state.
                 err_code = gw->Receive(sd);
                 GW_ERR_CHECK(err_code);
-
-                // Handled successfully.
-                *is_handled = true;
 
                 return 0;
 
@@ -588,7 +722,6 @@ uint32_t HttpProto::HttpUriDispatcher(
         }
 
         // Now we have method and URI and ready to search specific URI handler.
-
         // Getting the corresponding port number.
 
 		// Checking if its internal request.
@@ -727,9 +860,6 @@ uint32_t HttpProto::HttpUriDispatcher(
         // Checking if we failed to find again.
         if (MixedCodeConstants::InvalidUriMatcherHandlerId == matched_index)
         {
-            // Handled successfully.
-            *is_handled = true;
-
 			// Checking if its a socket representative.
 			if (sd->get_socket_representer_flag()) {
 
@@ -744,7 +874,7 @@ uint32_t HttpProto::HttpUriDispatcher(
 
 			} else {
 
-				return SCERRGWPORTNOTHANDLED;
+				return SCERRGWWRONGHTTPDATA;
 			}
         }
 
@@ -769,15 +899,15 @@ HANDLER_MATCHED:
 
         // Setting determined HTTP URI settings (e.g. for reverse proxy).
         sd->get_http_proto()->http_request_.uri_offset_ = sd->GetAccumOrigBufferSocketDataOffset() + uri_offset;
-        sd->get_http_proto()->http_request_.uri_len_bytes_ = method_space_uri_space_len - uri_offset;
+        sd->get_http_proto()->http_request_.uri_len_bytes_ = method_space_uri_space_len - uri_offset - 1;
 
         // Running determined handler now.
-        return matched_uri->RunHandlers(gw, sd, is_handled);
+        return matched_uri->RunHandlers(gw, sd);
     }
     else
     {
         // Just running standard response processing.
-        return AppsHttpWsProcessData(hl, gw, sd, handler_id, is_handled);
+        return AppsHttpWsProcessData(hl, gw, sd, handler_id);
     }
 
     return 0;
@@ -791,6 +921,7 @@ void HttpProto::ResetParser(GatewayWorker *gw, SocketDataChunkRef sd)
     g_ts_sd_ = sd;
     g_ts_gw_ = gw;
     g_ts_xhreferer_read_ = false;
+    g_ts_http_complete_headers_ = false;
     g_ts_reverse_proxy_index_ = INVALID_RP_INDEX;
 
     http_request_.Reset();
@@ -803,239 +934,67 @@ uint32_t HttpProto::AppsHttpWsProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
-    bool* is_handled)
+    BMX_HANDLER_TYPE handler_id)
 {
     uint32_t err_code;
 
     // Checking if data goes to user code.
     if (sd->get_to_database_direction_flag())
     {
-        // Checking if we are in fill-up mode.
-        if (sd->get_complete_header_flag())
-            goto ALL_DATA_ACCUMULATED;
-
-        // Checking if we are already passed the WebSockets handshake.
-        if (sd->is_web_socket()) {
-            return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
-        }
-
-        // Resetting the parsing structure.
-        ResetParser(gw, sd);
-
-        // We can immediately set the request offset.
-        http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
-
-        // Executing HTTP parser.
-        size_t bytes_parsed = http_parser_execute(
-            &g_ts_http_parser_,
-            &g_httpParserSettings,
-            (const char *)sd->get_data_blob_start(),
-            sd->get_accumulated_len_bytes());
-
-        // Checking if we have a reverse proxy on host.
-        if (INVALID_RP_INDEX != g_ts_reverse_proxy_index_) { 
-            
-            return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_id, is_handled, g_ts_reverse_proxy_index_);
-
-        } else if (!sd->get_complete_header_flag()) { // Checking if we should continue receiving the headers.
-
-            // NOTE: At this point we don't really know here what the final size of the request will be.
-            // That is why we just extend the chunk to next bigger one, without specifying the size.
-
-            // Checking if any space left in chunk.
-            if (sd->get_num_available_network_bytes() <= 0)
-            {
-                err_code = SocketDataChunk::ChangeToBigger(gw, sd);
-
-                if (err_code)
-                    return err_code;
-            }
-
-            // Returning socket to receiving state.
-            err_code = gw->Receive(sd);
-            if (err_code)
-                return err_code;
-
-            // Handled successfully.
-            *is_handled = true;
-
-            return 0;
-        }
-
-        // Calculating total request size.
-        http_request_.request_len_bytes_ = http_request_.content_offset_ - http_request_.request_offset_ + http_request_.content_len_bytes_;
-
-        // Checking if we have WebSockets upgrade.
-        if (g_ts_http_parser_.upgrade) {
+		// Checking if we have WebSockets upgrade.
+		if (g_ts_http_parser_.upgrade) {
 
 #ifdef GW_WEBSOCKET_DIAG
-            GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
+			GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
 #endif
 
-            // Perform WebSockets handshake.
-            return WsProto::DoHandshake(gw, sd, handler_id, is_handled);
-        }
-        // Handle error. Usually just close the connection.
-        else if (bytes_parsed != (sd->get_accumulated_len_bytes()))
-        {
-            GW_ASSERT(bytes_parsed < sd->get_accumulated_len_bytes());
+			// Perform WebSockets handshake.
+			return WsProto::DoHandshake(gw, sd, handler_id);
+		}
 
-            GW_COUT << "HTTP packet has incorrect data!" << GW_ENDL;
-            return SCERRGWHTTPINCORRECTDATA;
-        }
-        // Standard HTTP.
-        else
-        {
-            // Getting the HTTP method.
-            http_method method = (http_method)g_ts_http_parser_.method;
-            switch (method)
-            {
-            case http_method::HTTP_GET: 
-                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::GET;
-                break;
+		// Aggregation is done separately.
+		if (!sd->GetSocketAggregatedFlag())
+		{
+			// Posting cloning receive since all data is accumulated.
+			err_code = sd->CloneToReceive(gw);
+			if (err_code)
+				return err_code;
+		}
 
-            case http_method::HTTP_POST: 
-                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::POST;
-                break;
-
-            case http_method::HTTP_PUT: 
-                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::PUT;
-                break;
-
-            case http_method::HTTP_DELETE: 
-                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::DELETE;
-                break;
-
-            case http_method::HTTP_HEAD: 
-                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::HEAD;
-                break;
-
-            case http_method::HTTP_OPTIONS: 
-                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::OPTIONS;
-                break;
-
-            case http_method::HTTP_TRACE: 
-                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::TRACE;
-                break;
-
-            case http_method::HTTP_PATCH: 
-                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::PATCH;
-                break;
-
-            default: 
-                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::OTHER;
-                break;
-            }
-
-            // Checking if we have any content at all.
-            if (http_request_.content_len_bytes_ > 0)
-            {
-                GW_ASSERT(http_request_.content_offset_ > http_request_.headers_offset_);
-
-                // Checking if we need to continue receiving the content.
-                if (http_request_.request_len_bytes_ > sd->get_accumulated_len_bytes())
-                {
-                    // Checking for maximum supported HTTP request content size.
-                    if (http_request_.content_len_bytes_ > g_gateway.setting_maximum_receive_content_length())
-                    {
-                        // Handled successfully.
-                        *is_handled = true;
-
-						wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-						wsprintf(temp, L"Attempt to HTTP upload of more than %d bytes. Closing socket connection.", 
-							g_gateway.setting_maximum_receive_content_length());
-						g_gateway.LogWriteWarning(temp);
-
-						// Checking if its a socket representer.
-						if (sd->get_socket_representer_flag()) {
-
-							// Setting disconnect after send flag.
-							sd->set_disconnect_after_send_flag();
-
-							// Sending corresponding HTTP response.
-							return gw->SendPredefinedMessage(sd, kHttpTooBigUpload, kHttpTooBigUploadLength);
-
-						} else {
-
-							return SCERRGWMAXDATASIZEREACHED;
-						}
-                    }
-
-                    // Setting the desired number of bytes to accumulate.
-                    err_code = gw->StartAccumulation(
-                        sd,
-                        http_request_.request_len_bytes_,
-                        sd->get_accumulated_len_bytes());
-
-                    if (err_code)
-                        return err_code;
-
-                    // Handled successfully.
-                    *is_handled = true;
-
-                    // Checking if we have not accumulated everything yet.
-                    return gw->Receive(sd);
-                }
-            }
-
-ALL_DATA_ACCUMULATED:
-
-            // We don't need complete header flag anymore.
-            sd->reset_complete_header_flag();
-
-            g_gateway.IncrementNumProcessedHttpRequests();
-
-            // Aggregation is done separately.
-            if (!sd->GetSocketAggregatedFlag())
-            {
-                // Posting cloning receive since all data is accumulated.
-                err_code = sd->CloneToReceive(gw);
-                if (err_code)
-                    return err_code;
-            }
-
-            // Checking type of response.
+		// Checking type of response.
 #ifdef GW_PONG_MODE
 
-            // Sending Pong response.
-            err_code = gw->SendPredefinedMessage(sd, kHttpGatewayPongResponse, kHttpGatewayPongResponseLength);
-            if (err_code)
-                return err_code;
+		// Sending Pong response.
+		err_code = gw->SendPredefinedMessage(sd, kHttpGatewayPongResponse, kHttpGatewayPongResponseLength);
+		if (err_code)
+			return err_code;
 
 #else
 
-            // Resetting user data parameters.
-            sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes());
+		// Resetting user data parameters.
+		sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes());
 
-            // Push chunk to corresponding channel/scheduler.
-            err_code = gw->PushSocketDataToDb(sd, handler_id, false);
-            if (err_code)
-                return err_code;
+		// Push chunk to corresponding channel/scheduler.
+		err_code = gw->PushSocketDataToDb(sd, handler_id, false);
+		if (err_code)
+			return err_code;
 
 #endif
 
-            // Printing the outgoing packet.
+		// Printing the outgoing packet.
 #ifdef GW_HTTP_DIAG
-            GW_COUT << sd->get_accum_buf()->get_data_blob_start() << GW_ENDL;
+		GW_COUT << sd->get_accum_buf()->get_data_blob_start() << GW_ENDL;
 #endif
-        }
 
-        // Handled successfully.
-        *is_handled = true;
-
-        return 0;
+		return 0;
     }
     // Checking if data comes from user code.
     else
     {
         // Checking if we are already passed the WebSockets handshake.
         if (sd->is_web_socket()) {
-            return sd->get_ws_proto()->ProcessWsDataFromDb(gw, sd, handler_id, is_handled);
+            return sd->get_ws_proto()->ProcessWsDataFromDb(gw, sd, handler_id);
         }
-
-        // Handled successfully.
-        *is_handled = true;
 
 		// Checking if it was a WebSocket upgrade.
 		if (sd->get_ws_upgrade_approved_flag()) {
@@ -1063,21 +1022,21 @@ ALL_DATA_ACCUMULATED:
 }
 
 // Outer HTTP/WebSockets handler.
-uint32_t OuterUriProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t OuterUriProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-    return sd->get_http_proto()->HttpUriDispatcher(hl, gw, sd, handler_id, is_handled);
+    return sd->get_http_proto()->HttpUriDispatcher(hl, gw, sd, handler_id);
 }
 
 // HTTP/WebSockets handler for Apps.
-uint32_t AppsUriProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t AppsUriProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-    return sd->get_http_proto()->AppsHttpWsProcessData(hl, gw, sd, handler_id, is_handled);
+    return sd->get_http_proto()->AppsHttpWsProcessData(hl, gw, sd, handler_id);
 }
 
 // HTTP/WebSockets handler for Gateway proxy.
-uint32_t GatewayUriProcessProxy(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayUriProcessProxy(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-    return sd->get_http_proto()->GatewayHttpWsReverseProxy(hl, gw, sd, handler_id, is_handled, INVALID_RP_INDEX);
+    return sd->get_http_proto()->GatewayHttpWsReverseProxy(hl, gw, sd, handler_id, INVALID_RP_INDEX);
 }
 
 // Reverse proxies the HTTP traffic.
@@ -1086,13 +1045,9 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
-    bool* is_handled,
     int32_t reverse_proxy_index)
 {
     uint32_t err_code;
-
-    // Not handled yet.
-    *is_handled = true;
 
     // Checking if already in proxy mode.
     if (sd->HasProxySocket())
@@ -1153,10 +1108,9 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
 }
 
 // HTTP/WebSockets statistics for Gateway.
-uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
     std::string stats_page_string = g_gateway.GetGatewayStatisticsString();
-    *is_handled = true;
 
     return gw->SendPredefinedMessage(
 		sd,
@@ -1165,10 +1119,8 @@ uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataCh
 }
 
 // Updates configuration for Gateway.
-uint32_t GatewayUpdateConfiguration(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayUpdateConfiguration(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-    *is_handled = true;
-
     gw->WorkerEnterGlobalLock();
     
     uint32_t err_code = g_gateway.LoadReverseProxies();
@@ -1194,7 +1146,7 @@ uint32_t GatewayUpdateConfiguration(HandlersList* hl, GatewayWorker *gw, SocketD
 }
 
 // Profilers statistics for Gateway.
-uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
 	// char test_msg[256];
 	// sprintf(test_msg, "Number of allocations: normal/arrays %d and aligned %d",
@@ -1202,19 +1154,16 @@ uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkR
 
     const char* test_msg = "Starcounter gateway test response :)";
 
-    *is_handled = true;
-
     return gw->SendHttp200WithBody(sd, test_msg, (int32_t)strlen(test_msg));
 }
 
 // Profilers statistics for Gateway.
-uint32_t GatewayProfilersInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t GatewayProfilersInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
     gw->WorkerEnterGlobalLock();
 
     int32_t resp_len_bytes;
     std::string s = g_gateway.GetGlobalProfilersString(&resp_len_bytes);
-    *is_handled = true;
 
     gw->WorkerLeaveGlobalLock();
 

@@ -22,6 +22,7 @@ using System.Xml;
 
 using System.Diagnostics;
 using System.Web.Script.Serialization;
+using Starcounter.Advanced.Configuration;
 
 namespace Starcounter.InstallerWPF {
     public class Configuration : INotifyPropertyChanged {
@@ -90,13 +91,18 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
-        private SetupUserSettings _SetupUserSettings = null;
-        public SetupUserSettings SetupUserSettings {
+        private InstallationSettings _CurrentInstallationSettings = null;
+        public InstallationSettings CurrentInstallationSettings {
             get {
-                if (_SetupUserSettings == null) {
-                    _SetupUserSettings = SetupUserSettings.Load();
-                }
-                return _SetupUserSettings;
+                //if (_CurrentInstallationSettings == null) {
+                //    _CurrentInstallationSettings = new InstallationSettings();
+                //    this.OnPropertyChanged("CurrentInstallationSettings");
+                //}
+                return _CurrentInstallationSettings;
+            }
+            set {
+                this._CurrentInstallationSettings = value;
+                this.OnPropertyChanged("CurrentInstallationSettings");
             }
         }
 
@@ -556,58 +562,10 @@ namespace Starcounter.InstallerWPF {
                 RunInstallerEngine(progressCallback, messageboxCallback);
 
 #endif
-                this.HandleUserCustomSettings();
-
             }
             catch (Exception e) {
                 throw e;
             }
-
-        }
-
-        private void HandleUserCustomSettings() {
-
-            if (this.SetupOptions == SetupOptions.Uninstall && !this.IsUpgrade) {
-                this.SetupUserSettings.Delete();
-                return;
-            }
-            SaveSetupUserSettings();
-        }
-
-
-        private void SaveSetupUserSettings() {
-            // Save in user documents/starcounter
-            SetupUserSettings settings = SetupUserSettings.Load();
-
-            PersonalServer personalServer = this.Components[PersonalServer.Identifier] as PersonalServer;
-            if (personalServer != null) {
-                settings.DatabasesRepositoryPath = personalServer.Path;
-                settings.DefaultUserHttpPort = personalServer.DefaultUserHttpPort;
-                settings.DefaultSystemHttpPort = personalServer.DefaultSystemHttpPort;
-                settings.DefaultAggregationPort = personalServer.DefaultAggregationPort;
-                settings.InstallPersonalServer = personalServer.ExecuteCommand;
-            }
-
-            InstallationBase installationBase = this.Components[InstallationBase.Identifier] as InstallationBase;
-            if (installationBase != null) {
-                settings.InstallationBasePath = installationBase.BasePath;
-                settings.SendUsageAndCrashReports = installationBase.SendUsageAndCrashReports;
-            }
-
-            VisualStudio2012Integration vs2012Integration = this.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
-            if (vs2012Integration != null) {
-                settings.Vs2012Integration = vs2012Integration.ExecuteCommand;
-            }
-            VisualStudio2013Integration vs2013Integration = this.Components[VisualStudio2013Integration.Identifier] as VisualStudio2013Integration;
-            if (vs2013Integration != null) {
-                settings.Vs2013Integration = vs2013Integration.ExecuteCommand;
-            }
-            VisualStudio2015Integration vs2015Integration = this.Components[VisualStudio2015Integration.Identifier] as VisualStudio2015Integration;
-            if (vs2015Integration != null) {
-                settings.Vs2015Integration = vs2015Integration.ExecuteCommand;
-            }
-
-            settings.Save();
 
         }
 
@@ -646,59 +604,112 @@ namespace Starcounter.InstallerWPF {
         Update
     }
 
-    public class AppSettings<T> where T : new() {
-        private const string DEFAULT_FILENAME = "setupusersettings.json";
-
-        public void Save(string fileName = DEFAULT_FILENAME) {
-            string file = getFullFilePath(fileName);
-            File.WriteAllText(file, (new JavaScriptSerializer()).Serialize(this));
-        }
-
-        public static void Save(T pSettings, string fileName = DEFAULT_FILENAME) {
-            string file = getFullFilePath(fileName);
-            File.WriteAllText(file, (new JavaScriptSerializer()).Serialize(pSettings));
-        }
-
-        public void Delete(string fileName = DEFAULT_FILENAME) {
-            string file = getFullFilePath(fileName);
-            if (File.Exists(file)) {
-                File.Delete(file);
-            }
-        }
-
-        public static T Load(string fileName = DEFAULT_FILENAME) {
-            T t = new T();
-            string file = getFullFilePath(fileName);
-            if (File.Exists(file))
-                t = (new JavaScriptSerializer()).Deserialize<T>(File.ReadAllText(file));
-            return t;
-        }
-
-        private static string getFullFilePath(string fileName) {
-
-            string baseFolder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ConstantsBank.SCProductName);
-
-            if (!Directory.Exists(baseFolder)) {
-                Directory.CreateDirectory(baseFolder);
-            }
-
-            return Path.Combine(baseFolder, fileName);
-        }
-    }
-
-    public class SetupUserSettings : AppSettings<SetupUserSettings> {
-        public string DatabasesRepositoryPath = null;
+    public class InstallationSettings {
+        public string DatabasesRepositoryPath = null;       // C:\\Users\\john\\Documents\\Starcounter
         public ushort DefaultUserHttpPort = 0;
         public ushort DefaultSystemHttpPort = 0;
         public ushort DefaultAggregationPort = 0;
         public bool InstallPersonalServer = true;
 
-        public string InstallationBasePath = null;
+        public string InstallationBasePath = null;          // c:\program files\starcounter
         public bool SendUsageAndCrashReports = true;
         public bool Vs2012Integration = true;
         public bool Vs2013Integration = true;
         public bool Vs2015Integration = true;
 
+        public bool InitilizeWithCurrentInstallationValues() {
+
+            // c:\program files\starcounter
+            string installationFolder = CInstallationBase.GetInstalledDirFromEnv();
+            if (string.IsNullOrEmpty(installationFolder)) return false;
+
+            // c:\Users\john\Documents\Starcounter\Personal\
+            string serverDir = Utilities.ReadServerInstallationPath(Path.Combine(Path.Combine(installationFolder, StarcounterEnvironment.Directories.InstallationConfiguration), StarcounterEnvironment.FileNames.InstallationServerConfigReferenceFile));
+            if (string.IsNullOrEmpty(installationFolder)) return false;
+
+            // c:\Users\john\Documents\Starcounter\
+            this.DatabasesRepositoryPath = Directory.GetParent(serverDir).FullName;
+
+            // c:\program files\  
+            // Note: debug folder will point direct to the installationFolder
+            this.InstallationBasePath = this.GetInstallationBaseFolder(installationFolder);
+            if (string.IsNullOrEmpty(installationFolder)) return false;
+
+            // Personal.server.config
+            string serverConfigPath = System.IO.Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension);
+            if (!File.Exists(serverConfigPath)) return false;
+
+            // scnetworkgateway.xml
+            string networkGateWayConfigPath = Path.Combine(serverDir, StarcounterEnvironment.FileNames.GatewayConfigFileName);
+            if (!File.Exists(networkGateWayConfigPath)) return false;
+
+            #region SystemHttpPort
+            string systemHttpPort;
+            if (Utilities.ReadValueFromXMLInFile(serverConfigPath, "SystemHttpPort", out systemHttpPort)) {
+                ushort.TryParse(systemHttpPort, out this.DefaultSystemHttpPort);
+            }
+
+            if (this.DefaultSystemHttpPort == 0) {
+                this.DefaultSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+            }
+            #endregion
+
+            #region UserHttpPort
+            string userHttpPort;
+            if (Utilities.ReadValueFromXMLInFile(serverConfigPath, "DefaultUserHttpPort", out userHttpPort)) {
+                ushort.TryParse(userHttpPort, out this.DefaultUserHttpPort);
+            }
+
+            if (this.DefaultUserHttpPort == 0) {
+                this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
+            }
+            #endregion
+
+            #region SendUsageAndCrashReports
+            string sendUsageAndCrashReports;
+            this.SendUsageAndCrashReports = true;
+            if (Utilities.ReadValueFromXMLInFile(serverConfigPath, "SendUsageAndCrashReports", out sendUsageAndCrashReports)) {
+                bool.TryParse(sendUsageAndCrashReports, out this.SendUsageAndCrashReports);
+            }
+
+            #endregion
+
+            #region AggregationPort
+            string aggregationPort;
+            if (Utilities.ReadValueFromXMLInFile(networkGateWayConfigPath, "AggregationPort", out aggregationPort)) {
+                ushort.TryParse(aggregationPort, out this.DefaultAggregationPort);
+            }
+
+            if (this.DefaultAggregationPort == 0) {
+                this.DefaultAggregationPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAggregationPort;
+            }
+            #endregion
+
+            this.InstallPersonalServer = CPersonalServer.IsComponentInstalled(serverConfigPath);
+
+            this.Vs2012Integration = VS2012Integration.IsComponentInstalled();
+            this.Vs2013Integration = VS2013Integration.IsComponentInstalled();
+            this.Vs2015Integration = VS2015Integration.IsComponentInstalled();
+
+//            this._HasSettings = true;
+
+            return true;
+        }
+
+        private String GetInstallationBaseFolder(string folder) {
+
+            try {
+                DirectoryInfo di = new DirectoryInfo(folder);
+
+                if (string.Equals(di.Name, ConstantsBank.SCProductName, StringComparison.InvariantCultureIgnoreCase)) {
+                    return di.Parent.FullName;
+                }
+                return folder;
+            }
+            catch (Exception) {
+                return null;
+            }
+        }
     }
 
 }
