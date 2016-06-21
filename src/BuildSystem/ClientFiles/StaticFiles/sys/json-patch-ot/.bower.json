@@ -24,11 +24,11 @@
     "gruntfile.js"
   ],
   "devDependencies": {},
-  "_release": "618c52e9a7",
+  "_release": "73a40c7e4a",
   "_resolution": {
     "type": "branch",
     "branch": "gh-pages",
-    "commit": "618c52e9a75148abfe709add6c47d6af35f896da"
+    "commit": "73a40c7e4af3239866b571a322bb6b7f97f64573"
   },
   "_source": "git://github.com/PuppetJs/JSON-Patch-OT.git",
   "_target": "gh-pages",
