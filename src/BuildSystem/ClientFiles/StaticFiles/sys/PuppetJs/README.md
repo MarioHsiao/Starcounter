@@ -55,8 +55,8 @@ Attribute              | Type          | Default                | Description
 `ignoreAdd`            | *RegExp*      |                        | Regular Expression for `add` operations to be ignored (tested against JSON Pointer in JSON Patch)
 `debug`                | *Boolean*     | `true`                 | Toggle debugging mode
 `onLocalChange`        | *Function*    |                        | Helper callback triggered each time a change is observed locally
-`onRemoteChange`       | *Function*    |                        | Helper callback triggered each time a patch is obtained from remote
-`onPatchReceived`      | *Function*    |                        | Helper callback triggered each time a JSON-patch is received, accepts two parameters: (*String* `data`, *String* `url`, *String*, `method`)
+`onRemoteChange`       | *Function*    |                        | Deprecated, please use patch-applied event. Helper callback triggered each time a remote patch is applied.
+`onPatchReceived`      | *Function*    |                        | Helper callback triggered each time a JSON-patch is received, accepts three parameters: (*String* `data`, *String* `url`, *String*, `method`)
 `onPatchSent`          | *Function*    |                        | Helper callback triggered each time a JSON-patch is sent, accepts two parameters: (*String* `data`, *String* `url`, *String*, `method`)
 `onSocketStateChanged` | *Function*    |                        | Helper callback triggered when socket state changes, accepts next parameters: (*int* `state`, *String* `url`, *String* `data`, *int* `code`, *String* `reason`)
 `onConnectionError`    | *Function*    |                        | Helper callback triggered when socket connection closed, socket connection failed to establish, http requiest failed. Accepts next parameters: (*String* `data`, *String* `url`, *String*, `method`)
@@ -140,6 +140,26 @@ Can be used as follows:
   puppet.obj.Address.$parent.Name === puppet.obj.Name //true
 </script>
 ```
+
+### Generating patches based on local changes
+
+PuppetJs automatically observes local changes. This is implemented by dirty checking, triggered in event listeners for typical browser events (`mousedown`, `mouseup`, etc). It is done by the JSON-Patch library ([source](https://github.com/Starcounter-Jack/JSON-Patch/blob/master/src/json-patch-duplex.ts#L352-L354)).
+
+To generate patches for changes made in code, you need to either simulate a browser event (recommended):
+
+```js
+var clickEvent = document.createEvent('MouseEvents');
+clickEvent.initEvent("mouseup", true, true);
+window.dispatchEvent(clickEvent);
+```
+
+Or use a low level API exposed by the JSON-Patch library, provided that you have a reference the PuppetJs instance:
+
+```js
+jsonpatch.generate(puppet.observer);
+```
+
+Future versions of PuppetJs may contain a high level API for generating patches. Please follow the issue [#29](https://github.com/PuppetJs/PuppetJs/issues/29) to know more.
 
 ### Ignoring local changes (`ignoreAdd`)
 
@@ -339,3 +359,7 @@ Open `test/SpecRunner.html` in your web browser to run Jasmine test suite.
 ### Changelog
 
 To see the list of recent changes, see [Releases](https://github.com/PuppetJs/PuppetJs/releases).
+
+## License
+
+MIT
