@@ -960,7 +960,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(data.AgentSkipCounter, tAgent.UnboundGetter(json).Data);
         }
 
-//        [Test]
+        [Test]
         public static void TestServerUpdateForSameSiblingInManyPlaces1_3680() {
             // Property updated directly on the sibling
 
@@ -984,10 +984,15 @@ namespace Starcounter.Internal.XSON.Tests {
                                     () => Helper.CreateReplacePatch("/Page2/SiblingApp/Text", Helper.Jsonify("Updated")));
 
                 Assert.AreEqual(expectedPatch, patches);
+
+                // Doing the change twice to be sure that all flags are properly resetted.
+                toUpdate["Text"] = "Updated";
+                patches = jsonPatch.Generate(root, true, true);
+                Assert.AreEqual(expectedPatch, patches);
             });
         }
 
-//        [Test]
+        [Test]
         public static void TestServerUpdateForSameSiblingInManyPlaces2_3680() {
             // Property updated on an object below the sibling
 
@@ -1013,10 +1018,15 @@ namespace Starcounter.Internal.XSON.Tests {
                                 );
 
                 Assert.AreEqual(expectedPatch, patches);
+
+                // Doing the change twice to be sure that all flags are properly resetted.
+                toUpdate["Text"] = "Updated";
+                patches = jsonPatch.Generate(root, true, true);
+                Assert.AreEqual(expectedPatch, patches);
             });
         }
 
-//        [Test]
+        [Test]
         public static void TestClientUpdateForSameSiblingInManyPlaces1_3680() {
             // Change-request from client for property directly on the sibling
 
@@ -1044,10 +1054,15 @@ namespace Starcounter.Internal.XSON.Tests {
                                     () => Helper.CreateReplacePatch("/Page2/SiblingApp/Text", Helper.Jsonify(value)));
 
                 Assert.AreEqual(expectedPatch, patches);
+
+                // Doing the change twice to be sure that all flags are properly resetted.
+                jsonPatch.Apply(root, patchToApply);
+                patches = jsonPatch.Generate(root, true, true);
+                Assert.AreEqual(expectedPatch, patches);
             });
         }
 
-//        [Test]
+        [Test]
         public static void TestClientUpdateForSameSiblingInManyPlaces2_3680() {
             // Change-request from client for property on an object below the sibling
 
@@ -1074,6 +1089,11 @@ namespace Starcounter.Internal.XSON.Tests {
                                     () => Helper.CreateReplacePatch("/Page1/SiblingApp/SubPage/Text", Helper.Jsonify(value)),
                                     () => Helper.CreateReplacePatch("/Page2/SiblingApp/SubPage/Text", Helper.Jsonify(value)));
 
+                Assert.AreEqual(expectedPatch, patches);
+
+                // Doing the change twice to be sure that all flags are properly resetted.
+                jsonPatch.Apply(root, patchToApply);
+                patches = jsonPatch.Generate(root, true, true);
                 Assert.AreEqual(expectedPatch, patches);
             });
 

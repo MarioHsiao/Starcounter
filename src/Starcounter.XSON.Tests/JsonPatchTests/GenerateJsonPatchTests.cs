@@ -38,6 +38,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestPatchSizes() {
+            bool dummy = false;
             byte[] patchArr;
             Change change;
             dynamic json;
@@ -58,7 +59,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 Session.Current.Data = json;
                 json.FirstName = "ApaPapa";
                 change = Change.Update(json, null);
-                patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, false, ref dummy);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
                 json.ChangeLog.Checkpoint();
                 json.ChangeLog.Add(change);
@@ -75,7 +76,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 Session.Current.Data = json;
                 json.FirstName = "ApaPapa";
                 change = Change.Update(json, property);
-                patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, false, ref dummy);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
                 json.ChangeLog.Checkpoint();
                 json.ChangeLog.Add(change);
@@ -93,7 +94,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 Session.Current.Data = json;
                 json.Focused.Age = 19;
                 change = Change.Update(json.Focused, property);
-                patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, false, ref dummy);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
                 json.ChangeLog.Checkpoint();
                 json.ChangeLog.Add(change);
@@ -113,7 +114,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 json = json.Items.Add();
                 json.Stats = 23.5d;
                 change = Change.Update(json, property);
-                patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, false, ref dummy);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
                 json.ChangeLog.Checkpoint();
                 json.ChangeLog.Add(change);
@@ -148,7 +149,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 real.wrapInAppName = true;
                 real.SetSiblings(stepSiblings);
                 change = Change.Update(json2, property);
-                patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, true, ref dummy);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
 
                 json.ChangeLog.Checkpoint();
@@ -183,7 +184,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 real.wrapInAppName = true;
                 real.SetSiblings(stepSiblings);
                 change = Change.Update(json2, property);
-                patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, true, ref dummy);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
 
                 json.ChangeLog.Checkpoint();
