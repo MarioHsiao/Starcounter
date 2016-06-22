@@ -128,17 +128,18 @@ namespace Starcounter.XSON {
                 size += GetSizeOfIntAsUtf8(changeLog.Version.LocalVersion);
                 size += 2; // +2 for "},"
             }
-
-            int patchSize;
-            int totalPatchSize = -1;
-
+            
             // A bool indicating if there are other paths for the same change that needs to be generated.
             // This can happen if the same instance of a jsonobject is linked in several places.
             // one change -> one or more patches.
             // Each list of links/siblings will keep state of if it have been used/written or not, so we only
             // need to call the same method again to get a new path for the patch.
-            bool morePathsExists = true; // Always run at least once.
+            bool morePathsExists;
+            int patchSize;
+            int totalPatchSize = -1;
+
             for (int i = 0; i < changes.Length; i++) {
+                morePathsExists = true; // Always run at least once for each change.
                 while (morePathsExists == true) {
                     morePathsExists = false;
                     patchSize = EstimateSizeOfPatch(changes[i], includeNamespace, ref morePathsExists);
