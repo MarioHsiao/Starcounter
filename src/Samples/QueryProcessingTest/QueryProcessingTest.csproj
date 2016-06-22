@@ -62,6 +62,7 @@
     <Compile Include="KernelTestDataModel.cs" />
     <Compile Include="MetadataTest.cs" />
     <Compile Include="NamespacesTest.cs" />
+    <Compile Include="NewSqlTest.cs" />
     <Compile Include="ObjectIdentityTest.cs" />
     <Compile Include="OffsetkeyTest.cs" />
     <Compile Include="QueryProcessingPerformance.cs" />

@@ -13,7 +13,10 @@ namespace Starcounter.SqlProcessor {
             CharSet = CharSet.Unicode)]
         public static unsafe extern uint scsql_process_query(ulong context,
             string query, out byte query_type, out ulong iter, ScError* error);
-        /*void* caller, void* executor, */
+        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
+            CharSet = CharSet.Unicode)]
+        public static unsafe extern uint scsql_process_select_query(ulong context_handle,
+            string query, out ulong iter, ScError* error);
         [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
             CharSet = CharSet.Unicode)]
         internal static unsafe extern uint scsql_process_modifyquery(ulong context,
@@ -128,11 +131,28 @@ namespace Starcounter.SqlProcessor {
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static unsafe extern char* star_metalayer_errbuf(ulong context_handle);
-        
+
+        public const byte SQL_QUERY_TYPE_SELECT = 0;
+        public const byte SQL_QUERY_TYPE_NONSELECT = 1;
 
         public static unsafe Exception CallSqlProcessor(String query, out byte queryType, out ulong iterator) {
             ScError scerror;
             uint err = scsql_process_query(ThreadData.ContextHandle, query, out queryType, out iterator, &scerror);
+            if (err == 0)
+                return null;
+            Exception ex = GetSqlException(err, query, &scerror);
+            Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+            Debug.Assert(err < 10000);
+            // create the exception
+            scsql_free_memory();
+            Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+            Debug.Assert(err < 10000);
+            return ex;
+        }
+
+        internal static unsafe Exception CallSelectPrepare(String query, out ulong iterator) {
+            ScError scerror;
+            uint err = scsql_process_select_query(ThreadData.ContextHandle, query, out iterator, &scerror);
             if (err == 0)
                 return null;
             Exception ex = GetSqlException(err, query, &scerror);

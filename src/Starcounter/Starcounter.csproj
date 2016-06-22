@@ -177,6 +177,8 @@
     <Compile Include="Partial.cs" />
     <Compile Include="Query\IQueryRowsResponse.cs" />
     <Compile Include="SqlProcessor\MetadataPopulation.cs" />
+    <Compile Include="SqlProcessor\NewQueryExecutionRows.cs" />
+    <Compile Include="SqlProcessor\NewSqlEnumerator.cs" />
     <Compile Include="SqlProcessor\SqlProcessor.cs" />
     <Compile Include="TransactionManager.cs" />
     <Compile Include="TransientAttribute.cs" />
