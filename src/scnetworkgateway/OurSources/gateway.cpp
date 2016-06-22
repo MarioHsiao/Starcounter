@@ -4,7 +4,6 @@
 #include "ws_proto.hpp"
 #include "http_proto.hpp"
 #include "socket_data.hpp"
-#include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
 #include "urimatch_codegen.hpp"
@@ -1391,10 +1390,8 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     return 0;
 }
 
-uint32_t UnregisterCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t UnregisterCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-	*is_handled = true;
-
 	char* request_begin = (char*)(sd->get_data_blob_start());
 
 	// Looking for the end of the request.
@@ -1443,10 +1440,8 @@ uint32_t UnregisterCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
 	}
 }
 
-uint32_t RegisterNewCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t RegisterNewCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-	*is_handled = true;
-
 	char* request_begin = (char*)(sd->get_data_blob_start());
 
 	// Looking for the end of the request.
@@ -1496,10 +1491,8 @@ uint32_t RegisterNewCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChun
 	}
 }
 
-uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-    *is_handled = true;
-
     char* request_begin = (char*)(sd->get_data_blob_start());
 
     // Looking for the \r\n\r\n\r\n\r\n.
@@ -1592,10 +1585,8 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     }
 }
 
-uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-	*is_handled = true;
-
 	char* request_begin = (char*)(sd->get_data_blob_start());
 
 	// Looking for the \r\n\r\n\r\n\r\n.
@@ -1673,10 +1664,8 @@ uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChu
 	}
 }
 
-uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-    *is_handled = true;
-
     uint32_t err_code;
 
     char* request_begin = (char*)(sd->get_data_blob_start());
@@ -1769,11 +1758,8 @@ uint32_t RegisterWsHandler(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
-    bool* is_handled)
+    BMX_HANDLER_TYPE handler_id)
 {
-    *is_handled = true;
-
     char* request_begin = (char*)(sd->get_data_blob_start());
 
     // Looking for the \r\n\r\n\r\n\r\n.
@@ -2323,7 +2309,7 @@ uint32_t Gateway::Init()
         clang_engine_addr, // Pointer to Clang engine.
         false, // Accumulate Clang modules.
         false, // Print build output to console.
-        true, // Do code optimizations.
+		MixedCodeConstants::SCLLVM_OPT_FLAG, // Do code optimizations.
 
         "extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
         "extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
@@ -2604,6 +2590,22 @@ uint32_t Gateway::RegisterGatewayHandlers() {
 
     if (err_code)
         return err_code;
+
+	// Registering URI handler for gateway statistics.
+	err_code = AddUriHandler(
+		&gw_workers_[0],
+		setting_internal_system_port_,
+		"gateway",
+		"GET /gw/updateconfig",
+		NULL,
+		0,
+		bmx::BMX_INVALID_HANDLER_INFO,
+		INVALID_DB_INDEX,
+		GatewayUpdateConfiguration,
+		true);
+
+	if (err_code)
+		return err_code;
 
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(

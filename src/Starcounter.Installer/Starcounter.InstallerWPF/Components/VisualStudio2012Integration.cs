@@ -3,49 +3,48 @@ using System.Collections.ObjectModel;
 using Starcounter.InstallerEngine;
 using System;
 
-namespace Starcounter.InstallerWPF.Components
-{
-    public class VisualStudio2012Integration : BaseComponent
-    {
+namespace Starcounter.InstallerWPF.Components {
+    public class VisualStudio2012Integration : BaseComponent {
         public const string Identifier = "VisualStudio2012Integration";
 
-        public override string ComponentIdentifier
-        {
-            get
-            {
+        public override string ComponentIdentifier {
+            get {
                 return VisualStudio2012Integration.Identifier;
             }
         }
 
-        public override string Name
-        {
-            get
-            {
+        public override string Name {
+            get {
                 return "VisualStudio 2012 Integration";
             }
         }
 
         private readonly string[] _Dependencys = new string[] { VisualStudio2012.Identifier, PersonalServer.Identifier };
-        public override string[] Dependencys
-        {
-            get
-            {
+        public override string[] Dependencys {
+            get {
                 return this._Dependencys;
             }
         }
 
 
-        protected override void SetDefaultValues()
-        {
+        protected override void SetDefaultValues() {
             base.SetDefaultValues();
 
-#if !SIMULATE_CLEAN_INSTALLATION
+            MainWindow win = System.Windows.Application.Current.MainWindow as MainWindow;
+
+#if !SIMULATE_INSTALLATION
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.VS2012Integration];
 #endif
-            switch (this.Command)
-            {
+            switch (this.Command) {
                 case ComponentCommand.Install:
-                    this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2012Installed());
+
+                    if (win.Configuration.CurrentInstallationSettings != null ) {
+                        this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2012Installed()) && win.Configuration.CurrentInstallationSettings.Vs2012Integration;
+                    }
+                    else {
+                        this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2012Installed());
+                    }
+
                     break;
                 case ComponentCommand.None:
                     this.ExecuteCommand = false;
@@ -59,8 +58,7 @@ namespace Starcounter.InstallerWPF.Components
             }
         }
         public VisualStudio2012Integration(ObservableCollection<BaseComponent> components)
-            : base(components)
-        {
+            : base(components) {
         }
 
         public override bool ValidateSettings() {

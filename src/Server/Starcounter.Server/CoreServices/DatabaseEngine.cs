@@ -377,6 +377,8 @@ namespace Starcounter.Server {
                 }
             }
 
+            this.Server.GatewayService.UnregisterCodehost(database.Name);
+
             ResetToCodeHostNotRunning(database);
             SafeClose(process);
             Monitor.EndMonitoring(database);

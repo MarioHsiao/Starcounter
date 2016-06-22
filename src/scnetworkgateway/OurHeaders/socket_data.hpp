@@ -95,6 +95,10 @@ class SocketDataChunk
 
 public:
 
+	uint8_t* get_cur_network_buf_ptr() {
+		return cur_network_buf_ptr_;
+	}
+	
 	ScSocketInfoStruct* get_socket_info() {
 		return socket_info_;
 	}
@@ -139,17 +143,15 @@ public:
         return data_orig_ptr;
     }
 
-    // Initializes accumulative buffer.
-    void SetAccumulation(
-        uint32_t buf_total_len_bytes,
-        uint32_t orig_buf_ptr_shift_bytes)
-    {
-        num_available_network_bytes_ -= orig_buf_ptr_shift_bytes;
-        cur_network_buf_ptr_ = get_data_blob_start() + orig_buf_ptr_shift_bytes;
-        accumulated_len_bytes_ = buf_total_len_bytes;
+	// Initializes accumulative buffer.
+	void SetAccumulation(uint32_t buf_total_len_bytes)
+	{
+		cur_network_buf_ptr_ = get_data_blob_start() + buf_total_len_bytes;
+		accumulated_len_bytes_ = buf_total_len_bytes;
+		num_available_network_bytes_ -= buf_total_len_bytes;
 
-        GW_ASSERT(accumulated_len_bytes_ <= get_data_blob_size());
-    }
+		GW_ASSERT(accumulated_len_bytes_ <= get_data_blob_size());
+	}
 
     uint32_t get_num_available_network_bytes()
     {
@@ -338,7 +340,6 @@ public:
     {
         reset_accumulating_flag();
         reset_to_database_direction_flag();
-        reset_complete_header_flag();
     }
 
     uint32_t GetTotalUserDataLengthFromDb() {
@@ -489,7 +490,7 @@ public:
     // Checking if its a WebSocket protocol.
     bool is_web_socket()
     {
-        return MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == get_type_of_network_protocol();
+        return MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS == GetTypeOfNetworkProtocol();
     }
 
     // Getting to database direction flag.
@@ -784,24 +785,6 @@ public:
     bool get_disconnect_socket_flag()
     {
         return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_JUST_DISCONNECT) != 0;
-    }
-
-    // Getting complete header flag.
-    bool get_complete_header_flag()
-    {
-        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_COMPLETE_HEADER) != 0;
-    }
-
-    // Setting complete header flag.
-    void set_complete_header_flag()
-    {
-        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_COMPLETE_HEADER;
-    }
-
-    // ReSetting complete header flag.
-    void reset_complete_header_flag()
-    {
-        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_COMPLETE_HEADER;
     }
 
     // Getting scheduler id.

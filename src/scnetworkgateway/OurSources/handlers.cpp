@@ -4,7 +4,6 @@
 #include "ws_proto.hpp"
 #include "http_proto.hpp"
 #include "socket_data.hpp"
-#include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
 
@@ -67,8 +66,7 @@ uint32_t UdpPortProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE user_handler_id,
-    bool* is_handled)
+    BMX_HANDLER_TYPE user_handler_id)
 {
     uint32_t err_code;
 
@@ -106,13 +104,10 @@ uint32_t UdpPortProcessData(
                 return err_code;
 
             // Push chunk to corresponding channel/scheduler.
-            err_code = gw->PushSocketDataToDb(sd, user_handler_id);
+            err_code = gw->PushSocketDataToDb(sd, user_handler_id, false);
             if (err_code)
                 return err_code;
         }
-
-        // Setting handled flag.
-        *is_handled = true;
 
         return 0;
     }
@@ -133,9 +128,6 @@ uint32_t UdpPortProcessData(
         if (err_code)
             return err_code;
 
-        // Setting handled flag.
-        *is_handled = true;
-
         return 0;
     }
 
@@ -147,19 +139,15 @@ uint32_t TcpPortProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE user_handler_id,
-    bool* is_handled)
+    BMX_HANDLER_TYPE user_handler_id)
 {
     uint32_t err_code;
 
     // Checking if we just want to disconnect.
     if (sd->get_just_push_disconnect_flag()) {
 
-        // Setting handled flag.
-        *is_handled = true;
-
         // Push chunk to corresponding channel/scheduler.
-        err_code = gw->PushSocketDataToDb(sd, user_handler_id);
+        err_code = gw->PushSocketDataToDb(sd, user_handler_id, true);
 
         if (err_code) {
 
@@ -190,12 +178,9 @@ uint32_t TcpPortProcessData(
             return err_code;
 
         // Push chunk to corresponding channel/scheduler.
-        err_code = gw->PushSocketDataToDb(sd, user_handler_id);
+        err_code = gw->PushSocketDataToDb(sd, user_handler_id, false);
         if (err_code)
             return err_code;
-
-        // Setting handled flag.
-        *is_handled = true;
 
         return 0;
     }
@@ -213,9 +198,6 @@ uint32_t TcpPortProcessData(
         err_code = gw->Send(sd);
         if (err_code)
             return err_code;
-
-        // Setting handled flag.
-        *is_handled = true;
 
         return 0;
     }

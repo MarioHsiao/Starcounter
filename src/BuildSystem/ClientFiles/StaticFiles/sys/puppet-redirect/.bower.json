@@ -1,6 +1,6 @@
 {
   "name": "puppet-redirect",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Custom Element that redirects to a new URL when an attribute is changed. It's also being listened by PuppetJS.",
   "license": "MIT",
   "main": "puppet-redirect.html",
@@ -20,11 +20,11 @@
     "Tomek Wytrebowicz <tomalecpub@gmail.com>"
   ],
   "homepage": "https://github.com/PuppetJs/puppet-redirect",
-  "_release": "0.4.2",
+  "_release": "0.4.3",
   "_resolution": {
     "type": "version",
-    "tag": "0.4.2",
-    "commit": "d090a815c00ff0c5368603da08c02df1b03ddc91"
+    "tag": "0.4.3",
+    "commit": "bbe0b30822f6e5d608942f9f4a5940f098759474"
   },
   "_source": "git://github.com/PuppetJs/puppet-redirect.git",
   "_target": "~0.4.0",

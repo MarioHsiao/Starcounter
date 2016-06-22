@@ -85,8 +85,6 @@ namespace Starcounter.Internal
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
         public unsafe struct sccoredb_callbacks
         {
-            public void* query_highmem_cond;
-
             public void *on_index_updated;
         }
 
@@ -253,7 +251,7 @@ namespace Starcounter.Internal
         /// Always 0. Operation can not fail.
         /// </returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_get_current_transaction(
+        internal static extern uint star_context_get_transaction(
             ulong handle, out ulong transaction_handle
             );
 
@@ -264,13 +262,13 @@ namespace Starcounter.Internal
         /// Always 0. Operation can not fail.
         /// </returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_set_current_transaction(
+        internal static extern uint star_context_set_transaction(
             ulong handle, ulong transaction_handle
             );
 
         /// <summary>
         /// </summary>
-        public const uint MDB_TRANSCREATE_MERGING_WRITES = 0x0004;
+        public const uint MDB_TRANSCREATE_LONG_RUNNING = 0x0004;
 
         /// <summary>
         /// </summary>
@@ -279,9 +277,9 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_create_transaction(
-          ulong handle, uint flags, out ulong transaction_handle
-          );
+        internal static extern uint star_create_transaction(
+            uint flags, ulong auto_context_handle, out ulong ptransaction_handle
+            );
 
         /// <summary>
         /// Frees transaction.
@@ -548,7 +546,7 @@ namespace Starcounter.Internal
         internal static unsafe uint star_iterator_next(
             ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
             ) {
-            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            var contextHandle = ThreadData.ContextHandle;
             if (verify == ThreadData.ObjectVerify)
                 return star_iterator_next(handle, precord_id, precord_ref);
             return Error.SCERRITERATORNOTOWNED;
@@ -599,7 +597,7 @@ namespace Starcounter.Internal
         internal static unsafe uint star_filter_iterator_next(
             ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
             ) {
-            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            var contextHandle = ThreadData.ContextHandle;
             if (verify == ThreadData.ObjectVerify)
                 return star_filter_iterator_next(handle, precord_id, precord_ref);
             return Error.SCERRITERATORNOTOWNED;

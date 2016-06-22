@@ -26,7 +26,8 @@ namespace Starcounter.Internal {
     public static class AppsBootstrapper {
 
         private static AppRestServer AppServer_;
-        internal static AppRestServer AppServer {
+        internal static AppRestServer AppServer
+        {
             get { return AppServer_; }
         }
 
@@ -109,7 +110,8 @@ namespace Starcounter.Internal {
             Starcounter.Internal.XSON.Modules.Starcounter_XSON.Injections.JsonMimeConverter = new JsonMimeConverter();
 
             // Giving REST needed delegates.
-            unsafe {
+            unsafe
+            {
 
                 UriManagedHandlersCodegen.Setup(
                     GatewayHandlers.RegisterHttpHandlerInGateway,
@@ -181,7 +183,7 @@ namespace Starcounter.Internal {
                     // Registering URI aliasing port.
                     Handle.GET(defaultSystemHttpPort, "/sc/alias/" + defaultUserHttpPort + "{?};{?}", (String fromUri, String toUri) => {
 
-                        RegisterUriAliasHandler(Handle.GET_METHOD, fromUri, toUri, defaultUserHttpPort);
+                        RegisterUriAliasHandler(defaultUserHttpPort, Handle.GET_METHOD, fromUri, toUri);
 
                         return 200;
                     }, new HandlerOptions() { SkipRequestFilters = true });
@@ -202,9 +204,10 @@ namespace Starcounter.Internal {
                         if (!Response.responseStreams_.TryGetValue(socketId, out s)) {
                             return HandlerStatus.Handled;
 
-                        } else {
+                        }
+                        else {
 
-                            System.Threading.Tasks.Task task = 
+                            System.Threading.Tasks.Task task =
                                 System.Threading.Tasks.Task.Run(() => tcpSocket.SendStreamOverSocket());
 
                             s.TaskObject = task;
@@ -229,7 +232,8 @@ namespace Starcounter.Internal {
                         if (!Response.responseStreams_.TryGetValue(socketId, out s)) {
                             return HandlerStatus.Handled;
 
-                        } else {
+                        }
+                        else {
 
                             // If there is a running task, waiting for task to finish.
                             if (null != s.TaskObject) {
@@ -262,6 +266,9 @@ namespace Starcounter.Internal {
 
                     // Registering Reverse proxy handlers
                     RegisterReverseProxyHandlers(defaultSystemHttpPort);
+
+                    // Register Uri Alias handlers
+                    RegisterUriAliasHandlers(defaultSystemHttpPort);
                 }
             }
 
@@ -345,10 +352,11 @@ namespace Starcounter.Internal {
             AppServer_.UserAddedLocalFileDirectoryWithStaticContent(appName, port, fullPathToResourcesDir);
         }
 
+
         /// <summary>
         /// Registering URI alias handler.
         /// </summary>
-        static void RegisterUriAliasHandler(String httpMethod, String fromUri, String toUri, UInt16 port) {
+        static void RegisterUriAliasHandler(UInt16 port, String httpMethod, String fromUri, String toUri) {
 
             NetworkGateway conf = NetworkGateway.Deserealize();
 
@@ -420,6 +428,37 @@ namespace Starcounter.Internal {
                 }
             }, new HandlerOptions() { SkipRequestFilters = true });
 
+
+            Handle.GET(port, "/sc/reverseproxies/{?}/{?}", (string matchingHost, long starcounterProxyPort, Request req) => {
+
+                try {
+                    NetworkGateway conf = NetworkGateway.Deserealize();
+
+                    if (starcounterProxyPort > IPEndPoint.MaxPort || starcounterProxyPort < IPEndPoint.MinPort) {
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.BadRequest };
+                    }
+
+                    NetworkGateway.ReverseProxy reverseProxy = conf.GetReverseProxy(HttpUtility.UrlDecode(matchingHost), (ushort)starcounterProxyPort);
+                    if (reverseProxy == null) {
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
+
+                    }
+
+                    ReverseProxyJson reverseProxyJson = new ReverseProxyJson();
+                    reverseProxyJson.Data = reverseProxy;
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, Body = reverseProxyJson.ToJson() };
+                }
+                catch (Exception e) {
+
+                    ErrorResponse errorResponse = new ErrorResponse();
+                    errorResponse.message = e.Message;
+                    errorResponse.stackTrace = e.StackTrace;
+                    errorResponse.helpLink = e.HelpLink;
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                }
+            }, new HandlerOptions() { SkipRequestFilters = true });
+
             Handle.PUT(port, "/sc/reverseproxies", (Request req) => {
                 try {
                     NetworkGateway conf = NetworkGateway.Deserealize();
@@ -429,17 +468,17 @@ namespace Starcounter.Internal {
                     reverseProxyJson.Data = reverseProxy;
                     reverseProxyJson.PopulateFromJson(req.Body);
 
-                    bool bExists = conf.AddOrReplaceReverseProxy(reverseProxy);
-
-                    if (bExists) {
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NoContent };
-                    }
+                    bool bUpdated = conf.AddOrReplaceReverseProxy(reverseProxy);
 
                     bool bSuccess = conf.UpdateConfiguration();
                     if (bSuccess == false) {
                         ErrorResponse errorResponse = new ErrorResponse();
                         errorResponse.message = "Failed to update the configuration file, Consult the Starcounter log for more information.";
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                    }
+
+                    if (bUpdated) {
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NoContent };
                     }
 
                     Dictionary<String, String> headersDictionary = new Dictionary<string, string>();
@@ -496,6 +535,134 @@ namespace Starcounter.Internal {
             }, new HandlerOptions() { SkipRequestFilters = true });
         }
 
+
+        /// <summary>
+        /// Registering uri alias handlers.
+        /// </summary>
+        static void RegisterUriAliasHandlers(ushort port) {
+
+            Handle.GET(port, "/sc/alias", () => {
+                try {
+                    NetworkGateway conf = NetworkGateway.Deserealize();
+                    UriAliasesJson uriAliasesJson = new UriAliasesJson();
+                    uriAliasesJson.Items.Data = conf.UriAliases;
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, Body = uriAliasesJson.ToJson() };
+                }
+                catch (Exception e) {
+
+                    ErrorResponse errorResponse = new ErrorResponse();
+                    errorResponse.message = e.Message;
+                    errorResponse.stackTrace = e.StackTrace;
+                    errorResponse.helpLink = e.HelpLink;
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                }
+            }, new HandlerOptions() { SkipRequestFilters = true });
+
+
+            Handle.GET(port, "/sc/alias/{?}/{?}/{?}", (string httpMethod, long dbport, string fromUri, Request req) => {
+
+                try {
+                    NetworkGateway conf = NetworkGateway.Deserealize();
+
+                    if (dbport > IPEndPoint.MaxPort || dbport < IPEndPoint.MinPort) {
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.BadRequest };
+                    }
+
+                    NetworkGateway.UriAlias uriAlias = conf.GetUriAlias(HttpUtility.UrlDecode(httpMethod), (ushort)dbport, HttpUtility.UrlDecode(fromUri));
+                    if (uriAlias == null) {
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
+
+                    }
+
+                    UriAliasJson uriAliasJson = new UriAliasJson();
+                    uriAliasJson.Data = uriAlias;
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, Body = uriAliasJson.ToJson() };
+                }
+                catch (Exception e) {
+
+                    ErrorResponse errorResponse = new ErrorResponse();
+                    errorResponse.message = e.Message;
+                    errorResponse.stackTrace = e.StackTrace;
+                    errorResponse.helpLink = e.HelpLink;
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                }
+            }, new HandlerOptions() { SkipRequestFilters = true });
+
+            Handle.PUT(port, "/sc/alias", (Request req) => {
+                try {
+                    NetworkGateway conf = NetworkGateway.Deserealize();
+
+                    NetworkGateway.UriAlias uriAlias = new NetworkGateway.UriAlias();
+                    UriAliasJson uriAliasJson = new UriAliasJson();
+                    uriAliasJson.Data = uriAlias;
+                    uriAliasJson.PopulateFromJson(req.Body);
+
+                    conf.AddOrReplaceUriAlias(uriAlias);
+
+                    bool bSuccess = conf.UpdateConfiguration();
+                    if (bSuccess == false) {
+                        ErrorResponse errorResponse = new ErrorResponse();
+                        errorResponse.message = "Failed to update the configuration file, Consult the Starcounter log for more information.";
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                    }
+
+                    Dictionary<String, String> headersDictionary = new Dictionary<string, string>();
+                    headersDictionary.Add("Location", string.Format("{0}/{1}/{2}/{3}", req.Uri, HttpUtility.UrlEncode(uriAlias.HttpMethod), uriAlias.Port, HttpUtility.UrlEncode(uriAlias.FromUri)));
+
+                    Response resp = new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = uriAliasJson.ToJson() };
+                    resp.SetHeadersDictionary(headersDictionary);
+
+                    return resp;
+                }
+                catch (Exception e) {
+
+                    ErrorResponse errorResponse = new ErrorResponse();
+                    errorResponse.message = e.Message;
+                    errorResponse.stackTrace = e.StackTrace;
+                    errorResponse.helpLink = e.HelpLink;
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                }
+
+            }, new HandlerOptions() { SkipRequestFilters = true });
+
+
+            Handle.DELETE(port, "/sc/alias/{?}/{?}/{?}", (string method, long dbport, string fromUri, Request req) => {
+                try {
+                    NetworkGateway conf = NetworkGateway.Deserealize();
+
+                    NetworkGateway.UriAlias uriAlias = new NetworkGateway.UriAlias() { HttpMethod = HttpUtility.UrlDecode(method), FromUri = HttpUtility.UrlDecode(fromUri), Port = (ushort)dbport };
+
+                    bool bRemoved = conf.RemoveUriAlias(uriAlias);
+
+                    if (bRemoved) {
+                        bool bSuccess = conf.UpdateConfiguration();
+                        if (bSuccess == false) {
+                            ErrorResponse errorResponse = new ErrorResponse();
+                            errorResponse.message = "Failed to update the configuration file, Consult the Starcounter log for more information.";
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                        }
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+                    }
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
+                }
+                catch (Exception e) {
+
+                    ErrorResponse errorResponse = new ErrorResponse();
+                    errorResponse.message = e.Message;
+                    errorResponse.stackTrace = e.StackTrace;
+                    errorResponse.helpLink = e.HelpLink;
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                }
+
+            }, new HandlerOptions() { SkipRequestFilters = true });
+        }
+
+
         /// <summary>
         /// Function that registers a default handler in the gateway and handles incoming requests
         /// and dispatch them to Apps. Also registers internal handlers for jsonpatch.
@@ -521,7 +688,7 @@ namespace Starcounter.Internal {
             }
 
             if (appRootDirectory != null) {
-                
+
                 if (!Path.IsPathRooted(appRootDirectory)) {
                     // Refuse booting any application that can't provide a fully qualified
                     // application directory

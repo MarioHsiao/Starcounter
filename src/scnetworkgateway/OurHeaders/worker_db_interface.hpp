@@ -197,7 +197,7 @@ public:
         int16_t scheduler_id,
         bool is_gateway_no_ipc_test);
 
-    uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
+    uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool disable_check_for_clone);
 
     // Releases chunks from private chunk pool to the shared chunk pool.
     uint32_t ReleaseToSharedChunkPool(int32_t num_ipc_chunks);

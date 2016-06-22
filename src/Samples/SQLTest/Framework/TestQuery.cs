@@ -2,6 +2,8 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using Starcounter;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace SQLTest
 {
@@ -23,6 +25,9 @@ namespace SQLTest
         internal Boolean UseBisonParser;
         internal Boolean Evaluated;
         internal Boolean CorrectResult;
+        internal int NumberOfPartialResultsExpected;
+        internal IEnumerable<Tuple<int, int>> ResultReorderIndexes;
+
 
         // First execution (not using cache).
         internal String ActualExecutionPlan1;
@@ -104,17 +109,36 @@ namespace SQLTest
                 ErrorMessage += "Incorrect execution plan (second execution). ";
             }
 
-            if (ExpectedResult != ActualResult1)
+            if (NumberOfPartialResultsExpected == 0)
             {
-                CorrectResult = false;
-                ErrorMessage += "Incorrect result (first execution). ";
+
+                if (ExpectedResult != ActualResult1)
+                {
+                    CorrectResult = false;
+                    ErrorMessage += "Incorrect result (first execution). ";
+                }
+
+                if (ExpectedResult != ActualResult2)
+                {
+                    CorrectResult = false;
+                    ErrorMessage += "Incorrect result (second execution). ";
+                }
+            }
+            else
+            {
+                if ( !TestPartialResult(ExpectedResult, ActualResult1, NumberOfPartialResultsExpected) )
+                {
+                    CorrectResult = false;
+                    ErrorMessage += "Incorrect result (first execution). ";
+                }
+
+                if (!TestPartialResult(ExpectedResult, ActualResult2, NumberOfPartialResultsExpected))
+                {
+                    CorrectResult = false;
+                    ErrorMessage += "Incorrect result (second execution). ";
+                }
             }
 
-            if (ExpectedResult != ActualResult2)
-            {
-                CorrectResult = false;
-                ErrorMessage += "Incorrect result (second execution). ";
-            }
 
             if (!startedOnClient && ExpectedExceptionMessage != ActualExceptionMessage1) {
                 CorrectResult = false;
@@ -128,6 +152,38 @@ namespace SQLTest
             Evaluated = true;
 
             return CorrectResult;
+        }
+
+        private static IEnumerable<string> cut_header_from_result(string result)
+        {
+            return result.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(1);
+        }
+
+        private static bool is_subsequence<T>(IEnumerable<T> where, IEnumerable<T> what)
+        {
+            if (!what.Any())
+                return true;
+
+            if (!where.Any())
+                return false;
+
+            T first = what.First();
+            var cmp = Comparer<T>.Default;
+
+            var where_started_from_what = where.SkipWhile(t => cmp.Compare(t, first) != 0);
+
+            if (!where_started_from_what.Any())
+                return false;
+
+            return is_subsequence(where_started_from_what.Skip(1), what.Skip(1));
+        }
+
+        private static bool TestPartialResult(string expectedResult, string actualResult, int numberOfPartialResultsExpected)
+        {
+            IEnumerable<string> expected_no_header = cut_header_from_result(expectedResult);
+            IEnumerable<string> actual_no_header = cut_header_from_result(actualResult);
+
+            return (actual_no_header.Count() == numberOfPartialResultsExpected) && (is_subsequence(expected_no_header, actual_no_header));
         }
 
         private void AppendVariableValues(StringBuilder stringBuilder)

@@ -43,11 +43,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             CodeBehindClassInfo mapInfo;
             AstJsonClass nAppClass;
 
-            classesInOrder = new TValue[metadata.JsonPropertyMapList.Count];
+            classesInOrder = new TValue[metadata.CodeBehindClasses.Count];
             rootTemplate = root.AppClassClassNode.Template;
 
             for (Int32 i = 0; i < classesInOrder.Length; i++) {
-                mapInfo = metadata.JsonPropertyMapList[i];
+                mapInfo = metadata.CodeBehindClasses[i];
 
                 if (mapInfo.IsMapped) {
                     appTemplate = FindTAppFor(mapInfo, rootTemplate);
@@ -90,7 +90,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 }
             }
 
-            ReorderCodebehindClasses(classesInOrder, metadata.JsonPropertyMapList, root);
+            ReorderCodebehindClasses(classesInOrder, metadata.CodeBehindClasses, root);
         }
 
         /// <summary>

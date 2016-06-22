@@ -19,7 +19,10 @@ using Starcounter.InstallerEngine;
 using Starcounter.Internal;
 using System.IO.Compression;
 using System.Xml;
+
 using System.Diagnostics;
+using System.Web.Script.Serialization;
+using Starcounter.Advanced.Configuration;
 
 namespace Starcounter.InstallerWPF {
     public class Configuration : INotifyPropertyChanged {
@@ -59,8 +62,51 @@ namespace Starcounter.InstallerWPF {
             }
 
         }
-        #endregion
 
+        private bool _Unattended = false;
+        /// <summary>
+        /// No need to confirm uninstallation by user
+        /// </summary>
+        public bool Unattended {
+            get {
+                return this._Unattended;
+            }
+            set {
+                this._Unattended = value;
+                this.OnPropertyChanged("Unattended");
+            }
+        }
+
+        private bool _IsUpgrade = false;
+        /// <summary>
+        /// Keep settings when uninstalling (set to true when updateing starcounter)
+        /// </summary>
+        public bool IsUpgrade {
+            get {
+                return this._IsUpgrade;
+            }
+            set {
+                this._IsUpgrade = value;
+                this.OnPropertyChanged("IsUpgrade");
+            }
+        }
+
+        private InstallationSettings _CurrentInstallationSettings = null;
+        public InstallationSettings CurrentInstallationSettings {
+            get {
+                //if (_CurrentInstallationSettings == null) {
+                //    _CurrentInstallationSettings = new InstallationSettings();
+                //    this.OnPropertyChanged("CurrentInstallationSettings");
+                //}
+                return _CurrentInstallationSettings;
+            }
+            set {
+                this._CurrentInstallationSettings = value;
+                this.OnPropertyChanged("CurrentInstallationSettings");
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// 
@@ -74,7 +120,7 @@ namespace Starcounter.InstallerWPF {
 
                 return this._SetupOptions;
             }
-            private set {
+            set {
                 this._SetupOptions = value;
             }
         }
@@ -386,8 +432,18 @@ namespace Starcounter.InstallerWPF {
                         }
                     }
                     else {
+
+                        CheckforEmptyFolder:
+                        int checks = 6;
                         // Checking if there are any files in the target installation directory.
                         if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath))) {
+
+                            Thread.Sleep(1000);
+                            checks--;
+                            if (checks > 0) {
+                                goto CheckforEmptyFolder;
+                            }
+
                             // Setting normal attributes for all files and folders in installation directory.
                             Utilities.SetNormalDirectoryAttributes(new DirectoryInfo(installationPath));
 
@@ -435,6 +491,16 @@ namespace Starcounter.InstallerWPF {
                 args = new String[] { "--uninstall" };
             }
 
+            if (this.Unattended) {
+                if (args != null) {
+                    Array.Resize(ref args, args.Length + 1);
+                    args[args.Length - 1] = "--silent";
+                }
+                else {
+                    args = new String[] { "--silent" };
+                }
+            }
+
             // Creating new installation file.
             GenerateSetupXmlFile();
 
@@ -448,10 +514,9 @@ namespace Starcounter.InstallerWPF {
         /// Executes the settings.
         /// Note, This is not done in the Main thread!
         /// </summary>
-        public void ExecuteSettings(
-            EventHandler<Utilities.InstallerProgressEventArgs> progressCallback,
-            EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback) {
+        public void ExecuteSettings(EventHandler<Utilities.InstallerProgressEventArgs> progressCallback, EventHandler<Utilities.MessageBoxEventArgs> messageboxCallback) {
             Utilities.InstallerProgressEventArgs args = new Utilities.InstallerProgressEventArgs();
+
             try {
 
                 // Simulate installation....
@@ -497,7 +562,6 @@ namespace Starcounter.InstallerWPF {
                 RunInstallerEngine(progressCallback, messageboxCallback);
 
 #endif
-
             }
             catch (Exception e) {
                 throw e;
@@ -539,4 +603,113 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         Update
     }
+
+    public class InstallationSettings {
+        public string DatabasesRepositoryPath = null;       // C:\\Users\\john\\Documents\\Starcounter
+        public ushort DefaultUserHttpPort = 0;
+        public ushort DefaultSystemHttpPort = 0;
+        public ushort DefaultAggregationPort = 0;
+        public bool InstallPersonalServer = true;
+
+        public string InstallationBasePath = null;          // c:\program files\starcounter
+        public bool SendUsageAndCrashReports = true;
+        public bool Vs2012Integration = true;
+        public bool Vs2013Integration = true;
+        public bool Vs2015Integration = true;
+
+        public bool InitilizeWithCurrentInstallationValues() {
+
+            // c:\program files\starcounter
+            string installationFolder = CInstallationBase.GetInstalledDirFromEnv();
+            if (string.IsNullOrEmpty(installationFolder)) return false;
+
+            // c:\Users\john\Documents\Starcounter\Personal\
+            string serverDir = Utilities.ReadServerInstallationPath(Path.Combine(Path.Combine(installationFolder, StarcounterEnvironment.Directories.InstallationConfiguration), StarcounterEnvironment.FileNames.InstallationServerConfigReferenceFile));
+            if (string.IsNullOrEmpty(installationFolder)) return false;
+
+            // c:\Users\john\Documents\Starcounter\
+            this.DatabasesRepositoryPath = Directory.GetParent(serverDir).FullName;
+
+            // c:\program files\  
+            // Note: debug folder will point direct to the installationFolder
+            this.InstallationBasePath = this.GetInstallationBaseFolder(installationFolder);
+            if (string.IsNullOrEmpty(installationFolder)) return false;
+
+            // Personal.server.config
+            string serverConfigPath = System.IO.Path.Combine(serverDir, StarcounterEnvironment.ServerNames.PersonalServer + ServerConfiguration.FileExtension);
+            if (!File.Exists(serverConfigPath)) return false;
+
+            // scnetworkgateway.xml
+            string networkGateWayConfigPath = Path.Combine(serverDir, StarcounterEnvironment.FileNames.GatewayConfigFileName);
+            if (!File.Exists(networkGateWayConfigPath)) return false;
+
+            #region SystemHttpPort
+            string systemHttpPort;
+            if (Utilities.ReadValueFromXMLInFile(serverConfigPath, "SystemHttpPort", out systemHttpPort)) {
+                ushort.TryParse(systemHttpPort, out this.DefaultSystemHttpPort);
+            }
+
+            if (this.DefaultSystemHttpPort == 0) {
+                this.DefaultSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+            }
+            #endregion
+
+            #region UserHttpPort
+            string userHttpPort;
+            if (Utilities.ReadValueFromXMLInFile(serverConfigPath, "DefaultUserHttpPort", out userHttpPort)) {
+                ushort.TryParse(userHttpPort, out this.DefaultUserHttpPort);
+            }
+
+            if (this.DefaultUserHttpPort == 0) {
+                this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
+            }
+            #endregion
+
+            #region SendUsageAndCrashReports
+            string sendUsageAndCrashReports;
+            this.SendUsageAndCrashReports = true;
+            if (Utilities.ReadValueFromXMLInFile(serverConfigPath, "SendUsageAndCrashReports", out sendUsageAndCrashReports)) {
+                bool.TryParse(sendUsageAndCrashReports, out this.SendUsageAndCrashReports);
+            }
+
+            #endregion
+
+            #region AggregationPort
+            string aggregationPort;
+            if (Utilities.ReadValueFromXMLInFile(networkGateWayConfigPath, "AggregationPort", out aggregationPort)) {
+                ushort.TryParse(aggregationPort, out this.DefaultAggregationPort);
+            }
+
+            if (this.DefaultAggregationPort == 0) {
+                this.DefaultAggregationPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAggregationPort;
+            }
+            #endregion
+
+            this.InstallPersonalServer = CPersonalServer.IsComponentInstalled(serverConfigPath);
+
+            this.Vs2012Integration = VS2012Integration.IsComponentInstalled();
+            this.Vs2013Integration = VS2013Integration.IsComponentInstalled();
+            this.Vs2015Integration = VS2015Integration.IsComponentInstalled();
+
+//            this._HasSettings = true;
+
+            return true;
+        }
+
+        private String GetInstallationBaseFolder(string folder) {
+
+            try {
+                DirectoryInfo di = new DirectoryInfo(folder);
+
+                if (string.Equals(di.Name, ConstantsBank.SCProductName, StringComparison.InvariantCultureIgnoreCase)) {
+                    return di.Parent.FullName;
+                }
+                return folder;
+            }
+            catch (Exception) {
+                return null;
+            }
+        }
+    }
+
 }

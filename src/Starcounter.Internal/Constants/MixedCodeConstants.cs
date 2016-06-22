@@ -74,7 +74,7 @@ namespace Starcounter.Internal
             SOCKET_DATA_FLAGS_JUST_SEND = 2 << 4,
             SOCKET_DATA_FLAGS_JUST_DISCONNECT = 2 << 5,
             SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 2 << 6,
-            HTTP_WS_FLAGS_COMPLETE_HEADER = 2 << 7,
+            // Free slot here 2 << 7.
             HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 2 << 8,
             HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2 << 9,
             HTTP_WS_FLAGS_GRACEFULLY_CLOSE = 2 << 10,
@@ -89,6 +89,11 @@ namespace Starcounter.Internal
             SOCKET_DATA_HOST_LOOPING_CHUNKS = 2 << 20,
             SOCKET_DATA_STREAMING_RESPONSE_BODY = 2 << 21
         };
+
+        /// <summary>
+        /// Flag indicating if llvm optimizations should be on/off.
+        /// </summary>
+        public const bool SCLLVM_OPT_FLAG = true;
 
         /// <summary>
         /// Enum HTTP_METHODS
@@ -318,6 +323,7 @@ namespace Starcounter.Internal
             PROTOCOL_HTTP2,
             PROTOCOL_TCP,
             PROTOCOL_UDP,
+            PROTOCOL_UNKNOWN,
             PROTOCOL_COUNT
         };
 

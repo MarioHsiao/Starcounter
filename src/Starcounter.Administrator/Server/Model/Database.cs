@@ -26,7 +26,6 @@ namespace Administrator.Server.Model {
     public class Database : INotifyPropertyChanged {
 
         internal JsonPatch JsonPatchInstance;
-        static Object lockObject_ = new Object();
 
         #region Properties
         private string _ID;
@@ -728,7 +727,7 @@ namespace Administrator.Server.Model {
 
         private void UpdateAppStoreList(IList<AppStoreStore> freshStores) {
 
-            lock (lockObject_) {
+            lock (ServerManager.ServerInstance) {
 
                 // Add new stores
                 IList<AppStoreStore> addList = new List<AppStoreStore>();
@@ -781,7 +780,7 @@ namespace Administrator.Server.Model {
 
         private void UpdateAppStoreApplications(AppStoreStore store, IList<AppStoreApplication> freshAppStoreApplications) {
 
-            lock (lockObject_) {
+            lock (ServerManager.ServerInstance) {
                 // Add new stores
                 List<AppStoreApplication> addList = new List<AppStoreApplication>();
 
@@ -1021,6 +1020,8 @@ namespace Administrator.Server.Model {
 
                 this.Status &= ~DatabaseStatus.Deleting;
 
+                ServerManager.ServerInstance.InvalidateDatabases();
+
                 this.DatabaseDeleteErrorCallbacks.Clear();
                 this.InvokeActionListeners(this.DatabaseDeleteCallbacks);
             }, (database, wasCancelled, title, message, helpLink) => {
@@ -1085,69 +1086,73 @@ namespace Administrator.Server.Model {
 
             // Execute Command
             var c = runtime.Execute(command, (commandId) => {
+                lock (ServerManager.ServerInstance) {
 
-                if (command is StartDatabaseCommand &&
-                    (this.Status.HasFlag(DatabaseStatus.Stopping) ||
-                    this.Status.HasFlag(DatabaseStatus.Deleting))) {
+                    if (command is StartDatabaseCommand &&
+                        (this.Status.HasFlag(DatabaseStatus.Stopping) ||
+                        this.Status.HasFlag(DatabaseStatus.Deleting))) {
 
-                    return true;    // return true to cancel
+                        return true;    // return true to cancel
+                    }
+                    else if (command is StopDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
+
+                        return true;    // return true to cancel
+                    }
+                    else if (command is DeleteDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
+
+                        return true;    // return true to cancel
+                    }
+                    else if (command is CreateDatabaseCommand && this.Status != DatabaseStatus.Creating) {
+
+                        return true;    // return true to cancel
+                    }
+
+                    return false;   // return true to cancel
+
+                    //if (command is DeleteDatabaseCommand) {
+                    //    return this.WantDeleted == this.IsDeleted;  // return true to cancel
+                    //}
+
+                    //return this.WantRunning == this.IsRunning;  // return true to cancel
                 }
-                else if (command is StopDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
-
-                    return true;    // return true to cancel
-                }
-                else if (command is DeleteDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
-
-                    return true;    // return true to cancel
-                }
-                else if (command is CreateDatabaseCommand && this.Status != DatabaseStatus.Creating) {
-
-                    return true;    // return true to cancel
-                }
-
-                return false;   // return true to cancel
-
-                //if (command is DeleteDatabaseCommand) {
-                //    return this.WantDeleted == this.IsDeleted;  // return true to cancel
-                //}
-
-                //return this.WantRunning == this.IsRunning;  // return true to cancel
-
             }, (commandId) => {
 
-                CommandInfo commandInfo = runtime.GetCommand(commandId);
+                lock (ServerManager.ServerInstance) {
 
-                this.IsRunning = this.DatabaseRunningState();
+                    CommandInfo commandInfo = runtime.GetCommand(commandId);
 
-                if (this.IsRunning) {
-                    this.RunPlayList();
-                }
-                this.StatusText = string.Empty;
+                    this.IsRunning = this.DatabaseRunningState();
 
-                if (commandInfo.HasError) {
+                    if (this.IsRunning) {
+                        this.RunPlayList();
+                    }
+                    this.StatusText = string.Empty;
 
-                    //Check if command was Canceled
-                    bool wasCancelled = false;
-                    if (commandInfo.HasProgress) {
-                        foreach (var p in commandInfo.Progress) {
-                            if (p.WasCancelled == true) {
-                                wasCancelled = true;
-                                break;
+                    if (commandInfo.HasError) {
+
+                        //Check if command was Canceled
+                        bool wasCancelled = false;
+                        if (commandInfo.HasProgress) {
+                            foreach (var p in commandInfo.Progress) {
+                                if (p.WasCancelled == true) {
+                                    wasCancelled = true;
+                                    break;
+                                }
                             }
                         }
+
+                        ErrorInfo single = commandInfo.Errors.PickSingleServerError();
+                        var msg = single.ToErrorMessage();
+
+                        if (errorCallback != null) {
+                            errorCallback(this, wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                        }
                     }
+                    else {
 
-                    ErrorInfo single = commandInfo.Errors.PickSingleServerError();
-                    var msg = single.ToErrorMessage();
-
-                    if (errorCallback != null) {
-                        errorCallback(this, wasCancelled, command.Description, msg.Brief, msg.Helplink);
-                    }
-                }
-                else {
-
-                    if (completionCallback != null) {
-                        completionCallback(this);
+                        if (completionCallback != null) {
+                            completionCallback(this);
+                        }
                     }
                 }
             });

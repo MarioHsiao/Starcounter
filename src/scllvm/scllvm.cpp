@@ -184,7 +184,7 @@ extern "C" {
 
 			// Enabling Clang intrinsics.
 			Preprocessor& pp = ci.getPreprocessor();
-			pp.getBuiltinInfo().InitializeBuiltins(pp.getIdentifierTable(), pp.getLangOpts());
+			pp.getBuiltinInfo().initializeBuiltins(pp.getIdentifierTable(), pp.getLangOpts());
 
 			std::unique_ptr<MemoryBuffer> mb = MemoryBuffer::getMemBufferCopy(code_string, "some");
 			assert(mb && "Error creating MemoryBuffer!");
@@ -258,7 +258,7 @@ extern "C" {
 			assert((NULL != exec_engine) && "Can't create execution engine by some reason!");
 
 			// Setting module data layout as from execution engine.
-			module->setDataLayout(*exec_engine->getDataLayout());
+			module->setDataLayout(exec_engine->getDataLayout());
 
 			// Finalizing MCJIT execution engine (does relocation).
 			exec_engine->finalizeObject();

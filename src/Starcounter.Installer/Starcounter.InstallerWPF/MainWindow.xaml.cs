@@ -283,17 +283,22 @@ namespace Starcounter.InstallerWPF {
 
             IFinishedPage finishPage = this.pages_lb.Items.CurrentItem as IFinishedPage;
 
-            if (finishPage != null && finishPage.GoToWiki) {
+            if (finishPage != null && finishPage.GoToWiki && this.Configuration.Unattended == false) {
 
                 try {
                     string link = @"https://starcounter.io/docs/";
                     this.OpenBrowser(link);
                 }
                 catch (Win32Exception ee) {
-                    string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
+                    string message = "Failed to open web browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
                     this.OnError(new Exception(message));
                     return;
                 }
+            }
+
+            if (finishPage != null && this.Configuration.Unattended && !string.IsNullOrEmpty(this.FinishedMessageInUnattendedMode)) {
+                this.Hide();
+                WpfMessageBox.Show(this.FinishedMessageInUnattendedMode, "Starcounter Installation");
             }
 
             this.Close();   // Close Installer program and lets the waiting parent process continue
@@ -398,7 +403,6 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
-
         private bool _ChangeAdditionalSettings = false;
         public bool ChangeAdditionalSettings {
             get {
@@ -426,11 +430,11 @@ namespace Starcounter.InstallerWPF {
                 }
 
                 BasePage nextPage = this.pages_lb.Items[this.pages_lb.Items.CurrentPosition + 1] as BasePage;
-                if (nextPage is IFinishedPage) {
+                if (nextPage is IProgressPage) {
 
                     if (this.SetupOptions == InstallerWPF.Pages.SetupOptions.RemoveComponents ||
                         this.SetupOptions == InstallerWPF.Pages.SetupOptions.Uninstall) {
-                            return "_Uninstall";
+                        return "_Uninstall";
                     }
 
                     return "_Install";
@@ -477,9 +481,19 @@ namespace Starcounter.InstallerWPF {
 
         public static Boolean[] InstalledComponents;
 
+        public SetupOptions DefaultSetupOptions = SetupOptions.None;
+        public string FinishedMessageInUnattendedMode = null;
+
         #endregion
 
         public MainWindow() {
+
+            //if (Properties.Settings.Default.UpgradeRequired) {
+            //    Properties.Settings.Default.Upgrade();
+            //    Properties.Settings.Default.UpgradeRequired = false;
+            //    Properties.Settings.Default.Save();
+            //}
+
             this.Closing += new CancelEventHandler(MainWindow_Closing);
             this.PropertyChanged += new PropertyChangedEventHandler(MainWindow_PropertyChanged);
             this.Loaded += new RoutedEventHandler(MainWindow_Loaded);
@@ -611,18 +625,19 @@ namespace Starcounter.InstallerWPF {
 
                 WpfMessageBox.Show(
                     "To be productive Starcounter recommends that your machine has at least 4Gb of RAM and 2 CPU logical processors." +
-                    Environment.NewLine + faults + 
+                    Environment.NewLine + faults +
                     Environment.NewLine + "You can now proceed with installation.",
                     "Recommended hardware requirements are not met.",
                     WpfMessageBoxButton.OK, WpfMessageBoxImage.Exclamation);
             }
         }
 
+
         void MainWindow_Loaded(object sender, RoutedEventArgs e) {
             this._InternalComponents.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(_InternalComponents_CollectionChanged);
 
             this.Pages.CollectionChanged += Pages_CollectionChanged;
-            this.pages_lb.SelectionChanged+=pages_lb_SelectionChanged;
+            this.pages_lb.SelectionChanged += pages_lb_SelectionChanged;
 
             // Retrieve Version of setup package
             this.Version = this.GetVersionString();
@@ -635,26 +650,40 @@ namespace Starcounter.InstallerWPF {
             // Setup available components
             this.SetupComponents();
 
-#if SIMULATE_CLEAN_INSTALLATION
-            WpfMessageBoxResult result = WpfMessageBox.Show("Simulate Clean installation?", "DEBUG", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
+#if SIMULATE_INSTALLATION
+            WpfMessageBoxResult result = WpfMessageBox.Show("Simulate First time installation?", "DEBUG", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
 
-            if (!this.HasCurrentInstalledComponents() || (result == WpfMessageBoxResult.Yes)) {
+            if (result == WpfMessageBoxResult.Yes) {
                 this.RegisterPage(new WelcomeAndLicenseAgreementPage());
                 this.SetupOptions = SetupOptions.Install;
             }
             else {
-                this.SetupOptions = SetupOptions.Ask;
+
+                if (this.DefaultSetupOptions == SetupOptions.None) {
+                    this.SetupOptions = SetupOptions.Ask;
+                }
+                else {
+                    this.SetupOptions = this.DefaultSetupOptions;
+                }
             }
 #else
             if (!this.HasCurrentInstalledComponents()) {
                 // Checking system recommendations.
                 CheckHardwareStatus();
 
-            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
+                if (!this.Configuration.Unattended) {
+                    this.RegisterPage(new WelcomeAndLicenseAgreementPage());
+                }
                 this.SetupOptions = SetupOptions.Install;
             }
             else {
-                this.SetupOptions = SetupOptions.Ask;
+
+                if (this.DefaultSetupOptions == SetupOptions.None) {
+                    this.SetupOptions = SetupOptions.Ask;
+                }
+                else {
+                    this.SetupOptions = this.DefaultSetupOptions;
+                }
             }
 #endif
             this.Activate();
@@ -735,7 +764,7 @@ namespace Starcounter.InstallerWPF {
                 Dispatcher disp = Dispatcher.FromThread(Thread.CurrentThread);
 
                 Starcounter.Tracking.Client.Instance.SendInstallerEnd(this.linksUserClickedOn,
-                      delegate(object sender2, Starcounter.Tracking.CompletedEventArgs args) {
+                      delegate (object sender2, Starcounter.Tracking.CompletedEventArgs args) {
                           // Send compleated (success or error)
                           disp.BeginInvoke(DispatcherPriority.Normal, new Action(delegate {
                               // Close down on our main thread
@@ -1013,20 +1042,6 @@ namespace Starcounter.InstallerWPF {
                 this.RegisterPage(new DeveloperToolsPage());
             }
 
-            ////            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
-
-            //if (this.ChangeAdditionalSettings) {
-            //    //this.RegisterPage(new WelcomePage());
-            //    //this.RegisterPage(new LicenseAgreementPage());
-            //    this.RegisterPage(new InstallationPathPage());
-            //    this.RegisterPage(new DatabaseEnginesPage());
-            //    //this.RegisterPage(new AdministrationToolsPage());
-            //    //this.RegisterPage(new ConnectivityPage());
-            //    this.RegisterPage(new DeveloperToolsPage());
-            //}
-
-//            this.RegisterPage(new MovieProgressPage());
-
             this.RegisterPage(new InstallProgressPage());
             this.RegisterPage(new InstallFinishedPage());
         }
@@ -1035,10 +1050,12 @@ namespace Starcounter.InstallerWPF {
         /// Registers the uninstall pages.
         /// </summary>
         private void RegisterUninstallPages() {
-            this.RegisterPage(new UninstallPage());
+
+            if (!this.Configuration.Unattended) {
+                this.RegisterPage(new UninstallPage());
+            }
 
             this.RegisterPage(new UninstallProgressPage());
-
             this.RegisterPage(new UninstallFinishedPage());
         }
 
@@ -1091,13 +1108,21 @@ namespace Starcounter.InstallerWPF {
             // OnSelected
             if (e.AddedItems != null) {
                 foreach (BasePage page in e.AddedItems) {
-                    page.OnSelected();
+
+
+                    if (page is IFinishedPage && this.Configuration.Unattended) {
+                        MainWindow.StartRoutedCommand.Execute(null, this);
+                        CommandManager.InvalidateRequerySuggested();
+                    }
+                    else {
+                        page.OnSelected();
+                    }
                 }
             }
 
             Dispatcher _dispatcher = Dispatcher.FromThread(Thread.CurrentThread);
 
-            _dispatcher.BeginInvoke(DispatcherPriority.Render,  new Action(delegate {  this.DoMarker();    }   ));
+            _dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(delegate { this.DoMarker(); }));
 
             this.OnPropertyChanged("NextButtonTitle");
         }
@@ -1191,7 +1216,12 @@ namespace Starcounter.InstallerWPF {
         /// <returns></returns>
         public static bool DirectoryContainsFiles(string targetDirectory, bool recursive) {
 
-            if (!Directory.Exists(targetDirectory)) {
+            try {
+                if (!Directory.Exists(targetDirectory)) {
+                    return false;
+                }
+            }
+            catch {
                 return false;
             }
 

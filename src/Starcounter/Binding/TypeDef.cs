@@ -157,12 +157,13 @@ namespace Starcounter.Binding {
 
                 Debug.Assert(tblDef != null);
                 Debug.Assert(TypeInfo.GetType(this.Name).FullName == this.Name);
-                Debug.Assert(tblDef.ColumnDefs.Length - 2 == properties.Length);
+                Debug.Assert(tblDef.ColumnDefs.Length - 3 == properties.Length);
                 
                 PropertyDef[] prpDefs = new PropertyDef[properties.Length];
                 DbTypeCode[] typeCodes = new DbTypeCode[tblDef.ColumnDefs.Length];
                 typeCodes[0] = DbTypeCode.Key;  // Column 0 is always the key column, __id
                 typeCodes[1] = DbTypeCode.String; // Column 1 is _setspec
+                typeCodes[2] = DbTypeCode.UInt64; // Column 2 is __type_id
 
                 // Find and use inherited properties in their order
                 int nrInheritedProperties = 0;
@@ -176,11 +177,11 @@ namespace Starcounter.Binding {
                     TypeDef baseType = typeDefs[based];
 
                     Debug.Assert(baseType.PropertyDefs.Length <= prpDefs.Length);
-                    Debug.Assert(baseType.ColumnRuntimeTypes.Length == baseType.PropertyDefs.Length + 2); // Number of columns is bigger by 2 than number of properties
+                    Debug.Assert(baseType.ColumnRuntimeTypes.Length == baseType.PropertyDefs.Length + 3); // Number of columns is bigger by 3 than number of properties
 
                     for (; nrInheritedProperties < baseType.PropertyDefs.Length; nrInheritedProperties++) {
                         prpDefs[nrInheritedProperties] = baseType.PropertyDefs[nrInheritedProperties];
-                        typeCodes[nrInheritedProperties+2] = baseType.ColumnRuntimeTypes[nrInheritedProperties+2];
+                        typeCodes[nrInheritedProperties+3] = baseType.ColumnRuntimeTypes[nrInheritedProperties+3]; // Skiping
                     }
                 }
 
@@ -194,9 +195,9 @@ namespace Starcounter.Binding {
                     } else
                         prpDefs[curProp] = new PropertyDef(properties[i].Name, dbTypeCode);
                     prpDefs[curProp].ColumnName = prpDefs[curProp].Name;
-                    typeCodes[2 + curProp] = dbTypeCode;
-                    int j = 2;
-                    while (j < prpDefs.Length + 2 && !(prpDefs[curProp].Name == tblDef.ColumnDefs[j].Name))
+                    typeCodes[3 + curProp] = dbTypeCode; // Skiping MotherOfAllLayout
+                    int j = 3; // Skiping
+                    while (j < prpDefs.Length + 3 && !(prpDefs[curProp].Name == tblDef.ColumnDefs[j].Name))
                         j++;
                     Debug.Assert(prpDefs[curProp].Name == tblDef.ColumnDefs[j].Name);
                     prpDefs[curProp].IsNullable = tblDef.ColumnDefs[j].IsNullable;

@@ -4,7 +4,6 @@
 #include "ws_proto.hpp"
 #include "http_proto.hpp"
 #include "socket_data.hpp"
-#include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
 
@@ -16,13 +15,9 @@ uint32_t PortAggregator(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef aggr_sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled)
+    BMX_HANDLER_TYPE handler_info)
 {
     uint32_t err_code;
-
-    // Handled successfully.
-    *is_handled = true;
 
     SocketDataChunk* new_sd = NULL;
     uint8_t* orig_data_ptr = aggr_sd->get_data_blob_start();
@@ -86,7 +81,7 @@ uint32_t PortAggregator(
                 ags->socket_info_index_ = gw->ObtainFreeSocketIndex(
                     INVALID_SOCKET,
                     port_index,
-                    MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP,
+                    MixedCodeConstants::NetworkProtocolType::PROTOCOL_UNKNOWN,
                     false);
 
                 // Checking if we can't obtain new socket index.
@@ -181,7 +176,7 @@ uint32_t PortAggregator(
                 new_sd->set_client_ip_info(aggr_sd->get_client_ip_info());
 
                 // Changing accumulative buffer accordingly.
-                new_sd->SetAccumulation(ags->size_bytes_, 0);
+                new_sd->SetAccumulation(ags->size_bytes_);
 
                 // Checking if its a no IPC test.
                 switch ((MixedCodeConstants::AggregationMessageFlags) ags->msg_flags_) {

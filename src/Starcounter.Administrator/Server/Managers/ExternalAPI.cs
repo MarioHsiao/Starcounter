@@ -7,27 +7,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Administrator.Server.Managers {
     public class ExternalAPI {
 
         static List<Task> Tasks = new List<Task>();
-        static Object lockObject_ = new Object();
-
-        //Handle.GET("/__internal_api/databases/{?}/task/{?}", (string databaseName, string taskID, Request request) => {
-        //Handle.POST("/__internal_api/databases/{?}/task", (string databaseName, Request request) => {
-
 
         public static void Register() {
 
             // Get task
             Handle.GET("/api/tasks/{?}", (string taskID, Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
+
+                    string id = HttpUtility.UrlDecode(taskID);
 
                     // TODO: Make hashtable or ExternalAPI.Tasks
                     foreach (Task task in ExternalAPI.Tasks) {
-                        if (task.ID == taskID) {
+                        if (task.ID == id) {
                             TaskJson taskItemJson = new TaskJson();
                             taskItemJson.Data = task;
                             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, Body = taskItemJson.ToJson() };
@@ -41,7 +39,7 @@ namespace Administrator.Server.Managers {
             // Create database task
             Handle.POST("/api/tasks/createdatabase", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -59,7 +57,7 @@ namespace Administrator.Server.Managers {
             // Delete database task
             Handle.POST("/api/tasks/deletedatabase", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -88,7 +86,7 @@ namespace Administrator.Server.Managers {
             // Install application task
             Handle.POST("/api/tasks/installapplication", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -118,7 +116,7 @@ namespace Administrator.Server.Managers {
             // Upgrade application task
             Handle.POST("/api/tasks/upgradeapplication", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -170,7 +168,7 @@ namespace Administrator.Server.Managers {
             // Install application task
             Handle.POST("/api/tasks/uninstallapplication", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -209,7 +207,7 @@ namespace Administrator.Server.Managers {
             // Start application task
             Handle.POST("/api/tasks/startapplication", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -247,7 +245,7 @@ namespace Administrator.Server.Managers {
             // Start database task
             Handle.POST("/api/tasks/startdatabase", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -277,7 +275,7 @@ namespace Administrator.Server.Managers {
             // Stop database task
             Handle.POST("/api/tasks/stopdatabase", (Request request) => {
 
-                lock (lockObject_) {
+                lock (ServerManager.ServerInstance) {
 
                     try {
 
@@ -382,7 +380,7 @@ namespace Administrator.Server.Managers {
                                 taskItem.Channel = startedApplication.Channel;
                                 taskItem.Version = startedApplication.Version;
                                 taskItem.VersionDate = startedApplication.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-                                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", HttpUtility.UrlEncode(databaseApplication.DatabaseName), HttpUtility.UrlEncode(databaseApplication.ID));
                                 taskItem.ResourceID = databaseApplication.ID;
                                 taskItem.Status = 0; // Done;
                             }, (startedApplication, wasCancelled, title, message, helpLink) => {
@@ -398,7 +396,7 @@ namespace Administrator.Server.Managers {
                             taskItem.Channel = databaseApplication.Channel;
                             taskItem.Version = databaseApplication.Version;
                             taskItem.VersionDate = databaseApplication.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-                            taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                            taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", HttpUtility.UrlEncode(databaseApplication.DatabaseName), HttpUtility.UrlEncode(databaseApplication.ID));
                             taskItem.ResourceID = databaseApplication.ID;
                             taskItem.Status = 0; // Done;
                         }
@@ -453,7 +451,7 @@ namespace Administrator.Server.Managers {
                     taskItem.Channel = deployedApplication.Channel;
                     taskItem.Version = deployedApplication.Version;
                     taskItem.VersionDate = deployedApplication.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-                    taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", deployedApplication.DatabaseName, deployedApplication.ID); // TODO: Fix hardcodes IP and Port
+                    taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", HttpUtility.UrlEncode(deployedApplication.DatabaseName), HttpUtility.UrlEncode(deployedApplication.ID));
                     taskItem.ResourceID = deployedApplication.ID;
                     taskItem.Status = 0; // Done;
 
@@ -488,9 +486,6 @@ namespace Administrator.Server.Managers {
 
             // TODO: Force delete
             databaseApplication.DeleteApplication(true, (startedApplication) => {
-
-                //                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
-                //                taskItem.ResourceID = databaseApplication.ID;
                 taskItem.Status = 0; // Done;
             }, (startedApplication, wasCancelled, title, message, helpLink) => {
 
@@ -522,7 +517,7 @@ namespace Administrator.Server.Managers {
                 taskItem.Channel = startedApplication.Channel;
                 taskItem.Version = startedApplication.Version;
                 taskItem.VersionDate = startedApplication.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", HttpUtility.UrlEncode(databaseApplication.DatabaseName), HttpUtility.UrlEncode(databaseApplication.ID));
                 taskItem.ResourceID = databaseApplication.ID;
                 taskItem.Status = 0; // Done;
             }, (startedApplication, wasCancelled, title, message, helpLink) => {
@@ -607,25 +602,28 @@ namespace Administrator.Server.Managers {
         /// <returns></returns>
         static Response CreateDatabase_Task(DatabaseSettings settings) {
 
-            // Create TaskItem
-            Task taskItem = new Task();
+            lock (ServerManager.ServerInstance) {
 
-            ServerManager.ServerInstance.CreateDatabase(settings, (database) => {
+                // Create TaskItem
+                Task taskItem = new Task();
 
-                taskItem.ResourceUri = database.Url;
-                taskItem.ResourceID = database.ID;
-                taskItem.Status = 0; // Done;
-            }, (wasCancelled, title, message, helpLink) => {
+                ServerManager.ServerInstance.CreateDatabase(settings, (database) => {
 
-                taskItem.Message = message;
-                taskItem.Status = -1; // Error;
-            });
+                    taskItem.ResourceUri = database.Url;
+                    taskItem.ResourceID = database.ID;
+                    taskItem.Status = 0; // Done;
+                }, (wasCancelled, title, message, helpLink) => {
 
-            TaskJson taskItemJson = new TaskJson();
-            taskItemJson.Data = taskItem;
-            ExternalAPI.Tasks.Add(taskItem);
+                    taskItem.Message = message;
+                    taskItem.Status = -1; // Error;
+                });
 
-            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
+                TaskJson taskItemJson = new TaskJson();
+                taskItemJson.Data = taskItem;
+                ExternalAPI.Tasks.Add(taskItem);
+
+                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
+            }
         }
 
         /// <summary>

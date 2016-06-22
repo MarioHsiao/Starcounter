@@ -199,7 +199,7 @@ namespace Starcounter.Internal
 
                 string setpec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(tableId);
                 ulong transaction_handle;
-                sccoredb.star_context_get_current_transaction(contextHandle, out transaction_handle);
+                sccoredb.star_context_get_transaction(contextHandle, out transaction_handle);
                 r = sccoredb.stari_transaction_insert_with_id(transaction_handle, tableId, oid, &ref_local);
                 if (r == 0)
                 {

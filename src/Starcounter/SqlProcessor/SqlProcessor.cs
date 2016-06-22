@@ -6,8 +6,8 @@ using System.Runtime.InteropServices;
 namespace Starcounter.SqlProcessor {
     internal class SqlProcessor {
 
-        internal const ulong STAR_MOM_OF_ALL_LAYOUTS_NAME_TOKEN = 10;
-        internal const ulong STAR_GLOBAL_SETSPEC_INDEX_NAME_TOKEN = 11;
+        internal const ulong STAR_MOM_OF_ALL_LAYOUTS_NAME_TOKEN = 11;
+        internal const ulong STAR_GLOBAL_SETSPEC_INDEX_NAME_TOKEN = 12;
 
         [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
             CharSet = CharSet.Unicode)]
@@ -172,7 +172,7 @@ namespace Starcounter.SqlProcessor {
             MetalayerThrowIfError(Starcounter.SqlProcessor.SqlProcessor.star_setspec_ref_by_table_ref(
                 ThreadData.ContextHandle, rawviewRecordOid, rawviewRecordAddr,
                 &setspecRecordOid, &setspecRecordAddr));
-            return DbState.ReadString(setspecRecordOid, setspecRecordAddr, 2);
+            return DbState.ReadString(setspecRecordOid, setspecRecordAddr, 3);
         }
 
         public static void PopulateRuntimeMetadata() {
@@ -201,14 +201,14 @@ namespace Starcounter.SqlProcessor {
                 unsafe {
                     uint r;
 
-                    r = sccoredb.star_context_create_transaction(
-                        contextHandle, 0, out transactionHandle
+                    r = sccoredb.star_create_transaction(
+                        0, 0, out transactionHandle
                         );
                     if (r != 0) {
                         transactionHandle = 0;
                         goto err;
                     }
-                    r = sccoredb.star_context_set_current_transaction(
+                    r = sccoredb.star_context_set_transaction(
                         contextHandle, transactionHandle
                         );
                     if (r != 0) goto err;

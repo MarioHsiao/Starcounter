@@ -4,7 +4,6 @@
 #include "ws_proto.hpp"
 #include "http_proto.hpp"
 #include "socket_data.hpp"
-#include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
 #include "common/macro_definitions.hpp"
@@ -191,7 +190,7 @@ READY_SOCKET_DATA:
             sd->PreInitSocketDataFromDb(gw, sched_id);
 
             // Checking for socket data correctness.
-            GW_ASSERT(sd->get_type_of_network_protocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);
+            GW_ASSERT(sd->GetTypeOfNetworkProtocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);
             GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections_per_worker());
 
 #ifdef GW_CHUNKS_DIAG
@@ -314,13 +313,22 @@ void WorkerDbInterface::ReturnAllPrivateChunksToSharedPool()
 uint32_t WorkerDbInterface::PushSocketDataToDb(
     GatewayWorker* gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE user_handler_id)
+    BMX_HANDLER_TYPE user_handler_id,
+	bool disable_check_for_clone)
 {
 #ifdef GW_CHUNKS_DIAG
     GW_PRINT_WORKER_DB << "Pushing chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-    GW_ASSERT(sd->get_type_of_network_protocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);
+	// Checking flag clone to receive.
+	if ((!disable_check_for_clone) &&
+		(!sd->GetSocketAggregatedFlag()) &&
+		(!sd->get_internal_request_flag())) {
+
+		GW_ASSERT(sd->get_socket_info()->get_cloned_to_receive_flag());
+	}
+
+    GW_ASSERT(sd->GetTypeOfNetworkProtocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);
 
     // Checking if we have no IPC/no chunks test.
     if (sd->get_gateway_no_ipc_no_chunks_test_flag()) {

@@ -136,17 +136,17 @@ namespace Starcounter.Internal.XSON.Tests {
                 json2.FirstName = "ApaPapa";
 
                 Json hack = json2;
-                hack._appName = "OtherApp";
+                hack.appName = "OtherApp";
 
                 SiblingList stepSiblings = new SiblingList();
                 stepSiblings.Add(json.Page);
                 stepSiblings.Add(json2);
                 Json real = json.Page;
-                real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.wrapInAppName = true;
+                real.Siblings = stepSiblings;
                 real = json2;
-                real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.wrapInAppName = true;
+                real.Siblings = stepSiblings;
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
@@ -172,16 +172,16 @@ namespace Starcounter.Internal.XSON.Tests {
                 json2.FirstName = "ApaPapa";
 
                 hack = json2;
-                hack._appName = "OtherApp";
+                hack.appName = "OtherApp";
                 stepSiblings = new SiblingList();
                 stepSiblings.Add(json.Focused);
                 stepSiblings.Add(json2);
                 real = json.Focused;
-                real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.wrapInAppName = true;
+                real.Siblings = stepSiblings;
                 real = json2;
-                real._wrapInAppName = true;
-                real.StepSiblings = stepSiblings;
+                real.wrapInAppName = true;
+                real.Siblings = stepSiblings;
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
@@ -517,7 +517,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             json.Session.Use(() => {
                 var patch = jsonPatch.Generate(json, true, false);
-                json.MarkAsReplaced(save);
+                json.MarkAsDirty(save);
                 patch = jsonPatch.Generate(json, true, false);
 
                 Helper.ConsoleWriteLine(patch);
@@ -605,14 +605,14 @@ namespace Starcounter.Internal.XSON.Tests {
                 Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
 
                 try {
+                    // Making sure '.0' is added to values without decimals and exponent.
                     var patch = jsonPatch.Generate(root, true, false);
                     var expected = '[' + string.Format(Helper.PATCH_REPLACE, "", @"{""Number"":65.0}") + ']';
                     Assert.AreEqual(expected, patch);
-
-                    root.Number = 99.5545d;
+                    
+                    // Only interested in that the patch is generated without buffer overflow
+                    root.Number = 454354544454545445453454534534453499.55d;
                     patch = jsonPatch.Generate(root, true, false);
-                    expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Number", "99.5545") + ']';
-                    Assert.AreEqual(expected, patch);
                 } finally {
                     Thread.CurrentThread.CurrentCulture = oldCulture;
                 }

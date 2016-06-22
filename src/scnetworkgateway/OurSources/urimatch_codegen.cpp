@@ -4,7 +4,6 @@
 #include "ws_proto.hpp"
 #include "http_proto.hpp"
 #include "socket_data.hpp"
-#include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
 #include "urimatch_codegen.hpp"
@@ -211,7 +210,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
                 clang_engine_addr,
                 false,
                 false,
-                true,
+				MixedCodeConstants::SCLLVM_OPT_FLAG,
                 uri_matching_code_,
                 root_function_name,
                 out_functions,

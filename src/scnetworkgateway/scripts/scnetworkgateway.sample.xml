@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<!-- 
+Documentation on network gateway configuration and features:
+http://starcounter.io/guides/network/networkgateway/
+http://starcounter.io/guides/network/aliases-and-redirects/
+-->
+
 <NetworkGateway>
     
   <!-- Number of worker threads -->

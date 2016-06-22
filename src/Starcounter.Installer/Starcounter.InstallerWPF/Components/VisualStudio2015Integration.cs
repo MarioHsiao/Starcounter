@@ -57,13 +57,22 @@ namespace Starcounter.InstallerWPF.Components
         {
             base.SetDefaultValues();
 
-#if !SIMULATE_CLEAN_INSTALLATION
+            MainWindow win = System.Windows.Application.Current.MainWindow as MainWindow;
+
+#if !SIMULATE_INSTALLATION
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.VS2015Integration];
 #endif
             switch (this.Command)
             {
                 case ComponentCommand.Install:
-                    this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2015Installed());
+
+                    if (win.Configuration.CurrentInstallationSettings != null) {
+                        this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2015Installed()) && win.Configuration.CurrentInstallationSettings.Vs2015Integration;
+                    }
+                    else {
+                        this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2015Installed());
+                    }
+
                     break;
                 case ComponentCommand.None:
                     this.ExecuteCommand = false;

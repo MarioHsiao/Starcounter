@@ -94,7 +94,7 @@ namespace Starcounter.Templates {
 
 			Arr<OT> arr = UnboundGetter(parent);
 
-            if (parent._checkBoundProperties && UseBinding(parent)) {
+            if (parent.checkBoundProperties && UseBinding(parent)) {
 				var data = BoundGetter(parent);
 				arr.CheckBoundArray(data);
 			}
@@ -107,12 +107,12 @@ namespace Starcounter.Templates {
 			}
 			UnboundSetter(parent, value);
 
-			if (value._PendingEnumeration) {
+			if (value.pendingEnumeration) {
 				value.Array_InitializeAfterImplicitConversion(parent, this);
 			}
 
 			if (parent.HasBeenSent)
-				parent.MarkAsReplaced(TemplateIndex);
+				parent.MarkAsDirty(TemplateIndex);
 
 			parent.CallHasChanged(this);
 		}
@@ -120,8 +120,10 @@ namespace Starcounter.Templates {
 		internal override Json GetValue(Json parent) {
 			var arr = UnboundGetter(parent);
 
-            if (parent._checkBoundProperties && UseBinding(parent)) {
+            if (parent.checkBoundProperties && UseBinding(parent)) {
 				arr.CheckBoundArray(BoundGetter(parent));
+                if (arr.Session.enableCachedReads)
+                    parent.MarkAsCached(this.TemplateIndex);
 			}
 
             return arr;

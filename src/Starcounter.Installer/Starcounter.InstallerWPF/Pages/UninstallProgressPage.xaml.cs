@@ -25,7 +25,7 @@ namespace Starcounter.InstallerWPF.Pages {
     /// <summary>
     /// Interaction logic for UninstallProgressPage.xaml
     /// </summary>
-    public partial class UninstallProgressPage : BasePage {
+    public partial class UninstallProgressPage : BasePage, IProgressPage {
 
         #region Win32 import
 
@@ -224,6 +224,14 @@ namespace Starcounter.InstallerWPF.Pages {
                 this.IsInstalling = false;
                 this.StopAnimation();
                 this._CanGoNext = true;
+
+                //Configuration config = (Configuration)DataContext;
+                //if (config.AutoClose) {
+                //    MainWindow.StartRoutedCommand.Execute(null, this);
+                //}
+                //else {
+                //}
+
                 NavigationCommands.NextPage.Execute(null, this);
                 CommandManager.InvalidateRequerySuggested();
             }

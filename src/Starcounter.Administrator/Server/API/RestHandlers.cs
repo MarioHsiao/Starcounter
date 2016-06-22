@@ -199,6 +199,23 @@ namespace Server.API {
                     return Self.GET("/api/admin/settings/database");
                 }, opt);
 
+
+                // Get reverseproxies
+                Handle.GET(port, "/serverapi/reverseproxies", (Request request) => {
+
+                    Response response;
+                    if (!Authentication.Authenticate(settings, request, out response)) { return response; }
+                    return Http.GET(string.Format("http://127.0.0.1:{0}/sc/reverseproxies", StarcounterEnvironment.Default.SystemHttpPort));
+                }, opt);
+
+                // Get reverseproxy item
+                Handle.GET(port, "/serverapi/reverseproxies/{?}/{?}", (string matchingHost, long starcounterProxyPort, Request request) => {
+
+                    Response response;
+                    if (!Authentication.Authenticate(settings, request, out response)) { return response; }
+                    return Http.GET(string.Format("http://127.0.0.1:{0}/sc/reverseproxies/{1}/{2}", StarcounterEnvironment.Default.SystemHttpPort, matchingHost, starcounterProxyPort));
+                }, opt);
+
                 // Add (if not exists) reverse proxy item
                 Handle.PUT(port, "/serverapi/reverseproxies", (Request request) => {
 
@@ -216,6 +233,39 @@ namespace Server.API {
                     string uri = string.Format("http://127.0.0.1:{0}/sc/reverseproxies/{1}/{2}", StarcounterEnvironment.Default.SystemHttpPort, matchingHost, starcounterProxyPort);
                     return Http.DELETE(uri, request.BodyBytes, null);
                     //return Self.DELETE(string.Format("/sc/reverseproxies/{0}/{1}", matchingHost, starcounterProxyPort), null, request.BodyBytes, null;
+                }, opt);
+
+
+                // Get uri aliases
+                Handle.GET(port, "/serverapi/urialiases", (Request request) => {
+
+                    Response response;
+                    if (!Authentication.Authenticate(settings, request, out response)) { return response; }
+                    return Http.GET(string.Format("http://127.0.0.1:{0}/sc/alias", StarcounterEnvironment.Default.SystemHttpPort));
+                }, opt);
+
+                // Get uri alias item
+                Handle.GET(port, "/serverapi/urialiases/{?}/{?}/{?}", (string httpMethod, long dbport, string fromUri, Request request) => {
+
+                    Response response;
+                    if (!Authentication.Authenticate(settings, request, out response)) { return response; }
+                    return Http.GET(string.Format("http://127.0.0.1:{0}/sc/alias/{1}/{2}/{3}", StarcounterEnvironment.Default.SystemHttpPort, httpMethod, dbport, fromUri));
+                }, opt);
+
+                // Add (if not exists) uri alias item
+                Handle.PUT(port, "/serverapi/urialiases", (Request request) => {
+
+                    Response response;
+                    if (!Authentication.Authenticate(settings, request, out response)) { return response; }
+                    return Http.PUT("http://127.0.0.1:" + StarcounterEnvironment.Default.SystemHttpPort + "/sc/alias", request.BodyBytes, null);
+                }, opt);
+
+                // Remove uri alias item
+                Handle.DELETE(port, "/serverapi/urialiases/{?}/{?}/{?}", (string httpMethod, long dbport, string fromUri, Request request) => {
+
+                    Response response;
+                    if (!Authentication.Authenticate(settings, request, out response)) { return response; }
+                    return Http.DELETE(string.Format("http://127.0.0.1:{0}/sc/alias/{1}/{2}/{3}", StarcounterEnvironment.Default.SystemHttpPort, httpMethod, dbport, fromUri), request.BodyBytes, null);
                 }, opt);
             }
             catch (Exception e) {

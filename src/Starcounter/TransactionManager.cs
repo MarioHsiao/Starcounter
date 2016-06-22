@@ -43,20 +43,19 @@ namespace Starcounter.Internal {
         /// returns a handle to the transaction.
         /// </summary>
         /// <param name="readOnly"></param>
-        /// <param name="detectConflicts"></param>
         /// <returns></returns>
-        public TransactionHandle Create(bool readOnly, bool detectConflicts, bool applyHooks) {
+        public TransactionHandle Create(bool readOnly, bool applyHooks) {
             int index = Used;
 
             ulong handle;
             ulong verify;
             uint ec;
 
-            uint flags = detectConflicts ? 0 : TransactionHandle.FLAG_MERGING_WRITES;
+            uint flags = TransactionHandle.FLAG_LONG_RUNNING;
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
-            ec = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
+            ec = sccoredb.star_create_transaction(flags, 0, out handle);
             if (ec == 0) {
                 verify = ThreadData.ObjectVerify;
                 try {
@@ -102,14 +101,14 @@ namespace Starcounter.Internal {
         }
 
         internal static TransactionHandle CreateImplicitAndSetCurrent(bool readOnly) {
-            return CreateAndSetCurrent(readOnly, false, true, true);
+            return CreateAndSetCurrent(readOnly, true, true);
         }
 
-        internal static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts) {
-            return CreateAndSetCurrent(readOnly, detectConflicts, false, true);
+        internal static TransactionHandle CreateAndSetCurrent(bool readOnly) {
+            return CreateAndSetCurrent(readOnly, false, true);
         }
 
-        private static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts, bool isImplicit, bool applyHooks) {
+        private static TransactionHandle CreateAndSetCurrent(bool readOnly, bool isImplicit, bool applyHooks) {
             if (ThreadData.inTransactionScope_ != 0)
                 throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
 
@@ -119,16 +118,16 @@ namespace Starcounter.Internal {
             ulong verify;
             uint ec;
 
-            uint flags = detectConflicts ? 0 : TransactionHandle.FLAG_MERGING_WRITES;
+            uint flags = TransactionHandle.FLAG_LONG_RUNNING;
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
-            ec = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
+            ec = sccoredb.star_create_transaction(flags, 0, out handle);
             if (ec == 0) {
                 verify = ThreadData.ObjectVerify;
                 try {
-                    // Can not fail.
-                    sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
+                    // Can not fail (only fails if transaction is already bound to context).
+                    sccoredb.star_context_set_transaction(ThreadData.ContextHandle, handle);
 
                     TransactionHandle th = new TransactionHandle(handle, verify, flags, index, applyHooks);
                     if (isImplicit)
@@ -347,7 +346,7 @@ namespace Starcounter.Internal {
                 return;
 
             if (ThreadData.inTransactionScope_ == 0) {
-                sccoredb.star_context_set_current_transaction( // Can not fail.
+                sccoredb.star_context_set_transaction( // Can not fail.
                     ThreadData.ContextHandle, handle.handle
                     );
                 CurrentHandle = handle;
@@ -629,7 +628,7 @@ namespace Starcounter.Internal {
                 // again setting it as the current transaction on context.
 
                 var contextHandle = ThreadData.ContextHandle; // Makes sure thread is attached.
-                sccoredb.star_context_set_current_transaction(  // Can not fail.
+                sccoredb.star_context_set_transaction(  // Can not fail.
                     contextHandle, handle.handle
                     );
                 sccoredb.star_transaction_reset(handle.handle); // Can not fail.

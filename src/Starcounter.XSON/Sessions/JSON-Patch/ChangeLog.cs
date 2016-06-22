@@ -49,10 +49,7 @@ namespace Starcounter.XSON {
         /// <param name="property">The property to update</param>
         internal void UpdateValue(Json obj, TValue property) {
             VerifyChange(obj, property);
-
             changes.Add(Change.Update(obj, property));
-            if (property != null)
-                property.Checkpoint(obj);
         }
 
         /// <summary>
@@ -61,7 +58,6 @@ namespace Starcounter.XSON {
         /// <param name="toAdd"></param>
         internal void Add(Change change) {
             VerifyChange(change);
-
             changes.Add(change);
         }
 
@@ -86,54 +82,23 @@ namespace Starcounter.XSON {
 
             if (brandNew) {
                 changes.Add(Change.Add(employer));
-                employer.CheckpointChangeLog();
-                brandNew = false;
             } else {
-                // TODO:
-                // Since we dont want to have session here, this property should probably be moved 
-                // somewhere else but since it currently always returns true we just ingore it for now.
-
-//                if (DatabaseHasBeenUpdatedInCurrentTask) {
-                    employer.LogValueChangesWithDatabase(this, true);
-//                } else {
-//                    employer.LogValueChangesWithoutDatabase(this, true);
-//                }
+                employer.LogValueChangesWithDatabase(this, true);
             }
-
-            // TODO:
-            // Temorary workaround until jsonpatch generation supports move operation.
-            SplitMoves(changes);
-
+            
             var arr = changes.ToArray();
 
-            if (flushLog)
-                changes.Clear();
+            if (flushLog) {
+                this.Checkpoint();
+            }
             return arr;
         }
-
-        private static void SplitMoves(List<Change> changes) {
-            Change current;
-            Change toAdd;
-
-            if (changes == null)
-                return;
-
-            for (int i = 0; i < changes.Count; i++) {
-                current = changes[i];
-                if (current.ChangeType == Change.MOVE) {
-                    toAdd = Change.Remove(current.Parent, (TObjArr)current.Property, current.FromIndex, current.Item);
-                    changes[i] = toAdd;
-                    toAdd = Change.Add(current.Parent, (TObjArr)current.Property, current.Index, current.Item);
-                    changes.Insert(i + 1, toAdd);
-                    i++;
-                }
-            }
-        }
-
+        
         /// <summary>
         /// 
         /// </summary>
         public void Checkpoint() {
+            changes.Clear();
             employer.CheckpointChangeLog();
             brandNew = false;
         }

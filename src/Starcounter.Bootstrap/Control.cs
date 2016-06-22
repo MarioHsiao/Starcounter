@@ -185,7 +185,7 @@ namespace StarcounterInternal.Bootstrap {
                 OnHostConfigured();
 
                 // Configuring schedulers.
-                hsched_ = ConfigureScheduler(configuration, mem, schedulerCount);
+                hsched_ = ConfigureScheduler(configuration, mem, schedulerCount, hlogs);
                 mem += (1024 + (schedulerCount * 512));
                 OnSchedulerConfigured();
 
@@ -461,7 +461,9 @@ namespace StarcounterInternal.Bootstrap {
         /// <param name="mem">The mem.</param>
         /// <param name="hmenv">The hmenv.</param>
         /// <param name="schedulerCount">The scheduler count.</param>
-        private unsafe void* ConfigureScheduler(Configuration c, void* mem, uint schedulerCount) {
+        private unsafe void* ConfigureScheduler(Configuration c, void* mem, uint schedulerCount, ulong hlogs) {
+            sccorelib.cm6_init(hlogs);
+
             uint space_needed_for_scheduler = 1024 + (schedulerCount * 512);
             sccorelib.CM2_SETUP setup = new sccorelib.CM2_SETUP();
             setup.name = (char*)Marshal.StringToHGlobalUni(c.ServerName + "_" + c.Name);

@@ -28,7 +28,7 @@
 
 // Level0 includes.
 #include "../../../../Level0/src/include/sccorelog.h"
-#include "../../../../Level0/src/include/sccoredbg.h"
+#include "../../../../Level0/src/include/sccoredbg2.h"
 #include "../../../../Level0/src/include/sccorelib.h"
 
 ////extern uint32_t _exec(wchar_t *command_line, int32_t inherit_console, void **phandle);

@@ -65,7 +65,7 @@ namespace Starcounter {
         /// <param name="item"></param>
         /// <returns></returns>
         public int IndexOf(T item) {
-            return list.IndexOf(item);
+            return ((IList)this).IndexOf(item);
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace Starcounter {
         }
 
         public IEnumerator<T> GetEnumerator() {
-            return new ArrEnumeratorWrapper<T>(list.GetEnumerator());
+            return new ArrEnumeratorWrapper<T>(((IList)this).GetEnumerator());
         }
 
     }

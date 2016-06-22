@@ -66,7 +66,7 @@ namespace Starcounter.Hosting {
             typeSpecification.TypeBinding = binding;
 
             var columns = binding.TypeDef.TableDef.ColumnDefs;
-            for (int ci = 2; ci < columns.Length; ci++) {
+            for (int ci = 3; ci < columns.Length; ci++) {
                 var column = columns[ci];
 
                 if (!column.IsInherited) {

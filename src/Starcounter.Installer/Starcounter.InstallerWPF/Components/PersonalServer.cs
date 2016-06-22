@@ -16,39 +16,21 @@ namespace Starcounter.InstallerWPF.Components {
 
         public const string Identifier = "PersonalServer";
 
-        public override string ComponentIdentifier
-        {
-            get
-            {
+        public override string ComponentIdentifier {
+            get {
                 return PersonalServer.Identifier;
             }
         }
 
-        public override string Name
-        {
-            get
-            {
+        public override string Name {
+            get {
                 return "Server";
             }
         }
 
-        //private bool _SendUsageAndCrashReports;
-        //public bool SendUsageAndCrashReports {
-        //    get {
-        //        return this._SendUsageAndCrashReports;
-        //    }
-        //    set {
-        //        if (this._SendUsageAndCrashReports == value) return;
-        //        this._SendUsageAndCrashReports = value;
-        //        this.OnPropertyChanged("SendUsageAndCrashReports");
-        //    }
-        //}
-
         private readonly string[] _Dependencys = new string[] { InstallationBase.Identifier };
-        public override string[] Dependencys
-        {
-            get
-            {
+        public override string[] Dependencys {
+            get {
                 return this._Dependencys;
             }
         }
@@ -56,22 +38,35 @@ namespace Starcounter.InstallerWPF.Components {
         protected override void SetDefaultValues() {
             base.SetDefaultValues();
 
-#if !SIMULATE_CLEAN_INSTALLATION
+#if !SIMULATE_INSTALLATION
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.PersonalServer];
 #endif
 
-            //this.SendUsageAndCrashReports = true;
+            MainWindow win = System.Windows.Application.Current.MainWindow as MainWindow;
 
-            this.Path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), ConstantsBank.SCProductName);
+            if (win.Configuration.CurrentInstallationSettings != null) {
+                this.Path = win.Configuration.CurrentInstallationSettings.DatabasesRepositoryPath;
+                this.DefaultUserHttpPort = win.Configuration.CurrentInstallationSettings.DefaultUserHttpPort;
+                this.DefaultSystemHttpPort = win.Configuration.CurrentInstallationSettings.DefaultSystemHttpPort;
+                this.DefaultAggregationPort = win.Configuration.CurrentInstallationSettings.DefaultAggregationPort;
+            }
+            else {
+                this.Path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), ConstantsBank.SCProductName);
+                this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
+                this.DefaultSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+                this.DefaultAggregationPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAggregationPort;
+            }
 
-            this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
-            this.DefaultSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
-            this.DefaultAggregationPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAggregationPort;
             this.DefaultPrologSqlProcessPort = StarcounterConstants.NetworkPorts.DefaultPersonalPrologSqlProcessPort;
 
             switch (this.Command) {
                 case ComponentCommand.Install:
-                    this.ExecuteCommand = !this.IsInstalled;
+                    if (win.Configuration.CurrentInstallationSettings != null) {
+                        this.ExecuteCommand = !this.IsInstalled && win.Configuration.CurrentInstallationSettings.InstallPersonalServer;
+                    }
+                    else {
+                        this.ExecuteCommand = !this.IsInstalled;
+                    }
                     break;
                 case ComponentCommand.None:
                     this.ExecuteCommand = false;
@@ -85,23 +80,18 @@ namespace Starcounter.InstallerWPF.Components {
             }
         }
 
-        public bool HasPath
-        {
-            get
-            {
+        public bool HasPath {
+            get {
                 return !string.IsNullOrEmpty(this.Path);
             }
         }
 
         private string _Path;
-        public string Path
-        {
-            get
-            {
+        public string Path {
+            get {
                 return this._Path;
             }
-            set
-            {
+            set {
                 if (string.Compare(this._Path, value) == 0) return;
                 this._Path = value;
                 this.OnPropertyChanged("Path");
@@ -110,10 +100,8 @@ namespace Starcounter.InstallerWPF.Components {
             }
         }
 
-        public bool NotUserPersonalDirectory
-        {
-            get
-            {
+        public bool NotUserPersonalDirectory {
+            get {
                 if (this.Path != null && this.Path is String) {
                     // Checking that server path is in user's personal directory.
                     try {
@@ -125,10 +113,8 @@ namespace Starcounter.InstallerWPF.Components {
             }
         }
 
-        public bool InvalidFolder
-        {
-            get
-            {
+        public bool InvalidFolder {
+            get {
                 if (this.Path != null && this.Path is String) {
                     string config = System.IO.Path.Combine(System.IO.Path.Combine(this.Path, "Personal"), "Personal.server.config");
                     if (File.Exists(config)) {
@@ -142,15 +128,12 @@ namespace Starcounter.InstallerWPF.Components {
         }
 
         private UInt16 _DefaultUserHttpPort;
-        public UInt16 DefaultUserHttpPort
-        {
-            get
-            {
+        public UInt16 DefaultUserHttpPort {
+            get {
                 return _DefaultUserHttpPort;
             }
 
-            set
-            {
+            set {
                 if (_DefaultUserHttpPort == value)
                     return;
 
@@ -160,15 +143,12 @@ namespace Starcounter.InstallerWPF.Components {
         }
 
         private UInt16 _DefaultSystemHttpPort;
-        public UInt16 DefaultSystemHttpPort
-        {
-            get
-            {
+        public UInt16 DefaultSystemHttpPort {
+            get {
                 return _DefaultSystemHttpPort;
             }
 
-            set
-            {
+            set {
                 if (_DefaultSystemHttpPort == value)
                     return;
 
@@ -178,15 +158,12 @@ namespace Starcounter.InstallerWPF.Components {
         }
 
         private UInt16 _DefaultAggregationPort;
-        public UInt16 DefaultAggregationPort
-        {
-            get
-            {
+        public UInt16 DefaultAggregationPort {
+            get {
                 return _DefaultAggregationPort;
             }
 
-            set
-            {
+            set {
                 if (_DefaultAggregationPort == value)
                     return;
 
@@ -196,15 +173,12 @@ namespace Starcounter.InstallerWPF.Components {
         }
 
         private UInt16 _DefaultPrologSqlProcessPort;
-        public UInt16 DefaultPrologSqlProcessPort
-        {
-            get
-            {
+        public UInt16 DefaultPrologSqlProcessPort {
+            get {
                 return _DefaultPrologSqlProcessPort;
             }
 
-            set
-            {
+            set {
                 if (_DefaultPrologSqlProcessPort == value)
                     return;
 
@@ -214,7 +188,7 @@ namespace Starcounter.InstallerWPF.Components {
         }
 
         public PersonalServer(ObservableCollection<BaseComponent> components)
-            : base(components) {
+                    : base(components) {
         }
 
         public override IList<System.Collections.DictionaryEntry> GetProperties() {

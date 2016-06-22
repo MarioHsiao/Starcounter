@@ -66,8 +66,8 @@ namespace Starcounter {
             /// </summary>
             /// <typeparam name="TJson">The Json instance type described by this schema</typeparam>
             /// <typeparam name="TTemplate">The schema for the Json.</typeparam>
-            public class Metadata<TJson, TTemplate> : Starcounter.Templates.ValueMetadata<TJson, TTemplate>
-                where TTemplate : Starcounter.Templates.TValue
+            public class Metadata<TJson, TTemplate> : ValueMetadata<TJson, TTemplate>
+                where TTemplate : TValue
                 where TJson : Json {
 
                 public Metadata(TJson app, TTemplate template) : base(app, template) { }
@@ -88,13 +88,16 @@ namespace Starcounter {
         /// </summary>
         public Json()
             : base() {
-            _cacheIndexInArr = -1;
-            _transaction = TransactionHandle.Invalid;
+#if JSONINSTANCECOUNTER
+            AssignInstanceNumber();
+#endif
+            cacheIndexInArr = -1;
+            transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();
-            _trackChanges = false;
-            _checkBoundProperties = true;
-            _appName = StarcounterEnvironment.AppName;
-            if (_Template == null) {
+            trackChanges = false;
+            checkBoundProperties = true;
+            appName = StarcounterEnvironment.AppName;
+            if (template == null) {
                 Template = GetDefaultTemplate();
             }
         }
@@ -105,7 +108,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="jsonStr">The string containing proper JSON</param>
         public Json(string jsonStr) : this() {
-            Template = TObject.CreateFromJson(jsonStr);
+            this.Template = TObject.CreateFromJson(jsonStr);
             this.PopulateFromJson(jsonStr);
         }
 
@@ -138,8 +141,8 @@ namespace Starcounter {
             if (Parent != null)
                 log = Parent.GetChangeLog(true);
 
-            if (log == null && lookInStepSiblings && _stepSiblings != null) {
-                foreach (var stepSibling in _stepSiblings) {
+            if (log == null && lookInStepSiblings && this.siblings != null) {
+                foreach (var stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
                     log = stepSibling.GetChangeLog(false);
@@ -173,20 +176,20 @@ namespace Starcounter {
                 if (Parent != null)
                     throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
 
-                if (_Session != null) {
+                if (this.session != null) {
                     // This instance is already attached to a session. We need to remove the old
                     // before setting the new.
-                    _Session.Data = null;
+                    this.session.Data = null;
                 }
 
                 if (value != null)
                     value.Data = this;
-                _Session = value;
+                this.session = value;
             }
         }
 
         private Session GetSession(bool lookInStepSiblings) {
-            Session session = _Session;
+            Session session = this.session;
 
             if (session != null)
                 return session;
@@ -194,8 +197,8 @@ namespace Starcounter {
             if (Parent != null)
                 session = Parent.GetSession(true);
 
-            if (session == null && lookInStepSiblings && _stepSiblings != null) {
-                foreach (var stepSibling in _stepSiblings) {
+            if (session == null && lookInStepSiblings && this.siblings != null) {
+                foreach (var stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
                     session = stepSibling.GetSession(false);
@@ -217,24 +220,24 @@ namespace Starcounter {
         /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
         public Template Template {
             set {
-                _Template = value;
-                _isArray = (_Template is TObjArr);
+                this.template = value;
+                this.isArray = (this.template is TObjArr);
 
-                if (_Template == null)
+                if (this.template == null)
                     return;
 
-                if (_Template is TObject && ((TObject)_Template).IsDynamic) {
-                    TObject t = (TObject)_Template;
+                if (this.template is TObject && ((TObject)this.template).IsDynamic) {
+                    TObject t = (TObject)this.template;
                     if (t.SingleInstance != null && t.SingleInstance != this) {
                         throw new Exception(String.Format("You cannot assign a Template ({0}) for a dynamic Json object (i.e. an Expando like object) to a new Json object ({0})", value, this));
                     }
-                    ((TObject)_Template).SingleInstance = (Json)this;
+                    ((TObject)this.template).SingleInstance = (Json)this;
                 } else {
-                    _Template.Sealed = true;
+                    this.template.Sealed = true;
 
-                    if (_Template.IsPrimitive) {
-                        _Template.TemplateIndex = 0;
-                        ((TValue)_Template).GenerateUnboundGetterAndSetter();
+                    if (this.template.IsPrimitive) {
+                        this.template.TemplateIndex = 0;
+                        ((TValue)this.template).GenerateUnboundGetterAndSetter();
                     }
                 }
 #if QUICKTUPLE
@@ -242,7 +245,7 @@ namespace Starcounter {
 #endif
             }
             get {
-                return _Template;
+                return this.template;
             }
         }
 
@@ -311,8 +314,8 @@ namespace Starcounter {
                     HasChanged(p);
                 }
             }
-            if (_trackChanges)
-                MarkAsReplaced(property);
+            if (this.trackChanges)
+                MarkAsDirty(property);
         }
 
         /// <summary>
@@ -334,7 +337,7 @@ namespace Starcounter {
         /// entire template (for example to mark a property for all Obj instances as Editable).</remarks>
         // TODO:
         // Metadata has never been used. It should either be fixed or removed.
-        internal ObjMetadata<TObject, Json> Metadata { get { return _Metadata; } }
+        internal ObjMetadata<TObject, Json> Metadata { get { return metadata; } }
 
         /// <summary>
         /// Gets or sets the parent.
@@ -343,22 +346,14 @@ namespace Starcounter {
         /// <exception cref="System.Exception">Cannot change parent in Apps</exception>
         public Json Parent {
             get {
-                return _parent;
+                return this.parent;
             }
             set {
-                if (_parent != null && _parent != value) {
+                if (this.parent != null && this.parent != value) {
                     throw new Exception("Cannot change parent of objects in Typed JSON trees");
                 }
                 SetParent(value);
             }
-        }
-
-        /// <summary>
-        /// URI that corresponds to this Json cache entry.
-        /// </summary>
-        public String CacheUri {
-            get;
-            set;
         }
 
         /// <summary>
@@ -372,13 +367,13 @@ namespace Starcounter {
             // all stateful info is correct.
 
             // Since we change parents we need to retrieve session twice.
-            if (isAddedToViewmodel && _parent != null) {
+            if (isAddedToViewmodel && this.parent != null) {
                 if (Session != null)
                     OnRemovedFromViewmodel(true);
             }
 
-            _parent = value;
-            if (_parent != null) {
+            this.parent = value;
+            if (this.parent != null) {
                 if (Session != null)
                     OnAddedToViewmodel(true);
             }
@@ -387,7 +382,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        public bool IsArray { get { return _isArray; } }
+        public bool IsArray { get { return this.isArray; } }
 
         /// <summary>
         /// 
