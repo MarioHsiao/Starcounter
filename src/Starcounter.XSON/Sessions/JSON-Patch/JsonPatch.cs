@@ -130,14 +130,27 @@ namespace Starcounter.XSON {
             }
 
             int patchSize;
+            int totalPatchSize = -1;
+
+            // A bool indicating if there are other paths for the same change that needs to be generated.
+            // This can happen if the same instance of a jsonobject is linked in several places.
+            // one change -> one or more patches.
+            // Each list of links/siblings will keep state of if it have been used/written or not, so we only
+            // need to call the same method again to get a new path for the patch.
+            bool morePathsExists = true; // Always run at least once.
             for (int i = 0; i < changes.Length; i++) {
-                patchSize = EstimateSizeOfPatch(changes[i], includeNamespace);
-                if (patchSize == -1) { // This change is no longer valid.
+                while (morePathsExists == true) {
+                    morePathsExists = false;
+                    patchSize = EstimateSizeOfPatch(changes[i], includeNamespace, ref morePathsExists);
+                    if (patchSize != -1)
+                        totalPatchSize += patchSize + 1;
+                } 
+
+                if (totalPatchSize == -1) { // This change is no longer valid.
                     changes[i] = Change.Invalid;
                     continue;
                 }
-                    
-                size += patchSize;
+                size += totalPatchSize;
             }
 
             size += changes.Length - 1; // Adding one ',' per change over zero.
@@ -181,12 +194,16 @@ namespace Starcounter.XSON {
                         var change = changes[i];
                         if (change.ChangeType == Change.INVALID)
                             continue;
+                        
+                        morePathsExists = true;
+                        while (morePathsExists) {
+                            if (addComma)
+                                writer.Write(',');
+                            addComma = true;
 
-                        if (addComma)
-                            writer.Write(',');
-                        addComma = true;
-
-                        WritePatch(change, ref writer, includeNamespace);
+                            morePathsExists = false;
+                            WritePatch(change, ref writer, includeNamespace, ref morePathsExists);
+                        }
                     }
 
                     writer.Write(']');
@@ -221,42 +238,26 @@ namespace Starcounter.XSON {
         /// <param name="from">From.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        private bool WritePatch(Change change, ref Utf8Writer writer, bool includeNamespace) {
+        private bool WritePatch(Change change, ref Utf8Writer writer, bool includeNamespace, ref bool morePathsExists) {
             int size;
             int writerStart = writer.Written;
-//            int pathStart;
-//            int pathEnd;
             TypedJsonSerializer serializer;
 
             writer.Write(patchStartToOp);
             writer.Write(patchOpUtf8Arr[change.ChangeType]);
             writer.Write(patchEndToPath);
 
-//            if (change.Property != null) {
-//                pathStart = writer.Written;
-                if (!WritePath(ref writer, change, includeNamespace)) {
+            if (!WritePath(ref writer, change, includeNamespace, ref morePathsExists)) {
                     writer.Skip(writer.Written - writerStart);
                     return false;
                 }
 
-                if (change.ChangeType == Change.MOVE) {
-                    // TODO: 
-                    // implement move.
-                    throw new NotImplementedException("Move operation is not yet implemented.");
-
-                    //// Copy the contens of the path, changing the index 
-                    //pathEnd = writer.Written;
-                    //writer.Write(patchEndToFrom);
-
-                    ////TODO: 
-                    //// Copy...
-                    //unsafe {
-                    //    byte* pBuf = writer.Buffer;
-                        
-                    //}
-                }
-//            }
-
+            if (change.ChangeType == Change.MOVE) {
+                // TODO: 
+                // implement move.
+                throw new NotImplementedException("Move operation is not yet implemented.");
+            }
+            
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
                 writer.Write(patchEndToValue);
 
@@ -290,7 +291,7 @@ namespace Starcounter.XSON {
             return true;
         }
 
-        internal static int EstimateSizeOfPatch(Change change, bool includeNamespace) {
+        internal static int EstimateSizeOfPatch(Change change, bool includeNamespace, ref bool morePathsExists) {
             int size;
             int pathSize;
             TypedJsonSerializer serializer;
@@ -310,7 +311,7 @@ namespace Starcounter.XSON {
             size = 19;
             size += patchOpUtf8Arr[change.ChangeType].Length;
 
-            pathSize = EstimateSizeOfPath(change.Parent, includeNamespace, false);
+            pathSize = EstimateSizeOfPath(change.Parent, includeNamespace, false, ref morePathsExists);
             if (pathSize == -1) {
                 // No valid path found.
                 return -1;
@@ -346,16 +347,13 @@ namespace Starcounter.XSON {
             return size;
         }
 
-        private static int EstimateSizeOfPath(Json json, bool includeNamespace, bool calledFromStepSibling) {
+        private static int EstimateSizeOfPath(Json json, bool includeNamespace, bool calledFromStepSibling, ref bool morePathsExists) {
             int size;
             int totalSize;
             Json parent;
             Template template;
             Session session;
-
-            // TODO:
-            // Evaluate all possible paths and create patches for all valid ones. 
-
+            
             if (json == null)
                 return -1;
 
@@ -369,25 +367,38 @@ namespace Starcounter.XSON {
             size = -1;
             totalSize = 0;
             if (!calledFromStepSibling && json.allSiblingLists != null) {
-                // TODO:
-                // Check this code. If several lists with siblings exists, we should 
-                // create one patch for each list. Now we simply check the first one.
-                foreach (var siblingList in json.allSiblingLists) {
+                // Get the first siblinglist that hasn't been processed yet.
+                int siblingListIndex = json.allSiblingLists.FindIndex((Predicate<SiblingList>)((list) => { return list.IsUsedForPatch == false; }));
+
+                bool anotherMore = false;
+                
+                if (siblingListIndex != -1) {
+                    var siblingList = json.allSiblingLists[siblingListIndex];
                     foreach (Json stepSibling in siblingList) {
                         if (stepSibling == json)
                             continue;
-                        size = EstimateSizeOfPath(stepSibling, includeNamespace, true);
+                        size = EstimateSizeOfPath(stepSibling, includeNamespace, true, ref anotherMore);
                         if (size != -1)
                             break;
                     }
-                    break;
+                    siblingList.IsUsedForPatch = true;
+
+                    if (anotherMore == true || (siblingListIndex + 1) < json.allSiblingLists.Count) {
+                        morePathsExists = true;
+                    }
+                } 
+
+                if (!morePathsExists) {
+                    // We are finished with this one, lets reset all the flags since 
+                    // writing the patches also depend on this value.
+                    json.allSiblingLists.ForEach((Action<SiblingList>)((list) => { list.IsUsedForPatch = false; }));
                 }
             }
 
             parent = null;
             if (size == -1) {
                 parent = json.Parent;
-                size = EstimateSizeOfPath(parent, includeNamespace, false);
+                size = EstimateSizeOfPath(parent, includeNamespace, false, ref morePathsExists);
             }
 
             if (size == -1)
@@ -421,15 +432,12 @@ namespace Starcounter.XSON {
             return totalSize;
         }
 
-        private bool WritePath(ref Utf8Writer writer, Json json, bool includeNamespace, bool calledFromStepSibling) {
+        private bool WritePath(ref Utf8Writer writer, Json json, bool includeNamespace, bool calledFromStepSibling, ref bool morePathsExists) {
             bool pathWritten;
             Json parent;
             Template template;
             Session session;
-
-            // TODO:
-            // Evaluate all possible paths and create patches for all valid ones. 
-
+            
             if (json == null)
                 return false;
 
@@ -441,28 +449,40 @@ namespace Starcounter.XSON {
                 return true;
 
             pathWritten = false;
-
-            // TODO:
-            // Check this code. If several lists with siblings exists, we should 
-            // create one patch for each list. Now we simply check the first one.
+            
             if (!calledFromStepSibling && json.allSiblingLists != null) {
-                foreach (var siblingList in json.allSiblingLists) {
+
+                // Get the first siblinglist that hasn't been processed yet.
+                int siblingListIndex = json.allSiblingLists.FindIndex((Predicate<SiblingList>)((list) => { return list.IsUsedForPatch == false; }));
+
+                bool anotherMore = false;
+                if (siblingListIndex != -1) {
+                    var siblingList = json.allSiblingLists[siblingListIndex];
                     foreach (Json stepSibling in siblingList) {
                         if (stepSibling == json)
                             continue;
 
-                        pathWritten = WritePath(ref writer, stepSibling, includeNamespace, true);
+                        pathWritten = WritePath(ref writer, stepSibling, includeNamespace, true, ref anotherMore);
                         if (pathWritten)
                             break;
                     }
-                    break;
+                    siblingList.IsUsedForPatch = true;
+
+                    if (anotherMore == true || (siblingListIndex + 1) < json.allSiblingLists.Count) {
+                        morePathsExists = true;
+                    }
+                }
+
+                if (!morePathsExists) {
+                    // We are finished with this one, lets reset all the flags.
+                    json.allSiblingLists.ForEach((Action<SiblingList>)((list) => { list.IsUsedForPatch = false; }));
                 }
             }
 
             parent = null;
             if (!pathWritten) {
                 parent = json.Parent;
-                pathWritten = WritePath(ref writer, parent, includeNamespace, false);
+                pathWritten = WritePath(ref writer, parent, includeNamespace, false, ref morePathsExists);
             }
 
             if (!pathWritten)
@@ -495,8 +515,8 @@ namespace Starcounter.XSON {
             return true;
         }
 
-        private bool WritePath(ref Utf8Writer writer, Change change, bool includeNamespace) {
-            if (WritePath(ref writer, change.Parent, includeNamespace, false)) {
+        private bool WritePath(ref Utf8Writer writer, Change change, bool includeNamespace, ref bool more) {
+            if (WritePath(ref writer, change.Parent, includeNamespace, false, ref more)) {
                 if (change.Property != null) {
                     writer.Write('/');
                     writer.Write(change.Property.TemplateName);

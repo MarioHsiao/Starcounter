@@ -122,6 +122,10 @@ namespace Starcounter.XSON {
         /// <summary>
         ///
         /// </summary>
-        public string Key { get; private set; }
+        internal string Key { get; private set; }
+
+        // Used currently when generating patches to keep track of 
+        // which lists already have been patched.
+        internal bool IsUsedForPatch { get; set; }
     }
 }
