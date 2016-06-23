@@ -204,7 +204,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
             var name = node.Identifier.Text;
             var typeName = node.Type.ToString();
-            codeBehindMetadata.ExistingPropertiesList.Add(new PropertyInfo() { Name = name, TypeName = typeName });
+            codeBehindMetadata.ExistingPropertyList.Add(new PropertyInfo() { Name = name, TypeName = typeName });
         }
 
         void DiscoverInputHandler(MethodDeclarationSyntax node) {
