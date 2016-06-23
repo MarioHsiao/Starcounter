@@ -138,8 +138,8 @@ namespace Starcounter.XSON.Metadata {
         //        /// </summary>
         public List<InputBindingInfo> InputBindingList = new List<InputBindingInfo>();
 
-
-
+        public List<PropertyInfo> ExistingPropertiesList = new List<PropertyInfo>();
+        
         /// <summary>
         /// The classname including any path specified by the user in the .cs file.
         /// The root class name is denoted with an asterix (*) as it should always
