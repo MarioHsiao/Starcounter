@@ -64,6 +64,24 @@ namespace Server.API {
                     return Self.POST("/api/tasks/startdatabase", null, request.BodyBytes, null);
                 }, opt);
 
+                // Initiate task, install software
+                Handle.POST(port, "/serverapi/tasks/installsoftware", (Request request) => {
+
+                    Response response;
+                    if (!Authentication.Authenticate(settings, request, out response)) { return response; }
+                    return Self.POST("/api/tasks/installsoftware", null, request.BodyBytes, null);
+                }, opt);
+
+                // Initiate task, uninstall software
+                Handle.POST(port, "/serverapi/tasks/uninstallsoftware", (Request request) => {
+
+                    Response response;
+                    if (!Authentication.Authenticate(settings, request, out response)) { return response; }
+                    return Self.POST("/api/tasks/uninstallsoftware", null, request.BodyBytes, null);
+                }, opt);
+
+
+
                 // Initiate task, install application
                 Handle.POST(port, "/serverapi/tasks/installapplication", (Request request) => {
 
@@ -156,6 +174,22 @@ namespace Server.API {
                     Response response;
                     if (!Authentication.Authenticate(settings, request, out response)) { return response; }
                     return Self.GET(string.Format("/api/admin/databases/{0}", id));
+                }, opt);
+
+                // Get database software
+                Handle.GET(port, "/serverapi/databases/{?}/software", (string databaseName, Request request) => {
+
+                    Response response;
+                    if (!Authentication.Authenticate(settings, request, out response)) { return response; }
+                    return Self.GET(string.Format("/api/admin/databases/{0}/software", databaseName));
+                }, opt);
+
+                // Get database software
+                Handle.GET(port, "/serverapi/databases/{?}/software/{?}", (string databaseName, string id, Request request) => {
+
+                    Response response;
+                    if (!Authentication.Authenticate(settings, request, out response)) { return response; }
+                    return Self.GET(string.Format("/api/admin/databases/{0}/software/{1}", databaseName, id));
                 }, opt);
 
                 // Get database applications

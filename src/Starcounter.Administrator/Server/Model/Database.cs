@@ -561,7 +561,7 @@ namespace Administrator.Server.Model {
         public DatabaseApplication GetApplicationBySourceUrl(string sourceUrl) {
 
             foreach (DatabaseApplication app in this.Applications) {
-                // TODO: USe Uri.Compare(
+                // TODO: Use Uri.Compare?
                 if (String.Equals(app.SourceUrl, sourceUrl, StringComparison.OrdinalIgnoreCase)) {
                     return app;
                 }
@@ -1086,7 +1086,6 @@ namespace Administrator.Server.Model {
 
             // Execute Command
             var c = runtime.Execute(command, (commandId) => {
-                lock (ServerManager.ServerInstance) {
 
                     if (command is StartDatabaseCommand &&
                         (this.Status.HasFlag(DatabaseStatus.Stopping) ||
@@ -1114,7 +1113,6 @@ namespace Administrator.Server.Model {
                     //}
 
                     //return this.WantRunning == this.IsRunning;  // return true to cancel
-                }
             }, (commandId) => {
 
                 lock (ServerManager.ServerInstance) {
