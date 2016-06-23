@@ -74,7 +74,7 @@ namespace Starcounter.Internal
             SOCKET_DATA_FLAGS_JUST_SEND = 2 << 4,
             SOCKET_DATA_FLAGS_JUST_DISCONNECT = 2 << 5,
             SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 2 << 6,
-            HTTP_WS_FLAGS_COMPLETE_HEADER = 2 << 7,
+            // Free slot here 2 << 7.
             HTTP_WS_FLAGS_PROXIED_SERVER_SOCKET = 2 << 8,
             HTTP_WS_FLAGS_UNKNOWN_PROXIED_PROTO = 2 << 9,
             HTTP_WS_FLAGS_GRACEFULLY_CLOSE = 2 << 10,

@@ -33,12 +33,12 @@ namespace Starcounter.Query {
             Exception prologException = null;
             // Call Prolog and get answer
             se.sics.prologbeans.QueryAnswer answer = null;
+            string formatedQuery = query.Replace("\r\n", "\n");
             try {
-                string formatedQuery = query.Replace("\r\n", "\n");
                 answer = PrologManager.CallProlog(Starcounter.Internal.StarcounterEnvironment.AppName + QueryModule.DatabaseId, formatedQuery);
             } catch (SqlException ex) {
                 try {
-                    if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, slowSql, values))
+                    if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(formatedQuery, slowSql, values))
                         return null; // The query was executed.
                 } catch (Exception e) {
                     if (!(e is SqlException) || ((uint?)e.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRSQLUNKNOWNNAME))

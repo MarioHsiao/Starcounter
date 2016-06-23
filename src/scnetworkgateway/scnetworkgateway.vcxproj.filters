@@ -39,9 +39,6 @@
     <ClInclude Include="OurHeaders\socket_data.hpp">
       <Filter>OurHeaders</Filter>
     </ClInclude>
-    <ClInclude Include="OurHeaders\tls_proto.hpp">
-      <Filter>OurHeaders</Filter>
-    </ClInclude>
     <ClInclude Include="OurHeaders\utilities.hpp">
       <Filter>OurHeaders</Filter>
     </ClInclude>
@@ -81,9 +78,6 @@
       <Filter>OurSources</Filter>
     </ClCompile>
     <ClCompile Include="OurSources\utilities.cpp">
-      <Filter>OurSources</Filter>
-    </ClCompile>
-    <ClCompile Include="OurSources\tls_proto.cpp">
       <Filter>OurSources</Filter>
     </ClCompile>
     <ClCompile Include="ThirdPartySources\cdecode.cpp">
