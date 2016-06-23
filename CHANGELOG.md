@@ -34,9 +34,10 @@
 - CLI command `staradmin delete db` will no longer fail when, but instead stop, database is running [#3649](https://github.com/Starcounter/Starcounter/issues/3649)
 - `PartialToStandaloneHtmlProvider` middleware no longer forces Shadow DOM in Polymer [#3562](https://github.com/Starcounter/Starcounter/issues/3562)
 - `PartialToStandaloneHtmlProvider` middleware no longer overwrites default Bootstrap font size [#3665](https://github.com/Starcounter/Starcounter/issues/3665)
-- Add `Polymer 1.5.0` [#3673](https://github.com/Starcounter/Starcounter/issues/3673)
+- Upgraded Polymer to 1.5.0 [#3673](https://github.com/Starcounter/Starcounter/issues/3673)
 - Removed parameter `forceSnapshot` from `Db.Transact()` methods since the parameter is no longer valid. A `Db.Transact()` is always executed in snapshot isolation.
 - Removed parameter `detectConflicts` from `Transaction` since the parameter is no longer valid. A `Transaction` can no longer detect conflicts.
+- Upgraded PuppetJs to 2.0.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
 
 ## [2.2.1834] - 2016-04-19
 ### Added

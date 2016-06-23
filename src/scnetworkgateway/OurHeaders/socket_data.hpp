@@ -340,7 +340,6 @@ public:
     {
         reset_accumulating_flag();
         reset_to_database_direction_flag();
-        reset_complete_header_flag();
     }
 
     uint32_t GetTotalUserDataLengthFromDb() {
@@ -786,24 +785,6 @@ public:
     bool get_disconnect_socket_flag()
     {
         return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_JUST_DISCONNECT) != 0;
-    }
-
-    // Getting complete header flag.
-    bool get_complete_header_flag()
-    {
-        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_COMPLETE_HEADER) != 0;
-    }
-
-    // Setting complete header flag.
-    void set_complete_header_flag()
-    {
-        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_COMPLETE_HEADER;
-    }
-
-    // ReSetting complete header flag.
-    void reset_complete_header_flag()
-    {
-        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_COMPLETE_HEADER;
     }
 
     // Getting scheduler id.

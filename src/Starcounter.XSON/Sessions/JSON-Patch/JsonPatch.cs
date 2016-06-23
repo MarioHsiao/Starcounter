@@ -142,8 +142,7 @@ namespace Starcounter.XSON {
 
             size += changes.Length - 1; // Adding one ',' per change over zero.
             if (size < 2) size = 2;
-
-
+            
             if (size > StarcounterConstants.NetworkConstants.MaxResponseSize) {
                 var errMsg = "JsonPatch: Estimated needed size (" 
                             + size 
@@ -161,6 +160,7 @@ namespace Starcounter.XSON {
                     writer = new Utf8Writer(pbuf);
                     writer.Write('[');
 
+                    bool addComma = false;
                     if (versioning) {
                         writer.Write(replaceLocalVersionPatchStart);
                         writer.Write(changeLog.Version.LocalVersionPropertyName);
@@ -174,22 +174,21 @@ namespace Starcounter.XSON {
                         writer.Write(patchEndToValue);
                         writer.Write(changeLog.Version.RemoteVersion);
                         writer.Write('}');
-
-                        if (changes.Length > 0) {
-                            writer.Write(',');
-                        }
+                        addComma = true;
                     }
-
+                    
                     for (int i = 0; i < changes.Length; i++) {
                         var change = changes[i];
                         if (change.ChangeType == Change.INVALID)
                             continue;
 
-                        WritePatch(change, ref writer, includeNamespace);
-
-                        if ((i + 1) < changes.Length)
+                        if (addComma)
                             writer.Write(',');
+                        addComma = true;
+
+                        WritePatch(change, ref writer, includeNamespace);
                     }
+
                     writer.Write(']');
 
                     // Setting the actual size, since the first is just estimated.

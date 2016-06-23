@@ -2,24 +2,8 @@
 # Duration is specified in seconds, 60 means one minute.
 
 loadandlatency_test.bat 20000
-store_apps_test.bat 200
-tpcc_long_test.bat 500
 queryprocessing_test.bat 7000
 retaildemo_test.bat 900
 pokerdemo_test.bat 900
-hostlooper_test.bat 300
-apps_test.bat 300
-urls_test.bat 300
 websockets_test.bat 900
-schema_upgrade_test.bat 180
-udp_test.bat 100
 HttpStreams_test.exe 900
-3LevelSchemaChange_test.bat 120
-umbrella_node_test.bat 400
-star_loop_test.bat 140
-star_loop_exception_test.bat 140
-SimpleAggregation_test.bat 120
-SimpleAggregationRemote_test.bat 200
-SimpleIndependentTests_hosted_test.exe 500
-tpca_test.bat 300
-kitchensink_selenium_test.bat 180

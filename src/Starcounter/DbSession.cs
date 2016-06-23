@@ -254,18 +254,18 @@ namespace Starcounter {
         /// Runs the task represented by the action delegate on given scheduler and waits for its finish.
         /// </summary>
         public void RunSync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
-            ManualResetEvent mre = new ManualResetEvent(false);
+            ManualResetEventSlim mreSlim = new ManualResetEventSlim(false);
 
             RunAsync(() => {
                 try {
                     action();
                 } finally {
-                    mre.Set();
+                    mreSlim.Set();
                 }
                 
             }, schedId);
 
-            mre.WaitOne();
+            mreSlim.Wait();
         }
 
         /// <summary>

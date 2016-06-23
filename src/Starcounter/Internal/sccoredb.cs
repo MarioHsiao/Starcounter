@@ -85,8 +85,6 @@ namespace Starcounter.Internal
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
         public unsafe struct sccoredb_callbacks
         {
-            public void* query_highmem_cond;
-
             public void *on_index_updated;
         }
 

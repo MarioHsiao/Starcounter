@@ -4,7 +4,6 @@
 #include "ws_proto.hpp"
 #include "http_proto.hpp"
 #include "socket_data.hpp"
-#include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
 
