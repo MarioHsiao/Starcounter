@@ -180,7 +180,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (!(appTemplate is TObject)) {
                     throw new Exception(
                             String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found.",
-                                ci.RawDebugJsonMapAttribute,
+                                ci.JsonMapAttribute,
                                 mapParts[i]
                             ));
                 }
@@ -202,13 +202,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     if (template == null) {
                         throw new Exception(
                             String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found.",
-                                ci.RawDebugJsonMapAttribute,
+                                ci.JsonMapAttribute,
                                 mapParts[i]
                             ));
                     }
                     throw new Exception(
                         String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} has the unsupported type {2}.",
-                            ci.RawDebugJsonMapAttribute,
+                            ci.JsonMapAttribute,
                             mapParts[i],
                             template.GetType().Name
                         ));

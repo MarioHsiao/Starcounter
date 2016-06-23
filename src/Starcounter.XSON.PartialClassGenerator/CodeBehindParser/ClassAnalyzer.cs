@@ -106,7 +106,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 // It's mapped. If it's also a named root, it can only be
                 // mapped as such.
                 if (IsNamedRootObject()) {
-                    if (ci.RawDebugJsonMapAttribute != rootMapAttributeText) {
+                    if (ci.JsonMapAttribute != rootMapAttributeText) {
                         throw IllegalCodeBehindException(InvalidCodeBehindError.RootClassWithCustomMapping, node);
                     }
                 }
@@ -204,7 +204,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
             var name = node.Identifier.Text;
             var typeName = node.Type.ToString();
-            codeBehindMetadata.ExistingPropertyList.Add(new PropertyInfo() { Name = name, TypeName = typeName });
+            codeBehindMetadata.PropertyList.Add(new CodeBehindPropertyInfo() { Name = name, TypeName = typeName });
         }
 
         void DiscoverInputHandler(MethodDeclarationSyntax node) {

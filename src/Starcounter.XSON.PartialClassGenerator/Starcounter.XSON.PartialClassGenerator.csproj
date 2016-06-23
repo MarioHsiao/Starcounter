@@ -72,7 +72,7 @@
     <Compile Include="CodeBehindMetaData\CodeBehindMetadata.cs" />
     <Compile Include="CodeBehindMetaData\InputBindingInfo.cs" />
     <Compile Include="CodeBehindMetaData\CodeBehindClassInfo.cs" />
-    <Compile Include="CodeBehindMetaData\PropertyInfo.cs" />
+    <Compile Include="CodeBehindMetaData\CodeBehindPropertyInfo.cs" />
     <Compile Include="CodeBehindParser\ClassAnalyzer.cs" />
     <Compile Include="CodeBehindParser\CodeBehindFileAnalyzer.cs" />
     <Compile Include="CodeBehindParser\InvalidCodeBehindException.cs" />

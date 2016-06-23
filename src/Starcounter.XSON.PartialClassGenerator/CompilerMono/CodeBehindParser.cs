@@ -332,7 +332,7 @@ namespace Starcounter.XSON.Compiler.Mono {
 					// more than one attribute declared on a json class.
                     var jmi = CodeBehindClassInfo.EvaluateAttributeString(attribute, mce.LastFoundJsonAttribute);
                     if (jmi != null) {
-						if (jmi.RawDebugJsonMapAttribute != null)
+						if (jmi.JsonMapAttribute != null)
 							jmi.IsDeclaredInCodeBehind = true;
                         mce.LastFoundJsonAttribute = jmi;
                     }
@@ -407,7 +407,7 @@ namespace Starcounter.XSON.Compiler.Mono {
                     classInfo.IsDeclaredInCodeBehind = true;
                 } else if (!classInfo.IsRootClass) {
                     throw new Exception(String.Format("The class {0} has the attribute {1} although it has the same name as the .json file name.",
-                        foundClassName, classInfo.RawDebugJsonMapAttribute));
+                        foundClassName, classInfo.JsonMapAttribute));
                 }
                 classInfo.Namespace = mce.CurrentNamespace;
                 classInfo.BaseClassName = baseClass;
@@ -415,7 +415,7 @@ namespace Starcounter.XSON.Compiler.Mono {
 
                 // This is the main codebehind class. If attribute is not set, we add it here and parse it
                 // to get the correct information on how to connect the codebehind classes.
-                if (classInfo.RawDebugJsonMapAttribute == null) {
+                if (classInfo.JsonMapAttribute == null) {
                     classInfo = CodeBehindClassInfo.EvaluateAttributeString(className + "_json", classInfo);
                 }
 
