@@ -18,9 +18,9 @@ namespace Administrator.Server.Managers {
     /// Responsable for:
     /// * Get list of applications
     /// * Start application
-    /// * Stopp application
+    /// * Stop application
     /// * Install application (add to playlist)
-    /// * Uninstall application (remoe from playlist)
+    /// * Uninstall application (remove from playlist)
     /// </summary>
     public class ApplicationManager {
 
