@@ -37,5 +37,7 @@ powershell -command "Invoke-RestMethod http://localhost:8080/gen/stocklevel?W_ID
 rem run transactions internally
 powershell -command "Invoke-RestMethod http://localhost:8080/all_no_io?load_factor=1 -method POST" || exit /b 1
 
+rem run transactions using localhost I/O
+%~dp0\tpcc.exe -client 1000 || exit /b 1
 
 powershell -command "Invoke-RestMethod http://localhost:8080/stat"
