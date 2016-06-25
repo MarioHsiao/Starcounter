@@ -425,6 +425,31 @@ public:
         return worker_stats_recv_num_;
     }
 
+    // Printing the socket information.
+    void PrintSocketsInfo(std::stringstream& str)
+    {
+        bool first = true;
+
+        str << "[";
+        for (socket_index_type i = 0; i < g_gateway.setting_max_connections_per_worker(); i++)
+        {
+            ScSocketInfoStruct* si = sockets_infos_ + i;
+
+            // Checking that socket is alive.
+            if ((!si->IsReset()) && (INVALID_SOCKET != si->get_socket())) {
+
+                if (!first) {
+                    str << ",";
+                }
+
+                first = false;
+
+                si->PrintInfo(str);
+            }
+        }
+        str << "]";
+    }
+
     // Printing the worker information.
     void PrintInfo(std::stringstream& stats_stream)
     {
