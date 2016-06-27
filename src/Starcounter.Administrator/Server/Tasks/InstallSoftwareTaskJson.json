@@ -1,0 +1,11 @@
+﻿{
+  "$": { "Namespace": "Administrator.Server.Model" },
+  "DatabaseName": "",
+  "CanBeUninstalled": true,
+  "SourceUrl": "",
+  "SuiteContents": [
+    {
+      "SourceUrl": ""
+    }
+  ]
+}

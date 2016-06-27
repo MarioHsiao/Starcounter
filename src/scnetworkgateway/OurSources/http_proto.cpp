@@ -1108,6 +1108,21 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
 }
 
 // HTTP/WebSockets statistics for Gateway.
+uint32_t GatewaySocketsStats(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
+{
+    gw->WorkerEnterGlobalLock();
+
+    std::string stats_http_resp = g_gateway.GetGatewaySocketsStatisticsString();
+
+    gw->WorkerLeaveGlobalLock();
+
+    return gw->SendPredefinedMessage(
+        sd,
+        stats_http_resp.c_str(),
+        static_cast<int32_t>(stats_http_resp.length()));
+}
+
+// HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
     std::string stats_page_string = g_gateway.GetGatewayStatisticsString();
