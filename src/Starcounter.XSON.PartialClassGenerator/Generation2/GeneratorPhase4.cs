@@ -5,8 +5,7 @@ using Starcounter.XSON.Metadata;
 
 namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
-    /// Hooks up the code-behind bind classes and reorders the generated partials
-    /// accordingly.
+    /// Hooks up the code-behind bind classes and reorders the generated partials accordingly.
     /// </summary>
     internal class GeneratorPhase4 {
         private Gen2DomGenerator generator;
@@ -32,7 +31,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         /// <summary>
-        /// Connects the code behind classes.
+        /// Connects the classes in code-behind to the corresponding template.
         /// </summary>
         /// <param name="root">The root.</param>
         /// <param name="metadata">The metadata.</param>
@@ -50,7 +49,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 mapInfo = metadata.CodeBehindClasses[i];
 
                 if (mapInfo.IsMapped) {
-                    appTemplate = FindTAppFor(mapInfo, rootTemplate);
+                    appTemplate = FindTemplate(mapInfo, rootTemplate);
 
                     if (appTemplate.GetCodegenMetadata(Gen2DomGenerator.InstanceDataTypeName) != null) {
                         generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CompilerOrigin);
@@ -82,15 +81,72 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         mdAppClass.InheritedClass = outsider.NMetadataClass;
                     }
 
-//                    if (mapInfo.AutoBindToDataObject) {
-//                        ntAppClass.AutoBindProperties = true;
-//                   }
+                    //                    if (mapInfo.AutoBindToDataObject) {
+                    //                        ntAppClass.AutoBindProperties = true;
+                    //                   }
 
                     classesInOrder[i] = appTemplate;
                 }
             }
 
             ReorderCodebehindClasses(classesInOrder, metadata.CodeBehindClasses, root);
+        }
+
+        /// <summary>
+        /// Generates astnodes for inputbindings, i.e. connecting methods in code-behind for
+        /// validating input from clients.
+        /// </summary>
+        /// <param name="schemaClass">The class to generate inputbindings for.</param>
+        private void GenerateInputBindingsForASingleClass(AstSchemaClass schemaClass) {
+            AstProperty theProperty;
+            AstSchemaClass declaringSchemaClass;
+            AstInputBinding binding;
+            int index;
+
+            var classInfo = ((AstJsonClass)schemaClass.NValueClass).CodebehindClass;
+
+            if (classInfo == null) {
+                return;
+            }
+
+            foreach (InputBindingInfo info in classInfo.InputBindingList) {
+                // Find the property the binding is for. 
+                // The schemaclass that declares the property might not be the same 
+                // as the one specified in the info object since the Handle-implementation 
+                // can be declared in a parent class.
+                theProperty = FindPropertyForInput(schemaClass, info, out index);
+                declaringSchemaClass = (AstSchemaClass)theProperty.Parent.Parent;
+
+                binding = new AstInputBinding(generator);
+                binding.BindsToProperty = theProperty;
+                binding.PropertyAppClass = (AstJsonClass)generator.ObtainValueClass(declaringSchemaClass.Template);
+                binding.InputTypeName = info.FullInputTypeName;
+                generator.FindHandleDeclaringClass(binding, info);
+
+                // We check the next item in the constructor. All inputbindings for 
+                // the same property needs to be ordered with the least parent-calls first.
+                Int32 indexToCheck = index + 1;
+                var children = declaringSchemaClass.Constructor.Children;
+
+                while (indexToCheck < children.Count) {
+                    AstInputBinding otherBinding = children[indexToCheck] as AstInputBinding;
+
+                    if (otherBinding == null)
+                        break;
+                    if (otherBinding.BindsToProperty != binding.BindsToProperty)
+                        break;
+
+                    // Two handlers (or more) are declared for the same property. Lets
+                    // order them with the least parentcalls first.
+                    if (binding.AppParentCount < otherBinding.AppParentCount)
+                        break;
+
+                    index = indexToCheck;
+                    indexToCheck++;
+                }
+
+                declaringSchemaClass.Constructor.Children.Insert(index + 1, binding);
+            }
         }
 
         /// <summary>
@@ -116,11 +172,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     if (parentClasses.Count > 0) {
                         parent = root;
                         for (Int32 pi = parentClasses.Count - 1; pi >= 0; pi--) {
-                            parentClass = FindClass(parentClasses[pi], parent);
+                            parentClass = FindChildClass(parentClasses[pi], parent);
                             if (parentClass != null) {
                                 parent = parentClass;
-                            }
-                            else {
+                            } else {
                                 notExistingClass = new AstOtherClass(generator);
                                 notExistingClass.ClassStemIdentifier = parentClasses[pi];
                                 notExistingClass.IsPartial = true;
@@ -129,8 +184,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                             }
                         }
                         theClass.Parent = parent;
-                    }
-                    else {
+                    } else {
                         theClass.Parent = root;
                     }
                 }
@@ -138,30 +192,27 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         /// <summary>
-        /// Finds the class.
+        /// Searches in the parents children for an AstClass that have the 
+        /// same name as the specified classname.
         /// </summary>
-        /// <param name="className">Name of the class.</param>
-        /// <param name="parent">The parent.</param>
-        /// <returns>NClass.</returns>
-        private AstClass FindClass(string className, AstBase parent) {
-            AstClass nClass;
-            for (Int32 i = 0; i < parent.Children.Count; i++) {
-                nClass = parent.Children[i] as AstClass;
-                if ((nClass != null) && (nClass.ClassStemIdentifier.Equals(className))) {
-                    return nClass;
-                }
-            }
-            return null;
+        /// <param name="className">Name of the class to find.</param>
+        /// <param name="parent">The parent to look in.</param>
+        /// <returns>An AstClass, or null if no match was found.</returns>
+        private AstClass FindChildClass(string className, AstBase parent) {
+            return (AstClass)parent.Children.Find((child) => {
+                var astClass = child as AstClass;
+                if ((astClass != null) && astClass.ClassStemIdentifier.Equals(className))
+                    return true;
+                return false;
+            });
         }
 
         /// <summary>
-        /// Finds the app template for.
+        /// Finds the correct template using the classpath specified in the the code-behind metadata.
         /// </summary>
-        /// <param name="jsonMapName">Name of the json map.</param>
-        /// <param name="rootTemplate">The root template.</param>
-        /// <returns>TApp.</returns>
-        /// <exception cref="System.Exception">Invalid property to bind codebehind.</exception>
-        private TValue FindTAppFor(CodeBehindClassInfo ci, TValue rootTemplate) {
+        /// <param name="rootTemplate">The root template to the search from.</param>
+        /// <returns>A template, or null if no match is found.</returns>
+        private TValue FindTemplate(CodeBehindClassInfo ci, TValue rootTemplate) {
             TValue appTemplate;
             string[] mapParts;
             Template template;
@@ -192,11 +243,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 template = ((TObject)appTemplate).Properties.GetTemplateByPropertyName(mapParts[i]);
                 if (template is TObjArr) {
                     appTemplate = ((TObjArr)template).ElementType;
-                }
-                else if (template != null) {
+                } else if (template != null) {
                     appTemplate = (TValue)template;
-                }
-                else {
+                } else {
                     // TODO:
                     // Change to starcounter errorcode.
                     if (template == null) {
@@ -217,6 +266,105 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             return appTemplate;
         }
 
+        /// <summary>
+        /// Finds the property that corresponds to the information specified in the code-behind.
+        /// </summary>
+        /// <param name="parentSchemaClass">The starting schema.</param>
+        /// <param name="info">Info from code-behind.</param>
+        /// <param name="index">The index in the constructor of the declaring schema.</param>
+        /// <returns>The property.</returns>
+        private AstProperty FindPropertyForInput(AstSchemaClass parentSchemaClass, InputBindingInfo info, out int index) {
+            List<AstBase> children;
+            AstProperty np;
+            Template template;
+
+            // Find the class where the handle is declared.
+            string classname = info.DeclaringClassName;
+            AstClass astClass = parentSchemaClass;
+            while (astClass != null) {
+                if (classname.Equals(astClass.ClassStemIdentifier))
+                    break;
+                astClass = astClass.Parent as AstClass;
+            }
+
+            if (astClass == null) {
+                throw new Exception("Cannot find the class '"
+                                        + info.DeclaringClassName
+                                        + "' where the Handle method for "
+                                        + info.FullInputTypeName.Replace("Input.", "") +
+                                        " is implemented.");
+            }
+
+            var parts = info.FullInputTypeName.Split('.');
+
+            // The first index is always "Input", the next ones until the last is
+            // the childapps (the toplevel app is sent as a parameter in here)
+            // and the last index is the name of the property.
+            if (parts.Length > 2) {
+                for (Int32 i = 1; i < parts.Length - 1; i++) {
+                    children = astClass.Children;
+                    np = (AstProperty)children.Find((AstBase child) => {
+                        AstProperty property = child as AstProperty;
+                        if (property != null)
+                            return property.Template.PropertyName.Equals(parts[i]);
+                        return false;
+                    });
+
+                    if (np == null) {
+                        throw new Exception("Invalid Handle-method declared in class "
+                                            + info.DeclaringClassName
+                                            + ". Cannot find '"
+                                            + parts[i]
+                                            + "' in path "
+                                            + info.FullInputTypeName
+                                            + ".");
+                    }
+
+                    template = np.Template;
+                    if (template is TObjArr) {
+                        template = ((TObjArr)template).ElementType;
+                    }
+                    parentSchemaClass = (AstSchemaClass)generator.ObtainTemplateClass(template);
+                }
+            } else {
+                parentSchemaClass = (AstSchemaClass)((AstJsonClass)astClass).NTemplateClass;
+            }
+
+            var propertyName = parts[parts.Length - 1];
+
+            // We need to search in the children in the constructor since
+            // other inputbindings might have been added that makes the
+            // insertion index change.
+            children = parentSchemaClass.Constructor.Children;
+
+
+            // TODO: 
+            // Make sure that the inputbindings are added in the correct order if 
+            // we have more than one handler for the same property.
+            index = children.FindIndex((AstBase child) => {
+                AstProperty property = child as AstProperty;
+                if (property != null)
+                    return property.MemberName.Equals(propertyName);
+                return false;
+            });
+
+            if (index == -1) {
+                // TODO:
+                // Need to add file and linenumbers if possible to pinpoint the erroneous code.
+                // Change to starcounter errorcode.
+                throw new Exception("Invalid Handle-method declared in class "
+                                    + info.DeclaringClassName
+                                    + ". No property with name "
+                                    + info.FullInputTypeName.Replace("Input.", "") +
+                                    " exists.");
+            }
+            return (AstProperty)parentSchemaClass.Constructor.Children[index];
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ntApp"></param>
         private void CheckMissingBindingInformation(AstSchemaClass ntApp) {
             AstSchemaClass childTApp;
             AstProperty property;
@@ -253,151 +401,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         CheckMissingBindingInformation(childTApp);
                     }
                 }
-            }
-        }
-
-        private void FindInputProperty(ref AstSchemaClass tcn, InputBindingInfo info, out AstConstructor cst, out int index ) {
-            List<AstBase> children;
-            AstProperty np;
-            Template template;
-
-			// Find the class where the handle is declared.
-			string classname = info.DeclaringClassName;
-			AstClass astClass = tcn;
-			while (astClass != null) {
-				if (classname.Equals(astClass.ClassStemIdentifier))
-					break;
-				astClass = astClass.Parent as AstClass;
-			}
-
-			if (astClass == null) {
-				throw new Exception("Cannot find the class '"
-										+ info.DeclaringClassName
-										+ "' where the Handle method for "
-										+ info.FullInputTypeName.Replace("Input.", "") +
-										" is implemented.");
-			}
-
-            var parts = info.FullInputTypeName.Split('.');
-
-            // The first index is always "Input", the next ones until the last is
-            // the childapps (the toplevel app is sent as a parameter in here)
-            // and the last index is the name of the property.
-			if (parts.Length > 2) {
-				for (Int32 i = 1; i < parts.Length - 1; i++) {
-					children = astClass.Children;
-					np = (AstProperty)children.Find((AstBase child) => {
-						AstProperty property = child as AstProperty;
-						if (property != null)
-							return property.Template.PropertyName.Equals(parts[i]);
-						return false;
-					});
-
-					if (np == null) {
-						throw new Exception("Invalid Handle-method declared in class "
-											+ info.DeclaringClassName
-											+ ". Cannot find '"
-											+ parts[i] 
-											+ "' in path " 
-											+ info.FullInputTypeName 
-											+ ".");
-					}
-
-					template = np.Template;
-					if (template is TObjArr) {
-						template = ((TObjArr)template).ElementType;
-					}
-					tcn = (AstSchemaClass)generator.ObtainTemplateClass(template);
-				}
-			} else {
-				tcn = (AstSchemaClass)((AstJsonClass)astClass).NTemplateClass;
-			}
-
-            var propertyName = parts[parts.Length - 1];
-
-            // We need to search in the children in the constructor since
-            // other inputbindings might have been added that makes the
-            // insertion index change.
-            cst = tcn.Constructor;
-            children = cst.Children;
-
-            // TODO: 
-            // Make sure that the inputbindings are added in the correct order if 
-            // we have more than one handler for the same property.
-            index = children.FindIndex((AstBase child) => {
-                AstProperty property = child as AstProperty;
-                if (property != null)
-                    return property.MemberName.Equals(propertyName);
-                return false;
-            });
-
-        }
-
-        /// <summary>
-        /// Generates the input bindings.
-        /// </summary>
-        /// <param name="nApp">The n app.</param>
-        /// <param name="metadata">The metadata.</param>
-        /// <exception cref="System.Exception">Invalid Handle-method declared in class </exception>
-        private void GenerateInputBindingsForASingleClass(AstSchemaClass templateClass) {
-            AstSchemaClass tcn;
-            AstConstructor cst;
-            AstInputBinding binding;
-            int index;
-            
-            var classInfo = ((AstJsonClass)templateClass.NValueClass).CodebehindClass;
-
-            if (classInfo == null) {
-                return;
-            }
-
-            foreach (InputBindingInfo info in classInfo.InputBindingList) {
-                // Find the property the binding is for. 
-                // Might not be the same class as the one specified in the info object
-                // since the Handle-implementation can be declared in a parent class.
-				tcn = templateClass;
-                FindInputProperty(ref tcn, info, out cst, out index);
-
-                if (index == -1) {
-                    // TODO:
-                    // Need to add file and linenumbers if possible to pinpoint the erroneous code.
-                    // Change to starcounter errorcode.
-                    throw new Exception("Invalid Handle-method declared in class "
-                                        + info.DeclaringClassName
-                                        + ". No property with name "
-										+ info.FullInputTypeName.Replace("Input.", "") +
-                                        " exists.");
-                }
-
-				binding = new AstInputBinding(generator);
-                binding.BindsToProperty = (AstProperty)cst.Children[index];
-                binding.PropertyAppClass = (AstJsonClass)generator.ObtainValueClass(tcn.Template);
-                binding.InputTypeName = info.FullInputTypeName;
-				generator.FindHandleDeclaringClass(binding, info);
-                
-                // We check the next item in the constructor. All inputbindings for 
-                // the same property needs to be ordered with the least parent-calls first.
-                Int32 indexToCheck = index + 1;
-                var children = cst.Children;
-
-                while (indexToCheck < children.Count) {
-                    AstInputBinding otherBinding = children[indexToCheck] as AstInputBinding;
-
-                    if (otherBinding == null)
-                        break;
-                    if (otherBinding.BindsToProperty != binding.BindsToProperty)
-                        break;
-
-                    // Two handlers (or more) are declared for the same property. Lets
-                    // order them with the least parentcalls first.
-                    if (binding.AppParentCount < otherBinding.AppParentCount)
-                        break;
-
-                    index = indexToCheck;
-                    indexToCheck++;
-                }
-
-                tcn.Constructor.Children.Insert(index + 1, binding);
             }
         }
     }
