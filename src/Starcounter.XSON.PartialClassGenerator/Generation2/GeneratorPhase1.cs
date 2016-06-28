@@ -167,7 +167,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             var valueClass = generator.ObtainValueClass(template);
             var type = generator.ObtainTemplateClass(template);
 
-            // Node for accessor of the value in the jsonclass.
+            // Node for accessor of the value in the jsonclass (including backingfield).
             new AstProperty(generator) {
                 Parent = jsonParent,
                 Template = template,
