@@ -87,6 +87,7 @@
     <Compile Include="Server\API\Authentication.cs" />
     <Compile Include="Server\API\RestHandlers.cs" />
     <Compile Include="Server\Managers\ExternalAPI.cs" />
+    <Compile Include="Server\Managers\SoftwareManager.cs" />
     <Compile Include="Server\Model\AppStoreStore.cs" />
     <Compile Include="Server\Model\DeployedConfigFile.cs" />
     <Compile Include="Server\Managers\PackageManager.cs" />
@@ -583,6 +584,18 @@
     <None Include="app\vendor\jquery\jquery-2.1.0.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <TypedJSON Include="Server\Tasks\UninstallSoftwareTaskJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Tasks\InstallApplicationTaskJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\InstalledSoftware.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\InstalledSoftwareItems.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
     <TypedJSON Include="Server\Tasks\UpgradeApplicationTaskJson.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
@@ -607,7 +620,7 @@
     <TypedJSON Include="Server\Tasks\StartDatabaseTaskJson.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
-    <TypedJSON Include="Server\Tasks\InstallApplicationTaskJson.json">
+    <TypedJSON Include="Server\Tasks\InstallSoftwareTaskJson.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="Server\Tasks\CreateDatabaseTaskJson.json">

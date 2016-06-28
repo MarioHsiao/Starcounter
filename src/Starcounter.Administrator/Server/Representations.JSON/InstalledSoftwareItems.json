@@ -1,0 +1,4 @@
+﻿{
+  "$": { "Namespace": "Representations.JSON" },
+  "Items": [ { "$": { "Reuse": "Representations.JSON.InstalledSoftware" } } ]
+}

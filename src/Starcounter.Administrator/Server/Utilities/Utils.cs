@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Administrator.Server.Managers;
+using Administrator.Server.Model;
+using Starcounter.Administrator.Server.Handlers;
+using Starcounter.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -38,6 +42,7 @@ namespace Administrator.Server.Utilities {
         public static bool IsDirectoryEmpty(string folder) {
             return !Directory.EnumerateFileSystemEntries(folder).Any();
         }
+
 
         /// <summary>
         /// Replaces certain parameter in XML file.
@@ -105,6 +110,57 @@ namespace Administrator.Server.Utilities {
                 return false;
             }
         }
+
+        #region Callback
+        public static void CallBack(Action callback) {
+
+            try {
+                if (callback != null) {
+                    callback();
+                }
+            }
+            catch (Exception e) {
+                StarcounterAdminAPI.AdministratorLogSource.LogError(string.Format("UnhandledException, {0}", e.ToString()));
+            }
+        }
+
+        public static void CallBack(Action<string> callback, string text) {
+
+            try {
+                if (callback != null) {
+                    callback(text);
+                }
+            }
+            catch (Exception e) {
+                StarcounterAdminAPI.AdministratorLogSource.LogError(string.Format("UnhandledException, {0}", e.ToString()));
+            }
+        }
+
+        public static void CallBack(Action<DatabaseApplication> callback, DatabaseApplication databaseApplication) {
+
+            if (callback != null) {
+                try {
+                    callback(databaseApplication);
+                }
+                catch (Exception e) {
+                    StarcounterAdminAPI.AdministratorLogSource.LogError(string.Format("UnhandledException, {0}", e.ToString()));
+                }
+            }
+        }
+
+        public static void CallBack(Action<int,string> callback, int code, string text) {
+
+            if (callback != null) {
+                try {
+                    callback(code,text);
+                }
+                catch (Exception e) {
+                    StarcounterAdminAPI.AdministratorLogSource.LogError(string.Format("UnhandledException, {0}", e.ToString()));
+                }
+            }
+        }
+
+        #endregion
 
     }
 }

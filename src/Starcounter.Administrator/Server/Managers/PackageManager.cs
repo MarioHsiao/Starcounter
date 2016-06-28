@@ -201,8 +201,15 @@ namespace Administrator.Server.Managers {
                     File.Delete(imageFile);
                 }
 
-                // Clean up empty folders
                 DirectoryInfo channelFolder = di.Parent;
+
+                // Remove suite reference file
+                string suiteReferenceFile = Path.Combine(channelFolder.FullName, SoftwareManager.SoftwareReferenceFileName);
+                if (File.Exists(suiteReferenceFile)) {
+                    File.Delete(suiteReferenceFile);
+                }
+
+                // Clean up empty folders
                 if (Administrator.Server.Utilities.Utils.IsDirectoryEmpty(channelFolder.FullName)) {
                     channelFolder.Delete();
 

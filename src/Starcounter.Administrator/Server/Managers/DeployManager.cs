@@ -5,6 +5,8 @@ using Starcounter.Administrator.API.Handlers;
 using Starcounter.Administrator.Server;
 using Starcounter.Server.PublicModel;
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -83,6 +85,22 @@ namespace Administrator.Server.Managers {
             //    // Fallback folder
             //    return GetRawDeployFolder(databaseName);
             //}
+        }
+
+
+        /// <summary>
+        /// Get Application folder
+        /// </summary>
+        /// <example>
+        /// c:\Users\john\Documents\Starcounter\Personal\Databases\default\apps\StarcounterSamples.Launcher\Stable\
+        /// </example>
+        /// <param name="database"></param>
+        /// <param name="nameSpace"></param>
+        /// <param name="channel"></param>
+        /// <returns></returns>
+        public static string GetApplicationFolder(Database database, string nameSpace, string channel) {
+            string appRootFolder = DeployManager.GetDeployFolder(database.ID);
+            return Path.Combine(Path.Combine(appRootFolder, nameSpace), channel);
         }
 
         private static char? AppsDrive = null;
@@ -242,6 +260,9 @@ namespace Administrator.Server.Managers {
                     return;
                 }
 
+
+                PlaylistManager.UninstallApplication(application);
+
                 DeployedConfigFile config = DeployManager.GetItemFromApplication(application);
 
                 if (config == null) {
@@ -310,17 +331,17 @@ namespace Administrator.Server.Managers {
 
             Http.GET(sourceUrl, headers, (Response response) => {
 
-                if (response.IsSuccessStatusCode) {
+                    if (response.IsSuccessStatusCode) {
 
-                    if (completionCallback != null) {
-                        completionCallback(response.BodyBytes);
+                        if (completionCallback != null) {
+                            completionCallback(response.BodyBytes);
+                        }
                     }
-                }
-                else {
-                    if (errorCallback != null) {
-                        errorCallback(response.StatusCode, response.Body);
+                    else {
+                        if (errorCallback != null) {
+                            errorCallback(response.StatusCode, response.Body);
+                        }
                     }
-                }
             }, 3600, opt);
         }
     }

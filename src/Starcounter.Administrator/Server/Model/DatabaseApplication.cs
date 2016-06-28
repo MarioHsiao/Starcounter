@@ -23,10 +23,8 @@ namespace Administrator.Server.Model {
         public string ID;
         public string Namespace;
         public string Channel;
-        public string DatabaseName
-        {
-            get
-            {
+        public string DatabaseName {
+            get {
                 if (this.Database != null) {
                     return this.Database.ID;
                 }
@@ -53,14 +51,11 @@ namespace Administrator.Server.Model {
         public string Heading;
 
         private bool _IsDeployed;
-        public bool IsDeployed
-        {
-            get
-            {
+        public bool IsDeployed {
+            get {
                 return this._IsDeployed;
             }
-            set
-            {
+            set {
                 if (this._IsDeployed == value) return;
                 this._IsDeployed = value;
                 this.OnPropertyChanged("IsDeployed");
@@ -68,14 +63,11 @@ namespace Administrator.Server.Model {
         }
 
         private bool _IsInstalled;
-        public bool IsInstalled
-        {
-            get
-            {
+        public bool IsInstalled {
+            get {
                 return this._IsInstalled;
             }
-            set
-            {
+            set {
                 if (this._IsInstalled == value) return;
                 this._IsInstalled = value;
                 this.OnPropertyChanged("IsInstalled");
@@ -83,14 +75,11 @@ namespace Administrator.Server.Model {
         }
 
         private bool _CanBeUninstalled;
-        public bool CanBeUninstalled
-        {
-            get
-            {
+        public bool CanBeUninstalled {
+            get {
                 return this._CanBeUninstalled;
             }
-            set
-            {
+            set {
                 if (this._CanBeUninstalled == value) return;
                 this._CanBeUninstalled = value;
                 this.OnPropertyChanged("CanBeUninstalled");
@@ -98,14 +87,11 @@ namespace Administrator.Server.Model {
         }
 
         private ApplicationStatus _Status;
-        public ApplicationStatus Status
-        {
-            get
-            {
+        public ApplicationStatus Status {
+            get {
                 return this._Status;
             }
-            set
-            {
+            set {
                 if (this._Status == value) return;
                 this._Status = value;
                 this.OnPropertyChanged("Status");
@@ -113,14 +99,11 @@ namespace Administrator.Server.Model {
         }
 
         private string _StatusText;
-        public string StatusText
-        {
-            get
-            {
+        public string StatusText {
+            get {
                 return this._StatusText;
             }
-            set
-            {
+            set {
                 if (this._StatusText == value) return;
                 this._StatusText = value;
                 this.OnPropertyChanged("StatusText");
@@ -128,10 +111,8 @@ namespace Administrator.Server.Model {
         }
 
         private ErrorMessage _ErrorMessage = new ErrorMessage();
-        public ErrorMessage ErrorMessage
-        {
-            get
-            {
+        public ErrorMessage ErrorMessage {
+            get {
                 return this._ErrorMessage;
             }
             //set {
@@ -142,10 +123,8 @@ namespace Administrator.Server.Model {
             //}
         }
 
-        public bool HasErrorMessage
-        {
-            get
-            {
+        public bool HasErrorMessage {
+            get {
                 return !(
                 string.IsNullOrEmpty(this.ErrorMessage.Title) &&
                 string.IsNullOrEmpty(this.ErrorMessage.Message) &&
@@ -158,14 +137,11 @@ namespace Administrator.Server.Model {
 
         #region Running
         private bool _IsRunning;
-        public bool IsRunning
-        {
-            get
-            {
+        public bool IsRunning {
+            get {
                 return this._IsRunning;
             }
-            set
-            {
+            set {
                 if (this._IsRunning == value) return;
                 this._IsRunning = value;
                 this.OnPropertyChanged("IsRunning");
@@ -173,14 +149,11 @@ namespace Administrator.Server.Model {
         }
 
         private bool _StartingError;
-        public bool StartingError
-        {
-            get
-            {
+        public bool StartingError {
+            get {
                 return this._StartingError;
             }
-            set
-            {
+            set {
                 if (this._StartingError == value) return;
                 this._StartingError = value;
                 this.OnPropertyChanged("StartingError");
@@ -188,14 +161,11 @@ namespace Administrator.Server.Model {
         }
 
         private bool _StoppingError;
-        private bool StoppingError
-        {
-            get
-            {
+        private bool StoppingError {
+            get {
                 return this._StoppingError;
             }
-            set
-            {
+            set {
                 if (this._StoppingError == value) return;
                 this._StoppingError = value;
                 this.OnPropertyChanged("StoppingError");
@@ -204,14 +174,11 @@ namespace Administrator.Server.Model {
         #endregion
 
         private bool _InstallingError;
-        public bool InstallingError
-        {
-            get
-            {
+        public bool InstallingError {
+            get {
                 return this._InstallingError;
             }
-            set
-            {
+            set {
                 if (this._InstallingError == value) return;
                 this._InstallingError = value;
                 this.OnPropertyChanged("InstallingError");
@@ -219,14 +186,11 @@ namespace Administrator.Server.Model {
         }
 
         private bool _UpgradingError;
-        public bool UpgradingError
-        {
-            get
-            {
+        public bool UpgradingError {
+            get {
                 return this._UpgradingError;
             }
-            set
-            {
+            set {
                 if (this._UpgradingError == value) return;
                 this._UpgradingError = value;
                 this.OnPropertyChanged("UpgradingError");
@@ -234,14 +198,11 @@ namespace Administrator.Server.Model {
         }
 
         private bool _UninstallingError;
-        public bool UninstallingError
-        {
-            get
-            {
+        public bool UninstallingError {
+            get {
                 return this._UninstallingError;
             }
-            set
-            {
+            set {
                 if (this._UninstallingError == value) return;
                 this._UninstallingError = value;
                 this.OnPropertyChanged("UninstallingError");
@@ -249,14 +210,11 @@ namespace Administrator.Server.Model {
         }
 
         private bool _DeletingError;
-        public bool DeletingError
-        {
-            get
-            {
+        public bool DeletingError {
+            get {
                 return this._DeletingError;
             }
-            set
-            {
+            set {
                 if (this._DeletingError == value) return;
                 this._DeletingError = value;
                 this.OnPropertyChanged("DeletingError");
@@ -1012,22 +970,20 @@ namespace Administrator.Server.Model {
             // Execute Command
             var c = runtime.Execute(command, (commandId) => {
 
-                lock (ServerManager.ServerInstance) {
 
-                    if (command is StartExecutableCommand &&
-                        (this.Status.HasFlag(ApplicationStatus.Stopping) ||
-                        this.Status.HasFlag(ApplicationStatus.Deleting))) {
+                if (command is StartExecutableCommand &&
+                    (this.Status.HasFlag(ApplicationStatus.Stopping) ||
+                    this.Status.HasFlag(ApplicationStatus.Deleting))) {
 
-                        return true;    // return true to cancel
-                    }
-                    else if (command is StopExecutableCommand && this.Status.HasFlag(ApplicationStatus.Starting)) {
-
-                        return true;    // return true to cancel
-                    }
-
-
-                    return false;   // return true to cancel
+                    return true;    // return true to cancel
                 }
+                else if (command is StopExecutableCommand && this.Status.HasFlag(ApplicationStatus.Starting)) {
+
+                    return true;    // return true to cancel
+                }
+
+
+                return false;   // return true to cancel
 
             }, (commandId) => {
 
@@ -1204,33 +1160,31 @@ namespace Administrator.Server.Model {
         /// <returns></returns>
         public static DatabaseApplication ToApplication(Representations.JSON.PlayListLocalItem item, string databaseName) {
 
-            lock (ServerManager.ServerInstance) {
-                var versionInfo = FileVersionInfo.GetVersionInfo(item.Executable);
+            var versionInfo = FileVersionInfo.GetVersionInfo(item.Executable);
 
-                Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+            Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
 
-                Trace.Assert(database != null, "Database not found: " + databaseName);
+            Trace.Assert(database != null, "Database not found: " + databaseName);
 
-                DatabaseApplication application = new DatabaseApplication();
-                application.Database = database;
-                application.Namespace = string.Empty;
-                application.Channel = string.Empty;
-                application.DisplayName = item.AppName;
-                application.AppName = item.AppName;
-                application.Description = versionInfo.FileDescription;
-                application.Version = versionInfo.FileVersion;
-                application.VersionDate = File.GetLastWriteTimeUtc(item.Executable);
-                application.ResourceFolder = item.Resourcefolder;
-                application.Company = versionInfo.CompanyName;
-                application.ImageUri = string.Empty; // TODO: Use default image?
-                application.Executable = item.Executable;
-                application.Arguments = string.Empty;
-                application.SourceID = string.Empty;
-                application.SourceUrl = string.Empty;   // TODO: Maybe use file://abc/123.exe ?
-                application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
-                application.CanBeUninstalled = false;
-                return application;
-            }
+            DatabaseApplication application = new DatabaseApplication();
+            application.Database = database;
+            application.Namespace = string.Empty;
+            application.Channel = string.Empty;
+            application.DisplayName = item.AppName;
+            application.AppName = item.AppName;
+            application.Description = versionInfo.FileDescription;
+            application.Version = versionInfo.FileVersion;
+            application.VersionDate = File.GetLastWriteTimeUtc(item.Executable);
+            application.ResourceFolder = item.Resourcefolder;
+            application.Company = versionInfo.CompanyName;
+            application.ImageUri = string.Empty; // TODO: Use default image?
+            application.Executable = item.Executable;
+            application.Arguments = string.Empty;
+            application.SourceID = string.Empty;
+            application.SourceUrl = string.Empty;   // TODO: Maybe use file://abc/123.exe ?
+            application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
+            application.CanBeUninstalled = false;
+            return application;
         }
 
         /// <summary>
@@ -1241,32 +1195,30 @@ namespace Administrator.Server.Model {
         /// <returns></returns>
         public static DatabaseApplication ToApplication(DeployedConfigFile item, string databaseName) {
 
-            lock (ServerManager.ServerInstance) {
-                Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+            Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
 
-                Trace.Assert(database != null, "Database not found: " + databaseName);
+            Trace.Assert(database != null, "Database not found: " + databaseName);
 
-                DatabaseApplication application = new DatabaseApplication();
-                application.Database = database;
-                application.Namespace = item.Namespace;
-                application.Channel = item.Channel;
-                application.DisplayName = item.DisplayName;
-                application.AppName = item.AppName;
-                application.Description = item.Description;
-                application.Version = item.Version;
-                application.VersionDate = item.VersionDate;
-                application.ResourceFolder = item.GetResourceFullPath(DeployManager.GetDeployFolder(database.ID));
-                application.Company = item.Company;
-                application.ImageUri = string.IsNullOrEmpty(item.ImageUri) ? string.Empty : string.Format("{0}/{1}", DeployManager.GetAppImagesFolder(), item.ImageUri); // Use default image?
-                application.Executable = item.GetExecutableFullPath(DeployManager.GetDeployFolder(database.ID));
-                application.Arguments = string.Empty;
-                application.SourceID = item.SourceID;
-                application.SourceUrl = item.SourceUrl;
+            DatabaseApplication application = new DatabaseApplication();
+            application.Database = database;
+            application.Namespace = item.Namespace;
+            application.Channel = item.Channel;
+            application.DisplayName = item.DisplayName;
+            application.AppName = item.AppName;
+            application.Description = item.Description;
+            application.Version = item.Version;
+            application.VersionDate = item.VersionDate;
+            application.ResourceFolder = item.GetResourceFullPath(DeployManager.GetDeployFolder(database.ID));
+            application.Company = item.Company;
+            application.ImageUri = string.IsNullOrEmpty(item.ImageUri) ? string.Empty : string.Format("{0}/{1}", DeployManager.GetAppImagesFolder(), item.ImageUri); // Use default image?
+            application.Executable = item.GetExecutableFullPath(DeployManager.GetDeployFolder(database.ID));
+            application.Arguments = string.Empty;
+            application.SourceID = item.SourceID;
+            application.SourceUrl = item.SourceUrl;
 
-                application.CanBeUninstalled = item.CanBeUninstalled;
-                application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(application.DatabaseName + item.GetExecutableFullPath(DeployManager.GetRawDeployFolder(database.ID)));
-                return application;
-            }
+            application.CanBeUninstalled = item.CanBeUninstalled;
+            application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(application.DatabaseName + item.GetExecutableFullPath(DeployManager.GetRawDeployFolder(database.ID)));
+            return application;
         }
 
         /// <summary>
@@ -1277,42 +1229,40 @@ namespace Administrator.Server.Model {
         /// <returns></returns>
         public static DatabaseApplication ToApplication(AppInfo item, string databaseName) {
 
-            lock (ServerManager.ServerInstance) {
-                Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+            Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
 
-                Trace.Assert(database != null, "Database not found: " + databaseName);
+            Trace.Assert(database != null, "Database not found: " + databaseName);
 
-                DatabaseApplication application = new DatabaseApplication();
-                application.Database = database;
-                application.Namespace = string.Empty;
-                application.Channel = string.Empty;
-                application.DisplayName = item.Name;
-                application.AppName = item.Name;
+            DatabaseApplication application = new DatabaseApplication();
+            application.Database = database;
+            application.Namespace = string.Empty;
+            application.Channel = string.Empty;
+            application.DisplayName = item.Name;
+            application.AppName = item.Name;
 
-                try {
-                    var versionInfo = FileVersionInfo.GetVersionInfo(item.FilePath);
-                    application.Description = versionInfo.FileDescription;
-                    application.Version = versionInfo.FileVersion;
-                    application.Company = versionInfo.CompanyName;
-                }
-                catch (Exception) {
-                    application.Description = string.Empty;
-                    application.Version = string.Empty;
-                    application.Company = string.Empty;
-                }
-
-                application.VersionDate = File.GetLastWriteTimeUtc(item.FilePath);
-                application.ResourceFolder = item.WorkingDirectory;
-                application.ImageUri = string.Empty; // TODO: Use default image?
-                application.Executable = item.FilePath;
-                application.Arguments = string.Empty; // TODO:
-                application.SourceID = string.Empty;
-                application.SourceUrl = string.Empty; // TODO: Maybe use file://abc/123.exe ?
-
-                application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
-                application.CanBeUninstalled = false;
-                return application;
+            try {
+                var versionInfo = FileVersionInfo.GetVersionInfo(item.FilePath);
+                application.Description = versionInfo.FileDescription;
+                application.Version = versionInfo.FileVersion;
+                application.Company = versionInfo.CompanyName;
             }
+            catch (Exception) {
+                application.Description = string.Empty;
+                application.Version = string.Empty;
+                application.Company = string.Empty;
+            }
+
+            application.VersionDate = File.GetLastWriteTimeUtc(item.FilePath);
+            application.ResourceFolder = item.WorkingDirectory;
+            application.ImageUri = string.Empty; // TODO: Use default image?
+            application.Executable = item.FilePath;
+            application.Arguments = string.Empty; // TODO:
+            application.SourceID = string.Empty;
+            application.SourceUrl = string.Empty; // TODO: Maybe use file://abc/123.exe ?
+
+            application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
+            application.CanBeUninstalled = false;
+            return application;
         }
 
         #region INotifyPropertyChanged Members
