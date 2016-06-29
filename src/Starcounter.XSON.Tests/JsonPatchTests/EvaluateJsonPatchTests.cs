@@ -785,6 +785,46 @@ namespace Starcounter.Internal.XSON.Tests {
             outgoingPatch = jsonPatch.Generate(json, true, false); // ServerVersion: 6
         }
 
+        [Test]
+        public static void TestEmptryStringAsNumberInPatch_3725() {
+            dynamic json = new Json();
+            var session = new Session(SessionOptions.StrictPatchRejection);
+            var jsonPatch = new JsonPatch();
+            string incomingPatch;
+            string outgoingPatch;
+
+            json.Session = session;
+            json.NumberLong = 1L;
+            json.Template.Properties[0].Editable = true;
+            json.NumberDbl = 2.0d;
+            json.Template.Properties[1].Editable = true;
+            json.NumberDec = 3.0m;
+            json.Template.Properties[2].Editable = true;
+
+            jsonPatch.Generate(json, true, false); // Resetting dirtyflags.
+
+            // Testing empty string for long value 
+            incomingPatch = string.Format(Helper.ONE_PATCH_ARR, "/NumberLong", Helper.Jsonify(""));
+            Assert.DoesNotThrow(() => { jsonPatch.Apply(json, incomingPatch, true); });
+            Assert.AreEqual(0L, json.NumberLong);
+            outgoingPatch = jsonPatch.Generate(json, true, false);
+            Assert.AreEqual(string.Format(Helper.ONE_PATCH_ARR, "/NumberLong", "0"), outgoingPatch);
+
+            // Testing empty string for double value 
+            incomingPatch = string.Format(Helper.ONE_PATCH_ARR, "/NumberDbl", Helper.Jsonify(""));
+            Assert.DoesNotThrow(() => { jsonPatch.Apply(json, incomingPatch, true); });
+            Assert.AreEqual(default(double), json.NumberDbl);
+            outgoingPatch = jsonPatch.Generate(json, true, false);
+            Assert.AreEqual(string.Format(Helper.ONE_PATCH_ARR, "/NumberDbl", "0.0"), outgoingPatch);
+
+            // Testing empty string for decimal value 
+            incomingPatch = string.Format(Helper.ONE_PATCH_ARR, "/NumberDec", Helper.Jsonify(""));
+            Assert.DoesNotThrow(() => { jsonPatch.Apply(json, incomingPatch, true); });
+            Assert.AreEqual(default(decimal), json.NumberDbl);
+            outgoingPatch = jsonPatch.Generate(json, true, false);
+            Assert.AreEqual(string.Format(Helper.ONE_PATCH_ARR, "/NumberDec", "0.0"), outgoingPatch);
+        }
+
 
         private static string GetVersioningPatch(ViewModelVersion version, long clientVersion, long serverVersion) {
             return

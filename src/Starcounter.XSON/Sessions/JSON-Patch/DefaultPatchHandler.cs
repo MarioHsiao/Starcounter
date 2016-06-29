@@ -80,6 +80,13 @@ namespace Starcounter.XSON {
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             }
             property.ProcessInput(parent, value);
+
+            if (size == 2 && value == default(decimal)) {
+                // Some special handling when client sends an empty string as input. We currently allow this
+                // and treat it as default value for this type. However, we need to make sure we send default value
+                // back to the client to properly change the string (on the client) to number.
+                parent.MarkAsDirty(property);
+            }
         }
 
         private static void ParseAndProcess(TDouble property, Json parent, IntPtr valuePtr, int valueSize) {
@@ -91,6 +98,13 @@ namespace Starcounter.XSON {
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             }
             property.ProcessInput(parent, value);
+
+            if (size == 2 && value == default(double)) {
+                // Some special handling when client sends an empty string as input. We currently allow this
+                // and treat it as default value for this type. However, we need to make sure we send default value
+                // back to the client to properly change the string (on the client) to number.
+                parent.MarkAsDirty(property);
+            }
         }
 
         private static void ParseAndProcess(TLong property, Json parent, IntPtr valuePtr, int valueSize) {
@@ -102,6 +116,13 @@ namespace Starcounter.XSON {
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             }
             property.ProcessInput(parent, value);
+
+            if (realValueSize == 0 && value == default(long)) {
+                // Some special handling when client sends an empty string as input. We currently allow this
+                // and treat it as default value for this type. However, we need to make sure we send default value
+                // back to the client to properly change the string (on the client) to number.
+                parent.MarkAsDirty(property);
+            }
         }
 
         private static void ParseAndProcess(TString property, Json parent, IntPtr valuePtr, int valueSize) {
