@@ -26,6 +26,7 @@
 - Fixed a bug where patches in a databound array were not properly generated, after an item was removed [#3669](https://github.com/Starcounter/Starcounter/issues/3669)
 - Fixed a bug relating to reference failures sometimes showing with new Roslyn-based code-behind parser, [#3666](https://github.com/Starcounter/Starcounter/issues/3666)
 - Fixed a bug where a part of the jsontree was prematurely checkpointed when gathering changes for creating patches. 
+- Allowing empty string as value in patches for properties with type long, decimal or double when applying jsonpatches. This value will be converted to the default value for the specified type and also correct value will be sent back to client [#3725](https://github.com/Starcounter/Starcounter/issues/3725)
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
