@@ -2,12 +2,12 @@
 `juicy-jsoneditor element` - Polymer wrapper for josdejong/jsoneditor.
 
 @element juicy-jsoneditor
-version: 1.0.5
+version: 1.1.0
 -->
 
-<link rel="import" href="../../polymer/polymer.html">
-<script src="../../jsoneditor/dist/jsoneditor.min.js"></script>
-<script src="../../fast-json-patch/src/json-patch-duplex.js"></script>
+<link rel="import" href="../polymer/polymer.html">
+<script src="../jsoneditor/dist/jsoneditor.min.js"></script>
+<script src="../fast-json-patch/src/json-patch-duplex.js"></script>
 
 <!-- Define your custom element -->
 <dom-module id="juicy-jsoneditor">
@@ -31,19 +31,17 @@ version: 1.0.5
             Polymer({
                 is: 'juicy-jsoneditor',
                 properties: {
-                    json: { type: Object, value: null, observer: "jsonChanged" },
+                    json: { type: Object, value: function() { return {}; }, observer: "jsonChanged" },
                     mode: { type: String, observer: "modeChanged" },
                     modes: { type: Array, value: [] },
                     name: { type: String, observer: "nameChanged" },
-                    search: { type: Boolean, value: true },
+                    search: { type: Boolean, observer: "searchChanged", value: true },
                     indentation: { type: String },
                     history: { type: Boolean, value: false }
                 },
                 editor: null,
                 observer: null,
                 created: function () {
-                    //prevent sharing the same Object by different instances
-                    //this.json = {};
                     //force context for observers
                     this.refresh = this.refresh.bind(this);
                 },
@@ -61,7 +59,7 @@ version: 1.0.5
                             search: this.search,
                             indentation: this.indentation,
 
-                            change: function editorChanged() {
+                            onChange: function editorChanged() {
                                 if (!that.editor) {
                                     return;
                                 }
@@ -93,7 +91,7 @@ version: 1.0.5
                     }
 
                     //Adding styles bypassing Polymer scoping
-                    var url = Polymer.ResolveUrl.resolveUrl("../../jsoneditor/dist/jsoneditor.min.css", script.ownerDocument.baseURI);
+                    var url = Polymer.ResolveUrl.resolveUrl("../jsoneditor/dist/jsoneditor.min.css", script.ownerDocument.baseURI);
                     var style = document.createElement("style");
 
                     style.classList.add("juicy-jsoneditor-styles");
@@ -109,6 +107,10 @@ version: 1.0.5
                     this.editor && this.editor.setMode(this.mode);
                 },
                 nameChanged: function nameChanged() {
+                    this.editor && this.editor.setName(this.name);
+                },
+                searchChanged: function searchChanged() {
+                    this.search = !(this.getAttribute('search') === 'false');
                     this.editor && this.editor.setName(this.name);
                 },
                 jsonChanged: function jsonChanged(newJson, oldJson) {
@@ -146,7 +148,7 @@ version: 1.0.5
                     }
 
                     if (!focused) {
-                        focused = document.querySelector("html /deep/ :focus");
+                        focused = this.$.jsoneditorContainer.querySelector(":focus");
                     }
 
                     var r = {
@@ -181,7 +183,7 @@ version: 1.0.5
                         var range = document.createRange();
                         var selection = window.getSelection();
 
-                        range.selectNodeContents(document.querySelector("html /deep/ :focus"));
+                        range.selectNodeContents(this.$.jsoneditorContainer.querySelector(":focus"));
                         range.collapse(false);
 
                         selection.removeAllRanges();

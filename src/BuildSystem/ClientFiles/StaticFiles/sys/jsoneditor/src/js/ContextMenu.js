@@ -1,3 +1,5 @@
+'use strict';
+
 var util = require('./util');
 
 /**
@@ -18,17 +20,22 @@ function ContextMenu (items, options) {
   this.items = items;
   this.eventListeners = {};
   this.selection = undefined; // holds the selection before the menu was opened
-  this.visibleSubmenu = undefined;
   this.onClose = options ? options.close : undefined;
+
+  // create root element
+  var root = document.createElement('div');
+  root.className = 'jsoneditor-contextmenu-root';
+  dom.root = root;
 
   // create a container element
   var menu = document.createElement('div');
   menu.className = 'jsoneditor-contextmenu';
   dom.menu = menu;
+  root.appendChild(menu);
 
   // create a list to hold the menu items
   var list = document.createElement('ul');
-  list.className = 'menu';
+  list.className = 'jsoneditor-menu';
   menu.appendChild(list);
   dom.list = list;
   dom.items = []; // list with all buttons
@@ -47,7 +54,7 @@ function ContextMenu (items, options) {
       if (item.type == 'separator') {
         // create a separator
         var separator = document.createElement('div');
-        separator.className = 'separator';
+        separator.className = 'jsoneditor-separator';
         li = document.createElement('li');
         li.appendChild(separator);
         list.appendChild(li);
@@ -67,7 +74,8 @@ function ContextMenu (items, options) {
           button.title = item.title;
         }
         if (item.click) {
-          button.onclick = function () {
+          button.onclick = function (event) {
+            event.preventDefault();
             me.hide();
             item.click();
           };
@@ -78,19 +86,19 @@ function ContextMenu (items, options) {
         if (item.submenu) {
           // add the icon to the button
           var divIcon = document.createElement('div');
-          divIcon.className = 'icon';
+          divIcon.className = 'jsoneditor-icon';
           button.appendChild(divIcon);
           button.appendChild(document.createTextNode(item.text));
 
           var buttonSubmenu;
           if (item.click) {
             // submenu and a button with a click handler
-            button.className += ' default';
+            button.className += ' jsoneditor-default';
 
             var buttonExpand = document.createElement('button');
             domItem.buttonExpand = buttonExpand;
-            buttonExpand.className = 'expand';
-            buttonExpand.innerHTML = '<div class="expand"></div>';
+            buttonExpand.className = 'jsoneditor-expand';
+            buttonExpand.innerHTML = '<div class="jsoneditor-expand"></div>';
             li.appendChild(buttonExpand);
             if (item.submenuTitle) {
               buttonExpand.title = item.submenuTitle;
@@ -101,14 +109,15 @@ function ContextMenu (items, options) {
           else {
             // submenu and a button without a click handler
             var divExpand = document.createElement('div');
-            divExpand.className = 'expand';
+            divExpand.className = 'jsoneditor-expand';
             button.appendChild(divExpand);
 
             buttonSubmenu = button;
           }
 
           // attach a handler to expand/collapse the submenu
-          buttonSubmenu.onclick = function () {
+          buttonSubmenu.onclick = function (event) {
+            event.preventDefault();
             me._onExpandItem(domItem);
             buttonSubmenu.focus();
           };
@@ -118,14 +127,14 @@ function ContextMenu (items, options) {
           domItem.subItems = domSubItems;
           var ul = document.createElement('ul');
           domItem.ul = ul;
-          ul.className = 'menu';
+          ul.className = 'jsoneditor-menu';
           ul.style.height = '0';
           li.appendChild(ul);
           createMenuItems(ul, domSubItems, item.submenu);
         }
         else {
           // no submenu, just a button with clickhandler
-          button.innerHTML = '<div class="icon"></div>' + item.text;
+          button.innerHTML = '<div class="jsoneditor-icon"></div>' + item.text;
         }
 
         domItems.push(domItem);
@@ -176,60 +185,65 @@ ContextMenu.visibleMenu = undefined;
 
 /**
  * Attach the menu to an anchor
- * @param {HTMLElement} anchor
+ * @param {HTMLElement} anchor          Anchor where the menu will be attached
+ *                                      as sibling.
+ * @param {HTMLElement} [contentWindow] The DIV with with the (scrollable) contents
  */
-ContextMenu.prototype.show = function (anchor) {
+ContextMenu.prototype.show = function (anchor, contentWindow) {
   this.hide();
 
-  // calculate whether the menu fits below the anchor
-  var windowHeight = window.innerHeight,
-      windowScroll = (window.pageYOffset || document.scrollTop || 0),
-      windowBottom = windowHeight + windowScroll,
-      anchorHeight = anchor.offsetHeight,
-      menuHeight = this.maxHeight;
+  // determine whether to display the menu below or above the anchor
+  var showBelow = true;
+  if (contentWindow) {
+    var anchorRect = anchor.getBoundingClientRect();
+    var contentRect = contentWindow.getBoundingClientRect();
+
+    if (anchorRect.bottom + this.maxHeight < contentRect.bottom) {
+      // fits below -> show below
+    }
+    else if (anchorRect.top - this.maxHeight > contentRect.top) {
+      // fits above -> show above
+      showBelow = false;
+    }
+    else {
+      // doesn't fit above nor below -> show below
+    }
+  }
 
   // position the menu
-  var left = util.getAbsoluteLeft(anchor);
-  var top = util.getAbsoluteTop(anchor);
-  if (top + anchorHeight + menuHeight < windowBottom) {
+  if (showBelow) {
     // display the menu below the anchor
-    this.dom.menu.style.left = left + 'px';
-    this.dom.menu.style.top = (top + anchorHeight) + 'px';
+    var anchorHeight = anchor.offsetHeight;
+    this.dom.menu.style.left = '0px';
+    this.dom.menu.style.top = anchorHeight + 'px';
     this.dom.menu.style.bottom = '';
   }
   else {
     // display the menu above the anchor
-    this.dom.menu.style.left = left + 'px';
+    this.dom.menu.style.left = '0px';
     this.dom.menu.style.top = '';
-    this.dom.menu.style.bottom = (windowHeight - top) + 'px';
+    this.dom.menu.style.bottom = '0px';
   }
 
-  // attach the menu to the document
-  document.body.appendChild(this.dom.menu);
+  // attach the menu to the parent of the anchor
+  var parent = anchor.parentNode;
+  parent.insertBefore(this.dom.root, parent.firstChild);
 
   // create and attach event listeners
   var me = this;
   var list = this.dom.list;
-  this.eventListeners.mousedown = util.addEventListener(
-      document, 'mousedown', function (event) {
-        // hide menu on click outside of the menu
-        var target = event.target;
-        if ((target != list) && !me._isChildOf(target, list)) {
-          me.hide();
-          event.stopPropagation();
-          event.preventDefault();
-        }
-      });
-  this.eventListeners.mousewheel = util.addEventListener(
-      document, 'mousewheel', function (event) {
-        // block scrolling when context menu is visible
-        event.stopPropagation();
-        event.preventDefault();
-      });
-  this.eventListeners.keydown = util.addEventListener(
-      document, 'keydown', function (event) {
-        me._onKeyDown(event);
-      });
+  this.eventListeners.mousedown = util.addEventListener(window, 'mousedown', function (event) {
+    // hide menu on click outside of the menu
+    var target = event.target;
+    if ((target != list) && !me._isChildOf(target, list)) {
+      me.hide();
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  });
+  this.eventListeners.keydown = util.addEventListener(window, 'keydown', function (event) {
+    me._onKeyDown(event);
+  });
 
   // move focus to the first button in the context menu
   this.selection = util.getSelection();
@@ -249,8 +263,8 @@ ContextMenu.prototype.show = function (anchor) {
  */
 ContextMenu.prototype.hide = function () {
   // remove the menu from the DOM
-  if (this.dom.menu.parentNode) {
-    this.dom.menu.parentNode.removeChild(this.dom.menu);
+  if (this.dom.root.parentNode) {
+    this.dom.root.parentNode.removeChild(this.dom.root);
     if (this.onClose) {
       this.onClose();
     }
@@ -262,7 +276,7 @@ ContextMenu.prototype.hide = function () {
     if (this.eventListeners.hasOwnProperty(name)) {
       var fn = this.eventListeners[name];
       if (fn) {
-        util.removeEventListener(document, name, fn);
+        util.removeEventListener(window, name, fn);
       }
       delete this.eventListeners[name];
     }
@@ -292,7 +306,7 @@ ContextMenu.prototype._onExpandItem = function (domItem) {
     setTimeout(function () {
       if (me.expandedItem != expandedItem) {
         expandedItem.ul.style.display = '';
-        util.removeClassName(expandedItem.ul.parentNode, 'selected');
+        util.removeClassName(expandedItem.ul.parentNode, 'jsoneditor-selected');
       }
     }, 300); // timeout duration must match the css transition duration
     this.expandedItem = undefined;
@@ -308,7 +322,7 @@ ContextMenu.prototype._onExpandItem = function (domItem) {
         ul.style.padding = '5px 10px';
       }
     }, 0);
-    util.addClassName(ul.parentNode, 'selected');
+    util.addClassName(ul.parentNode, 'jsoneditor-selected');
     this.expandedItem = domItem;
   }
 };
@@ -360,7 +374,7 @@ ContextMenu.prototype._onKeyDown = function (event) {
     }
   }
   else if (keynum == 37) { // Arrow Left
-    if (target.className == 'expand') {
+    if (target.className == 'jsoneditor-expand') {
       buttons = this._getVisibleButtons();
       targetIndex = buttons.indexOf(target);
       prevButton = buttons[targetIndex - 1];
@@ -374,7 +388,7 @@ ContextMenu.prototype._onKeyDown = function (event) {
     buttons = this._getVisibleButtons();
     targetIndex = buttons.indexOf(target);
     prevButton = buttons[targetIndex - 1];
-    if (prevButton && prevButton.className == 'expand') {
+    if (prevButton && prevButton.className == 'jsoneditor-expand') {
       // skip expand button
       prevButton = buttons[targetIndex - 2];
     }
@@ -391,7 +405,7 @@ ContextMenu.prototype._onKeyDown = function (event) {
     buttons = this._getVisibleButtons();
     targetIndex = buttons.indexOf(target);
     nextButton = buttons[targetIndex + 1];
-    if (nextButton && nextButton.className == 'expand') {
+    if (nextButton && nextButton.className == 'jsoneditor-expand') {
       nextButton.focus();
     }
     handled = true;
@@ -400,7 +414,7 @@ ContextMenu.prototype._onKeyDown = function (event) {
     buttons = this._getVisibleButtons();
     targetIndex = buttons.indexOf(target);
     nextButton = buttons[targetIndex + 1];
-    if (nextButton && nextButton.className == 'expand') {
+    if (nextButton && nextButton.className == 'jsoneditor-expand') {
       // skip expand button
       nextButton = buttons[targetIndex + 2];
     }

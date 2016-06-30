@@ -47,7 +47,7 @@
     "tag": "1.4.1",
     "commit": "2cfacbd7c10af35b4f1b5e0dd4be3f46996242ba"
   },
-  "_source": "git://github.com/Juicy/imported-template.git",
-  "_target": "~1.4.0",
-  "_originalSource": "Juicy/imported-template"
+  "_source": "https://github.com/Juicy/imported-template.git",
+  "_target": ">=1.4.1",
+  "_originalSource": "imported-template"
 }
