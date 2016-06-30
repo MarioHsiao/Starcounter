@@ -3,6 +3,166 @@
 https://github.com/josdejong/jsoneditor
 
 
+## 2016-06-15, version 5.5.6
+
+- Fixed #303: editor contents collapsed when the parent div of the JSONEditor
+  has no height set.
+- Improved example 04_load_and_save.html. Thanks @RDCH106.
+
+
+## 2016-05-24, version 5.5.5
+
+- Fixed #298: Switch mode button disappears when switching from text/code to
+  tree/form/view mode when the JSON contained errors.
+- Fixed enum drop downs not working when the JSONEditor is configured with
+  a name.
+
+
+## 2016-05-22, version 5.5.4
+
+- Fixed #285: an issue with the enum drop down when having defined multiple
+  enums in a JSON schema.
+- Fixed a (harmless) error in the console when clicking right from an enum
+  drop down.
+
+
+## 2016-05-22, version 5.5.3
+
+- Fixed #299: reverted the fix of #268 by trimming text in fields and values.
+
+
+## 2016-04-18, version 5.5.2
+
+- Fixed #294: Fields reset their caret location on every key press in Firefox.
+
+
+## 2016-04-16, version 5.5.1
+
+- Fixed enum select boxes not being rendered/removed when setting or removing
+  a JSON schema via `editor.setSchema(schema)`.
+
+
+## 2016-04-16, version 5.5.0
+
+- Implemented a dropdown for values having an JSON Schema enum.
+  Thanks @tdakanalis.
+- Fixed #291, #292: Some CSS broken when using the editor in combination with
+  bootstrap. Thanks @nucleartide.
+
+## 2016-04-09, version 5.4.0
+
+- Upgraded all dependencies (`ajv`, `brace`, etc).
+- Fixed #289: Some CSS breaking when using the editor in combination with
+  materialize.css or bootstrap.
+- Fixed #290: `setText()` not working in mode text or code.
+
+
+## 2016-04-06, version 5.3.0
+
+- Implemented support for sorting object keys naturally. Thanks @edufelipe.
+- Sorting object keys or array items via the context menu is now also naturally
+  sorted.
+- Fixed #283: improved JSON schema error message in case of no
+  additionalProperties.
+- Fixed #286: Calling `get()` or `getText()` caused the editor to lose focus.
+  A regression introduced in v5.2.0.
+
+
+## 2016-03-20, version 5.2.0
+
+- Implemented method `editor.destroy()` to properly cleanup the editor (#278).
+- Fixed #268: JSONEditor now trims text in fields and values.
+- Fixed #280: Some CSS issues when used in combination with bootstrap.
+
+
+## 2016-02-15, version 5.1.5
+
+- Fixed #272: Checkbox for boolean values visible in view mode.
+
+
+## 2016-02-13, version 5.1.4
+
+- Fixed broken example 04_load_and_save.html. See #265.
+
+
+## 2016-02-03, version 5.1.3
+
+- Fixed #264: Clicking items in the context menu not working on Firefox.
+
+
+## 2016-01-21, version 5.1.2
+
+- Improvements in sanitizing invalid JSON.
+- Updated dependencies to the latest version.
+- Fixed clicking format/compact not triggering an onChange event.
+- Fixed #259: when having a JSONEditor inside an HTML form, clicking an entry
+  in the context menu did submit the form.
+- Fixed browserify build, see #260. Thanks @onip.
+
+
+## 2016-01-16, version 5.1.1
+
+- Fixed #257: Improving error messages for enum errors failed when the
+  schema contains references.
+- Fixed #255: Removed wrong console warning about the option `search`.
+- Fixed error thrown when option `search` is false (see #256). Thanks @MiroHibler.
+
+
+## 2016-01-14, version 5.1.0
+
+- Implemented support for JSON schema validation, powered by `ajv`.
+- Implemented #197: display an error in case of duplicate keys in an object.
+- Implemented #183: display a checkbox left from boolean values, so you can
+  easily switch between true/false.
+- Implemented debouncing of keyboard input, resulting in much less history
+  actions whilst typing.
+- Added a minimalist bundle to the `dist` folder, excluding `ace` and `ajv`.
+- Fixed #222: editor throwing `onChange` events when switching mode.
+- Fixed an error throw when switching to mode "code" via the menu.
+- Fixed interfering shortcut keys: changed quick keys to select multiple fields
+  from `Shift+Arrow Up/Down` to `Ctrl+Shift+Arrow Up/Down`.
+
+
+
+## 2015-12-31, version 5.0.1
+
+- Fixed a bug in positioning of the context menu for multiple selected nodes.
+- Fixed #130: option `onEditable` not available in mode `form`.
+- Fixed #202: removed `version` field from bower.json.
+
+
+## 2015-12-31, version 5.0.0
+
+- New design.
+- Implemented selection of multiple nodes, allowing to move/duplicate/remove
+  multiple nodes at once (See #106).
+- Implemented a new option `escapeUnicode`, which will show the hexadecimal 
+  unicode instead of the character itself. (See #93 and #230).
+- Implemented method `getMode`.
+- Implemented option `onModeChange(oldMode, newMode)`.
+- Implemented #203: Objects and arrays in mode `form` and `view` are now
+  expandable by clicking the field names too.
+- Replaced the PNG icon images with SVG. Thanks @1j01.
+- Renamed all CSS classes They now have prefixes `.jsoneditor-` to prevent
+  name collisions with css frameworks like bootstrap.
+- Renamed options `change`, `editable`, `error` to respectively `onChange`,
+  `onEditable`, and `onError`. Old options are still working and give a 
+  deprecation warning.
+- Colors of values are now customizable using CSS. 
+- JSONEditor new throws a warning in the console in case of unknown options.
+- Fixed #93 and #227: html codes like `&amp;` not escaped.
+- Fixed #149: Memory leak when switching mode from/to `code` mode, web worker
+  of Ace editor wasn't cleaned up.
+- Fixed #234: Remove dependency on a fork of the `jsonlint` project on github.
+- Fixed: disabled `Ctrl+L` quick key to go to a line, instead use the default
+  browser behavior of selecting the address bar.
+- Fixed #38: clear search results after a new JSON object is set.
+- Fixed #242: row stays highlighted when dragging outside editor.
+- Fixed quick-keys Shift+Alt+Arrows not registering actions in history.
+- Fixed #104: context menus are now positioned relative to the elements of the 
+  editor instead of an absolute position in the window.
+
+
 ## 2015-06-13, version 4.2.1
 
 - Fixed #161: Cannot select text in Ace editor on systems using Chinese fonts.
@@ -21,7 +181,7 @@ https://github.com/josdejong/jsoneditor
 ## 2015-03-15, version 4.1.1
 
 - Added missing file `index.js` to the bower package.
-
+  
 
 ## 2015-03-15, version 4.1.0
 

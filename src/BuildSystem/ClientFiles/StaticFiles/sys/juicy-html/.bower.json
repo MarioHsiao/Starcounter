@@ -33,7 +33,7 @@
     "tag": "1.1.0",
     "commit": "169b878d6c0e64c5fc8f726506d78dcfa6d71e87"
   },
-  "_source": "git://github.com/Juicy/juicy-html.git",
+  "_source": "https://github.com/Juicy/juicy-html.git",
   "_target": ">=1.1.0",
   "_originalSource": "juicy-html"
 }
