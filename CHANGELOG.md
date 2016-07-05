@@ -27,6 +27,7 @@
 - Fixed a bug relating to reference failures sometimes showing with new Roslyn-based code-behind parser, [#3666](https://github.com/Starcounter/Starcounter/issues/3666)
 - Fixed a bug where a part of the jsontree was prematurely checkpointed when gathering changes for creating patches. 
 - Allowing empty string as value in patches for properties with type long, decimal or double when applying jsonpatches. This value will be converted to the default value for the specified type and also correct value will be sent back to client [#3725](https://github.com/Starcounter/Starcounter/issues/3725)
+- Fixed URI aliasing problem in gateway: [#3731](https://github.com/Starcounter/Starcounter/issues/3731)
 - Added versionnumber to generated files for TypedJSON to force regeneration when codegenerator is changed [#3732](https://github.com/Starcounter/Starcounter/issues/3732)
 
 ### Changed
