@@ -781,6 +781,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             h.Append(fileName);
             h.Append('"');
             h.AppendLine();
+            h.Append("// Version: ");
+            h.Append(XSON.PartialClassGenerator.CSHARP_CODEGEN_VERSION);
+            h.AppendLine();
             h.AppendLine("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN");
             h.AppendLine();
 
