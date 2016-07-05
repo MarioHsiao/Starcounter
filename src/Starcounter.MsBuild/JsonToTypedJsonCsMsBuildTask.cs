@@ -7,12 +7,10 @@ namespace Starcounter.Internal.MsBuild {
     /// Task that creates a C# message class from JSON file(s).
     /// </summary>
     public class JsonToTypedJsonCsMsBuildTask : Task {
-
-
         static JsonToTypedJsonCsMsBuildTask() {
             Bootstrapper.Bootstrap();
         }
-
+        
         /// <summary>
         /// Gets or sets the input files.
         /// </summary>
@@ -26,7 +24,7 @@ namespace Starcounter.Internal.MsBuild {
         /// <value>The output files.</value>
         [Output]
         public ITaskItem[] OutputFiles { get; set; }
-
+        
         /// <summary>
         /// When overridden in a derived class, executes the task.
         /// </summary>
@@ -36,4 +34,24 @@ namespace Starcounter.Internal.MsBuild {
         }
     }
 
+    /// <summary>
+    /// Task that reads the versionnumber of the csharp codegenerator and returns it as
+    /// output.
+    /// </summary>
+    public class GetTypedJsonCSharpCodegenVersionTask : Task {
+        /// <summary>
+        /// 
+        /// </summary>
+        [Output]
+        public long CSharpCodegenVersion { get; set; }
+
+        /// <summary>
+        /// When overridden in a derived class, executes the task.
+        /// </summary>
+        /// <returns>true if the task successfully executed; otherwise, false.</returns>
+        public override bool Execute() {
+            CSharpCodegenVersion = Starcounter.Internal.XSON.PartialClassGenerator.CSHARP_CODEGEN_VERSION;
+            return true;
+        }
+    }
 }
