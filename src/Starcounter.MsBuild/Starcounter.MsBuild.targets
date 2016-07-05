@@ -1,29 +1,39 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
+    <!-- 
+      Keeping the codegen version directly here instead of reading it from the codegenerator
+      to avoid that Starcounter.MsBuild.dll gets locked during compilation of Starcounter 
+    -->
+    <CSharpCodegenVersion>1</CSharpCodegenVersion>
+    
+    <!--<PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetTypedJsonCSharpCodegenVersion</PrepareForBuildDependsOn>-->
     <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateTypedJsonCode</CoreCompileDependsOn>
+    <CleanDependsOn>$(CleanDependsOn);CleanupOldJsonGeneratedFiles</CleanDependsOn>
   </PropertyGroup>
+
   <ItemGroup>
     <AvailableItemName Include="TypedJSON"/>
   </ItemGroup>
   
   <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToTypedJsonCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
+  <!--<UsingTask TaskName="Starcounter.Internal.MsBuild.GetTypedJsonCSharpCodegenVersionTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />-->
 
-  <Target Name="GenerateTypedJSONCode" Inputs="@(TypedJSON)" Outputs="@(TypedJSON->'$(IntermediateOutputPath)%(RelativeDir)%(FileName)%(Extension).g.cs')">
+  <!--<Target Name="GetTypedJsonCSharpCodegenVersion">
+    <GetTypedJsonCSharpCodegenVersionTask>
+      <Output TaskParameter="CSharpCodegenVersion" PropertyName="CSharpCodegenVersion"></Output>
+    </GetTypedJsonCSharpCodegenVersionTask>
+  </Target>-->
+  
+  <Target Name="GenerateTypedJSONCode" Inputs="@(TypedJSON)" Outputs="@(TypedJSON->'$(IntermediateOutputPath)%(RelativeDir)%(FileName)-$(CSharpCodegenVersion)%(Extension).g.cs')">
     <JsonToTypedJsonCsMsBuildTask
        InputFiles="@(TypedJSON)"
-       OutputFiles="@(TypedJSON->'$(IntermediateOutputPath)%(RelativeDir)%(FileName)%(Extension).g.cs')">
-       <Output TaskParameter="OutputFiles" ItemName="TypedJSONFiles" /> 
+       OutputFiles="@(TypedJSON->'$(IntermediateOutputPath)%(RelativeDir)%(FileName)-$(CSharpCodegenVersion)%(Extension).g.cs')" >
+       <Output TaskParameter="OutputFiles" ItemName="TypedJSONFiles" />
     </JsonToTypedJsonCsMsBuildTask>
     <ItemGroup>
       <Compile Include="@(TypedJSONFiles)" />
     </ItemGroup>
   </Target>
-  
-  <PropertyGroup>
-    <CleanDependsOn>
-      $(CleanDependsOn);CleanupOldJsonGeneratedFiles
-    </CleanDependsOn>
-  </PropertyGroup>
   
   <!-- Cleans up JSON generated source files. -->
   <Target Name="CleanupOldJsonGeneratedFiles">

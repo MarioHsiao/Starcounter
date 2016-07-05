@@ -1,3 +1,5 @@
+'use strict';
+
 var util = require('./util');
 var ContextMenu = require('./ContextMenu');
 
@@ -50,7 +52,7 @@ function appendNodeFactory(Node) {
       var tdMenu = document.createElement('td');
       dom.tdMenu = tdMenu;
       var menu = document.createElement('button');
-      menu.className = 'contextmenu';
+      menu.className = 'jsoneditor-contextmenu';
       menu.title = 'Click to open the actions menu (Ctrl+M)';
       dom.menu = menu;
       tdMenu.appendChild(dom.menu);
@@ -60,7 +62,7 @@ function appendNodeFactory(Node) {
     var tdAppend = document.createElement('td');
     var domText = document.createElement('div');
     domText.innerHTML = '(empty)';
-    domText.className = 'readonly';
+    domText.className = 'jsoneditor-readonly';
     tdAppend.appendChild(domText);
     dom.td = tdAppend;
     dom.text = domText;
@@ -137,14 +139,14 @@ function appendNodeFactory(Node) {
         'text': 'Append',
         'title': 'Append a new field with type \'auto\' (Ctrl+Shift+Ins)',
         'submenuTitle': 'Select the type of the field to be appended',
-        'className': 'insert',
+        'className': 'jsoneditor-insert',
         'click': function () {
           node._onAppend('', '', 'auto');
         },
         'submenu': [
           {
             'text': 'Auto',
-            'className': 'type-auto',
+            'className': 'jsoneditor-type-auto',
             'title': titles.auto,
             'click': function () {
               node._onAppend('', '', 'auto');
@@ -152,7 +154,7 @@ function appendNodeFactory(Node) {
           },
           {
             'text': 'Array',
-            'className': 'type-array',
+            'className': 'jsoneditor-type-array',
             'title': titles.array,
             'click': function () {
               node._onAppend('', []);
@@ -160,7 +162,7 @@ function appendNodeFactory(Node) {
           },
           {
             'text': 'Object',
-            'className': 'type-object',
+            'className': 'jsoneditor-type-object',
             'title': titles.object,
             'click': function () {
               node._onAppend('', {});
@@ -168,7 +170,7 @@ function appendNodeFactory(Node) {
           },
           {
             'text': 'String',
-            'className': 'type-string',
+            'className': 'jsoneditor-type-string',
             'title': titles.string,
             'click': function () {
               node._onAppend('', '', 'string');
@@ -179,7 +181,7 @@ function appendNodeFactory(Node) {
     ];
 
     var menu = new ContextMenu(items, {close: onClose});
-    menu.show(anchor);
+    menu.show(anchor, this.editor.content);
   };
 
   /**
@@ -207,9 +209,9 @@ function appendNodeFactory(Node) {
       var highlighter = this.editor.highlighter;
       highlighter.highlight(this.parent);
       highlighter.lock();
-      util.addClassName(dom.menu, 'selected');
+      util.addClassName(dom.menu, 'jsoneditor-selected');
       this.showContextMenu(dom.menu, function () {
-        util.removeClassName(dom.menu, 'selected');
+        util.removeClassName(dom.menu, 'jsoneditor-selected');
         highlighter.unlock();
         highlighter.unhighlight();
       });
