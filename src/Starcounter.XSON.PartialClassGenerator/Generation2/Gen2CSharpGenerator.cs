@@ -160,6 +160,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             output.Append(root.AppClassClassNode.Template.CompilerOrigin.FileName);
             output.Append('"');
             output.AppendLine();
+            output.Append("// Version: ");
+            output.Append(XSON.PartialClassGenerator.CSHARP_CODEGEN_VERSION);
+            output.AppendLine();
             output.AppendLine("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN");
             output.AppendLine();
 
