@@ -1,18 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 
 namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
-    /// Binds properties that either have a binding specified that match
-    /// a property in code-behind, or have declared a property in code-behind with
-    /// the same name (and with a supported returntype) as a property in the template.
+    /// Maps existing properties in code-behind with properties coming from the template, and if property 
+    /// already exists, marks the AstProperty which will lead to that no accessor-property will be generated.
+    /// This will allow automatic binding to code-behind.
     /// </summary>
-    /// <remarks>
-    /// The bindings created here will be treated a bit different than ordinary databindings
-    /// since they are always valid and will never be 
-    /// </remarks>
     internal class GeneratorPhase7 {
         private const StringComparison COMPARE = StringComparison.InvariantCultureIgnoreCase;
         private Gen2DomGenerator generator;
@@ -22,10 +16,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         internal void RunPhase7(AstJsonClass rootJsonClass) {
-            CreateBindingsToCodeBehind(rootJsonClass);
+            SuppressExistingCodeBehindAccessorProperties(rootJsonClass);
         }
 
-        private void CreateBindingsToCodeBehind(AstJsonClass jsonClass) {
+        private void SuppressExistingCodeBehindAccessorProperties(AstJsonClass jsonClass) {
             AstProperty property;
             CodeBehindClassInfo codeBehindClass;
             CodeBehindPropertyInfo codeBehindProperty;
@@ -42,39 +36,52 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         return (item.Name.Equals(bindingName, COMPARE));
                     });
                     
-                    if (codeBehindProperty == null) {
-                        // No property in code-behind with the same name. Lets check if we find 
-                        // one using the Bind-value from the template.
+                    // TODO:
+                    // Not needed in the first implementation. Since we only suppress the accessor-property
+                    // we don't care to check other bindings to code-behind. 
 
-                        // TODO:
-                        // If we use the new pattern of setting the properties directly on the template
-                        // from the code-behind file, the Bind-property will not be set here. 
-                        // Should we only allow binding to code-behind using 
-
-                        bindingName = ((TValue)property.Template).Bind;
-                        if (!bindingName.Equals(property.MemberName, COMPARE)) {
-                            suppressGenerateProperty = false;
-                            codeBehindProperty = jsonClass.CodebehindClass.PropertyList.Find((item) => {
-                                return (item.Name.Equals(bindingName, COMPARE));
-                            });
-                        }
-                    }
+                    //if (codeBehindProperty == null) {
+                    //    // No property in code-behind with the same name. Lets check if we find 
+                    //    // one using the Bind-value from the template.
+                        
+                    //    bindingName = ((TValue)property.Template).Bind;
+                    //    if (!bindingName.Equals(property.MemberName, COMPARE)) {
+                    //        suppressGenerateProperty = false;
+                    //        codeBehindProperty = jsonClass.CodebehindClass.PropertyList.Find((item) => {
+                    //            return (item.Name.Equals(bindingName, COMPARE));
+                    //        });
+                    //    }
+                    //}
 
                     if (codeBehindProperty != null) {
                         // A property in the code-behind exists
 
+                        // TODO:
+                        // suppressGenerateProperty will always be true in this version, but kept to
+                        // remember when we change the databindings.
                         if (suppressGenerateProperty) {
+                            property.GenerateAccessorProperty = false;
 
+                            // Find the corresponding property in the schema (constructor)
+                            // The astnode for the constructor is implemented incorrectly so we
+                            // have to do a workaround to change the correct property.
+                            var schemaClass = jsonClass.NTemplateClass as AstSchemaClass;
+                            if (schemaClass != null) {
+                                var schemaProp = (AstProperty)schemaClass.Constructor.Children.Find((item) => {
+                                    var prop = item as AstProperty;
+                                    if (prop != null)
+                                        return (prop.MemberName.Equals(bindingName, COMPARE));
+                                    return false;
+                                });
+                                if (schemaProp != null)
+                                    schemaProp.GenerateAccessorProperty = false;
+                            }
                         }
-
-
-                        
-
                     }
                 }
 
                 if (child is AstJsonClass) {
-                    CreateBindingsToCodeBehind((AstJsonClass)child);
+                    SuppressExistingCodeBehindAccessorProperties((AstJsonClass)child);
                 }
             }
         }

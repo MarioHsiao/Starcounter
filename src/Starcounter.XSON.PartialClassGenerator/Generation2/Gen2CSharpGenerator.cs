@@ -409,6 +409,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 m.Prefix.Add("private " + memberTypeName + " " + m.BackingFieldName + ";");
                 AppendLineDirectiveIfDefined(m.Prefix, LINE_DEFAULT, 0);
             }
+
+            if (!m.GenerateAccessorProperty)
+                return;
         
             // Adding public accessors for the property.
             m.Prefix.Add(MARKASCODEGEN);

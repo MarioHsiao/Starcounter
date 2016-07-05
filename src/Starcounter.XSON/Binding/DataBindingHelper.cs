@@ -31,15 +31,16 @@ namespace Starcounter.XSON {
             bInfo.BoundToType = parent.GetType();
             bInfo.IsBoundToParent = true;
 
-            // We dont try to bind to the json if there is a template with the same name as the 
-            // binding since we only want to bind to properties declared in codebehind.
             string pname = bindingName;
             int index = pname.IndexOf('.');
             if (index != -1) {
                 pname = pname.Substring(0, index);
             }
 
-            if (tobj.Properties.GetTemplateByPropertyName(pname) == null) {
+            // If a template exists with the same name as the binding, and it has an accessor property
+            // generated in the code-behind, we skip checking code-behind.
+            TValue tv = tobj.Properties.GetTemplateByPropertyName(pname) as TValue;
+            if (tv == null || !tv.HasAccessorPropertyInJson) {
                 bInfo = GetBindingPath(bInfo.BoundToType, parent, bindingName, template, false);
                 bInfo.BoundToType = parent.GetType();
                 bInfo.IsBoundToParent = true;

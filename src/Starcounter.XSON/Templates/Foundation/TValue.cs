@@ -204,6 +204,11 @@ namespace Starcounter.Templates {
 		}
 
         /// <summary>
+        /// If true, the template has an generated property in code-behind.
+        /// </summary>
+        public bool HasAccessorPropertyInJson { get; set; }
+
+        /// <summary>
         /// Returns true if an existing databinding exists, false otherwise.
         /// </summary>
         /// <remarks>
