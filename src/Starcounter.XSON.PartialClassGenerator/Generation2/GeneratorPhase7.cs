@@ -1,4 +1,5 @@
 ﻿using System;
+using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 
 namespace Starcounter.Internal.MsBuild.Codegen {
@@ -61,6 +62,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         // remember when we change the databindings.
                         if (suppressGenerateProperty) {
                             property.GenerateAccessorProperty = false;
+                            ((TValue)property.Template).BindingStrategy = BindingStrategy.Bound;
 
                             // Find the corresponding property in the schema (constructor)
                             // The astnode for the constructor is implemented incorrectly so we
@@ -73,8 +75,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                         return (prop.MemberName.Equals(bindingName, COMPARE));
                                     return false;
                                 });
-                                if (schemaProp != null)
+                                if (schemaProp != null) 
                                     schemaProp.GenerateAccessorProperty = false;
+                                
                             }
                         }
                     }
