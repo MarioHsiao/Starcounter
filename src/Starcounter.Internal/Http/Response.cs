@@ -1118,7 +1118,7 @@ namespace Starcounter
 
             if (null != customHeaderFields_) {
                 foreach (KeyValuePair<string, string> h in customHeaderFields_) {
-                    size += (h.Key.Length + h.Value.Length + 4); // 4 for colon, space, CRLF
+                    size += ((h.Key.Length << 1) + (h.Value.Length << 1) + 4); // * 2 for possible multibyte chars, 4 for colon, space, CRLF
                 }
             }
 
@@ -1130,7 +1130,7 @@ namespace Starcounter
             if (null != cookies_) {
                 foreach (String c in cookies_) {
                     size += HttpHeadersUtf8.SetCookieStart.Length;
-                    size += c.Length;
+                    size += (c.Length << 1);
                     size += HttpHeadersUtf8.CRLF.Length;
                 }
             }
