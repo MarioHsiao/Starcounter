@@ -14,6 +14,7 @@ using Starcounter.Advanced;
 using Starcounter.Internal.Web;
 using Starcounter.Templates;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Starcounter.Internal.Tests {
 
@@ -99,7 +100,43 @@ namespace Starcounter.Internal.Tests {
             Assert.IsTrue(response.StatusDescription == " My special status");
 		}
 
-		[Test]
+        [Test]
+        public static void TestResponseConstructFromFieldsWithMultiByteChars() {
+            string multiByteValue = "";
+            for (int i = 0; i < 200; i++) {
+                multiByteValue += "Ö";
+            }
+
+            // Multibyte value content
+            var r = new Response();
+            r.Body = multiByteValue;
+            r.ConstructFromFields(null, null);
+
+            // Multibyte value as header value
+            r = new Response();
+            r.Headers["key"] = multiByteValue;
+            r.ConstructFromFields(null, null);
+
+            // Multibyte value as header key
+            r = new Response();
+            r.Headers[multiByteValue] = "value";
+            r.ConstructFromFields(null, null);
+
+            // Multibyte value as cookie
+            r = new Response();
+            var cookies = new List<string>();
+            cookies.Add(multiByteValue);
+            r.Cookies = cookies;
+            r.ConstructFromFields(null, null);
+
+            // Original failing Location-header from https://github.com/Starcounter/Starcounter/issues/3735
+            string org = File.ReadAllText("failingheaderstring_3735.txt");
+            r = new Response();
+            r.Headers["Location"] = org;
+            r.ConstructFromFields(null, null);
+        }
+
+        [Test]
 		public static void TestRequestConstructFromFields() {
 			string json = File.ReadAllText("simple.json");
 
