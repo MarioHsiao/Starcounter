@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Starcounter {
 
-    namespace Partial {
+    namespace MergedPartial {
 
         [Database]
         public class Composition {
@@ -14,19 +14,19 @@ namespace Starcounter {
             public static void CreateIndex() {
 
                 if (Db.SQL("SELECT i FROM MaterializedIndex i WHERE i.Name = ?", "PartialCompositionIndex").First == null) {
-                    Starcounter.Db.SQL("CREATE UNIQUE INDEX PartialCompositionIndex ON Starcounter.PartialComposition (Key ASC)");
+                    Starcounter.Db.SQL("CREATE UNIQUE INDEX PartialCompositionIndex ON Starcounter.MergedPartial.Composition (Key ASC)");
                 }
             }
 
             public static Composition GetUsingKey(string key) {
-                return Db.SQL<Composition>("SELECT c FROM Starcounter.Partial.Composition c WHERE c.Key = ?", key).First;
+                return Db.SQL<Composition>("SELECT c FROM Starcounter.MergedPartial.Composition c WHERE c.Key = ?", key).First;
             }
 
             public static Composition GetUsingKeyAndVersion(string key, string version) {
                 if (String.IsNullOrEmpty(version)) {
-                    return Db.SQL<Composition>("SELECT c FROM Starcounter.Partial.Composition c WHERE c.Key = ?", key).First;
+                    return Db.SQL<Composition>("SELECT c FROM Starcounter.MergedPartial.Composition c WHERE c.Key = ?", key).First;
                 } else {
-                    return Db.SQL<Composition>("SELECT c FROM Starcounter.Partial.Composition c WHERE c.Key = ? AND c.Version = ?", key, version).First;
+                    return Db.SQL<Composition>("SELECT c FROM Starcounter.MergedPartial.Composition c WHERE c.Key = ? AND c.Version = ?", key, version).First;
                 }
             }
 
@@ -63,7 +63,7 @@ namespace Starcounter {
                 Handle.DELETE("/sc/partial/composition?key={?}&ver={?}", (string key, string version) => {
                     Db.Transact(() => {
                         if (key == "all") {
-                            Db.SlowSQL("DELETE FROM Starcounter.Partial.Composition");
+                            Db.SlowSQL("DELETE FROM Starcounter.MergedPartial.Composition");
                         } else {
                             var setup = Composition.GetUsingKeyAndVersion(key, version);
                             if (setup != null) {
@@ -75,12 +75,12 @@ namespace Starcounter {
                 }, new HandlerOptions() { SkipRequestFilters = true });
 
                 Handle.GET("/sc/generate/partial/composition/{?}", (string app) => {
-                    string sql = "SELECT i FROM Starcounter.Partial.Composition i WHERE i.Key LIKE ?";
+                    string sql = "SELECT i FROM Starcounter.MergedPartial.Composition i WHERE i.Key LIKE ?";
                     StringBuilder sb = new StringBuilder();
                     int index = 0;
 
                     app = "/" + app + "/%";
-                    sb.Append("INSERT INTO Starcounter.Partial.Composition(\"Key\",\"Value\") VALUES").Append(Environment.NewLine);
+                    sb.Append("INSERT INTO Starcounter.MergedPartial.Composition(\"Key\",\"Value\") VALUES").Append(Environment.NewLine);
 
                     foreach (Composition item in Db.SQL<Composition>(sql, app)) {
                         if (index > 0) {
