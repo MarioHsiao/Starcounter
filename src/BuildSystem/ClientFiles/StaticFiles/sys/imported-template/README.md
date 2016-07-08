@@ -63,13 +63,13 @@ Or [download as ZIP](https://github.com/Juicy/imported-template/archive/gh-pages
 1. Import Web Components' polyfill, if needed:
 
     ```html
-    <script src="bower_components/webcomponentsjs/webcomponents.js">
+    <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
     ```
 
 2. Import Custom Element:
 
     ```html
-    <link rel="import" href="bower_components/imported-template/imported-template.html">
+    <link rel="import" href="bower_components/imported-template/imported-template.html"/>
     ```
 
 3. Start using it!
@@ -97,6 +97,12 @@ Property       | Type      | Description
 `model`        | *JSON*	   | Attached model, plays nice with Polymer data-binding
 `stampedNodes` | *Array*   | Array of stamped nodes.
 
+## Events
+
+Name       | Detail                                    | Description
+---        | ---                                       | ---
+`stamping` | *DocumentFragment*	fragment being stamped | Called just before stamping the fragment
+
 ### Dependencies
 
 `<juicy-html>` is framework agnostic custom element, so all you need is Web Components support. However, it plays really nice with Polymer Auto-binding templates, or any other binding library, that sets HTML elements' properties and/or attributes. Check our demos and examples.
@@ -105,23 +111,17 @@ Property       | Type      | Description
 
 Browser supports relies mainly on polyfills support/spec compliance.
 
-| Chrome | IE11 | Edge | Firefox  | Safari 7-8 | Safari 9 |
-|:------:|:----:|:----:|:--------:|:----------:|:---------:|
-|  ✓     | ✓*   | ✓*   | ✓*       | ~          | ~* |
+| Chrome | IE11 | Edge | Firefox  | Safari 8 | Safari 9 |
+|:------:|:----:|:----:|:--------:|:--------:|:--------:|
+|  ✓     | ✓*   | ✓*   | ✓*       | ~        | ~*       |
 
-*There is a workaround for [polyfill issue](https://github.com/webcomponents/webcomponentsjs/issues/470), to execute scripts and apply styles define inside template in imported html. Also, some hacks are made to preserve correct position in DOM of scripts executed by polyfill, so `previousSibling` and Polymer's `dom-bind`/`dom-repeat` can be usedas in native Web Components, see [more sample use cases](https://github.com/Juicy/imported-template/tree/gh-pages/test/use-cases)
+\* There is a workaround for [polyfill issue](https://github.com/webcomponents/webcomponentsjs/issues/470), to execute scripts and apply styles define inside template in imported html. Also, some hacks are made to preserve correct position in DOM of scripts executed by polyfill, so `previousSibling` and Polymer's `dom-bind`/`dom-repeat` can be used as in native Web Components, see [more sample use cases](https://github.com/Juicy/imported-template/tree/gh-pages/test/use-cases)
 
-~SauceLabs tests passed but it may not be stable.
+~ SauceLabs tests passed but it may not be stable.
 
  :construction: Core features more or less works, but some tests are failing.
 
-## Contributing
-
-1. Fork it!
-2. Create your feature branch: `git checkout -b my-new-feature`
-3. Commit your changes: `git commit -m 'Add some feature'`
-4. Push to the branch: `git push origin my-new-feature`
-5. Submit a pull request :D
+## [Contributing and Development](CONTRIBUTING.md)
 
 ## History
 
@@ -129,4 +129,4 @@ For detailed changelog, check [Releases](https://github.com/Juicy/imported-templ
 
 ## License
 
-[MIT License](http://opensource.org/licenses/MIT)
+MIT
