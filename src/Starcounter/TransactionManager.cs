@@ -670,14 +670,16 @@ namespace Starcounter.Internal {
 
                     for (;;)
                     {
+                        sccoredb.STAR_REFERENCE_VALUE rv;
                         ulong recordId, recordRef;
                         unsafe
                         {
-                            r = sccoredb.star_iterator_next(hi, &recordId, &recordRef, vi);
+                            r = sccoredb.star_iterator_next(hi, &rv, vi);
                         }
                         if (r != 0) throw ErrorCode.ToException(r);
+                        recordId = rv.handle.id;
+                        recordRef = DbHelper.EncodeObjectRef(rv.handle.opt, rv.layout_handle);
                         if (recordId == 0) break;
-
                         int s = sccoredb.star_context_get_trans_state(
                             ThreadData.ContextHandle, recordId, recordRef
                             );
