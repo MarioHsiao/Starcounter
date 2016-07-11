@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "PuppetJs": "^2.0.0",
-    "imported-template": ">=1.4.1",
+    "imported-template": ">=1.4.3",
     "puppet-redirect": "PuppetJs/puppet-redirect#~0.4.0",
     "dom-bind-notifier": "#deprecate",
     "starcounter-debug-aid": "StarcounterSamples/starcounter-debug-aid#>=2.0.7",
