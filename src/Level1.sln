@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0. Starcounter.ErrorCodes", "0. Starcounter.ErrorCodes", "{FF0868CF-A78E-44A4-93E5-57182F039F31}"
 EndProject
@@ -463,6 +463,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.OptimizedLog", "Server\Starcounter.OptimizedLog\Starcounter.OptimizedLog.csproj", "{9391C2BF-AAB3-4F8B-B8C8-74B33C4FE82C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OptimizedLogTest", "Samples\OptimizedLogTest\OptimizedLogTest.csproj", "{C2E9B60F-A7AA-4BE5-8E1E-3934C4FFF7FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rl-34-poc", "Samples\rl-34-poc\rl-34-poc.csproj", "{F4FE5A03-BA49-4E83-B67F-49657EA04286}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1282,6 +1284,14 @@ Global
 		{C2E9B60F-A7AA-4BE5-8E1E-3934C4FFF7FD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C2E9B60F-A7AA-4BE5-8E1E-3934C4FFF7FD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{C2E9B60F-A7AA-4BE5-8E1E-3934C4FFF7FD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F4FE5A03-BA49-4E83-B67F-49657EA04286}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4FE5A03-BA49-4E83-B67F-49657EA04286}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4FE5A03-BA49-4E83-B67F-49657EA04286}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F4FE5A03-BA49-4E83-B67F-49657EA04286}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F4FE5A03-BA49-4E83-B67F-49657EA04286}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4FE5A03-BA49-4E83-B67F-49657EA04286}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4FE5A03-BA49-4E83-B67F-49657EA04286}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F4FE5A03-BA49-4E83-B67F-49657EA04286}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1421,5 +1431,6 @@ Global
 		{4028C620-C195-4E8D-9430-93383D4DAAE9} = {9BB3B16F-0FEB-4955-9836-96F42FC953CB}
 		{9391C2BF-AAB3-4F8B-B8C8-74B33C4FE82C} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
 		{C2E9B60F-A7AA-4BE5-8E1E-3934C4FFF7FD} = {9BB3B16F-0FEB-4955-9836-96F42FC953CB}
+		{F4FE5A03-BA49-4E83-B67F-49657EA04286} = {E866A606-BF2B-4E48-8D70-5663B15234A4}
 	EndGlobalSection
 EndGlobal
