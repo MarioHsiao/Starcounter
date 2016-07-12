@@ -24,6 +24,7 @@ namespace Starcounter {
                     ClassName = "Page";
                     Properties.ClearExposed();
                     Html = Add<TString>("Html");
+                    Html.BindingStrategy = BindingStrategy.Unbound;
                     Html.SetCustomAccessors((json) => { return ((Page)json).__bf__Html__; }, (json, value) => { ((Page)json).__bf__Html__ = (string)value; }, false);
                 }
                 public override object CreateInstance(Json parent) { return new Page(this) { Parent = parent }; }
