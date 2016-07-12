@@ -157,6 +157,22 @@ namespace rl_34_poc
                                                 .Aggregate(new Dictionary<string, object>(), (state, update) => LogExtensions.UpdateObjectState(state, update))["checklist_state_on_first_close"];
         }
 
+        static ulong get_checklist_object_id_name_name(string name)
+        {
+            foreach (var td in LogExtensions.TransactionLog(Starcounter.Db.Environment.DatabaseName, Starcounter.Db.Environment.DatabaseLogDir))
+            { 
+                var checklist_create_log_entry = td.creates.Where(c => c.table == "rl_34_poc.checklist" &&
+                                                                       c.columns.Any(cu => cu.name == "name" && (string)cu.value == name));
+
+                if (checklist_create_log_entry.Any())
+                {
+                    return checklist_create_log_entry.Single().key.object_id;
+                }
+            }
+
+            return 0;
+        }
+
         public static int Main(string[] args)
         {
             checklist.create_index();
@@ -209,9 +225,17 @@ namespace rl_34_poc
 
             Handle.GET("/checkliststateonfirstclose?name={?}", (string name) =>
             {
-                return get_checklist_state_at_moment_of_first_closing(checklist.find_checklist(name).GetObjectNo());
+                return get_checklist_state_at_moment_of_first_closing(get_checklist_object_id_name_name(name));
             });
 
+            Handle.DELETE("/deletechecklist?name={?}", (string name) =>
+            {
+                return Db.Transact<string>(() => {
+                    var c = checklist.find_checklist(name);
+                    c.Delete();
+                    return "";
+                });
+            });
 
 
             return 0;

@@ -40,3 +40,11 @@ powershell -command "Invoke-RestMethod http://localhost:8080/cheatchecklist?name
 rem show checklist history from the log. ignore cheated history field
 powershell -command "Invoke-RestMethod http://localhost:8080/checkliststateonfirstclose?name=checklist1 | ConvertTo-Json" || exit /b 1
 
+rem delete checklist
+powershell -command "Invoke-RestMethod http://localhost:8080/deletechecklist?name=checklist1 -method DELETE | ConvertTo-Json" || exit /b 1
+
+rem create new checklist with the same name
+powershell -command "Invoke-RestMethod http://localhost:8080/newchecklist?name=checklist1 -method POST | ConvertTo-Json" || exit /b 1
+
+rem show checklist history from the log. ignore new checklist
+powershell -command "Invoke-RestMethod http://localhost:8080/checkliststateonfirstclose?name=checklist1 | ConvertTo-Json" || exit /b 1
