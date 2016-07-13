@@ -36,7 +36,7 @@ using Starcounter.Templates;namespace Starcounter {        public partial cla
             private DynamicMetaObject BindGetMemberForJsonObject( Json app, TValue template, GetMemberBinder binder ) {
                 TValue templ = null;
 
-                MemberInfo pi = ReflectionHelper.FindPropertyOrField(RuntimeType, binder.Name);                if (pi != null)                    return base.BindGetMember(binder);
+                MemberInfo pi = ReflectionHelper.FindPropertyOrField(RuntimeType, binder.Name, false);                if (pi != null)                    return base.BindGetMember(binder);
 
                 var templateAsObj = template as TObject;
 
@@ -154,7 +154,7 @@ using Starcounter.Templates;namespace Starcounter {        public partial cla
                     app.CreateDynamicTemplate();
                     ot = (TObject)app.Template; 
 //                    app.Template = ot = new TDynamicObj(); // Make this an expando object like Obj
-                }                MemberInfo pi = ReflectionHelper.FindPropertyOrField(this.RuntimeType,binder.Name);                if (pi != null)                    return base.BindSetMember(binder, value);
+                }                MemberInfo pi = ReflectionHelper.FindPropertyOrField(this.RuntimeType,binder.Name, false);                if (pi != null)                    return base.BindSetMember(binder, value);
                 TValue templ = (TValue)(ot.Properties[binder.Name]);                if (templ == null) {
                     ot.OnSetUndefinedProperty(binder.Name, value.LimitType);
                     return this.BindSetMember(binder, value); // Try again

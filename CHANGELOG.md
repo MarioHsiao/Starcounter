@@ -3,6 +3,8 @@
 ### Added
 - Better error message when a synonym target an illegal element, [#3677](https://github.com/Starcounter/Starcounter/issues/3677)
 - Made `staradmin list apps` support filtering on a specific database by giving `-d|--database`, [#3521](https://github.com/Starcounter/Starcounter/issues/3521)
+- Added versionnumber to generated files for TypedJSON to force regeneration when codegenerator is changed [#3732](https://github.com/Starcounter/Starcounter/issues/3732)
+- Improved binding in TypedJSON from property in Json-by-example to property in code-behind with allowing using the same name (and type) to automatically bind [#2964](https://github.com/Starcounter/Starcounter/issues/2964)  
 
 ### Fixed
 - Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
@@ -28,7 +30,6 @@
 - Fixed a bug where a part of the jsontree was prematurely checkpointed when gathering changes for creating patches. 
 - Allowing empty string as value in patches for properties with type long, decimal or double when applying jsonpatches. This value will be converted to the default value for the specified type and also correct value will be sent back to client [#3725](https://github.com/Starcounter/Starcounter/issues/3725)
 - Fixed URI aliasing problem in gateway: [#3731](https://github.com/Starcounter/Starcounter/issues/3731)
-- Added versionnumber to generated files for TypedJSON to force regeneration when codegenerator is changed [#3732](https://github.com/Starcounter/Starcounter/issues/3732)
 - Fixed a bug in Response-serialization (`Response.ConstructFromFields()`), which could cause estimated size to be smaller then actual needed size in some cases [#3735](https://github.com/Starcounter/Starcounter/issues/3735)
 
 ### Changed
