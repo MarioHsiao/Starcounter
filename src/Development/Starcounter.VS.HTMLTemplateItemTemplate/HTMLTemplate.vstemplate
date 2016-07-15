@@ -1,0 +1,20 @@
+﻿<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <DefaultName>HTMLTemplate.html</DefaultName>
+    <Name>Starcounter HTML template with dom-bind</Name>
+    <Description>An HTML template with dom-bind</Description>
+    <TemplateID>StarcounterHTML</TemplateID>
+    <TemplateGroupID>StarcounterApplication</TemplateGroupID>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType>Starcounter</ProjectSubType>
+    <ShowByDefault>False</ShowByDefault>
+    <SortOrder>10</SortOrder>
+    <Icon>HTMLTemplate.ico</Icon>
+    <RequiredFrameworkVersion>4.5</RequiredFrameworkVersion>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <References />
+    <ProjectItem SubType="" TargetFileName="$fileinputname$.html" ItemType="None" ReplaceParameters="true">HTMLTemplate.html</ProjectItem>
+  </TemplateContent>
+</VSTemplate>
