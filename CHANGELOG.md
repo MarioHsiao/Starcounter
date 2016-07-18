@@ -28,7 +28,7 @@
 - Enabled Typed JSON code-behind classes with naked IBound-declaration, resolving [#3624](https://github.com/Starcounter/Starcounter/issues/3624)
 - Fixed a bug where patches in a databound array were not properly generated, after an item was removed [#3669](https://github.com/Starcounter/Starcounter/issues/3669)
 - Fixed a bug relating to reference failures sometimes showing with new Roslyn-based code-behind parser, [#3666](https://github.com/Starcounter/Starcounter/issues/3666)
-- Fixed a bug where a part of the jsontree was prematurely checkpointed when gathering changes for creating patches. 
+- Fixed a bug where a part of the jsontree was prematurely checkpointed when gathering changes for creating patches.
 - Allowing empty string as value in patches for properties with type long, decimal or double when applying jsonpatches. This value will be converted to the default value for the specified type and also correct value will be sent back to client [#3725](https://github.com/Starcounter/Starcounter/issues/3725)
 - Fixed URI aliasing problem in gateway: [#3731](https://github.com/Starcounter/Starcounter/issues/3731)
 - Fixed a bug in Response-serialization (`Response.ConstructFromFields()`), which could cause estimated size to be smaller then actual needed size in some cases [#3735](https://github.com/Starcounter/Starcounter/issues/3735)
@@ -40,8 +40,12 @@
 - CLI command `staradmin delete db` will no longer fail when, but instead stop, database is running [#3649](https://github.com/Starcounter/Starcounter/issues/3649)
 - `PartialToStandaloneHtmlProvider` middleware no longer forces Shadow DOM in Polymer [#3562](https://github.com/Starcounter/Starcounter/issues/3562)
 - `PartialToStandaloneHtmlProvider` middleware no longer overwrites default Bootstrap font size [#3665](https://github.com/Starcounter/Starcounter/issues/3665)
-- Upgraded Polymer to 1.5.0 [#3673](https://github.com/Starcounter/Starcounter/issues/3673)
+- Upgraded Polymer to 1.6.0 [#3673](https://github.com/Starcounter/Starcounter/issues/3673)
 - Upgraded PuppetJs to 2.0.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
+- Upgraded starcounter-debug-aid to 2.0.7
+- Upgraded Juicy/juicy-jsoneditor to 1.1.0
+- Upgraded Josdejong/jsoneditor to 5.5.6
+- Upgraded Juicy/imported-template to 1.4.3
 
 ## [2.2.1834] - 2016-04-19
 ### Added
