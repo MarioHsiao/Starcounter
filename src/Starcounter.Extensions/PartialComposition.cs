@@ -13,7 +13,7 @@ namespace Starcounter {
 
             public static void CreateIndex() {
 
-                if (Db.SQL("SELECT i FROM MaterializedIndex i WHERE i.Name = ?", "PartialCompositionIndex").First == null) {
+                if (Db.SQL("SELECT i FROM Starcounter.Metadata.\"Index\" i WHERE i.Name = ?", "PartialCompositionIndex").First == null) {
                     Starcounter.Db.SQL("CREATE UNIQUE INDEX PartialCompositionIndex ON Starcounter.MergedPartial.Composition (Key ASC)");
                 }
             }

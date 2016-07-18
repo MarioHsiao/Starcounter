@@ -18,7 +18,7 @@ namespace Starcounter {
 
         public static void CreateIndex() {
 
-            if (Db.SQL("SELECT i FROM MaterializedIndex i WHERE i.Name = ?", "StarcounterLayoutIndex").First == null) {
+            if (Db.SQL("SELECT i FROM Starcounter.Metadata.\"Index\" i WHERE i.Name = ?", "StarcounterLayoutIndex").First == null) {
                 Starcounter.Db.SQL("CREATE UNIQUE INDEX StarcounterLayoutIndex ON Starcounter.Layout (Key ASC)");
             }
         }
