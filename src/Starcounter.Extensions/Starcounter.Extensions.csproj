@@ -51,7 +51,7 @@
     <Compile Include="DatabaseMapping.cs" />
     <Compile Include="Layouts.cs" />
     <Compile Include="ModificationMapGenerator.cs" />
-    <Compile Include="PartialComposition.cs" />
+    <Compile Include="HTMLComposition.cs" />
     <Compile Include="TestStatistics.cs" />
   </ItemGroup>
   <ItemGroup>
