@@ -3,6 +3,7 @@
 ### Added
 - Better error message when a synonym target an illegal element, [#3677](https://github.com/Starcounter/Starcounter/issues/3677)
 - Made `staradmin list apps` support filtering on a specific database by giving `-d|--database`, [#3521](https://github.com/Starcounter/Starcounter/issues/3521)
+- Support for reconnecting with [PuppetJs](https://github.com/puppetjs/puppetjs). [puppetjs/puppetjs#71](https://github.com/puppetjs/puppetjs/issues/71)
 
 ### Fixed
 - Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
@@ -27,6 +28,7 @@
 - Fixed a bug relating to reference failures sometimes showing with new Roslyn-based code-behind parser, [#3666](https://github.com/Starcounter/Starcounter/issues/3666)
 - Fixed a bug where a part of the jsontree was prematurely checkpointed when gathering changes for creating patches. 
 - Allowing empty string as value in patches for properties with type long, decimal or double when applying jsonpatches. This value will be converted to the default value for the specified type and also correct value will be sent back to client [#3725](https://github.com/Starcounter/Starcounter/issues/3725)
+- When accepting patch to be enqueued, return normal patch response (previously returning empty response)
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
@@ -37,6 +39,8 @@
 - `PartialToStandaloneHtmlProvider` middleware no longer overwrites default Bootstrap font size [#3665](https://github.com/Starcounter/Starcounter/issues/3665)
 - Upgraded Polymer to 1.5.0 [#3673](https://github.com/Starcounter/Starcounter/issues/3673)
 - Upgraded PuppetJs to 2.0.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
+- For request to invalid (non-existent) session, return 404 instead of 400
+
 ## [2.2.1834] - 2016-04-19
 ### Added
 - New staradmin command `staradmin start server`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/).

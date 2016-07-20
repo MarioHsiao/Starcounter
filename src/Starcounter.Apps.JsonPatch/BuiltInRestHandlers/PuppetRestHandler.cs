@@ -1,11 +1,10 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using Starcounter.Rest;
 using Starcounter.XSON;
 using System.Text;
-using Starcounter.Advanced;
+using Starcounter.Advanced.XSON;
+using Starcounter.Logging;
 
 namespace Starcounter.Internal {
 
@@ -56,15 +55,15 @@ namespace Starcounter.Internal {
                 int patchCount = jsonPatch.Apply(root, bs, session.CheckOption(SessionOptions.StrictPatchRejection));
 
                 // -1 means that the patch was queued due to clientversion mismatch. We send no response.
-                if (patchCount != -1) { 
+                if (patchCount != -1) {
                     // Getting changes from the root.
                     Byte[] patchResponse;
-                    Int32 sizeBytes = jsonPatch.Generate(root, true, session.CheckOption(SessionOptions.IncludeNamespaces), out patchResponse);
+                    Int32 sizeBytes = jsonPatch.Generate(root, true,
+                        session.CheckOption(SessionOptions.IncludeNamespaces), out patchResponse);
 
                     // Sending the patch bytes to the client.
                     ws.Send(patchResponse, sizeBytes, ws.IsText);
                 }
-                return;
             } catch (JsonPatchException nex) {
                 ws.Disconnect(nex.Message, WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
                 return;
@@ -101,8 +100,15 @@ namespace Starcounter.Internal {
 
                     if (patchCount == -1) { // -1 means that the patch was queued due to clientversion mismatch.
                         return new Response() {
+                            Resource = root,
                             StatusCode = 202,
-                            StatusDescription = "Patch enqueued until earlier versions have arrived"
+                            StatusDescription = "Patch enqueued until earlier versions have arrived. Last known version is " + root.ChangeLog.Version.RemoteVersion
+                        };
+                    } else if (patchCount == -2) {
+                        return new Response() {
+                            Resource = root,
+                            StatusCode = 200,
+                            StatusDescription = "Patch already applied"
                         };
                     }
 
@@ -126,26 +132,42 @@ namespace Starcounter.Internal {
                     if (root == null)
                         return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
 
-                    byte[] body = null;
-                    session.enableNamespaces = true;
-                    session.enableCachedReads = true;
-                    try {
-                        body = root.ToJsonUtf8();
-
-                        if (root.ChangeLog != null)
-                            root.ChangeLog.Checkpoint();
-                    } finally {
-                        session.enableNamespaces = false;
-                        session.enableCachedReads = false;
-                    }
-                    
-                    return new Response() {
-                        BodyBytes = body,
-                        ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
-                    };
+                    return CreateJsonBodyResponse(session, root);
                 } else {
                     return CreateErrorResponse(513, String.Format("Unsupported mime type {0}.", request.PreferredMimeTypeString));
                 }
+            });
+
+            Handle.PATCH(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator + "/reconnect", (Request request, Session session) => {
+                if (session == null) {
+                    return CreateErrorResponse(404, "No resource found for the specified uri.");
+                }
+                Json root = session.PublicViewModel;
+                if (root == null) {
+                    return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
+                }
+
+                if (request.PreferredMimeType != MimeType.Application_Json) {
+                    return CreateErrorResponse(513, "Unsupported mime type {request.PreferredMimeTypeString}.");
+                }
+
+                IntPtr bodyPtr;
+                uint bodySize;
+                request.GetBodyRaw(out bodyPtr, out bodySize);
+
+                IEnumerable<Buffer> patchSequences;
+                try {
+                    patchSequences = ReadElements(new Buffer(bodyPtr, (int) bodySize));
+                } catch (ArgumentException e) {
+                    return CreateErrorResponse(400, "Malformed request: " + e.Message);
+                }
+                foreach (var buffer in patchSequences) {
+                    jsonPatch.Apply(root, buffer.ptr, buffer.length,
+                        session.CheckOption(SessionOptions.StrictPatchRejection));
+                }
+
+                session.ActiveWebSocket = null; // since this is reconnection call we can assume that any web socket is dead
+                return CreateJsonBodyResponse(session, root);
             });
 
             // Handling WebSocket JsonPatch string message.
@@ -165,6 +187,55 @@ namespace Starcounter.Internal {
 
                 // Do nothing!
             });
+        }
+
+        private class Buffer {
+            public readonly IntPtr ptr;
+            public readonly int length;
+
+            public Buffer(IntPtr ptr, int length) {
+                this.ptr = ptr;
+                this.length = length;
+            }
+        }
+
+        private static IEnumerable<Buffer> ReadElements(Buffer jsonArray) {
+            var jsonReader = new JsonReader(jsonArray.ptr, jsonArray.length);
+            if (jsonReader.ReadNext() != JsonToken.StartArray) {
+                throw new ArgumentException("provided document is not an array");
+            }
+            jsonReader.Skip(1); // ReadNext() doesn't advance the pointer
+            while (true) {
+                var currentToken = jsonReader.ReadNext();
+                if (currentToken == JsonToken.End) {
+                    throw new ArgumentException("unexpected end of document");
+                }
+                if (currentToken == JsonToken.EndArray) {
+                    yield break;
+                }
+                var startPosition = jsonReader.Position;
+                var start = jsonReader.CurrentPtr;
+                jsonReader.SkipCurrent();
+                yield return new Buffer(start, jsonReader.Position - startPosition);
+            }
+        }
+
+        private static Response CreateJsonBodyResponse(Session session, Json root) {
+            byte[] body;
+            session.enableNamespaces = true;
+            session.enableCachedReads = true;
+            try {
+                body = root.ToJsonUtf8();
+                root.ChangeLog?.Checkpoint();
+            } finally {
+                session.enableNamespaces = false;
+                session.enableCachedReads = false;
+            }
+
+            return new Response() {
+                BodyBytes = body,
+                ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
+            };
         }
 
         private static Response CreateErrorResponse(int statusCode, string message) {
