@@ -8,6 +8,15 @@ using System.IO;
 
 namespace Starcounter.Internal.XSON {
     public class PartialClassGenerator {
+        // DONT FORGET:
+        // Currently this value is not used in the buildtasks due to problems
+        // with locked files when compiling Level1. 
+        //
+        // REMEMBER:
+        // Update Starcounter.MsBuild.targets and Starcounter.MsBuild.Develop.targets 
+        // with the new versionnumber.
+        public const long CSHARP_CODEGEN_VERSION = 2;
+        
         public static ITemplateCodeGenerator GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath ) {
             string jsonContent = File.ReadAllText(jsonFilePath);
             string codeBehind;

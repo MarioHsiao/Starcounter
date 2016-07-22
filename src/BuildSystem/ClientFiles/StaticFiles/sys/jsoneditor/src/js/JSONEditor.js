@@ -1,3 +1,13 @@
+'use strict';
+
+var Ajv;
+try {
+  Ajv = require('ajv');
+}
+catch (err) {
+  // no problem... when we need Ajv we will throw a neat exception
+}
+
 var treemode = require('./treemode');
 var textmode = require('./textmode');
 var util = require('./util');
@@ -6,26 +16,34 @@ var util = require('./util');
  * @constructor JSONEditor
  * @param {Element} container    Container element
  * @param {Object}  [options]    Object with options. available options:
- *                               {String} mode      Editor mode. Available values:
- *                                                  'tree' (default), 'view',
- *                                                  'form', 'text', and 'code'.
- *                               {function} change  Callback method, triggered
- *                                                  on change of contents
- *                               {Boolean} search   Enable search box.
- *                                                  True by default
- *                                                  Only applicable for modes
- *                                                  'tree', 'view', and 'form'
- *                               {Boolean} history  Enable history (undo/redo).
- *                                                  True by default
- *                                                  Only applicable for modes
- *                                                  'tree', 'view', and 'form'
- *                               {String} name      Field name for the root node.
- *                                                  Only applicable for modes
- *                                                  'tree', 'view', and 'form'
- *                               {Number} indentation   Number of indentation
- *                                                      spaces. 4 by default.
- *                                                      Only applicable for
- *                                                      modes 'text' and 'code'
+ *                               {String} mode        Editor mode. Available values:
+ *                                                    'tree' (default), 'view',
+ *                                                    'form', 'text', and 'code'.
+ *                               {function} onChange  Callback method, triggered
+ *                                                    on change of contents
+ *                               {function} onError   Callback method, triggered
+ *                                                    when an error occurs
+ *                               {Boolean} search     Enable search box.
+ *                                                    True by default
+ *                                                    Only applicable for modes
+ *                                                    'tree', 'view', and 'form'
+ *                               {Boolean} history    Enable history (undo/redo).
+ *                                                    True by default
+ *                                                    Only applicable for modes
+ *                                                    'tree', 'view', and 'form'
+ *                               {String} name        Field name for the root node.
+ *                                                    Only applicable for modes
+ *                                                    'tree', 'view', and 'form'
+ *                               {Number} indentation     Number of indentation
+ *                                                        spaces. 4 by default.
+ *                                                        Only applicable for
+ *                                                        modes 'text' and 'code'
+ *                               {boolean} escapeUnicode  If true, unicode
+ *                                                        characters are escaped.
+ *                                                        false by default.
+ *                               {boolean} sortObjectKeys If true, object keys are
+ *                                                        sorted before display.
+ *                                                        false by default.
  * @param {Object | undefined} json JSON object
  */
 function JSONEditor (container, options, json) {
@@ -38,6 +56,41 @@ function JSONEditor (container, options, json) {
   if (ieVersion != -1 && ieVersion < 9) {
     throw new Error('Unsupported browser, IE9 or newer required. ' +
         'Please install the newest version of your browser.');
+  }
+
+  if (options) {
+    // check for deprecated options
+    if (options.error) {
+      console.warn('Option "error" has been renamed to "onError"');
+      options.onError = options.error;
+      delete options.error;
+    }
+    if (options.change) {
+      console.warn('Option "change" has been renamed to "onChange"');
+      options.onChange = options.change;
+      delete options.change;
+    }
+    if (options.editable) {
+      console.warn('Option "editable" has been renamed to "onEditable"');
+      options.onEditable = options.editable;
+      delete options.editable;
+    }
+
+    // validate options
+    if (options) {
+      var VALID_OPTIONS = [
+        'ace', 'theme',
+        'ajv', 'schema',
+        'onChange', 'onEditable', 'onError', 'onModeChange',
+        'escapeUnicode', 'history', 'search', 'mode', 'modes', 'name', 'indentation', 'sortObjectKeys'
+      ];
+
+      Object.keys(options).forEach(function (option) {
+        if (VALID_OPTIONS.indexOf(option) === -1) {
+          console.warn('Unknown option "' + option + '". This option will be ignored');
+        }
+      });
+    }
   }
 
   if (arguments.length) {
@@ -62,6 +115,9 @@ function JSONEditor (container, options, json) {
  */
 JSONEditor.modes = {};
 
+// debounce interval for JSON schema vaidation in milliseconds
+JSONEditor.prototype.DEBOUNCE_INTERVAL = 150;
+
 /**
  * Create the JSONEditor
  * @param {Element} container    Container element
@@ -79,10 +135,9 @@ JSONEditor.prototype._create = function (container, options, json) {
 };
 
 /**
- * Detach the editor from the DOM
- * @private
+ * Destroy the editor. Clean up DOM, event listeners, and web workers.
  */
-JSONEditor.prototype._delete = function () {};
+JSONEditor.prototype.destroy = function () {};
 
 /**
  * Set JSON object in editor
@@ -142,10 +197,11 @@ JSONEditor.prototype.getName = function () {
  *                          'text', and 'code'.
  */
 JSONEditor.prototype.setMode = function (mode) {
-  var container = this.container,
-      options = util.extend({}, this.options),
-      data,
-      name;
+  var container = this.container;
+  var options = util.extend({}, this.options);
+  var oldMode = options.mode;
+  var data;
+  var name;
 
   options.mode = mode;
   var config = JSONEditor.modes[mode];
@@ -155,7 +211,7 @@ JSONEditor.prototype.setMode = function (mode) {
       name = this.getName();
       data = this[asText ? 'getText' : 'get'](); // get text or json
 
-      this._delete();
+      this.destroy();
       util.clear(this);
       util.extend(this, config.mixin);
       this.create(container, options);
@@ -167,7 +223,18 @@ JSONEditor.prototype.setMode = function (mode) {
         try {
           config.load.call(this);
         }
-        catch (err) {}
+        catch (err) {
+          console.error(err);
+        }
+      }
+
+      if (typeof options.onModeChange === 'function' && mode !== oldMode) {
+        try {
+          options.onModeChange(mode, oldMode);
+        }
+        catch (err) {
+          console.error(err);
+        }
       }
     }
     catch (err) {
@@ -180,25 +247,81 @@ JSONEditor.prototype.setMode = function (mode) {
 };
 
 /**
+ * Get the current mode
+ * @return {string}
+ */
+JSONEditor.prototype.getMode = function () {
+  return this.options.mode;
+};
+
+/**
  * Throw an error. If an error callback is configured in options.error, this
  * callback will be invoked. Else, a regular error is thrown.
  * @param {Error} err
  * @private
  */
 JSONEditor.prototype._onError = function(err) {
-  // TODO: onError is deprecated since version 2.2.0. cleanup some day
-  if (typeof this.onError === 'function') {
-    util.log('WARNING: JSONEditor.onError is deprecated. ' +
-        'Use options.error instead.');
-    this.onError(err);
-  }
-
-  if (this.options && typeof this.options.error === 'function') {
-    this.options.error(err);
+  if (this.options && typeof this.options.onError === 'function') {
+    this.options.onError(err);
   }
   else {
     throw err;
   }
+};
+
+/**
+ * Set a JSON schema for validation of the JSON object.
+ * To remove the schema, call JSONEditor.setSchema(null)
+ * @param {Object | null} schema
+ */
+JSONEditor.prototype.setSchema = function (schema) {
+  // compile a JSON schema validator if a JSON schema is provided
+  if (schema) {
+    var ajv;
+    try {
+      // grab ajv from options if provided, else create a new instance
+      ajv = this.options.ajv || Ajv({ allErrors: true, verbose: true });
+
+    }
+    catch (err) {
+      console.warn('Failed to create an instance of Ajv, JSON Schema validation is not available. Please use a JSONEditor bundle including Ajv, or pass an instance of Ajv as via the configuration option `ajv`.');
+    }
+
+    if (ajv) {
+      this.validateSchema = ajv.compile(schema);
+
+      // add schema to the options, so that when switching to an other mode,
+      // the set schema is not lost
+      this.options.schema = schema;
+
+      // validate now
+      this.validate();
+    }
+
+    this.refresh(); // update DOM
+  }
+  else {
+    // remove current schema
+    this.validateSchema = null;
+    this.options.schema = null;
+    this.validate(); // to clear current error messages
+    this.refresh();  // update DOM
+  }
+};
+
+/**
+ * Validate current JSON object against the configured JSON schema
+ * Throws an exception when no JSON schema is configured
+ */
+JSONEditor.prototype.validate = function () {
+  // must be implemented by treemode and textmode
+};
+
+/**
+ * Refresh the rendered contents
+ */
+JSONEditor.prototype.refresh = function () {
+  // can be implemented by treemode and textmode
 };
 
 /**

@@ -72,6 +72,11 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ItemTemplates\CSharp\Starcounter\1033</VSIXSubPath>
     </Content>
+	<Content Include="$(OutputPath)\ItemTemplates\CSharp\Starcounter\1033\HTMLTemplate.zip">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <VSIXSubPath>ItemTemplates\CSharp\Starcounter\1033</VSIXSubPath>
+    </Content>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
