@@ -1,15 +1,15 @@
-%~dp0\..\..\star.exe @@CreateRepo .srv
-COPY /Y %~dp0\..\..\scnetworkgateway.sample.xml %~dp0\..\..\.srv\personal\scnetworkgateway.xml
+rem %~dp0\..\..\star.exe @@CreateRepo .srv
+rem COPY /Y %~dp0\..\..\scnetworkgateway.sample.xml %~dp0\..\..\.srv\personal\scnetworkgateway.xml
 
 if not "%1"=="noclean" (
 	rem kill dirty db instance if exists
-	call %~dp0\..\..\kill_all.bat
-	%~dp0\..\..\staradmin start server
-	%~dp0\..\..\staradmin -database=rl34poc delete --force db
+	call kill_all.bat
+	staradmin start server
+	staradmin -database=rl34poc delete --force db
 )
 
-call %~dp0\..\..\kill_all.bat
-%~dp0\..\..\star -D=rl34poc %~dp0\rl_34_poc.exe || exit /b 1
+call kill_all.bat
+star -D=rl34poc %~dp0\rl_34_poc.exe || exit /b 1
 
 rem create checklist
 powershell -command "Invoke-RestMethod http://localhost:8080/newchecklist?name=checklist1 -method POST | ConvertTo-Json" || exit /b 1
