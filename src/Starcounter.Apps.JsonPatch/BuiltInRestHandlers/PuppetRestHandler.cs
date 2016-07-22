@@ -23,6 +23,8 @@ namespace Starcounter.Internal {
         /// </summary>
         static String JsonPatchWebSocketGroupName = "jsonpatchws";
 
+        private static readonly string ReconnectUriPart = "/reconnect";
+
         /// <summary>
         /// Handles incoming WebSocket byte data.
         /// </summary>
@@ -138,7 +140,7 @@ namespace Starcounter.Internal {
                 }
             });
 
-            Handle.PATCH(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator + "/reconnect", (Request request, Session session) => {
+            Handle.PATCH(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator + ReconnectUriPart, (Request request, Session session) => {
                 if (session == null) {
                     return CreateErrorResponse(404, "No resource found for the specified uri.");
                 }
