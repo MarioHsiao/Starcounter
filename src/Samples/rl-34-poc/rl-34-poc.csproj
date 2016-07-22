@@ -55,26 +55,21 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Server\Starcounter.TransactionLog\Starcounter.TransactionLog.csproj">
-      <Project>{f5fd585a-df81-41af-89e0-4b27ca673fb8}</Project>
-      <Name>Starcounter.TransactionLog</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
-      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
-      <Name>Starcounter.Internal</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
-      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
-      <Name>Starcounter.XSON.JsonByExample</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
-      <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
-      <Name>Starcounter.XSON</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
-      <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
-      <Name>Starcounter</Name>
-    </ProjectReference>
+    <Reference Include="Starcounter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.Internal, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.Logging, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.XSON, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d2df1e81d0ca3abf">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Starcounter.TransactionLog, Version=1.0.0.0, Culture=neutral">
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="checklist_output.json">
@@ -82,7 +77,7 @@
     </TypedJSON>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />
+  <Import Project="$(StarcounterBin)\Starcounter.MsBuild.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
