@@ -30,8 +30,6 @@ namespace Starcounter.TransactionLog
 
         private async Task<LogReadResult> read_next_transaction(CancellationToken ct, bool wait_for_live_updates)
         {
-            await Task.Yield();
-
             while (LogReaderImports.TransactionLogIsEOF(_log_handle))
             {
                 if (!wait_for_live_updates)
