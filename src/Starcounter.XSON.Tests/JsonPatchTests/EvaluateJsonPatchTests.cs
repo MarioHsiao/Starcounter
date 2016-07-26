@@ -496,6 +496,26 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestAlreadyApplied() {
+            // arrange
+            var tJson = Template.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            var json = (Json)tJson.CreateInstance();
+            new Session(SessionOptions.PatchVersioning) {Data = json}; // establishes itself as current session
+            var version = json.ChangeLog.Version;
+
+            json.ChangeLog.Checkpoint();
+            jsonPatch.Apply(json, Encoding.UTF8.GetBytes(GetVersioningPatch(version, 1, 0)));
+
+            // act
+            var evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(GetVersioningPatch(version, 1, 0)));
+
+            // assert
+            Assert.AreEqual(-2, evaluatedCount);
+            Assert.AreEqual(1, version.RemoteVersion);
+            Assert.AreEqual(0, version.LocalVersion);
+        }
+
+        [Test]
         public static void TestPatchOTForObject() {
             int evaluatedCount;
             string incomingPatch;

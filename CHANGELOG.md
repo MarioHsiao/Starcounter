@@ -3,6 +3,7 @@
 ### Added
 - Better error message when a synonym target an illegal element, [#3677](https://github.com/Starcounter/Starcounter/issues/3677)
 - Made `staradmin list apps` support filtering on a specific database by giving `-d|--database`, [#3521](https://github.com/Starcounter/Starcounter/issues/3521)
+- Support for reconnecting with [PuppetJs](https://github.com/puppetjs/puppetjs). [puppetjs/puppetjs#71](https://github.com/puppetjs/puppetjs/issues/71)
 - Added versionnumber to generated files for TypedJSON to force regeneration when codegenerator is changed [#3732](https://github.com/Starcounter/Starcounter/issues/3732)
 - Improved binding in TypedJSON from property in Json-by-example to property in code-behind with allowing using the same name (and type) to automatically bind [#2964](https://github.com/Starcounter/Starcounter/issues/2964)
 - Added a new itemtemplate for Starcounter projects, `HTML template with dom-bind` [#2931](https://github.com/Starcounter/Starcounter/issues/2931)
@@ -30,6 +31,7 @@
 - Fixed a bug relating to reference failures sometimes showing with new Roslyn-based code-behind parser, [#3666](https://github.com/Starcounter/Starcounter/issues/3666)
 - Fixed a bug where a part of the jsontree was prematurely checkpointed when gathering changes for creating patches.
 - Allowing empty string as value in patches for properties with type long, decimal or double when applying jsonpatches. This value will be converted to the default value for the specified type and also correct value will be sent back to client [#3725](https://github.com/Starcounter/Starcounter/issues/3725)
+- When accepting patch to be enqueued, return normal patch response (previously returning empty response)
 - Fixed URI aliasing problem in gateway: [#3731](https://github.com/Starcounter/Starcounter/issues/3731)
 - Fixed a bug in Response-serialization (`Response.ConstructFromFields()`), which could cause estimated size to be smaller then actual needed size in some cases [#3735](https://github.com/Starcounter/Starcounter/issues/3735)
 
@@ -42,6 +44,7 @@
 - `PartialToStandaloneHtmlProvider` middleware no longer overwrites default Bootstrap font size [#3665](https://github.com/Starcounter/Starcounter/issues/3665)
 - Upgraded Polymer to 1.6.0 [#3673](https://github.com/Starcounter/Starcounter/issues/3673)
 - Upgraded PuppetJs to 2.0.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
+- For request to invalid (non-existent) session, return 404 instead of 400
 - Upgraded starcounter-debug-aid to 2.0.7
 - Upgraded Juicy/juicy-jsoneditor to 1.1.0
 - Upgraded Josdejong/jsoneditor to 5.5.6
