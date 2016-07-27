@@ -90,7 +90,7 @@ namespace Starcounter.TransactionLog
         private extern static int TransactionLogGetInsertUpdateEntryColumnInfo(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out IntPtr column_name, out byte column_type);
 
         [DllImport("logreader.dll")]
-        private extern static int TransactionLogGetColumnStringValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out IntPtr val);
+        private extern static int TransactionLogGetColumnEncodedStringValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out IntPtr data, out uint size);
 
         [DllImport("logreader.dll")]
         private extern static int TransactionLogGetColumnBinaryValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out IntPtr data, out uint size);
@@ -104,7 +104,31 @@ namespace Starcounter.TransactionLog
         [DllImport("logreader.dll")]
         private extern static int TransactionLogGetColumnFloatValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out float val, [MarshalAs(UnmanagedType.I1)] out bool is_initialized);
 
-        public static void TransactionLogGetInsertUpdateEntryColumnInfo(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out string column_name, out object column_value)
+        [DllImport("logreader.dll", CharSet = CharSet.Unicode)]
+        private extern static int TransactionLogDecodeString(IntPtr log_handle, char[] dst, int dst_max, byte[] src, uint src_len, out int dst_len);
+
+        public delegate int decoder<T>(T log, char[] dst, int dst_max, byte[] src, uint src_len, out int dst_len);
+        public static string DecodeString<T>( decoder<T> dec, T log, byte[] encoded_string)
+        {
+            int guess_size = encoded_string.Length * 2;
+            char[] dst = new char[guess_size];
+            int dst_len;
+
+            dec(log, dst, dst.Length, encoded_string, (uint)encoded_string.Length, out dst_len);
+
+            if (dst_len == 0)
+                throw new System.ArgumentException();
+
+            if (dst_len > guess_size)
+            {
+                dst = new char[dst_len];
+                dec(log, dst, dst.Length, encoded_string, (uint)encoded_string.Length, out dst_len);
+            }
+
+            return new string(dst, 0, dst_len);
+        }
+
+    public static void TransactionLogGetInsertUpdateEntryColumnInfo(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out string column_name, out object column_value)
         {
             IntPtr column_name_ptr;
             byte column_type;
@@ -116,10 +140,21 @@ namespace Starcounter.TransactionLog
             {
                 case Starcounter.Internal.sccoredb.STAR_TYPE_STRING:
                     {
-                        IntPtr val;
-                        TransactionLogException.Test(TransactionLogGetColumnStringValue(log_handle, insertupdate_entry_index, column_index, out val));
-                        if (val != IntPtr.Zero)
-                            column_value = Marshal.PtrToStringUni(val);
+                        IntPtr data;
+                        uint size;
+                        TransactionLogException.Test(TransactionLogGetColumnEncodedStringValue(log_handle, insertupdate_entry_index, column_index, out data, out size));
+                        if (data != IntPtr.Zero)
+                        {
+                            if (size != 0)
+                            {
+                                byte[] val = new byte[size];
+                                Marshal.Copy(data, val, 0, (int)size);
+
+                                column_value = new Lazy<string>(() => { return DecodeString(TransactionLogDecodeString, log_handle, val); });
+                            }
+                            else
+                                column_value = "";
+                        }
                         break;
                     }
                 case Starcounter.Internal.sccoredb.STAR_TYPE_BINARY:

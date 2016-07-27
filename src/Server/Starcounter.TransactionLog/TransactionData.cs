@@ -14,7 +14,12 @@ namespace Starcounter.TransactionLog
     public struct column_update
     {
         public string name;
-        public object value; //reference, sring, long, ulong, decimal, float, double, byte[]
+        private object value_;
+        public object value //reference, sring, long, ulong, decimal, float, double, byte[]
+        {
+            get { return (value_ as Lazy<string>)?.Value ?? value_; }
+            set { value_ = value; }
+        }
     };
 
     public struct create_record_entry

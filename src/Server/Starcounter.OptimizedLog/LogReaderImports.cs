@@ -71,7 +71,7 @@ namespace Starcounter.OptimizedLog
         private extern static int OptimizedLogGetEntryColumnInfo(IntPtr log_handle, uint column_index, out IntPtr column_name, out byte column_type);
 
         [DllImport("optlogreader.dll")]
-        private extern static int OptimizedLogGetColumnStringValue(IntPtr log_handle, uint column_index, out IntPtr val);
+        private extern static int OptimizedLogGetColumnEncodedStringValue(IntPtr log_handle, uint column_index, out IntPtr data, out uint size);
 
         [DllImport("optlogreader.dll")]
         private extern static int OptimizedLogGetColumnBinaryValue(IntPtr log_handle, uint column_index, out IntPtr data, out uint size);
@@ -85,6 +85,9 @@ namespace Starcounter.OptimizedLog
         [DllImport("optlogreader.dll")]
         private extern static int OptimizedLogGetColumnFloatValue(IntPtr log_handle, uint column_index, out float val, [MarshalAs(UnmanagedType.I1)] out bool is_initialized);
 
+        [DllImport("optlogreader.dll", CharSet = CharSet.Unicode)]
+        private extern static int OptimizedLogDecodeString(IntPtr log_handle, char[] dst, int dst_max, byte[] src, uint src_len, out int dst_len);
+
         public static void OptimizedLogGetEntryColumnInfo(IntPtr log_handle, uint column_index, out string column_name, out object column_value)
         {
             IntPtr column_name_ptr;
@@ -97,10 +100,21 @@ namespace Starcounter.OptimizedLog
             {
                 case Starcounter.Internal.sccoredb.STAR_TYPE_STRING:
                     {
-                        IntPtr val;
-                        OptimizedLogException.Test(OptimizedLogGetColumnStringValue(log_handle, column_index, out val));
-                        if (val != IntPtr.Zero)
-                            column_value = Marshal.PtrToStringUni(val);
+                        IntPtr data;
+                        uint size;
+                        OptimizedLogException.Test(OptimizedLogGetColumnEncodedStringValue(log_handle, column_index, out data, out size));
+                        if (data != IntPtr.Zero)
+                        {
+                            if (size != 0)
+                            {
+                                byte[] val = new byte[size];
+                                Marshal.Copy(data, val, 0, (int)size);
+
+                                column_value = new Lazy<string>(() => { return Starcounter.TransactionLog.LogReaderImports.DecodeString(OptimizedLogDecodeString, log_handle, val); });
+                            }
+                            else
+                                column_value = "";
+                        }
                         break;
                     }
                 case Starcounter.Internal.sccoredb.STAR_TYPE_BINARY:
