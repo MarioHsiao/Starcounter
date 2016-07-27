@@ -106,7 +106,7 @@ namespace Starcounter.Internal {
                             StatusCode = 202,
                             StatusDescription = "Patch enqueued until earlier versions have arrived. Last known version is " + root.ChangeLog.Version.RemoteVersion
                         };
-                    } else if (patchCount == -2) {
+                    } else if (patchCount == -2) { // -2 means that patch had already been applied and now it's been ignored 
                         return new Response() {
                             Resource = root,
                             StatusCode = 200,
