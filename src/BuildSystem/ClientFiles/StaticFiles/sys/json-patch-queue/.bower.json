@@ -23,13 +23,13 @@
   "devDependencies": {
     "fast-json-patch": "~0.5.0"
   },
-  "_release": "1312e44c83",
+  "_release": "4e279479ca",
   "_resolution": {
     "type": "branch",
     "branch": "gh-pages",
-    "commit": "1312e44c8327cd8fba0ed6344bc15387b22fbb62"
+    "commit": "4e279479ca512f7658f1fda42850409fd45a712e"
   },
-  "_source": "git://github.com/PuppetJs/JSON-Patch-Queue.git",
+  "_source": "git://github.com/PuppetJs/JSON-Patch-queue.git",
   "_target": "gh-pages",
-  "_originalSource": "PuppetJs/JSON-Patch-Queue"
+  "_originalSource": "PuppetJs/JSON-Patch-queue"
 }
