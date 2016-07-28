@@ -45,12 +45,13 @@
 - Upgraded Polymer to 1.6.0 [#3673](https://github.com/Starcounter/Starcounter/issues/3673)
 - Removed parameter `forceSnapshot` from `Db.Transact()` methods since the parameter is no longer valid. A `Db.Transact()` is always executed in snapshot isolation.
 - Removed parameter `detectConflicts` from `Transaction` since the parameter is no longer valid. A `Transaction` can no longer detect conflicts.
-- Upgraded PuppetJs to 2.0.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
+- Upgraded PuppetJs to 2.1.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
 - For request to invalid (non-existent) session, return 404 instead of 400
 - Upgraded starcounter-debug-aid to 2.0.7
 - Upgraded Juicy/juicy-jsoneditor to 1.1.0
 - Upgraded Josdejong/jsoneditor to 5.5.6
 - Upgraded Juicy/imported-template to 1.4.3
+- Upgraded puppetjs/puppet-polymer-client to 3.1.0 which supports reconnection
 
 ## [2.2.1834] - 2016-04-19
 ### Added
