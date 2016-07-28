@@ -11,7 +11,11 @@ namespace Snippets {
 		public string Domain;
 	}
 	
-	public class HomeType : Concept {
+	public class OrganisationType : Concept {
+		public string somethingAboutIt;
+	}
+	
+	public class HomeType : OrganisationType {
 	}
 	
 	public class Home : Concept {
@@ -30,9 +34,13 @@ namespace Snippets {
 			if (Db.SQL("select i from starcounter.metadata.\"index\" i where name = ?", 
 			"UniqueIdentifierIndx").First == null)
 				Db.SQL("create index UniqueIdentifierIndx on ClassifiedHomeAd (UniqueIdentifier)");
-#endif
 			if (Db.SQL("select a from ClassifiedHomeAd a").First == null)
-				Db.Transact(delegate {
+#endif
+			ulong counter = Db.SQL<ulong>("select max(objectno) from classifiedHomead").First;
+            ScAssertion.Assert(counter > 0);
+            Db.Transact(delegate {
+				//var h = Db.SQL<HomeType>("select h from hometype h where name = ?","myhome").First;
+				//h.Delete();
 					Organisation orgNN = new Organisation { Domain = "myorg.com"};
 					Organisation orgNull = new Organisation();
 					Organisation orgLanfast = new Organisation { Domain = "www.lansfast.se" };
@@ -48,7 +56,7 @@ namespace Snippets {
 						Home = homeTNN
 					};
 					new ClassifiedHomeAd {
-						UniqueIdentifier = "1",
+						UniqueIdentifier = (++counter).ToString(),
 						PublicationOwner = orgLanfast,
 						Home = homeTNN
 					};
@@ -58,18 +66,28 @@ namespace Snippets {
 						Home = homeTNull
 					};
 					new ClassifiedHomeAd {
-						UniqueIdentifier = "3",
-						PublicationOwner = orgNN,
+						UniqueIdentifier = (++counter).ToString(),
+                        PublicationOwner = orgNN,
 						Home = homeTNull
 					};
 					new ClassifiedHomeAd {
-						UniqueIdentifier = "4",
-						PublicationOwner = orgLanfast,
+						UniqueIdentifier = (++counter).ToString(),
+                        PublicationOwner = orgLanfast,
 						Home = homeTNN
 					};
-					new ClassifiedHomeAd {
-						UniqueIdentifier = "2",
-						PublicationOwner = orgLanfast,
+                new ClassifiedHomeAd {
+                    UniqueIdentifier = (++counter).ToString(),
+                    PublicationOwner = orgNull,
+                    Home = homeTNull
+                };
+                new ClassifiedHomeAd {
+                    UniqueIdentifier = (++counter).ToString(),
+                    PublicationOwner = orgNull,
+                    Home = homeNull
+                };
+                new ClassifiedHomeAd {
+						UniqueIdentifier = (++counter).ToString(),
+                    PublicationOwner = orgLanfast,
 						Home = homeTNull
 					};
 				});
@@ -77,19 +95,19 @@ namespace Snippets {
 				where publicationowner.domain=? and 
 					home.hometype.name is null and 
 					uniqueidentifier is not null", "www.lansfast.se").First;
-			ScAssertion.Assert(res == 1);
+			ScAssertion.Assert(res > 0);
 			res = Db.SlowSQL<long>(@"select count(a) from classifiedhomead a 
 				where publicationowner.domain='www.lansfast.se' and 
 					home.hometype.name is null and 
 					uniqueidentifier is not null").First;
-			ScAssertion.Assert(res == 1);
+			ScAssertion.Assert(res > 0);
 #if false
 			string query = Db.SlowSQL<long>(@"select count(a) from classifiedhomead a 
 				where publicationowner.domain='www.lansfast.se' and 
 					home.hometype.name is null and 
 					uniqueidentifier is not null").GetEnumerator().ToString();
 			Console.WriteLine(query);
-		}
 #endif
-	}
+        }
+    }
 }
