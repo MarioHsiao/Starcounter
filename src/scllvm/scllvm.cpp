@@ -349,10 +349,6 @@ extern "C" {
 		clang_engine->Cleanup(false);
 
 		delete clang_engine;
-
-        assert(nullptr != g_mutex);
-        delete g_mutex;
-        g_mutex = nullptr;
 	}
 
 	int main() {
