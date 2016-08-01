@@ -290,14 +290,25 @@ extern "C" {
 		}
 	};
 
+    // Global mutex.
+    llvm::sys::MutexImpl* g_mutex = nullptr;
+
 	MODULE_API void ClangInit() {
+
+        assert(nullptr == g_mutex);
+        g_mutex = new llvm::sys::MutexImpl();
+
 		llvm::InitializeNativeTarget();
 		llvm::InitializeNativeTargetAsmPrinter();
 		llvm::InitializeNativeTargetAsmParser();
 	}
 
 	MODULE_API void ClangDeleteModule(CodegenEngine* const clang_engine, void** exec_engine) {
+
+        assert(nullptr != g_mutex);
+        g_mutex->acquire();
 		clang_engine->DestroyEngine((llvm::ExecutionEngine**) exec_engine);
+        g_mutex->release();
 	}
 
 	MODULE_API uint32_t ClangCompileCodeAndGetFuntions(
@@ -310,11 +321,14 @@ extern "C" {
 		uint64_t out_func_ptrs[],
 		void** out_exec_engine)
 	{
+        assert(nullptr != g_mutex);
+        g_mutex->acquire();
+
 		if (NULL == *clang_engine) {
 			*clang_engine = new CodegenEngine();
 		}
 
-		return (*clang_engine)->CompileCodeAndGetFuntions(
+        uint32_t err_code = (*clang_engine)->CompileCodeAndGetFuntions(
 			accumulate_old_modules,
 			print_to_console,
 			do_optimizations,
@@ -322,6 +336,10 @@ extern "C" {
 			function_names_delimited,
 			out_func_ptrs,
 			out_exec_engine);
+
+        g_mutex->release();
+
+        return err_code;
 	}
 
 	MODULE_API void ClangDestroy(CodegenEngine* clang_engine) {
@@ -331,6 +349,10 @@ extern "C" {
 		clang_engine->Cleanup(false);
 
 		delete clang_engine;
+
+        assert(nullptr != g_mutex);
+        delete g_mutex;
+        g_mutex = nullptr;
 	}
 
 	int main() {
