@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Starcounter.XSON.Metadata;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace Starcounter.XSON.PartialClassGenerator {
 
@@ -105,7 +106,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 // It's mapped. If it's also a named root, it can only be
                 // mapped as such.
                 if (IsNamedRootObject()) {
-                    if (ci.RawDebugJsonMapAttribute != rootMapAttributeText) {
+                    if (ci.JsonMapAttribute != rootMapAttributeText) {
                         throw IllegalCodeBehindException(InvalidCodeBehindError.RootClassWithCustomMapping, node);
                     }
                 }
@@ -183,6 +184,27 @@ namespace Starcounter.XSON.PartialClassGenerator {
             if (node.Identifier.Text == "Handle") {
                 DiscoverInputHandler(node);
             }
+        }
+
+        public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node) {
+            // By design: Let's not invoke base visitor, since we don't need to analyze 
+            // anything else about it, and we provide a faster execution if we don't.
+            
+            DiscoverProperty(node);
+        }
+
+        private void DiscoverProperty(PropertyDeclarationSyntax node) {
+            var isStatic = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.StaticKeyword);
+            if (isStatic) 
+                return;
+            
+            var isAbstract = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.AbstractKeyword);
+            if (isAbstract)
+                return;
+
+            var name = node.Identifier.Text;
+            var typeName = node.Type.ToString();
+            codeBehindMetadata.PropertyList.Add(new CodeBehindPropertyInfo() { Name = name, TypeName = typeName });
         }
 
         void DiscoverInputHandler(MethodDeclarationSyntax node) {

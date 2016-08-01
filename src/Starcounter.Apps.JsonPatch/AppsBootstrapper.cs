@@ -776,8 +776,7 @@ namespace Starcounter.Internal {
 
             }
             catch (UriInjectMethods.IncorrectSessionException) {
-
-                resp = Response.FromStatusCode(400);
+                resp = Response.FromStatusCode(404);
                 resp.Body = "Incorrect session supplied!";
                 resp.Headers["Connection"] = "close";
 

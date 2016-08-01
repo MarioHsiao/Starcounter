@@ -15,7 +15,7 @@ namespace Starcounter.Internal.XSON {
         // REMEMBER:
         // Update Starcounter.MsBuild.targets and Starcounter.MsBuild.Develop.targets 
         // with the new versionnumber.
-        public const long CSHARP_CODEGEN_VERSION = 1;
+        public const long CSHARP_CODEGEN_VERSION = 2;
         
         public static ITemplateCodeGenerator GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath ) {
             string jsonContent = File.ReadAllText(jsonFilePath);

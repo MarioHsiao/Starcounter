@@ -26,7 +26,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             foreach (var metadata in new[] { monoMetadata, roslynMetadata }) {
                 Assert.AreEqual(null, metadata.RootClassInfo.BoundDataClass);
-                Assert.AreEqual("Simple_json", metadata.RootClassInfo.RawDebugJsonMapAttribute);
+                Assert.AreEqual("Simple_json", metadata.RootClassInfo.JsonMapAttribute);
                 Assert.AreEqual("Json", metadata.RootClassInfo.BaseClassName);
                 Assert.AreEqual("MySampleNamespace", metadata.RootClassInfo.Namespace);
 
@@ -36,7 +36,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 });
                 Assert.AreEqual("OrderItem", c2.BoundDataClass);
                 Assert.AreEqual("MyOtherNs.MySubNS.SubClass", c2.BaseClassName);
-                Assert.AreEqual("Apapa_json.Items", c2.RawDebugJsonMapAttribute);
+                Assert.AreEqual("Apapa_json.Items", c2.JsonMapAttribute);
 
                 Assert.AreEqual(3, metadata.UsingDirectives.Count);
                 Assert.AreEqual("System", metadata.UsingDirectives[0]);
@@ -53,7 +53,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             foreach (var metadata in new[] { monoMetadata, roslynMetadata }) {
                 Assert.AreEqual("Order", metadata.RootClassInfo.BoundDataClass);
-                Assert.AreEqual("Complex_json", metadata.RootClassInfo.RawDebugJsonMapAttribute);
+                Assert.AreEqual("Complex_json", metadata.RootClassInfo.JsonMapAttribute);
                 Assert.AreEqual("MyBaseJsonClass", metadata.RootClassInfo.BaseClassName);
                 Assert.AreEqual("MySampleNamespace", metadata.RootClassInfo.Namespace);
 
@@ -64,7 +64,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
                 Assert.AreEqual("OrderItem", c2.BoundDataClass);
                 Assert.AreEqual("Json", c2.BaseClassName);
-                Assert.AreEqual("Complex_json.ActivePage.SubPage1.SubPage2.SubPage3", c2.RawDebugJsonMapAttribute);
+                Assert.AreEqual("Complex_json.ActivePage.SubPage1.SubPage2.SubPage3", c2.JsonMapAttribute);
 
                 Assert.AreEqual(3, metadata.UsingDirectives.Count);
                 Assert.AreEqual("System", metadata.UsingDirectives[0]);
@@ -201,7 +201,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 Assert.AreEqual(mc.IsRootClass, rc.IsRootClass);
                 Assert.AreEqual(mc.Namespace, rc.Namespace);
                 Assert.AreEqual(mc.ParentClasses, rc.ParentClasses);
-                Assert.AreEqual(mc.RawDebugJsonMapAttribute, rc.RawDebugJsonMapAttribute);
+                Assert.AreEqual(mc.JsonMapAttribute, rc.JsonMapAttribute);
                 Assert.AreEqual(mc.UseGlobalSpecifier, rc.UseGlobalSpecifier);
             }
 
