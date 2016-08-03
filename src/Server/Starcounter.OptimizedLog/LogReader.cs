@@ -10,17 +10,26 @@ namespace Starcounter.OptimizedLog
 {
     class OptimizedLogReader : IOptimizedLogReader
     {
-        public OptimizedLogReader(string db_name, string log_dir, OptimizedLogPosition position)
+        public OptimizedLogReader(string db_name, string log_dir, OptimizedLogPosition position, Func<string, bool> table_predicate)
         {
-            _log_handle = OptimizedLogReaderImports.OptimizedLogOpenAndSeek(db_name, log_dir, position);
+            CreateDelegate(table_predicate);
+            _log_handle = OptimizedLogReaderImports.OptimizedLogOpenAndSeek(db_name, log_dir, position, _table_predicate);
         }
 
-        public OptimizedLogReader(string db_name, string log_dir)
+        public OptimizedLogReader(string db_name, string log_dir, Func<string, bool> table_predicate)
         {
-            _log_handle = OptimizedLogReaderImports.OptimizedLogOpen(db_name, log_dir);
+            CreateDelegate(table_predicate);
+            _log_handle = OptimizedLogReaderImports.OptimizedLogOpen(db_name, log_dir, _table_predicate);
+        }
+
+        private void CreateDelegate(Func<string, bool> table_predicate)
+        {
+            _table_predicate = table_predicate == null ? null : new LogReaderImports.table_predicate_delegate(table_predicate);
         }
 
         private IntPtr _log_handle;
+        private LogReaderImports.table_predicate_delegate _table_predicate;
+        private MetadataCache _meta_cache = new MetadataCache();
 
         public IEnumerable<OptimizedLogReadResult> Records
         {
@@ -60,32 +69,29 @@ namespace Starcounter.OptimizedLog
             return res;
         }
 
-        private Starcounter.TransactionLog.create_record_entry read_current_record()
+        private create_record_entry read_current_record()
         {
-            string table;
-            ulong object_id;
-            uint columns_count;
+            Starcounter.TransactionLog.LogReaderImports.insertupdate_entry_info e;
+            OptimizedLogReaderImports.OptimizedLogGetEntryInfo(_log_handle, out e);
 
-            OptimizedLogReaderImports.OptimizedLogGetEntryInfo(_log_handle, out table, out object_id, out columns_count);
-
-            return new Starcounter.TransactionLog.create_record_entry
+            return new create_record_entry
             {
-                table = table,
-                key = new Starcounter.TransactionLog.reference { object_id = object_id },
-                columns = read_columns(columns_count)
+                table = _meta_cache[e.table],
+                key = new reference { object_id = e.object_id},
+                columns = read_columns(e)
             };
         }
 
-        private Starcounter.TransactionLog.column_update[] read_columns(uint columns_count)
+        private column_update[] read_columns(LogReaderImports.insertupdate_entry_info e)
         {
-            Starcounter.TransactionLog.column_update[] res = new Starcounter.TransactionLog.column_update[columns_count];
-            for (uint c = 0; c < columns_count; ++c)
+            Starcounter.TransactionLog.column_update[] res = new Starcounter.TransactionLog.column_update[e.columns_updates_count];
+            for (uint c = 0; c < e.columns_updates_count; ++c)
             {
-                string name;
-                object value;
-                OptimizedLogReaderImports.OptimizedLogGetEntryColumnInfo(_log_handle, c, out name, out value);
-
-                res[c] = new Starcounter.TransactionLog.column_update { name = name, value = value };
+                unsafe
+                {
+                    LogReaderImports.column_update* cu = (LogReaderImports.column_update*)e.updates + c;
+                    res[c] = LogReaderImports.decode_column_update(_log_handle, *cu, _meta_cache, OptimizedLogReaderImports.OptimizedLogDecodeString);
+                }
             }
 
             return res;

@@ -8,8 +8,8 @@ namespace Starcounter.OptimizedLog
 {
     public interface IOptimizedLogManager
     {
-        IOptimizedLogReader OpenLog(string db_name, string log_dir);
+        IOptimizedLogReader OpenLog(string db_name, string log_dir, Func<string, bool> table_predicate = null);
 
-        IOptimizedLogReader OpenLog(string db_name, string log_dir, OptimizedLogPosition position);
+        IOptimizedLogReader OpenLog(string db_name, string log_dir, OptimizedLogPosition position, Func<string, bool> table_predicate = null);
     }
 }
