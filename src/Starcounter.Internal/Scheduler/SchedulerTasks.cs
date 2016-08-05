@@ -47,16 +47,23 @@ namespace Starcounter {
         /// </summary>
         /// <param name="action">Action to be run on scheduler.</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
-        /// <param name="schedId">Scheduler ID to run on.</param>
+        /// <param name="schedulerId">Scheduler ID to run on.</param>
         public static void ScheduleTask(
             Action action,
             Boolean waitForCompletion = false, 
-            Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
+            Byte schedulerId = StarcounterEnvironment.InvalidSchedulerId) {
+
+            // Checking for correct scheduler id.
+            if ((schedulerId >= StarcounterEnvironment.SchedulerCount) &&
+                (schedulerId != StarcounterEnvironment.InvalidSchedulerId)) {
+
+                throw new ArgumentOutOfRangeException("Wrong scheduler ID is supplied.");
+            }
 
             if (waitForCompletion) {
-                _dbSession.RunSync(action, schedId);
+                _dbSession.RunSync(action, schedulerId);
             } else {
-                _dbSession.RunAsync(action, schedId);
+                _dbSession.RunAsync(action, schedulerId);
             }
         }
     }
