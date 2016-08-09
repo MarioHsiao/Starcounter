@@ -8,6 +8,7 @@ using System;
 using System.Text;
 using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
+using Starcounter.XSON;
 using Module = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter {
@@ -114,7 +115,7 @@ namespace Starcounter {
         /// <param name="json"></param>
         public void PopulateFromJson(string json) {
             if (Template == null) 
-                CreateDynamicTemplate();
+                CreateDynamicTemplate(null);
             
             if (string.IsNullOrEmpty(json))
                 return;
@@ -131,7 +132,7 @@ namespace Starcounter {
         /// <returns></returns>
         public int PopulateFromJson(byte[] source, int sourceSize) {
             if (Template == null) 
-                CreateDynamicTemplate();
+                CreateDynamicTemplate(null);
            
             unsafe {
                 fixed (byte* psrc = source) {
@@ -148,23 +149,14 @@ namespace Starcounter {
         /// <returns></returns>
         public int PopulateFromJson(IntPtr source, int sourceSize) {
             if (Template == null) {
-                CreateDynamicTemplate();
+                CreateDynamicTemplate(null);
             }
             if (sourceSize == 0) return 0;
 
             var serializer = ((TValue)Template).JsonSerializer;
 			return serializer.Populate(this, source, sourceSize);
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        internal void CreateDynamicTemplate() {
-            var t = new TObject();
-            t.IsDynamic = true;
-            Template = t; // IMPORTANT! It is important that the dynamic flag is set _before_ it is assigned to the Template property.
-        }
-
+        
         /// <summary>
         /// 
         /// </summary>

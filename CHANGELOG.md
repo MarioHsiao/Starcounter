@@ -7,6 +7,7 @@
 - Added versionnumber to generated files for TypedJSON to force regeneration when codegenerator is changed [#3732](https://github.com/Starcounter/Starcounter/issues/3732)
 - Improved binding in TypedJSON from property in Json-by-example to property in code-behind with allowing using the same name (and type) to automatically bind [#2964](https://github.com/Starcounter/Starcounter/issues/2964)
 - Added a new itemtemplate for Starcounter projects, `HTML template with dom-bind` [#2931](https://github.com/Starcounter/Starcounter/issues/2931)
+- Added support for enums when a template for TypedJSON is created based on the type for a dataobject [#3759](https://github.com/Starcounter/Starcounter/issues/3759)
 
 ### Fixed
 - Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
