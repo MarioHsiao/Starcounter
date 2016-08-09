@@ -1,10 +1,7 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Templates;
-using System;
-using System.Collections.Generic;
-using TJson = Starcounter.Templates.TObject;
-using System.Collections;
 
 namespace Starcounter.Internal.XSON.Tests {
 
@@ -101,7 +98,7 @@ namespace Starcounter.Internal.XSON.Tests {
             j.FirstName = "Joachim";
 
             Assert.Throws(typeof(Exception), () => { nicke.Template = j.Template; });
-            Assert.DoesNotThrow(() => olle.Template = new TJson());
+            Assert.DoesNotThrow(() => olle.Template = new TObject());
         }
         
         [Test]
@@ -115,6 +112,59 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Assert.AreEqual("Joachim", p.FirstName);
             Assert.AreEqual("Joachim", j.FirstName);
+        }
+
+        [Test]
+        public static void TestDynamicJsonBinding2() {
+            var data = new ObjectWithTypes();
+            data.Value1 = true;
+            data.Value2 = 12;
+            data.Value3 = 666L;
+            data.Value4 = 23.11d;
+            data.Value5 = 19.65m;
+            data.Value6 = "Qwerty";
+            data.Value7 = ShortEnum.Value1;
+            data.Value8 = IntEnum.Value2;
+            data.Value9 = new Entity();
+
+            var list = new List<Entity>();
+            list.Add(new Entity());
+            data.Value10 = list;
+
+            list = new List<Entity>();
+            list.Add(new Entity());
+            data.Value11 = list;
+
+            var json = new Json();
+            json.Data = data;
+
+            Assert.AreEqual(data.Value1, json["Value1"]);
+            Assert.AreEqual(data.Value2, json["Value2"]);
+            Assert.AreEqual(data.Value3, json["Value3"]);
+            Assert.AreEqual(data.Value4, json["Value4"]);
+            Assert.AreEqual(data.Value5, json["Value5"]);
+
+            Assert.AreEqual(data.Value6, json["Value6"]);
+            Assert.AreEqual(Convert.ToInt64(data.Value7), json["Value7"]);
+            Assert.AreEqual(Convert.ToInt64(data.Value8), json["Value8"]);
+
+            // Not supporting objects and arrays currently.
+            //var childJson = (Json)json["Value9"];
+            //Assert.AreEqual(data.Value9, childJson.Data);
+
+            //childJson = (Json)json["Value10"];
+            //Assert.IsTrue(childJson.IsArray);
+            //Assert.AreEqual(1, ((IList)childJson).Count);
+
+            //childJson = (Json)((IList)childJson)[0];
+            //Assert.AreEqual(data.Value10[0], childJson);
+
+            //childJson = (Json)json["Value11"];
+            //Assert.IsTrue(childJson.IsArray);
+            //Assert.AreEqual(1, ((IList)childJson).Count);
+
+            //childJson = (Json)((IList)childJson)[0];
+            //Assert.AreEqual(data.Value11[0], childJson);
         }
     }
 }
