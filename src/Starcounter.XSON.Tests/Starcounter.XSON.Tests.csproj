@@ -69,7 +69,7 @@
     <Compile Include="DataObjects\Person.cs" />
     <Compile Include="DataObjects\PropertyAccessCounter.cs" />
     <Compile Include="DataObjects\Recursive.cs" />
-    <Compile Include="ExpandoTests.cs" />
+    <Compile Include="DynamicFunctionTests.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="ArrayPatchTests.cs" />
     <Compile Include="EvaluateJsonPatchTests.cs" />

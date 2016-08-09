@@ -9,7 +9,7 @@ using TJson = Starcounter.Templates.TObject;
 namespace Starcounter.Internal.XSON.Tests {
 
     [TestFixture]
-    static class ExpandoTests {
+    static class DynamicFunctionTests {
 
 
         [Test]
