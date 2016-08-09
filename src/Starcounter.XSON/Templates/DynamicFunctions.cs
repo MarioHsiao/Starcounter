@@ -42,6 +42,8 @@ namespace Starcounter.XSON {
 
             if (getTemplateFromType.TryGetValue(type, out templateFunc)) {
                 result = templateFunc();
+            } else if (type.IsEnum) {
+                result = new TLong();
             } else if (typeof(IEnumerable<Json>).IsAssignableFrom(type)) {
                 result = new TArray<Json>();
             } else if (typeof(Json).IsAssignableFrom(type)) {
@@ -65,27 +67,41 @@ namespace Starcounter.XSON {
                 return result(parent, name);
             }
 
+            if (type.IsEnum) {
+                return parent.Add<TLong>(name);
+            }
+
             if (typeof(IEnumerable<Json>).IsAssignableFrom(type)) {
                 return parent.Add<TArray<Json>>(name);
             }
-//            if (typeof(IEnumerator<Obj>).IsAssignableFrom(type)) {
-//                return this.Add<TArr<Obj, TDynamicObj>>(name);
-//            }
+
             if (typeof(Json).IsAssignableFrom(type)) {
                 return parent.Add<TObject>(name);
             }
+
             if ((typeof(IEnumerable).IsAssignableFrom(type))) {
                 return parent.Add<TObjArr>(name);
             }
+
             throw new Exception(String.Format("Cannot add the {0} property to the template as the type {1} is not supported for Json properties", name, type.Name));
         }
 
-        internal static bool IsSupportedType(Type pt) {
-            Func<TObject, string, TValue> dummy;
-            return (addTemplateFromType.TryGetValue(pt, out dummy));
+        internal static bool IsSupportedType(Type type) {
+            if (addTemplateFromType.ContainsKey(type))
+                return true;
+            else if (type.IsEnum)
+                return true;
+//            else if (typeof(IEnumerable<Json>).IsAssignableFrom(type))
+//                return true;
+//            else if (typeof(Json).IsAssignableFrom(type))
+//                return true;
+//            else if ((typeof(IEnumerable).IsAssignableFrom(type)))
+//                return true;
+
+            return false;
         }
 
-        internal static void AddPropertiesFromType(TObject template, Type dataType) {
+        private static void AddPropertiesFromType(TObject template, Type dataType) {
             var props = dataType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var prop in props) {
                 if (prop.CanRead) {
