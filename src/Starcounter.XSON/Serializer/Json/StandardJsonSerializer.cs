@@ -180,11 +180,6 @@ namespace Starcounter.Advanced.XSON {
             Session session = json.Session;
             int sizeBytes = 0;
          
-            if (json.Template == null) {
-                sizeBytes = 2; // 2 for "{}".
-                return sizeBytes;
-            }
-            
             // Checking if application name should wrap the JSON.
             bool wrapInAppName = ShouldBeNamespaced(json, session);
 
@@ -201,13 +196,15 @@ namespace Starcounter.Advanced.XSON {
                 }
             }
 
-            exposedProperties = ((TObject)json.Template).Properties.ExposedProperties;
-            for (int i = 0; i < exposedProperties.Count; i++) {
-                tProperty = exposedProperties[i];
+            if (json.Template != null) {
+                exposedProperties = ((TObject)json.Template).Properties.ExposedProperties;
+                for (int i = 0; i < exposedProperties.Count; i++) {
+                    tProperty = exposedProperties[i];
 
-                sizeBytes += tProperty.TemplateName.Length + 3; // 1 for ":" and to for quotation marks around string.
-                sizeBytes += estimatePerTemplate[(int)tProperty.TemplateTypeId](serializer, json, tProperty);
-                sizeBytes += 1; // 1 for comma.
+                    sizeBytes += tProperty.TemplateName.Length + 3; // 1 for ":" and to for quotation marks around string.
+                    sizeBytes += estimatePerTemplate[(int)tProperty.TemplateTypeId](serializer, json, tProperty);
+                    sizeBytes += 1; // 1 for comma.
+                }
             }
 
             if (wrapInAppName) {
@@ -339,7 +336,7 @@ namespace Starcounter.Advanced.XSON {
         private static int SerializeObject(TypedJsonSerializer serializer, Json json, IntPtr dest, int destSize) {
             int valueSize;
             int used = 0;
-            List<Template> exposedProperties;
+            List<Template> exposedProperties = null;
             Session session = json.Session;
 
             // Checking if application name should wrap the JSON.
@@ -350,12 +347,6 @@ namespace Starcounter.Advanced.XSON {
 
                 *pfrag++ = (byte)'{';
                 used++;
-
-                if (json.Template == null) {
-                    *pfrag++ = (byte)'}';
-                    used++;
-                    return used;
-                }
 
                 if (wrapInAppName) {   
                     valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, json.appName);
@@ -369,7 +360,9 @@ namespace Starcounter.Advanced.XSON {
                     used++;
                 }
 
-                exposedProperties = ((TObject)json.Template).Properties.ExposedProperties;
+                if (json.Template != null) {
+                    exposedProperties = ((TObject)json.Template).Properties.ExposedProperties;
+                }
 
                 if (session != null && json == session.PublicViewModel) {
                     var patchVersion = (json.ChangeLog != null) ? json.ChangeLog.Version : null;
@@ -395,32 +388,34 @@ namespace Starcounter.Advanced.XSON {
                         used += valueSize;
                         pfrag += valueSize;
 
-                        if (exposedProperties.Count > 0) {
+                        if (exposedProperties != null && exposedProperties.Count > 0) {
                             *pfrag++ = (byte)',';
                             used++;
                         }
                     }
                 }
 
-                for (int i = 0; i < exposedProperties.Count; i++) {
-                    Template tProperty = exposedProperties[i];
+                if (exposedProperties != null) {
+                    for (int i = 0; i < exposedProperties.Count; i++) {
+                        Template tProperty = exposedProperties[i];
 
-                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, tProperty.TemplateName);
-                    used += valueSize;
-                    pfrag += valueSize;
+                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, tProperty.TemplateName);
+                        used += valueSize;
+                        pfrag += valueSize;
 
-                    *pfrag++ = (byte)':';
-                    used++;
-
-                    // TODO:
-                    // If we have an object with another serializer set, this code wont work since it will bypass the setting.
-                    valueSize = serializePerTemplate[(int)tProperty.TemplateTypeId](serializer, json, tProperty, (IntPtr)pfrag, destSize - used);
-                    used += valueSize;
-                    pfrag += valueSize;
-
-                    if ((i + 1) < exposedProperties.Count) {
-                        *pfrag++ = (byte)',';
+                        *pfrag++ = (byte)':';
                         used++;
+
+                        // TODO:
+                        // If we have an object with another serializer set, this code wont work since it will bypass the setting.
+                        valueSize = serializePerTemplate[(int)tProperty.TemplateTypeId](serializer, json, tProperty, (IntPtr)pfrag, destSize - used);
+                        used += valueSize;
+                        pfrag += valueSize;
+
+                        if ((i + 1) < exposedProperties.Count) {
+                            *pfrag++ = (byte)',';
+                            used++;
+                        }
                     }
                 }
                 
