@@ -43,7 +43,7 @@ namespace Starcounter {
                         j.Array_InitializeAfterImplicitConversion((Json)j.Parent, (TObjArr)j.Template);
                     } else {
                         if (j.Template == null) {
-                            j.CreateDynamicTemplate(); // If there is no template, we'll create a template
+                            j.CreateDynamicTemplate(v); // If there is no template, we'll create a template
                         }
                         j.InternalSetData(v, (TValue)j.Template, true);
                     }
