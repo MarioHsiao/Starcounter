@@ -35,7 +35,7 @@
 - When accepting patch to be enqueued, return normal patch response (previously returning empty response)
 - Fixed URI aliasing problem in gateway: [#3731](https://github.com/Starcounter/Starcounter/issues/3731)
 - Fixed a bug in Response-serialization (`Response.ConstructFromFields()`), which could cause estimated size to be smaller then actual needed size in some cases [#3735](https://github.com/Starcounter/Starcounter/issues/3735)
-- Fixed a bug where using an empty jsonobject as response for a mapped uri, did not get properly serialized to client [#3755](https://github.com/Starcounter/Starcounter/issues/3755)
+- Fixed a bug where using an empty jsonobject as response for a mapped uri, did not get properly serialized to client or changes collected correctly when sending patches [#3755](https://github.com/Starcounter/Starcounter/issues/3755)
 - Fixed detecting if a jsonobject is already merged or not when attaching it to a parent [#3771](https://github.com/Starcounter/Starcounter/issues/3771)
 
 ### Changed
