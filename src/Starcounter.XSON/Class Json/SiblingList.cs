@@ -1,6 +1,4 @@
-﻿
-using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
 namespace Starcounter.XSON {
@@ -61,16 +59,6 @@ namespace Starcounter.XSON {
                 if (sibling != null)
                     return sibling.Json;
                 return null;
-            }
-            internal set {
-                Sibling sibling = list[index];
-
-                if (value != null) {
-                    value.wrapInAppName = true;
-                    value.Siblings = this;
-                }
-                sibling.Json = value;
-                sibling.HasBeenSent = false;
             }
         }
         
