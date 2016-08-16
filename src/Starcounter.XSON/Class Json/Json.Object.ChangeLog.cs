@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal;
@@ -885,21 +884,6 @@ namespace Starcounter {
                         return false;
                     }
                     return !log.BrandNew;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="newValue"></param>
-        internal void CheckAndUpdateSibling(Json newValue) {
-            if (this.Siblings != null) {
-                int index = this.Siblings.IndexOf(this);
-
-                if (index != -1) {
-                    this.Siblings[index] = newValue;
-                    this.Siblings = null;
                 }
             }
         }
