@@ -1488,6 +1488,18 @@ typedef uint32_t (*ClangCompileCodeAndGetFuntions) (
     void* out_func_ptrs[],
     void** exec_module);
 
+typedef uint32_t(*ClangCompileAndLoadObjectFile) (
+	void** const clang_engine,
+	const bool print_to_console,
+	const bool do_optimizations,
+	const wchar_t* const path_to_cache_dir,
+	const char* const predefined_hash_str,
+	const char* const input_code_str,
+	const char* const function_names_delimited,
+	const bool delete_sources,
+	void* out_func_ptrs[],
+	void** out_exec_engine);
+
 typedef void (*ClangDestroy) (void* clang_engine);
 
 // Tries to set a SIO_LOOPBACK_FAST_PATH on a given TCP socket.
@@ -1524,6 +1536,7 @@ class Gateway
     std::wstring setting_gateway_output_dir_;
     std::wstring setting_log_file_path_;
     std::wstring setting_sc_bin_dir_;
+	std::wstring user_temp_sc_dir_;
 
     // Gateway config file name.
     std::wstring setting_config_file_path_;
@@ -1832,6 +1845,7 @@ public:
 
     // Pointer to Clang compile and get function pointer.
     ClangCompileCodeAndGetFuntions clangCompileCodeAndGetFuntions_;
+	ClangCompileAndLoadObjectFile clangCompileAndLoadObjectFile_;
 
     // Destroys existing Clang engine.
     ClangDestroy clangDestroyFunc_;
@@ -2013,6 +2027,12 @@ public:
     {
         return setting_sc_bin_dir_;
     }
+
+	// Getting temporary Starcounter directory.
+	const std::wstring& get_user_temp_sc_dir()
+	{
+		return user_temp_sc_dir_;
+	}
 
     // Starcounter server type upper case.
     const std::string& setting_sc_server_type_upper()

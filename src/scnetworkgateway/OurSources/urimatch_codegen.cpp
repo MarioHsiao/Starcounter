@@ -206,6 +206,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
             void* out_functions[1];
             void* exec_module = NULL;
 
+			/*
             uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
                 clang_engine_addr,
                 false,
@@ -215,6 +216,19 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
                 root_function_name,
                 out_functions,
                 &exec_module);
+			*/
+
+			uint32_t err_code = g_gateway.clangCompileAndLoadObjectFile_(
+				clang_engine_addr,
+				false,
+				MixedCodeConstants::SCLLVM_OPT_FLAG,
+				g_gateway.get_user_temp_sc_dir().c_str(), // Path to cache directory.
+				NULL,
+				uri_matching_code_,
+				root_function_name,
+				false,
+				out_functions,
+				&exec_module);
 
             GW_ASSERT(0 == err_code);
             GW_ASSERT(NULL != exec_module);

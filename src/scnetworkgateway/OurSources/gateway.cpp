@@ -405,6 +405,13 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
     // Deleting old log file first.
     DeleteFile(setting_log_file_path_.c_str());
 
+	// Getting user temp directory.
+	wchar_t temp_dir_path[1024];
+	uint32_t num_chars = GetTempPath(1024, temp_dir_path);
+	GW_ASSERT(num_chars > 0);
+	user_temp_sc_dir_ = temp_dir_path;
+	user_temp_sc_dir_ += L"\\starcounter";
+
     return 0;
 }
 
@@ -2313,6 +2320,12 @@ uint32_t Gateway::Init()
 
     GW_ASSERT(clangCompileCodeAndGetFuntions_ != NULL);
 
+	clangCompileAndLoadObjectFile_ = (ClangCompileAndLoadObjectFile)GetProcAddress(
+		clang_dll,
+		"ClangCompileAndLoadObjectFile");
+
+	GW_ASSERT(clangCompileAndLoadObjectFile_ != NULL);
+
     clangDestroyFunc_ = (ClangDestroy) GetProcAddress(
         clang_dll,
         "ClangDestroy");
@@ -2342,6 +2355,24 @@ uint32_t Gateway::Init()
 
     GW_ASSERT(0 == err_code);
     GW_ASSERT(NULL != exec_module);
+
+	err_code = g_gateway.clangCompileAndLoadObjectFile_(
+		clang_engine_addr, // Pointer to Clang engine.
+		false, // Print build output to console.
+		MixedCodeConstants::SCLLVM_OPT_FLAG, // Do code optimizations.
+		g_gateway.user_temp_sc_dir_.c_str(), // Path to cache directory.
+		NULL, // No predefined hash string.
+		"extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
+		"extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
+
+		"Func1", // Name of functions which pointers should be returned, delimited by semicolon.
+		false,
+		out_functions, // Output pointers to functions.
+		&exec_module
+	);
+
+	GW_ASSERT(0 == err_code);
+	GW_ASSERT(NULL != exec_module);
 
     // Calling test function.
     typedef int (*example_func_type) ();

@@ -1,4 +1,4 @@
-#include "clang/Basic/TargetInfo.h"
+﻿#include "clang/Basic/TargetInfo.h"
 #include "clang/Lex/Preprocessor.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/TextDiagnosticPrinter.h"
@@ -20,6 +20,9 @@
 #include <iostream>
 #include <time.h>
 #include <fstream>
+#include <direct.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -283,8 +286,163 @@ extern "C" {
 				seconds_jiting = (float)(end_jiting - start_jiting) / CLOCKS_PER_SEC;
 
 			if (print_to_console) {
-				std::cout << "Codegen took seconds: " << seconds_parsing + seconds_jiting << " (" << seconds_parsing << ", " << seconds_jiting << ")." << std::endl;
+				std::cout << "Codegen took seconds: " << seconds_parsing + seconds_jiting << " (parsing " << seconds_parsing << ", jitting " << seconds_jiting << ")." << std::endl;
 			}
+
+			return 0;
+		}
+
+		uint32_t CompileAndLoadObjectFile(
+			const bool print_to_console,
+			const bool do_optimizations,
+			const wchar_t* const path_to_cache_dir,
+			const char* const predefined_hash_str,
+			const char* const input_code_str,
+			const char* const function_names_delimited,
+			const bool delete_sources,
+			uint64_t out_func_ptrs[],
+			void** out_exec_engine) {
+
+			clock_t start_time = clock();
+
+			using namespace clang;
+			using namespace llvm;
+
+			std::string code_string = input_code_str;
+			std::vector<std::string> function_names = StringSplit(function_names_delimited, ';');
+			assert((function_names.size() > 0) && "At least one function should be supplied.");
+
+			// Setting all output pointers to NULL to avoid dirty values on error.
+			for (size_t i = 0; i < function_names.size(); i++) {
+				out_func_ptrs[i] = 0;
+			}
+
+			std::string error_str;
+
+			// Create some module to put our function into it.
+			std::unique_ptr<llvm::Module> owner = make_unique<llvm::Module>("test", *llvm_context_);
+
+			llvm::ExecutionEngine* exec_engine = NULL;
+
+			if (do_optimizations) {
+
+				exec_engine = llvm::EngineBuilder(std::move(owner))
+					.setErrorStr(&error_str)
+					.setCodeModel(llvm::CodeModel::Large)
+					.setRelocationModel(llvm::Reloc::Static)
+					.setMCJITMemoryManager(llvm::make_unique<SectionMemoryManager>())
+					.setEngineKind(EngineKind::JIT)
+					.setOptLevel(CodeGenOpt::Aggressive)
+					.create();
+
+			}
+			else {
+
+				exec_engine = llvm::EngineBuilder(std::move(owner))
+					.setErrorStr(&error_str)
+					.setCodeModel(llvm::CodeModel::Large)
+					.setRelocationModel(llvm::Reloc::Static)
+					.setMCJITMemoryManager(llvm::make_unique<SectionMemoryManager>())
+					.setEngineKind(EngineKind::JIT)
+					.setOptLevel(CodeGenOpt::None)
+					.create();
+			}
+
+			assert((NULL != exec_engine) && "Can't create LLVM execution engine.");
+
+			std::stringstream object_file_name_stream;
+
+			// Checking if hash is given.
+			if (NULL == predefined_hash_str) {
+
+				// Calculating hash from input code.
+				std::size_t code_hash = std::hash<std::string>()(input_code_str);
+				object_file_name_stream << code_hash;
+
+			} else {
+
+				object_file_name_stream << predefined_hash_str;
+			}
+
+			// Adding object file extension.
+			object_file_name_stream << ".o";
+
+			wchar_t saved_original_dir[1024];
+			_wgetcwd(saved_original_dir, 1024);
+
+			// Creating directory.
+			_wmkdir(path_to_cache_dir);
+
+			// Changing current directory to codegen dir.
+			_wchdir(path_to_cache_dir);
+
+			std::string object_file_name = object_file_name_stream.str();
+
+			std::ifstream f(object_file_name);
+
+			// Checking if object file does not exist.
+			if (!f.good()) {
+
+				// Adding cpp file extension.
+				std::string cpp_file_name = object_file_name_stream.str();
+				cpp_file_name += ".cpp";
+
+				// Saving source file to disk.
+				std::ofstream temp_cpp_file(cpp_file_name);
+				temp_cpp_file << input_code_str;
+				temp_cpp_file.close();
+
+				// Creating command line for clang.
+				std::stringstream clang_cmd;
+				clang_cmd << "clang++.exe -O3 -c -march=x86-64 \"" << cpp_file_name << "\" -o \"" << object_file_name << "\"";
+
+				// Generating new object file.
+				int32_t err_code = system(clang_cmd.str().c_str());
+				assert((0 == err_code) && "clang++ returned an error while compiling generated code.");
+
+				// Deleting source file if necessary.
+				if (delete_sources) {
+					err_code = remove(cpp_file_name.c_str());
+					assert((0 == err_code) && "Deleting the source file returned an error.");
+				}
+			}
+
+			// Creating the object file.
+			ErrorOr<object::OwningBinary<object::ObjectFile>> obj_file =
+				object::ObjectFile::createObjectFile(object_file_name.c_str());
+
+			assert((NULL != obj_file) && "Can't load given object file.");
+
+			object::OwningBinary<object::ObjectFile> &obj_file_ref = obj_file.get();
+			exec_engine->addObjectFile(std::move(obj_file_ref));
+
+			// Finalizing MCJIT execution engine (does relocation).
+			exec_engine->finalizeObject();
+
+			// Getting pointer for each function.
+			for (size_t i = 0; i < function_names.size(); i++) {
+
+				// Obtaining the pointer to created function.
+				out_func_ptrs[i] = exec_engine->getFunctionAddress(function_names[i]);
+				assert((0 != out_func_ptrs[i]) && "Can't get function address from JITed code!");
+			}
+
+			// Adding to the list of execution engines.
+			exec_engines_.push_back(exec_engine);
+
+			// Saving execution engine for later use.
+			*out_exec_engine = exec_engine;
+
+			clock_t end_time = clock();
+
+			float seconds_time = (float)(end_time - start_time) / CLOCKS_PER_SEC;
+
+			if (print_to_console) {
+				std::cout << "Load object took seconds: " << seconds_time << std::endl;
+			}
+
+			// Changing current directory back to original.
+			_wchdir(saved_original_dir);
 
 			return 0;
 		}
@@ -307,7 +465,9 @@ extern "C" {
 
         assert(nullptr != g_mutex);
         g_mutex->acquire();
+
 		clang_engine->DestroyEngine((llvm::ExecutionEngine**) exec_engine);
+
         g_mutex->release();
 	}
 
@@ -340,6 +500,41 @@ extern "C" {
         g_mutex->release();
 
         return err_code;
+	}
+
+	MODULE_API uint32_t ClangCompileAndLoadObjectFile(
+		CodegenEngine** const clang_engine,
+		const bool print_to_console,
+		const bool do_optimizations,
+		const wchar_t* const path_to_cache_dir,
+		const char* const predefined_hash_str,
+		const char* const input_code_str,
+		const char* const function_names_delimited,
+		const bool delete_sources,
+		uint64_t out_func_ptrs[],
+		void** out_exec_engine)
+	{
+		assert(nullptr != g_mutex);
+		g_mutex->acquire();
+
+		if (NULL == *clang_engine) {
+			*clang_engine = new CodegenEngine();
+		}
+
+		uint32_t err_code = (*clang_engine)->CompileAndLoadObjectFile(
+			print_to_console,
+			do_optimizations,
+			path_to_cache_dir,
+			predefined_hash_str,
+			input_code_str,
+			function_names_delimited,
+			delete_sources,
+			out_func_ptrs,
+			out_exec_engine);
+
+		g_mutex->release();
+
+		return err_code;
 	}
 
 	MODULE_API void ClangDestroy(CodegenEngine* clang_engine) {

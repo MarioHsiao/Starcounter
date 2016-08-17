@@ -3,6 +3,7 @@ using Starcounter.Internal.Uri;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -21,6 +22,20 @@ namespace Starcounter.Rest {
             Boolean do_optimizations,
             Byte* code_str,
             Byte* function_names_delimited,
+            IntPtr* out_func_ptrs,
+            IntPtr** out_exec_module
+        );
+
+        [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public extern static UInt32 ClangCompileAndLoadObjectFile(
+            void** clang_engine,
+            Boolean print_to_console,
+            Boolean do_optimizations,
+            Byte* path_to_cache_dir,
+            Byte* predefined_hash_str,
+            Byte* input_code_str,
+            Byte* function_names_delimited,
+            Boolean delete_sources,
             IntPtr* out_func_ptrs,
             IntPtr** out_exec_module
         );
@@ -62,9 +77,11 @@ namespace Starcounter.Rest {
                 function_names_delimited += ";" + function_names[i];
             }
 
+            Byte[] path_to_codegen_dir_bytes = Encoding.Unicode.GetBytes(Path.Combine(Path.GetTempPath(), "starcounter"));
+
             Byte[] function_names_bytes = Encoding.ASCII.GetBytes(function_names_delimited);
 
-            fixed (Byte* function_names_bytes_native = function_names_bytes) {
+            fixed (Byte* function_names_bytes_native = function_names_bytes, path_to_codegen_dir_bytes_native = path_to_codegen_dir_bytes) {
 
                 fixed (IntPtr* out_func_ptrs = out_functions) {
 
@@ -72,13 +89,25 @@ namespace Starcounter.Rest {
                     IntPtr* exec_module;
 
                     // Compiling the given code and getting function pointer back.
-                    UInt32 err_code = ClangFunctions.ClangCompileCodeAndGetFuntions(
+                    /*UInt32 err_code = ClangFunctions.ClangCompileCodeAndGetFuntions(
                         clang_engine,
                         false,
                         false,
                         MixedCodeConstants.SCLLVM_OPT_FLAG,
                         cpp_code_ptr,
                         function_names_bytes_native,
+                        out_func_ptrs,
+                        &exec_module);*/
+
+                    UInt32 err_code = ClangFunctions.ClangCompileAndLoadObjectFile(
+                        clang_engine,
+                        false,
+                        MixedCodeConstants.SCLLVM_OPT_FLAG,
+                        path_to_codegen_dir_bytes_native,
+                        null,
+                        cpp_code_ptr,
+                        function_names_bytes_native,
+                        false,
                         out_func_ptrs,
                         &exec_module);
 
