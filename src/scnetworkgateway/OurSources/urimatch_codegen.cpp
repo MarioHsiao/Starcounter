@@ -226,7 +226,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
 				NULL,
 				uri_matching_code_,
 				root_function_name,
-				false,
+				true,
 				out_functions,
 				&exec_module);
 

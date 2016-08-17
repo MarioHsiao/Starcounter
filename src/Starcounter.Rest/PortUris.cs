@@ -107,7 +107,7 @@ namespace Starcounter.Rest {
                         null,
                         cpp_code_ptr,
                         function_names_bytes_native,
-                        false,
+                        true,
                         out_func_ptrs,
                         &exec_module);
 
