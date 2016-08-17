@@ -63,7 +63,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(UniversalCRT_LibraryPath_x64);c:\boost\lib;$(OutDir)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>bmx.def</ModuleDefinitionFile>
-      <AdditionalDependencies>sccoredb.lib;sccoredbg.lib;coalmine.lib;sccorelog.lib;%(AdditionalDependencies);</AdditionalDependencies>
+      <AdditionalDependencies>sccoredb.lib;sccoredbg2.lib;coalmine.lib;sccorelog.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -83,7 +83,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(UniversalCRT_LibraryPath_x64);c:\boost\lib;$(OutDir)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>bmx.def</ModuleDefinitionFile>
-      <AdditionalDependencies>sccoredb.lib;sccoredbg.lib;coalmine.lib;sccorelog.lib;%(AdditionalDependencies);</AdditionalDependencies>
+      <AdditionalDependencies>sccoredb.lib;sccoredbg2.lib;coalmine.lib;sccorelog.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

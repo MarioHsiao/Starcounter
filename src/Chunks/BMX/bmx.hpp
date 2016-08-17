@@ -18,8 +18,8 @@
 #include <winsock2.h>
 #undef WIN32_LEAN_AND_MEAN
 
-#define _SC_BEGIN_FUNC __try {
-#define _SC_END_FUNC } __except(sccoredbg_unhandled_core_except(GetExceptionInformation(), __FILE__, __LINE__)) { }
+#define _SC_BEGIN_FUNC
+#define _SC_END_FUNC
 
 #include <cstdint>
 #include <list>
@@ -31,7 +31,7 @@
 #define CODE_HOSTED
 #include "profiler.hpp"
 
-#include "sccoredbg.h"
+#include "sccoredbg2.h"
 #include "sccoredb.h"
 #include "chunk_helper.h"
 #include "..\common\chunk.hpp"

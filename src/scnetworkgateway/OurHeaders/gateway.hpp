@@ -25,7 +25,6 @@
 #include "common/name_definitions.hpp"
 
 // Level0 includes.
-#include <sccoredbg.h>
 #include <sccorelog.h>
 #include <profiler.hpp>
 
