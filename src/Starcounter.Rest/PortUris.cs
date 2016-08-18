@@ -77,10 +77,17 @@ namespace Starcounter.Rest {
                 function_names_delimited += ";" + function_names[i];
             }
 
+            String dbName = StarcounterEnvironment.DatabaseNameLower;
+
+            // Checking for the case of unit tests.
+            if (null == dbName) {
+                dbName = "nodbname";
+            }
+
             String pathToTempDir = Path.Combine(
                     Path.GetTempPath(),
                     "starcounter",
-                    StarcounterEnvironment.DatabaseNameLower,
+                    dbName,
                     "self");
 
             Byte[] path_to_codegen_dir_bytes = Encoding.Unicode.GetBytes(pathToTempDir);
