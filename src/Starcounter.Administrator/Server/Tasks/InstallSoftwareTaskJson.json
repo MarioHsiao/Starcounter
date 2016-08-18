@@ -2,10 +2,15 @@
   "$": { "Namespace": "Administrator.Server.Model" },
   "DatabaseName": "",
   "CanBeUninstalled": true,
-  "SourceUrl": "",
-  "SuiteContents": [
+  "ID": "",
+  "SoftwareContents": [
     {
-      "SourceUrl": ""
+      "Namespace": "",
+      "Version": "",
+      "VersionDate": "",
+      "Channel": "",
+      "SourceUrl": "",
+      "Compatiblility": ""
     }
   ]
 }
