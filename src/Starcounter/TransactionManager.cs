@@ -55,7 +55,7 @@ namespace Starcounter.Internal {
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
-            ec = sccoredb.star_create_transaction(flags, 0, out handle);
+            ec = sccoredb.star_create_transaction(flags, out handle);
             if (ec == 0) {
                 verify = ThreadData.ObjectVerify;
                 try {
@@ -122,7 +122,7 @@ namespace Starcounter.Internal {
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
-            ec = sccoredb.star_create_transaction(flags, 0, out handle);
+            ec = sccoredb.star_create_transaction(flags, out handle);
             if (ec == 0) {
                 verify = ThreadData.ObjectVerify;
                 try {

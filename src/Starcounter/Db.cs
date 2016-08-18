@@ -258,7 +258,7 @@ namespace Starcounter {
             
             if (ThreadData.inTransactionScope_ == 0) {
                 for (;;) {
-                    r = sccoredb.star_create_transaction(flags, 0, out handle);
+                    r = sccoredb.star_create_transaction(flags, out handle);
                     if (r == 0) {
                         var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
@@ -310,7 +310,7 @@ namespace Starcounter {
 
             if (ThreadData.inTransactionScope_ == 0) {
                 for (;;) {
-                    r = sccoredb.star_create_transaction(flags, 0, out handle);
+                    r = sccoredb.star_create_transaction(flags, out handle);
                     if (r == 0) {
                         var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
@@ -353,7 +353,7 @@ namespace Starcounter {
 
             if (ThreadData.inTransactionScope_ == 0) {
                 for (;;) {
-                    r = sccoredb.star_create_transaction(flags, 0, out handle);
+                    r = sccoredb.star_create_transaction(flags, out handle);
                     if (r == 0) {
                         var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
@@ -396,7 +396,7 @@ namespace Starcounter {
 
             if (ThreadData.inTransactionScope_ == 0) {
                 for (;;) {
-                    r = sccoredb.star_create_transaction(flags, 0, out handle);
+                    r = sccoredb.star_create_transaction(flags, out handle);
                     if (r == 0) {
                         var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
