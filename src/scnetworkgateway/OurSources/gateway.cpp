@@ -410,7 +410,7 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
 	uint32_t num_chars = GetTempPath(1024, temp_dir_path);
 	GW_ASSERT(num_chars > 0);
 	user_temp_sc_dir_ = temp_dir_path;
-	user_temp_sc_dir_ += L"\\starcounter";
+	user_temp_sc_dir_ += L"\\starcounter\\gateway";
 
     return 0;
 }

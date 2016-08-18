@@ -170,7 +170,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
                 std::string tmp_str = str_stream.str();
                 uint32_t num_chars = static_cast<uint32_t> (tmp_str.size());
 
-                // COnverting char to wchar_t basically.
+                // Converting char to wchar_t basically.
                 wchar_t* wcstring = GwNewArray(wchar_t, num_chars + 1);
                 size_t num_conv_chars = 0;
                 mbstowcs_s(&num_conv_chars, wcstring, num_chars, tmp_str.c_str(), _TRUNCATE);

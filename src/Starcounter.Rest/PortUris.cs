@@ -77,7 +77,13 @@ namespace Starcounter.Rest {
                 function_names_delimited += ";" + function_names[i];
             }
 
-            Byte[] path_to_codegen_dir_bytes = Encoding.Unicode.GetBytes(Path.Combine(Path.GetTempPath(), "starcounter"));
+            String pathToTempDir = Path.Combine(
+                    Path.GetTempPath(),
+                    "starcounter",
+                    StarcounterEnvironment.DatabaseNameLower,
+                    "self");
+
+            Byte[] path_to_codegen_dir_bytes = Encoding.Unicode.GetBytes(pathToTempDir);
 
             Byte[] function_names_bytes = Encoding.ASCII.GetBytes(function_names_delimited);
 

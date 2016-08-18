@@ -292,6 +292,51 @@ extern "C" {
 			return 0;
 		}
 
+		// Creating directory recursively and making it current. 
+		static void CreateDirAndSwitch(const wchar_t* dir) {
+
+			// Immediately trying to switch to dir.
+			int err_code = _wchdir(dir);
+			if (0 == err_code) {
+				return;
+			}
+
+			wchar_t tmp[1024];
+
+			// Copying into temporary string.
+			wcscpy(tmp, dir);
+			size_t len = wcslen(tmp);
+
+			// Checking for the last slash.
+			if ((tmp[len - 1] == L'/') ||
+				(tmp[len - 1] == L'\\')) {
+
+				tmp[len - 1] = 0;
+			}
+
+			// Starting from the first character.
+			for (wchar_t *p = tmp + 1; *p; p++) {
+
+				// Checking if its a slash.
+				if ((*p == L'/') || (*p == L'\\')) {
+
+					*p = 0;
+
+					// Making the directory.
+					_wmkdir(tmp);
+
+					*p = L'/';
+				}
+			}
+
+			// Creating final directory.
+			_wmkdir(tmp);
+
+			// Changing current directory to dir.
+			err_code = _wchdir(dir);
+			assert((0 == err_code) && "Can't change current directory to cache directory.");
+		}
+
 		uint32_t CompileAndLoadObjectFile(
 			const bool print_to_console,
 			const bool do_optimizations,
@@ -364,17 +409,14 @@ extern "C" {
 				object_file_name_stream << predefined_hash_str;
 			}
 
-			// Adding object file extension.
-			object_file_name_stream << ".o";
-
 			wchar_t saved_original_dir[1024];
 			_wgetcwd(saved_original_dir, 1024);
 
-			// Creating directory.
-			_wmkdir(path_to_cache_dir);
+			// Creating cache directory.
+			CreateDirAndSwitch(path_to_cache_dir);
 
-			// Changing current directory to codegen dir.
-			_wchdir(path_to_cache_dir);
+			// Adding object file extension.
+			object_file_name_stream << ".o";
 
 			std::string object_file_name = object_file_name_stream.str();
 
@@ -411,7 +453,7 @@ extern "C" {
 			ErrorOr<object::OwningBinary<object::ObjectFile>> obj_file =
 				object::ObjectFile::createObjectFile(object_file_name.c_str());
 
-			assert((NULL != obj_file) && "Can't load given object file.");
+			assert((obj_file) && "Can't load given object file.");
 
 			object::OwningBinary<object::ObjectFile> &obj_file_ref = obj_file.get();
 			exec_engine->addObjectFile(std::move(obj_file_ref));
@@ -449,11 +491,10 @@ extern "C" {
 	};
 
     // Global mutex.
-    llvm::sys::MutexImpl* g_mutex = nullptr;
+    llvm::sys::MutexImpl* g_mutex;
 
 	MODULE_API void ClangInit() {
 
-        assert(nullptr == g_mutex);
         g_mutex = new llvm::sys::MutexImpl();
 
 		llvm::InitializeNativeTarget();
@@ -569,13 +610,13 @@ extern "C" {
 
 		uint32_t err = ClangCompileCodeAndGetFuntions(&cge, false, true, true, code, function_names, out_func_ptrs, &exec_engine);
 		if (err) {
-			assert("ClangCompileCodeAndGetFuntions returned non-zero exit code!" == 0);
+			assert(!"ClangCompileCodeAndGetFuntions returned non-zero exit code!");
 		}
 
 		typedef int(*function_type) (int);
 		int func_result = (function_type(out_func_ptrs[0]))(132);
 		if (133 != func_result) {
-			assert("Generated increment function returned wrong result!" == 0);
+			assert(!"Generated increment function returned wrong result!");
 		}
 
 		std::cout << "Simple code generation test passed!" << std::endl;
