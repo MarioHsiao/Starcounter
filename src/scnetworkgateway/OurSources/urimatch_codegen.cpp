@@ -223,7 +223,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
 				false,
 				MixedCodeConstants::SCLLVM_OPT_FLAG,
 				g_gateway.get_user_temp_sc_dir().c_str(), // Path to cache directory.
-				NULL,
+				NULL, // Letting LLVM generate the hash itself.
 				uri_matching_code_,
 				root_function_name,
 				true,

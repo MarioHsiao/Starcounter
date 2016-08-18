@@ -2364,7 +2364,6 @@ uint32_t Gateway::Init()
 		NULL, // No predefined hash string.
 		"extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
 		"extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
-
 		"Func1", // Name of functions which pointers should be returned, delimited by semicolon.
 		true,
 		out_functions, // Output pointers to functions.

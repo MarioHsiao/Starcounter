@@ -104,7 +104,7 @@ namespace Starcounter.Rest {
                         false,
                         MixedCodeConstants.SCLLVM_OPT_FLAG,
                         path_to_codegen_dir_bytes_native,
-                        null,
+                        null, // Letting LLVM generate the hash itself.
                         cpp_code_ptr,
                         function_names_bytes_native,
                         true,
