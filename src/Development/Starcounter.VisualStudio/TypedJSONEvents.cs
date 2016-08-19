@@ -1,26 +1,35 @@
-﻿using EnvDTE;
-using EnvDTE80;
-using System;
+﻿using System;
 using System.IO;
-using System.Linq;
+using EnvDTE;
+using EnvDTE80;
 
 namespace Starcounter.VisualStudio {
     /// <summary>
-    /// This class contains some extra functionality needed for Apps Exe projects.
-    /// Currently it does two things:
+    /// This class contains some extra functionality needed for handling TypedJSON in 
+    /// starcounter projects.
     /// 
-    /// Handles renaming of the json file and sub-files. When the jsonfile is renamed
-    /// all child-items (currently the code-behind file) are renamed as well.
-    /// 
-    /// When the codebehind file is saved the buildtask that generates code is also triggered.
-    /// This is needed since the generated code uses information from both the json file and 
-    /// the codebehind file.
+    /// The following is currently handled: 
+    /// 1) Renaming of the json file and sub-files. When the jsonfile is renamed
+    ///    all child-items (currently the code-behind file) are renamed as well.
+    /// 2) When the codebehind file is saved the buildtask that generates code is also triggered.
+    ///    This is needed since the generated code uses information from both the json file and 
+    ///    the codebehind file.
+    /// 3) When an existing item is added to the project and the added file is a json-file (.json) or a 
+    ///    code-behind file (.json.cs) it's enhanced with some properties needed for custom buildtask
+    ///    to execute. 
+    ///    The rules for this is as follows:
+    ///       1) If a single json file is added with no corresponding (i.e with the same name) code-behind, 
+    ///          nothing extra is done. This is to allow adding json-files that is not TypedJSON to the project.
+    ///       2) If a single json file is added and a corresponding code-behind file already is added, the two 
+    ///          files are grouped and needed properties is set.
+    ///       3) If a single code-behind file is added and there is a corresponding json file, the two files are 
+    ///          grouped and needed properties set.
     /// </summary>
     /// <remarks>
-    /// For this to work properly the json file and codebehind file MUST be grouped together 
-    /// with the json file as root.
+    /// For point 1 and 2 to work properly the json and codebehind file MUST be grouped together 
+    /// with the json as root.
     /// </remarks>
-    internal class AppsEvents {
+    internal class TypedJsonEvents {
         private const string PROPERTY_ITEMTYPE= "ItemType";
         private const string PROPERTY_CUSTOMTOOL = "CustomTool";
         private const string PROPERTY_FULLPATH = "FullPath";
