@@ -20,7 +20,7 @@ namespace Starcounter.VisualStudio {
     ///    The rules for this is as follows:
     ///       1) If a single json file is added with no corresponding (i.e with the same name) code-behind, 
     ///          nothing extra is done. This is to allow adding json-files that is not TypedJSON to the project.
-    ///       2) If a single json file is added and a corresponding code-behind file already is added, the two 
+    ///       2) If a single json file is added and a corresponding code-behind file is already added, the two 
     ///          files are grouped and needed properties is set.
     ///       3) If a single code-behind file is added and there is a corresponding json file, the two files are 
     ///          grouped and needed properties set.
@@ -104,7 +104,7 @@ namespace Starcounter.VisualStudio {
                 debuggerProcessEvents = null;
             }
         }
-
+        
         private void DocumentEvents_DocumentSaved(Document document) {
             ProjectItem parentItem;
             ProjectItem projectItem = document.ProjectItem;
@@ -141,30 +141,23 @@ namespace Starcounter.VisualStudio {
         }
 
         private void ProjectItemsEvents_ItemAdded(ProjectItem projectItem) {
-            Property itemProperty;
-            ProjectItem otherItem;
+            ProjectItem json = null;
+            ProjectItem codeBehind = null;
             string filename = projectItem.Name;
 
             if (filename.EndsWith(".json", StringComparison.CurrentCultureIgnoreCase)) {
-                // A json file added. Lets set buildtype and custom tool for building.
-                itemProperty = FindProperty(projectItem.Properties, PROPERTY_CUSTOMTOOL);
-                if (itemProperty != null) 
-                    itemProperty.Value = VALUE_COMPILE;
-                itemProperty = FindProperty(projectItem.Properties, PROPERTY_ITEMTYPE);
-                if (itemProperty != null) 
-                    itemProperty.Value = VALUE_TYPEDJSON;
-
-                // If a codebehind file already exist in the project we nest it under the jsonfile.
-                otherItem = FindItem(projectItem.Collection.Parent, filename + ".cs");
-                if (otherItem != null) {
-                    ConnectProjectItems(projectItem, otherItem);
-                }
+                json = projectItem;
+                codeBehind = FindItem(json.Collection.Parent, filename + ".cs");
             } else if (filename.EndsWith(".json.cs", StringComparison.CurrentCultureIgnoreCase)) {
-                // A codebehind file. Find projectitem for json (if it exists) and connect them.
-                otherItem = FindItem(projectItem.Collection.Parent, Path.GetFileNameWithoutExtension(filename));
-                if (otherItem != null) {
-                    ConnectProjectItems(otherItem, projectItem);
-                }
+                codeBehind = projectItem;
+                json = FindItem(codeBehind.Collection.Parent, Path.GetFileNameWithoutExtension(filename));
+            }
+
+            // We have both a json and code-behind file. Group them and set 
+            // properties on the json to enable the buildtask for TypedJSON
+            if (json != null && codeBehind != null) {
+                SetPropertiesForTypedJSONBuildTask(json);
+                GroupProjectItems(json, codeBehind);
             }
         }
 
@@ -194,12 +187,23 @@ namespace Starcounter.VisualStudio {
             return null;
         }
 
-        private void ConnectProjectItems(ProjectItem root, ProjectItem child) {
+        private void GroupProjectItems(ProjectItem root, ProjectItem child) {
             Property itemProperty = FindProperty(child.Properties, PROPERTY_FULLPATH);
             if (itemProperty != null) {
                 root.ProjectItems.AddFromFile((string)itemProperty.Value);
                 root.ExpandView();
             }
+        }
+
+        private void SetPropertiesForTypedJSONBuildTask(ProjectItem projectItem) {
+            Property itemProperty;
+
+            itemProperty = FindProperty(projectItem.Properties, PROPERTY_CUSTOMTOOL);
+            if (itemProperty != null)
+                itemProperty.Value = VALUE_COMPILE;
+            itemProperty = FindProperty(projectItem.Properties, PROPERTY_ITEMTYPE);
+            if (itemProperty != null)
+                itemProperty.Value = VALUE_TYPEDJSON;
         }
     }
 }
