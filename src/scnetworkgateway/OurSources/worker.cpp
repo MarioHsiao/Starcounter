@@ -1746,19 +1746,9 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // Checking correct unique socket.
                     if (sd->get_socket_representer_flag()) {
 
-                        // Checking if its a UDP socket.
-                        if (sd->IsUdp()) {
-
-                            // Simply receiving again, if its a UDP socket.
-                            err_code = Receive(sd);
-                            GW_ASSERT(0 == err_code);
-                            
-                        } else {
-
-                            // Disconnecting TCP socket.
-                            err_code = FinishDisconnect(sd);
-                            GW_ASSERT(0 == err_code);
-                        }
+                        // Disconnecting socket.
+                        err_code = FinishDisconnect(sd);
+                        GW_ASSERT(0 == err_code);
 
                     } else {
 

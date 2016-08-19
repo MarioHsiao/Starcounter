@@ -148,11 +148,35 @@ namespace Administrator.Server.Utilities {
             }
         }
 
+        public static void CallBack(Action<Representations.JSON.InstalledSoftware> callback, Representations.JSON.InstalledSoftware installedSoftware) {
+
+            if (callback != null) {
+                try {
+                    callback(installedSoftware);
+                }
+                catch (Exception e) {
+                    StarcounterAdminAPI.AdministratorLogSource.LogError(string.Format("UnhandledException, {0}", e.ToString()));
+                }
+            }
+        }
+
         public static void CallBack(Action<int,string> callback, int code, string text) {
 
             if (callback != null) {
                 try {
                     callback(code,text);
+                }
+                catch (Exception e) {
+                    StarcounterAdminAPI.AdministratorLogSource.LogError(string.Format("UnhandledException, {0}", e.ToString()));
+                }
+            }
+        }
+
+        public static void CallBack(Action<int, DatabaseApplication> callback, int code, DatabaseApplication databaseApplication) {
+
+            if (callback != null) {
+                try {
+                    callback(code, databaseApplication);
                 }
                 catch (Exception e) {
                     StarcounterAdminAPI.AdministratorLogSource.LogError(string.Format("UnhandledException, {0}", e.ToString()));

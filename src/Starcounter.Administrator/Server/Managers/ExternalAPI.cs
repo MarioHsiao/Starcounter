@@ -441,13 +441,13 @@ namespace Administrator.Server.Managers {
             Task responseTask = new Task();
 
             List<string> contents = new List<string>();
-            foreach (var app in task.SuiteContents) {
+            foreach (var app in task.SoftwareContents) {
                 contents.Add(app.SourceUrl);
             }
 
-            bool bTimeout = !SoftwareManager.InstallSoftware(database, task.SourceUrl, contents, (id) => {
+            bool bTimeout = !SoftwareManager.InstallSoftware(database, task.ID, task.SoftwareContents, (installedSoftware) => {
                 // Success
-                responseTask.ResourceID = id;
+                responseTask.ResourceID = installedSoftware.ID;
                 responseTask.Message = null;
                 responseTask.Status = 0;
             }, (text) => {

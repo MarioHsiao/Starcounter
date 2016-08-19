@@ -71,29 +71,6 @@ namespace Administrator.Server.Managers {
         }
 
         /// <summary>
-        /// Get Installed Software
-        /// </summary>
-        /// <param name="database"></param>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public static Representations.JSON.InstalledSoftware GetInstalledSoftwareBysourceUrl(Database database, string sourceUrl) {
-
-            if (database == null) throw new ArgumentNullException("database");
-            if (string.IsNullOrEmpty(sourceUrl)) throw new NullReferenceException("sourceUrl");
-
-            Representations.JSON.InstalledSoftwareItems installedSoftwareItems;
-            LoadSoftwareConfiguration(GetSoftwareConfigurationFile(database.ID), out installedSoftwareItems);
-
-            foreach (var software in installedSoftwareItems.Items) {
-                if (string.Equals(software.SourceUrl, sourceUrl, StringComparison.InvariantCultureIgnoreCase)) {
-                    return software;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Check if software exists
         /// </summary>
         /// <param name="database"></param>
@@ -142,18 +119,17 @@ namespace Administrator.Server.Managers {
         /// Add software to configuration
         /// </summary>
         /// <param name="database"></param>
-        /// <param name="sourceUrl"></param>
+        /// <param name="id">Warehouse App id</param>
         /// <param name="softwareContent"></param>
         /// <returns></returns>
-        private static Representations.JSON.InstalledSoftware AddSoftwareToConfiguration(Database database, string sourceUrl, IEnumerable<DatabaseApplication> softwareContent) {
+        private static Representations.JSON.InstalledSoftware AddSoftwareToConfiguration(Database database, string id, IEnumerable<DatabaseApplication> softwareContent) {
 
             Representations.JSON.InstalledSoftwareItems installedSoftwareItems;
             LoadSoftwareConfiguration(GetSoftwareConfigurationFile(database.ID), out installedSoftwareItems);
 
-            string newID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(database.ID + sourceUrl);
             // Check for duplicates, if a suite content has been modified we remove the old and add the new suite
             foreach (var suite in installedSoftwareItems.Items) {
-                if (suite.ID == newID) {
+                if (suite.ID == id) {
                     installedSoftwareItems.Items.Remove(suite);
                     break;
                 }
@@ -161,8 +137,7 @@ namespace Administrator.Server.Managers {
 
             Representations.JSON.InstalledSoftware item = installedSoftwareItems.Items.Add();
 
-            item.ID = newID;
-            item.SourceUrl = sourceUrl;
+            item.ID = id;
 
             foreach (DatabaseApplication databaseApplication in softwareContent) {
                 Representations.JSON.InstalledSoftware.ContentsElementJson cItem = item.Contents.Add();
@@ -324,16 +299,16 @@ namespace Administrator.Server.Managers {
         /// Install software
         /// </summary>
         /// <param name="database"></param>
-        /// <param name="sourceUrl">Application or Suite source url</param>
+        /// <param name="id">Warehouse software id</param>
         /// <param name="sourceUrls">Content source urls of an suite or null/empty</param>
         /// <param name="completionCallback"></param>
         /// <param name="progressCallback"></param>
         /// <param name="errorCallback"></param>
         /// <returns>false if timeout/busy otherwice true</returns>
-        public static bool InstallSoftware(Database database, string sourceUrl, IEnumerable<string> sourceUrls, Action<string> completionCallback = null, Action<string> progressCallback = null, Action<int, string> errorCallback = null) {
+        public static bool InstallSoftware(Database database, string id, IEnumerable<InstallSoftwareTaskJson.SoftwareContentsElementJson> content, Action<Representations.JSON.InstalledSoftware> completionCallback = null, Action<string> progressCallback = null, Action<int, string> errorCallback = null) {
 
             if (database == null) throw new ArgumentNullException("database");
-            if (string.IsNullOrEmpty(sourceUrl)) throw new ArgumentNullException("sourceUrl");
+            if (string.IsNullOrEmpty(id)) throw new ArgumentNullException("id");
 
             try {
 
@@ -344,42 +319,45 @@ namespace Administrator.Server.Managers {
                 ConcurrentQueue<string> softwareToInstall = new ConcurrentQueue<string>();
                 ConcurrentQueue<string> revertList = new ConcurrentQueue<string>();
 
-                if (sourceUrls != null) {
-                    foreach (string sourceUrl2 in sourceUrls) {
-                        softwareToInstall.Enqueue(sourceUrl2);
+                if (content != null) {
+                    foreach (InstallSoftwareTaskJson.SoftwareContentsElementJson softwareVersion in content) {
+                        softwareToInstall.Enqueue(softwareVersion.SourceUrl);
                     }
                 }
-
-                Representations.JSON.InstalledSoftware installedSoftware = GetInstalledSoftwareBysourceUrl(database, sourceUrl);
+                Representations.JSON.InstalledSoftware installedSoftware = GetInstalledSoftware(database, id);
                 if (installedSoftware != null) {
                     // Software already installed
-                    Utilities.Utils.CallBack(completionCallback, installedSoftware.ID);
+                    // TODO: Also check if software content (sourceUrls, app namespace) is also a match
+                    Utilities.Utils.CallBack(completionCallback, installedSoftware);
                     Semaphore.Release();
                     return true;
                 }
 
                 InstallSoftwareQueue(database, softwareToInstall, () => {
                     // Success
+
                     IList<DatabaseApplication> installedDatabaseApplications = new List<DatabaseApplication>();
-                    foreach (string installedSourceUrl in sourceUrls) {
-                        DatabaseApplication databaseApplication = database.GetApplicationBySourceUrl(installedSourceUrl);
-                        if (databaseApplication == null) {
-                            Starcounter.Administrator.Server.Handlers.StarcounterAdminAPI.AdministratorLogSource.LogError("Installed software could not be internally found by sourceUrl:" + installedSourceUrl);
+                    foreach (InstallSoftwareTaskJson.SoftwareContentsElementJson installedSoftwareVersion in content) {
+                        IList<DatabaseApplication> databaseApplications = database.GetApplications(installedSoftwareVersion.Namespace, installedSoftwareVersion.Channel);
+                        if (databaseApplications == null || databaseApplications.Count == 0) {
+                            Starcounter.Administrator.Server.Handlers.StarcounterAdminAPI.AdministratorLogSource.LogError("Installed software could not be internally found :" + installedSoftwareVersion.Namespace + ", " + installedSoftwareVersion.Channel + ", " + installedSoftwareVersion.Version);
                             continue;
                         }
-                        installedDatabaseApplications.Add(databaseApplication);
+                        installedDatabaseApplications.Add(databaseApplications[0]);
                     }
 
-                    Representations.JSON.InstalledSoftware installedSoftwaresItemJson = SoftwareManager.AddSoftwareToConfiguration(database, sourceUrl, installedDatabaseApplications);
-                    Utilities.Utils.CallBack(completionCallback, installedSoftwaresItemJson.ID);
+                    Representations.JSON.InstalledSoftware installedSoftwaresItemJson = SoftwareManager.AddSoftwareToConfiguration(database, id, installedDatabaseApplications);
+                    Utilities.Utils.CallBack(completionCallback, installedSoftwaresItemJson);
                     Semaphore.Release();
                 }, (code, text) => {
                     // Progress
                     if (code == 1) { // Installed software successfully
                         revertList.Enqueue(text); // text = Source url
                     }
+                    else {
+                        Utilities.Utils.CallBack(progressCallback, text);
+                    }
 
-                    Utilities.Utils.CallBack(progressCallback, text);
 
                 }, (code, text) => {
                     // Error
@@ -458,7 +436,7 @@ namespace Administrator.Server.Managers {
             }
 
             // Install Software
-            InstallSoftware(database, installSoftwareSourceUrl, true, (installedDatabaseApplication) => {
+            InstallDatabaseApplication(database, installSoftwareSourceUrl, true, (installedDatabaseApplication) => {
                 // Success
 
                 // Report installed software
@@ -473,14 +451,14 @@ namespace Administrator.Server.Managers {
 
             }, (code, text) => {
 
-                if( code == -5) {
+                if (code == -5) {
                     // Installed correct but failed to start
                     Utilities.Utils.CallBack(progressCallback, 1, installSoftwareSourceUrl);  // Installed software successfully
                 }
 
-                Utilities.Utils.CallBack(errorCallback, code, text); 
+                Utilities.Utils.CallBack(errorCallback, code, text);
 
-                
+
             });
         }
 
@@ -494,7 +472,7 @@ namespace Administrator.Server.Managers {
         /// <param name="completionCallback"></param>
         /// <param name="progressCallback"></param>
         /// <param name="errorCallback"></param>
-        private static void InstallSoftware(Database database, string sourceUrl, bool canBeUninstalled, Action<DatabaseApplication> completionCallback = null, Action<string> progressCallback = null, Action<int, string> errorCallback = null) {
+        private static void InstallDatabaseApplication(Database database, string sourceUrl, bool canBeUninstalled, Action<DatabaseApplication> completionCallback = null, Action<string> progressCallback = null, Action<int, string> errorCallback = null) {
 
             Utilities.Utils.CallBack(progressCallback, "Installing application");
 
@@ -594,7 +572,7 @@ namespace Administrator.Server.Managers {
         /// Delete application(s)
         /// </summary>
         /// <param name="database"></param>
-        /// <param name="id"></param>
+        /// <param name="id">Warehouse app Id</param>
         /// <param name="completionCallback"></param>
         /// <param name="progressCallback"></param>
         /// <param name="errorCallback"></param>
