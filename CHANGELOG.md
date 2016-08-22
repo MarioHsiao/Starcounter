@@ -130,6 +130,7 @@
 - Fixed bug in PrivateAssemblyStore, causing some path comparisons to use an unsupported comparison type, see [#3501](https://github.com/Starcounter/Starcounter/issues/3501)
 - Fixed a bug in TypedJson where databinding for a property was not properly invalidated when a dataobject with a different type (including null) was set, [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
 - Fixed gateway getting timeout waiting for workers to suspend [#3515](https://github.com/Starcounter/Starcounter/issues/3515)
+- Fixed incorrect case-insensitive comparison when deciding if generating an accessor-property should be skipped [#3794](https://github.com/Starcounter/Starcounter/issues/3794) 
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
