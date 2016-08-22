@@ -308,5 +308,39 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             source = "public partial class Foo : Json { public class Bar { public Bar(int value) { } } }";
             roslyn = ParserAnalyzeCode("Foo", source, true);
         }
+
+        [Test]
+        public static void CodeBehindDetectPropertiesAndFieldsTest() {
+            string source;
+            
+            source = "public partial class Foo: Json {"
+                    + "private string one; "
+                    + "private int two, thrEE; "
+                    + "static Int32 Four; "
+                    + "protected long Five { get; set; } "
+                    + "string Six { get; private set; } "
+                    + "public static long seven { get; set; } "
+                    + "}";
+
+            var roslyn = ParserAnalyzeCode("Foo", source, true);
+
+            Assert.IsNotNull(roslyn.RootClassInfo);
+            Assert.AreEqual(7, roslyn.RootClassInfo.FieldOrPropertyList.Count);
+            
+            AssertFieldOrPropertyInfo("one", "string", false, roslyn.RootClassInfo.FieldOrPropertyList[0]);
+            AssertFieldOrPropertyInfo("two", "int", false, roslyn.RootClassInfo.FieldOrPropertyList[1]);
+            AssertFieldOrPropertyInfo("thrEE", "int", false, roslyn.RootClassInfo.FieldOrPropertyList[2]);
+            AssertFieldOrPropertyInfo("Four", "Int32", false, roslyn.RootClassInfo.FieldOrPropertyList[3]);
+            AssertFieldOrPropertyInfo("Five", "long", true, roslyn.RootClassInfo.FieldOrPropertyList[4]);
+            AssertFieldOrPropertyInfo("Six", "string", true, roslyn.RootClassInfo.FieldOrPropertyList[5]);
+            AssertFieldOrPropertyInfo("seven", "long", true, roslyn.RootClassInfo.FieldOrPropertyList[6]);
+        }
+
+        private static void AssertFieldOrPropertyInfo(string name, string typeName, bool isProperty, 
+                                                      CodeBehindFieldOrPropertyInfo fop) {
+            Assert.AreEqual(name, fop.Name);
+            Assert.AreEqual(typeName, fop.TypeName);
+            Assert.AreEqual(isProperty, fop.IsProperty);
+        }
     }
 }
