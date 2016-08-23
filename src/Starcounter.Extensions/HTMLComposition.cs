@@ -33,6 +33,7 @@ namespace Starcounter {
             HTMLComposition.CreateIndex();
 
             Handle.POST("/sc/partial/composition?key={?}&ver={?}", (Request request, string key, string version) => {
+                key = System.Uri.UnescapeDataString(key);
                 Db.Transact(() => {
                     var setup = HTMLComposition.GetUsingKeyAndVersion(key, version);
                     if (setup == null) {
@@ -47,6 +48,7 @@ namespace Starcounter {
             }, new HandlerOptions() { SkipRequestFilters = true });
 
             Handle.GET("/sc/partial/composition?key={?}&ver={?}", (string key, string version) => {
+                key = System.Uri.UnescapeDataString(key);
                 var setup = HTMLComposition.GetUsingKeyAndVersion(key, version);
                 if (setup == null)
                     return 404;
@@ -59,6 +61,7 @@ namespace Starcounter {
             }, new HandlerOptions() { SkipRequestFilters = true });
 
             Handle.DELETE("/sc/partial/composition?key={?}&ver={?}", (string key, string version) => {
+                key = System.Uri.UnescapeDataString(key);
                 Db.Transact(() => {
                     if (key == "all") {
                         Db.SlowSQL("DELETE FROM Starcounter.HTMLComposition");
