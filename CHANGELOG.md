@@ -8,6 +8,7 @@
 - Improved binding in TypedJSON from property in Json-by-example to property in code-behind with allowing using the same name (and type) to automatically bind [#2964](https://github.com/Starcounter/Starcounter/issues/2964)
 - Added a new itemtemplate for Starcounter projects, `HTML template with dom-bind` [#2931](https://github.com/Starcounter/Starcounter/issues/2931)
 - Added support for enums when a template for TypedJSON is created based on the type for a dataobject [#3759](https://github.com/Starcounter/Starcounter/issues/3759)
+- Added possibility to configure how missing members (i.e. members that exists in the source, but not in the template) should be handled in TypedJSON when populating an instance. Options are to either throw an error or ignore and skip the member [#3802](https://github.com/Starcounter/Starcounter/issues/3802)
 
 ### Fixed
 - Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)

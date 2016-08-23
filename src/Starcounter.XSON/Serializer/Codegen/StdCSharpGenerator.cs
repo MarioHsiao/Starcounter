@@ -145,11 +145,12 @@ namespace Starcounter.XSON.Serializer {
 		}
 
 		private void ProcessDeserializer(AstDeserializeFunction node) {
-			node.Prefix.Add("public override int Populate(Json json, IntPtr buffer, int bufferSize) {");
+			node.Prefix.Add("public override int Populate(Json json, IntPtr buffer, int bufferSize, JsonSerializerSettings settings = null) {");
 			node.Prefix.Add("    int valueSize;");
 			node.Prefix.Add("    dynamic obj = json;");
+            node.Prefix.Add("    if (settings == null) settings = TypedJsonSerializer.DefaultSettings;");
 
-			node.Prefix.Add("    unsafe {");
+            node.Prefix.Add("    unsafe {");
 			node.Prefix.Add("        byte* pBuffer = (byte*)buffer;");
 			node.Prefix.Add("		 byte* tmpBuffer = pBuffer;");
 			node.Prefix.Add("	     byte* pver = null;");
@@ -371,7 +372,7 @@ namespace Starcounter.XSON.Serializer {
 			node.Prefix.Add("        break;");
 			
 			node.Prefix.Add("    var" + valueName + " = obj." + template.PropertyName + ".Add();");
-			node.Prefix.Add("    valueSize = " + valueName + ".PopulateFromJson((IntPtr)pBuffer, leftBufferSize);");
+			node.Prefix.Add("    valueSize = " + valueName + ".PopulateFromJson((IntPtr)pBuffer, leftBufferSize, settings);");
 			node.Prefix.Add("    if (valueSize != -1) {");
 			GenerateBufferJumpCode(node);
 			GenerateElseExceptionCode(node, template);
@@ -389,7 +390,7 @@ namespace Starcounter.XSON.Serializer {
 			string valueName = " val" + node.ParseNode.TemplateIndex;
 
 			node.Prefix.Add("var" + valueName + " = obj." + template.PropertyName + ";");
-			node.Prefix.Add("valueSize = " + valueName + ".PopulateFromJson((IntPtr)pBuffer, leftBufferSize);");
+			node.Prefix.Add("valueSize = " + valueName + ".PopulateFromJson((IntPtr)pBuffer, leftBufferSize, settings);");
 			node.Prefix.Add("if (valueSize != -1) {");
 			GenerateBufferJumpCode(node);
 			GenerateElseExceptionCode(node, template);

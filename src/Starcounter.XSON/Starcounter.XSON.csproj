@@ -85,6 +85,8 @@
     <Compile Include="Serializer\Codegen\ParseTree\TemplateMetadata.cs" />
     <Compile Include="Serializer\Codegen\StdCSharpGenerator.cs" />
     <Compile Include="Serializer\Codegen\StdDomGenerator.cs" />
+    <Compile Include="Serializer\JsonSerializerSettings.cs" />
+    <Compile Include="Serializer\Json\StandardJsonSerializerBase.cs" />
     <Compile Include="Serializer\SerializerCompiler.cs" />
     <Compile Include="Class Json\IBound.cs" />
     <Compile Include="Class Json\Json.Object.ChangeLog.cs" />
