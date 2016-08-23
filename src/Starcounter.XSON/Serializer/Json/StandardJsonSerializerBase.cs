@@ -51,7 +51,7 @@ namespace Starcounter.Advanced.XSON {
                 int size = 0;
 
                 if (s == null)
-                    s = JsonSerializerSettings.DefaultSettings;
+                    s = TypedJsonSerializer.DefaultSettings;
 
                 if (j.Template != null) {
                     return estimatePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, j.Template);
@@ -70,7 +70,7 @@ namespace Starcounter.Advanced.XSON {
 
         public override int EstimateSizeBytes(Json json, Template property, JsonSerializerSettings settings = null) {
             if (settings == null)
-                settings = JsonSerializerSettings.DefaultSettings;
+                settings = TypedJsonSerializer.DefaultSettings;
 
             return json.Scope<TypedJsonSerializer, Json, Template, JsonSerializerSettings, int>((tjs, j, t, s) => {
                 int size = estimatePerTemplate[(int)t.TemplateTypeId](tjs, j, t);
@@ -89,7 +89,7 @@ namespace Starcounter.Advanced.XSON {
                 json.checkBoundProperties = false;
 
                 if (settings == null)
-                    settings = JsonSerializerSettings.DefaultSettings;
+                    settings = TypedJsonSerializer.DefaultSettings;
 
                 int realSize = json.Scope<TypedJsonSerializer, Json, IntPtr, int, JsonSerializerSettings, int>(
                         (tjs, j, d, ds, s) => {
@@ -123,7 +123,7 @@ namespace Starcounter.Advanced.XSON {
                 json.checkBoundProperties = false;
 
                 if (settings == null)
-                    settings = JsonSerializerSettings.DefaultSettings;
+                    settings = TypedJsonSerializer.DefaultSettings;
 
                 int realSize 
                     = json.Scope<TypedJsonSerializer, Json, Template, IntPtr, int, JsonSerializerSettings, int>(

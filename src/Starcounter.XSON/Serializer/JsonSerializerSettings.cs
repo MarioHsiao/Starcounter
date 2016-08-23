@@ -9,10 +9,6 @@ namespace Starcounter.Advanced.XSON {
     /// Used to specify settings for the jsonserializer.
     /// </summary>
     public class JsonSerializerSettings {
-        public static readonly JsonSerializerSettings DefaultSettings = new JsonSerializerSettings() {
-            MissingMemberHandling = MissingMemberHandling.Error
-        };
-
         public JsonSerializerSettings() { }
 
         /// <summary>

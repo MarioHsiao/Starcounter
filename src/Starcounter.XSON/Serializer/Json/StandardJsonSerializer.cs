@@ -1,13 +1,7 @@
-﻿using Starcounter.Internal;
+﻿using System;
 using Starcounter.Templates;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using Starcounter.XSON;
 
 namespace Starcounter.Advanced.XSON {
-    
-
     public class StandardJsonSerializer : StandardJsonSerializerBase {
         private delegate void PopulateDelegate(Json json, Template template, JsonReader reader, JsonSerializerSettings settings);
 
@@ -192,7 +186,7 @@ namespace Starcounter.Advanced.XSON {
             var reader = new JsonReader(source, sourceSize);
 
             if (settings == null)
-                settings = JsonSerializerSettings.DefaultSettings;
+                settings = TypedJsonSerializer.DefaultSettings;
 
             populatePerTemplate[(int)json.Template.TemplateTypeId](json, null, reader, settings);
             return reader.Position;
