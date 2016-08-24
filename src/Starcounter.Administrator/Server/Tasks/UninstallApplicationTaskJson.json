@@ -1,6 +1,5 @@
 ﻿{
-	"$": { Namespace: "Administrator.Server.Model" },
-	"DatabaseName" : "",
-	"ID" : ""
+  "$": { "Namespace": "Administrator.Server.Model" },
+  "DatabaseName": "",
+  "ID": ""
 }
-

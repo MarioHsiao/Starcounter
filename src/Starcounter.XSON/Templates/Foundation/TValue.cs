@@ -202,7 +202,7 @@ namespace Starcounter.Templates {
 			CopyValueDelegates(toTemplate);
 			((TValue)toTemplate).Bind = Bind;
 		}
-
+        
         /// <summary>
         /// Returns true if an existing databinding exists, false otherwise.
         /// </summary>

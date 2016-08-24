@@ -7,7 +7,7 @@
     "branch": "deprecate",
     "commit": "9a0a4d20a1d29b6a26b5615187597fb3f570b5d6"
   },
-  "_source": "git://github.com/Juicy/dom-bind-notifier.git",
+  "_source": "https://github.com/Juicy/dom-bind-notifier.git",
   "_target": "deprecate",
-  "_originalSource": "Juicy/dom-bind-notifier"
+  "_originalSource": "dom-bind-notifier"
 }

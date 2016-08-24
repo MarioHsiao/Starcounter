@@ -93,7 +93,8 @@ namespace Starcounter.Advanced.XSON {
                 start = (IntPtr)pfrag;
             }
 
-            if (Utf8Helper.IntFastParseFromAscii(start, valueSize, out result)) {
+            result = default(long);
+            if ((valueSize == 0) || Utf8Helper.IntFastParseFromAscii(start, valueSize, out result)) {
                 value = result;
                 return true;
             }
@@ -116,10 +117,10 @@ namespace Starcounter.Advanced.XSON {
             // TODO:
             // Need to optimize this parsing. This method is superslow.
 
-            value = 0.0m;
+            value = default(decimal);
             success = false;
             if (ParseString(ptr, size, out valAsStr, out valueSize)) {
-                success = decimal.TryParse(valAsStr, NumberStyles.Any, CultureInfo.InvariantCulture, out value);
+                success = (valAsStr.Length == 0) || decimal.TryParse(valAsStr, NumberStyles.Any, CultureInfo.InvariantCulture, out value);
             }
             return success;
         }
@@ -139,10 +140,10 @@ namespace Starcounter.Advanced.XSON {
             // TODO:
             // Need to optimize this parsing. This method is superslow.
 
-            value = 0.0d;
+            value = default(double);
             success = false;
             if (ParseString(ptr, size, out valAsStr, out valueSize)) {
-                success = double.TryParse(valAsStr, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+                success = (valAsStr.Length == 0) || double.TryParse(valAsStr, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
             }
             return success;
         }

@@ -536,6 +536,111 @@ uint32_t HttpProto::HttpUriDispatcher(
 			return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id);
 		}
 
+        // Obtaining method and URI.
+        char* method_space_uri_space = (char*)sd->get_data_blob_start();
+        uint32_t method_space_uri_space_len, uri_offset;
+
+        // Getting method and URI information.
+        uint32_t err_code = GetMethodAndUri(
+            method_space_uri_space,
+            sd->get_accumulated_len_bytes(),
+            &method_space_uri_space_len,
+            &uri_offset,
+            MixedCodeConstants::MAX_URI_STRING_LEN);
+
+        // Checking for any errors.
+        if (err_code) {
+
+            if (SCERRGWRECEIVEMORE == err_code) {
+
+                // Checking if we are proxying.
+                if (sd->HasProxySocket()) {
+
+                    // Set the unknown proxied protocol here.
+                    sd->set_unknown_proxied_proto_flag();
+
+                    // Just running proxy processing.
+                    return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_id, INVALID_RP_INDEX);
+                }
+
+                // Returning socket to receiving state.
+                return gw->Receive(sd);
+
+            } else {
+
+                return err_code;
+            }
+        }
+
+        // Checking if its internal request.
+        port_index_type port_index = sd->GetPortIndex();
+        if (sd->get_internal_request_flag()) {
+            port_index = 0;
+        }
+
+        ServerPort* server_port = g_gateway.get_server_port(port_index);
+        uint16_t port_num = server_port->get_port_number();
+
+        if (sd->get_internal_request_flag()) {
+            // All internal handlers are done on the system port.
+            GW_ASSERT(g_gateway.get_setting_internal_system_port() == port_num);
+        }
+
+#ifdef CASE_INSENSITIVE_URI_MATCHER
+
+        // Prepared method and URI.
+        char* lower_method_space_uri_space = method_space_uri_space;
+
+        // Pointing to lower case temporary buffer in this worker.
+        lower_method_space_uri_space = gw->get_method_space_uri_space_worker_buf();
+
+        // Making URI lower case.
+        StringToLower(lower_method_space_uri_space, method_space_uri_space, uri_offset, method_space_uri_space_len);
+
+        // Checking if there are any URI aliases involved.
+        char* lower_aliased_method_space_uri_space;
+        char* aliased_method_space_uri_space;
+        int32_t aliased_method_space_uri_space_len;
+
+        // Getting URI alias information.
+        bool should_alias = g_gateway.GetUriAliasIfAny(
+            port_num,
+            lower_method_space_uri_space,
+            method_space_uri_space_len,
+            &aliased_method_space_uri_space,
+            &lower_aliased_method_space_uri_space,
+            &aliased_method_space_uri_space_len);
+
+        // Checking if we should convert the URI.
+        if (should_alias) {
+
+            int32_t num_remaining_bytes = (sd->get_data_blob_size() - sd->get_accumulated_len_bytes()),
+                diff_uri_length = aliased_method_space_uri_space_len - method_space_uri_space_len;
+
+            // Checking if we need to extend the buffer.
+            if (num_remaining_bytes < diff_uri_length) {
+
+                err_code = SocketDataChunk::ChangeToBigger(gw, sd, sd->get_accumulated_len_bytes() + diff_uri_length);
+                if (err_code)
+                    return err_code;
+            }
+
+            // Moving the accumulated data.
+            memmove(method_space_uri_space + aliased_method_space_uri_space_len,
+                method_space_uri_space + method_space_uri_space_len, sd->get_accumulated_len_bytes() - method_space_uri_space_len);
+
+            // Injecting the aliased URI information.
+            memcpy(method_space_uri_space, aliased_method_space_uri_space, aliased_method_space_uri_space_len);
+
+            // Replacing the pointer and length.
+            method_space_uri_space = aliased_method_space_uri_space;
+            method_space_uri_space_len = aliased_method_space_uri_space_len;
+            lower_method_space_uri_space = lower_aliased_method_space_uri_space;
+            sd->AddAccumulatedBytes(diff_uri_length);
+        }
+
+#endif
+
 		// Resetting the parsing structure.
 		ResetParser(gw, sd);
 
@@ -682,61 +787,8 @@ uint32_t HttpProto::HttpUriDispatcher(
 		// Checking correct buffers.
 		GW_ASSERT(sd->get_accumulated_len_bytes() == (sd->get_cur_network_buf_ptr() - sd->get_data_blob_start()));
 
-        // Obtaining method and URI.
-        char* method_space_uri_space = (char*) sd->get_data_blob_start();
-        uint32_t method_space_uri_space_len, uri_offset;
-
-        // Getting method and URI information.
-        uint32_t err_code = GetMethodAndUri(
-            method_space_uri_space,
-            sd->get_accumulated_len_bytes(),
-            &method_space_uri_space_len,
-            &uri_offset,
-            MixedCodeConstants::MAX_URI_STRING_LEN);
-
-        // Checking for any errors.
-        if (err_code) {
-
-            if (SCERRGWRECEIVEMORE == err_code) {
-
-                // Checking if we are proxying.
-                if (sd->HasProxySocket()) {
-
-                    // Set the unknown proxied protocol here.
-                    sd->set_unknown_proxied_proto_flag();
-
-                    // Just running proxy processing.
-                    return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_id, INVALID_RP_INDEX);
-                }
-
-                // Returning socket to receiving state.
-                err_code = gw->Receive(sd);
-                GW_ERR_CHECK(err_code);
-
-                return 0;
-
-            } else {
-
-                return err_code;
-            }
-        }
-
         // Now we have method and URI and ready to search specific URI handler.
         // Getting the corresponding port number.
-
-		// Checking if its internal request.
-		port_index_type port_index = sd->GetPortIndex();
-		if (sd->get_internal_request_flag()) {
-			port_index = 0;
-		}
-
-        ServerPort* server_port = g_gateway.get_server_port(port_index);
-        uint16_t port_num = server_port->get_port_number();
-
-		if (sd->get_internal_request_flag()) {
-			// All internal handlers are done on the system port.
-			GW_ASSERT(g_gateway.get_setting_internal_system_port() == port_num);
-		}
 
         RegisteredUris* port_uris = server_port->get_registered_uris();
 
@@ -798,61 +850,6 @@ uint32_t HttpProto::HttpUriDispatcher(
                 goto HANDLER_MATCHED;
             }
         }
-
-#ifdef CASE_INSENSITIVE_URI_MATCHER
-
-        // Prepared method and URI.
-        char* lower_method_space_uri_space = method_space_uri_space;
-
-        // Pointing to lower case temporary buffer in this worker.
-        lower_method_space_uri_space = gw->get_method_space_uri_space_worker_buf();
-
-        // Making URI lower case.
-        StringToLower(lower_method_space_uri_space, method_space_uri_space, uri_offset, method_space_uri_space_len);
-
-        // Checking if there are any URI aliases involved.
-        char* lower_aliased_method_space_uri_space;
-        char* aliased_method_space_uri_space;
-        int32_t aliased_method_space_uri_space_len;
-
-        // Getting URI alias information.
-        bool should_alias = g_gateway.GetUriAliasIfAny(
-			port_num,
-            lower_method_space_uri_space, 
-            method_space_uri_space_len, 
-            &aliased_method_space_uri_space,
-            &lower_aliased_method_space_uri_space,
-            &aliased_method_space_uri_space_len);
-
-        // Checking if we should convert the URI.
-        if (should_alias) {
-
-            int32_t num_remaining_bytes = (sd->get_data_blob_size() - sd->get_accumulated_len_bytes()),
-                diff_uri_length = aliased_method_space_uri_space_len - method_space_uri_space_len;
-
-            // Checking if we need to extend the buffer.
-            if (num_remaining_bytes < diff_uri_length) {
-
-                err_code = SocketDataChunk::ChangeToBigger(gw, sd, sd->get_accumulated_len_bytes() + diff_uri_length);
-                if (err_code)
-                    return err_code;
-            }
-
-            // Moving the accumulated data.
-            memmove(method_space_uri_space + aliased_method_space_uri_space_len,
-				method_space_uri_space + method_space_uri_space_len, sd->get_accumulated_len_bytes() - method_space_uri_space_len);
-
-            // Injecting the aliased URI information.
-            memcpy(method_space_uri_space, aliased_method_space_uri_space, aliased_method_space_uri_space_len);
-
-            // Replacing the pointer and length.
-            method_space_uri_space = aliased_method_space_uri_space;
-            method_space_uri_space_len = aliased_method_space_uri_space_len;
-            lower_method_space_uri_space = lower_aliased_method_space_uri_space;
-            sd->AddAccumulatedBytes(diff_uri_length);
-        }
-
-#endif
 
         // Getting the matched uri index.
         matched_index = port_uris->RunCodegenUriMatcher(lower_method_space_uri_space, method_space_uri_space_len, sd->get_accept_or_params_data());
@@ -1105,6 +1102,21 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
     }
 
     return SCERRGWHTTPPROCESSFAILED;
+}
+
+// HTTP/WebSockets statistics for Gateway.
+uint32_t GatewaySocketsStats(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
+{
+    gw->WorkerEnterGlobalLock();
+
+    std::string stats_http_resp = g_gateway.GetGatewaySocketsStatisticsString();
+
+    gw->WorkerLeaveGlobalLock();
+
+    return gw->SendPredefinedMessage(
+        sd,
+        stats_http_resp.c_str(),
+        static_cast<int32_t>(stats_http_resp.length()));
 }
 
 // HTTP/WebSockets statistics for Gateway.

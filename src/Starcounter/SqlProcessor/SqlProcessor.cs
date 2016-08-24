@@ -222,7 +222,7 @@ namespace Starcounter.SqlProcessor {
                     uint r;
 
                     r = sccoredb.star_create_transaction(
-                        0, 0, out transactionHandle
+                        0, out transactionHandle
                         );
                     if (r != 0) {
                         transactionHandle = 0;

@@ -7,63 +7,80 @@
 // Remove this define to generate code without #line directives
 #define ADDLINEDIRECTIVES
 
-using Starcounter.Templates.Interfaces;
-using System.Text;
 using System;
-using Starcounter.Templates;
 using System.Collections.Generic;
-using Starcounter.XSON.Metadata;
 using System.Diagnostics;
 using System.Globalization;
+using System.Text;
+using Starcounter.Templates;
+using Starcounter.Templates.Interfaces;
 
 namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
-    /// Class CSharpGenerator
+    /// Generates C# code from an AST tree.
     /// </summary>
     public class Gen2CSharpGenerator : ITemplateCodeGenerator {
+        private const string MARKASCODEGEN = "[_GEN1_][_GEN2_(\"Starcounter\",\"2.0\")]";
+        private const string MARKASCODEGEN2 = "[_GEN2_(\"Starcounter\",\"2.0\")]";
+
+        private const string LINE_HIDDEN = "#line hidden";
+        private const string LINE_DEFAULT = "#line default";
+        private const string LINE_POSANDFILE = "#line {0} \"{1}\"";
+
+        /// <summary>
+        /// A list of predefined using-directives that should always be added. 
+        /// </summary>
+        private static List<string> defaultUsings;
+
         /// <summary>
         /// The generated code output.
         /// </summary>
-        internal StringBuilder Output = new StringBuilder();
+        private StringBuilder output;
 
         /// <summary>
         /// The root of the generated code.
         /// </summary>
-        public AstRoot Root;
+        private AstRoot root;
 
         /// <summary>
         /// Gets or sets the indentation.
         /// </summary>
-        /// <value>The indentation.</value>
-        public int Indentation { get; set; }
+        private int indentation;
 
         /// <summary>
-        /// The code generator can be used to generate typed JSON. My storing the generarator
-        /// we can obtain the wanted default obj template, i.e.
-        /// which template to use as the default template for new objects.
+        /// The code generator can be used to generate typed JSON.
         /// </summary>
-        public Gen2DomGenerator Generator;
-        private const string markAsCodegen = "[_GEN1_][_GEN2_(\"Starcounter\",\"2.0\")]";
-        private const string markAsCodegen2 = "[_GEN2_(\"Starcounter\",\"2.0\")]";
-        private static List<string> defaultUsings;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public IReadOnlyTree GenerateAST() {
-            return Root;
+        private Gen2DomGenerator generator;
+        
+        static Gen2CSharpGenerator() {
+            defaultUsings = new List<string>();
+            defaultUsings.Add("System");
+            defaultUsings.Add("System.Collections");
+            defaultUsings.Add("System.Collections.Generic");
+            defaultUsings.Add("Starcounter.Advanced");
+            defaultUsings.Add("Starcounter");
+            defaultUsings.Add("Starcounter.Internal");
+            defaultUsings.Add("Starcounter.Templates");
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
         /// <param name="generator"></param>
         /// <param name="root"></param>
         public Gen2CSharpGenerator(Gen2DomGenerator generator, AstRoot root) {
-            Generator = generator;
-            Root = root;
-            Indentation = 4;
+            this.generator = generator;
+            this.root = root;
+            this.output = new StringBuilder();
+            this.indentation = 4;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public IReadOnlyTree GenerateAST() {
+            return root;
         }
 
         /// <summary>
@@ -72,7 +89,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <returns>A multiline string</returns>
         public string DumpAstTree() {
             var sb = new StringBuilder();
-            DumpTree(sb, Root, 0);
+            DumpTree(sb, root, 0);
             return sb.ToString();
         }
 
@@ -98,24 +115,84 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public string GenerateCode() {
             ProcessAllNodes();
 
-            bool writeRootNs = !string.IsNullOrEmpty(Root.AppClassClassNode.Namespace);
+            bool writeRootNs = !string.IsNullOrEmpty(root.AppClassClassNode.Namespace);
 
-            WriteHeader(Root, Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);
+            WriteHeader();
 
             if (writeRootNs)
-                Output.AppendLine("namespace " + Root.AppClassClassNode.Namespace + " {");
-            foreach (var napp in Root.Children) {
+                output.AppendLine("namespace " + root.AppClassClassNode.Namespace + " {");
+            foreach (var napp in root.Children) {
                 WriteNode(napp);
             }
             if (writeRootNs)
-                Output.AppendLine("}");
+                output.AppendLine("}");
 
-            WriteFooter(Output);
-            return Output.ToString();
+            WriteFooter();
+            return output.ToString();
         }
 
         /// <summary>
-        /// Processes all nodes.
+        /// Writes all nodes recursively.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        private void WriteNode(AstBase node) {
+            foreach (var x in node.Prefix) {
+                output.Append(' ', node.Indentation);
+                output.Append(x);
+                output.Append('\n');
+            }
+            foreach (var kid in node.Children) {
+                kid.Indentation = node.Indentation + indentation;
+                WriteNode(kid);
+            }
+            foreach (var x in node.Suffix) {
+                output.Append(' ', node.Indentation);
+                output.Append(x);
+                output.Append('\n');
+            }
+        }
+
+        /// <summary>
+        /// Writes the header of the CSharp file, including using directives.
+        /// </summary>
+        private void WriteHeader() {
+            output.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");
+            output.Append(root.AppClassClassNode.Template.CompilerOrigin.FileName);
+            output.Append('"');
+            output.AppendLine();
+            output.Append("// Version: ");
+            output.Append(XSON.PartialClassGenerator.CSHARP_CODEGEN_VERSION);
+            output.AppendLine();
+            output.AppendLine("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN");
+            output.AppendLine();
+
+            foreach (var usingDirective in defaultUsings) {
+                output.AppendLine("using " + usingDirective + ";");
+            }
+
+            if (root.Generator.CodeBehindMetadata != null) {
+                var usingList = root.Generator.CodeBehindMetadata.UsingDirectives;
+                foreach (var usingDirective in usingList) {
+                    if (!defaultUsings.Contains(usingDirective))
+                        output.AppendLine("using " + usingDirective + ";");
+                }
+            }
+
+            output.AppendLine("#pragma warning disable 0108");
+            output.AppendLine("#pragma warning disable 1591");
+            output.AppendLine();
+        }
+
+        /// <summary>
+        /// Writes the footer of the CSharp file.
+        /// </summary>
+        private void WriteFooter() {
+            output.AppendLine("#pragma warning restore 1591");
+            output.AppendLine("#pragma warning restore 0108");
+        }
+
+        /// <summary>
+        /// Processes all nodes and generates C# code.
         /// </summary>
         private void ProcessAllNodes() {
             AstJsonClass napp;
@@ -124,11 +201,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             String currentNs = null;
 
             previousKidWithNs = null;
-            previousNs = Root.AppClassClassNode.Namespace;
-            for (Int32 i = 0; i < Root.Children.Count; i++) {
-                var kid = Root.Children[i];
+            previousNs = root.AppClassClassNode.Namespace;
+            for (Int32 i = 0; i < root.Children.Count; i++) {
+                var kid = root.Children[i];
 
                 if (kid is AstJsonClass) {
+                    // Special handling for namespaces, since we need to keep track of the 
+                    // previous namespace (if any exists).
                     napp = kid as AstJsonClass;
 
                     currentNs = napp.Namespace;
@@ -145,11 +224,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                             
                         }
                     }
-                } else if (kid is AstClassAlias) {
-                    var alias = kid as AstClassAlias;
-                    kid.Prefix.Add("using " + alias.Alias + " = " + alias.Specifier + ";");
-                }
-
+                } 
                 ProcessNode(kid);
             }
 
@@ -159,156 +234,203 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         /// <summary>
-        /// Create prefix and suffix strings for a node and its children
+        /// Create prefix and suffix strings for a node and its children containing C# code
         /// </summary>
         /// <param name="node">
         /// The syntax tree node. Use root to generate the complete source code.
         /// </param>
         private void ProcessNode(AstBase node) {
             var sb = new StringBuilder();
-            if (node is AstClass) {
-                if (node is AstMetadataClass) {
-                    node.Prefix.Add("");
 
-                    AppendLineDirectiveIfDefined(node.Prefix, "#line hidden");
-
-                    var n = node as AstMetadataClass;
-                    sb.Append("public class ");
-                    sb.Append(n.ClassStemIdentifier);
-                    sb.Append("<__Tjsonobj__,__jsonobj__>");
-                    if (n.InheritedClass != null) {
-                        sb.Append(" : ");
-                        sb.Append(n.InheritedClass.GlobalClassSpecifierWithoutGenerics);
-                        sb.Append("<__Tjsonobj__,__jsonobj__>");
-                    }
-                    sb.Append(" {");
-                    node.Prefix.Add(sb.ToString());
-                    WriteObjMetadataClassPrefix(node as AstMetadataClass);
-                    node.Suffix.Add("}");
-
-                    AppendLineDirectiveIfDefined(node.Suffix, "#line default");
-
-                } else if (node is AstClass) {
-                    node.Prefix.Add("");
-
-                    AppendLineDirectiveIfDefined(node.Prefix, "#line hidden");
-
-                    var n = node as AstClass;
-                    sb.Append("public ");
-
-                    if (n.MarkAsCodegen) {
-                        node.Prefix.Add(markAsCodegen);
-                    }
-
-                    if (n.IsStatic) {
-                        sb.Append("static ");
-                    }
-                    if (n.IsPartial) {
-                        sb.Append("partial ");
-                    }
-                    sb.Append("class ");
-                    sb.Append(n.ClassStemIdentifier);
-                    if (node is AstSchemaClass) {
-                        var ast = node as AstSchemaClass;
-                        var inherited = (AstTemplateClass)ast.InheritedClass;
-                        if (inherited != null) {
-                            sb.Append(" : ");
-//                            sb.Append(inherited.GlobalClassSpecifierWithoutGenerics);
-                            sb.Append(inherited.GlobalClassSpecifier);
-                        }
-                    } else {
-                        if (n.Inherits != null) {
-                            sb.Append(" : ");
-                            sb.Append(n.Inherits);
-                        }
-                    }
-                    sb.Append(" {");
-                    node.Prefix.Add(sb.ToString());
-                    if (node is AstJsonClass) {
-                        WriteAppClassPrefix(node as AstJsonClass);
-                    } else if (node is AstSchemaClass) {
-                        WriteTAppConstructor((node as AstSchemaClass).Constructor);
-                        WriteSchemaOverrides(node as AstSchemaClass);
-                    }
-                    node.Suffix.Add("}");
-
-                    AppendLineDirectiveIfDefined(node.Suffix, "#line default");
-
-                } else {
-                    throw new Exception();
-                }
+            if (node is AstJsonClass) {
+                ProcessJsonClass(node as AstJsonClass);
+            } else if (node is AstSchemaClass) {
+                ProcessSchemaClass((AstSchemaClass)node);
+            } else if (node is AstMetadataClass) {
+                ProcessMetadataClass(node as AstMetadataClass);
+            } else if (node is AstClass) {
+                ProcessClassDeclaration((AstClass)node);
             } else if (node is AstProperty) {
                 if (node.Parent is AstJsonClass)
-                    WriteAppMemberPrefix(node as AstProperty);
+                    ProcessJsonProperty(node as AstProperty);
                 else if (node.Parent is AstSchemaClass)
-                    WriteTAppMemberPrefix(node as AstProperty);
+                    ProcessSchemaProperty(node as AstProperty);
                 else if (node.Parent is AstMetadataClass)
-                    WriteObjMetadataMemberPrefix(node as AstProperty);
+                    ProcessMetadataProperty(node as AstProperty);
+            } else if (node is AstClassAlias) {
+                ProcessClassAlias((AstClassAlias)node);
             }
 
             foreach (var kid in node.Children) {
                 ProcessNode(kid);
             }
         }
-
+        
         /// <summary>
-        /// Writes the node.
+        /// Generates code for the member that always should be added (not properties) 
+        /// and constructors of the jsonclass.
         /// </summary>
-        /// <param name="node">The node.</param>
-        private void WriteNode(AstBase node) {
-            foreach (var x in node.Prefix) {
-                Output.Append(' ', node.Indentation);
-                Output.Append(x);
-                Output.Append('\n');
+        /// <param name="jsonClass">The class </param>
+        private void ProcessJsonClass(AstJsonClass jsonClass) {
+            var sb = new StringBuilder();
+
+            // Declaration of the class itself, including inheritance.
+            ProcessClassDeclaration(jsonClass);
+
+            AppendLineDirectiveIfDefined(jsonClass.Prefix, LINE_HIDDEN, 4);
+
+            // Static instance of the default template.
+            jsonClass.Prefix.Add("    " + MARKASCODEGEN2);
+            jsonClass.Prefix.Add("    public static "
+                         + jsonClass.NTemplateClass.GlobalClassSpecifier
+                         + " DefaultTemplate = new "
+                         + jsonClass.NTemplateClass.GlobalClassSpecifier
+                         + "();");
+
+            // Default (parameterless) constructor.
+            jsonClass.Prefix.Add("    " + MARKASCODEGEN);
+            jsonClass.Prefix.Add("    public "
+                         + jsonClass.ClassStemIdentifier
+                         + "() { }");
+
+            // Constructor with template as parameter.
+            jsonClass.Prefix.Add("    " + MARKASCODEGEN);
+            jsonClass.Prefix.Add("    public "
+                         + jsonClass.ClassStemIdentifier
+                         + "(" +
+                         jsonClass.NTemplateClass.GlobalClassSpecifier +
+                         " template) { Template = template; }");
+
+            //
+            jsonClass.Prefix.Add("    " + MARKASCODEGEN);
+            jsonClass.Prefix.Add("    protected override _ScTemplate_ GetDefaultTemplate() { return DefaultTemplate; }");
+
+            // Overwriting the property 'Template' in class Json to return template 
+            // with the correct type to avoid need for casting.
+            jsonClass.Prefix.Add("    " + MARKASCODEGEN);
+            jsonClass.Prefix.Add("    public new "
+                         + jsonClass.NTemplateClass.GlobalClassSpecifier
+                         + " Template { get { return ("
+                         + jsonClass.NTemplateClass.GlobalClassSpecifier
+                         + ")base.Template; } set { base.Template = value; } }");
+
+            if (jsonClass.CodebehindClass != null && jsonClass.CodebehindClass.BoundDataClass != null) {
+                // Overwriting the property 'Data' in class Json to return object
+                // with the correct type to avoid need for casting.
+                jsonClass.Prefix.Add("    " + MARKASCODEGEN);
+                jsonClass.Prefix.Add("    public new "
+                             + jsonClass.CodebehindClass.BoundDataClass
+                             + " Data { get { return ("
+                             + jsonClass.CodebehindClass.BoundDataClass
+                             + ")base.Data; } set { base.Data = value; } }");
             }
-            foreach (var kid in node.Children) {
-                kid.Indentation = node.Indentation + Indentation;
-                WriteNode(kid);
-            }
-            foreach (var x in node.Suffix) {
-                Output.Append(' ', node.Indentation);
-                Output.Append(x);
-                Output.Append('\n');
-            }
+            jsonClass.Prefix.Add("    public override bool IsCodegenerated { get { return true; } }");
+            
+            AppendLineDirectiveIfDefined(jsonClass.Prefix, LINE_DEFAULT, 4);
         }
 
         /// <summary>
-        /// Writes the app member prefix.
+        /// Process the schemaclass and adds constructor code and overrides.
+        /// </summary>
+        /// <param name="schemaClass"></param>
+        private void ProcessSchemaClass(AstSchemaClass schemaClass) {
+            ProcessClassDeclaration(schemaClass);
+
+            // TODO:
+            // See TODO in GeneratorPhase1.cs
+            ProcessSchemaConstructor(schemaClass.Constructor);
+
+            schemaClass.Prefix.Add(
+                "    public override object CreateInstance(s.Json parent) { return new "
+                + schemaClass.NValueClass.GlobalClassSpecifier
+                + "(this) { Parent = parent }; }"
+            );
+        }
+        
+        /// <summary>
+        /// Generates code for a class declaration including inheritance.
+        /// </summary>
+        /// <param name="astClass"></param>
+        private void ProcessClassDeclaration(AstClass astClass) {
+            StringBuilder sb = new StringBuilder();
+
+            astClass.Prefix.Add("");
+            AppendLineDirectiveIfDefined(astClass.Prefix, LINE_HIDDEN, 0);
+
+            if (astClass.MarkAsCodegen) {
+                astClass.Prefix.Add(MARKASCODEGEN);
+            }
+
+            sb.Append("public ");
+            
+            if (astClass.IsStatic) {
+                sb.Append("static ");
+            }
+            if (astClass.IsPartial) {
+                sb.Append("partial ");
+            }
+            sb.Append("class ");
+            sb.Append(astClass.ClassStemIdentifier);
+
+            if (astClass.Inherits != null) {
+                sb.Append(" : ");
+                sb.Append(astClass.Inherits);
+            }
+            sb.Append(" {");
+
+            astClass.Prefix.Add(sb.ToString());
+
+            astClass.Suffix.Add("}");
+            AppendLineDirectiveIfDefined(astClass.Suffix, LINE_DEFAULT, 0);
+        }
+        
+        /// <summary>
+        /// Generates code for a property of a jsonclass.
         /// </summary>
         /// <param name="m">The m.</param>
-        private void WriteAppMemberPrefix(AstProperty m) {
+        private void ProcessJsonProperty(AstProperty m) {
             if (m.Template is TTrigger)
                 return;
 
-            bool appendMemberName = (m.Template != ((AstJsonClass)m.Parent).Template);
-
-            m.Prefix.Add(markAsCodegen);
             var sb = new StringBuilder();
 
-            sb.Append("public ");
-
+            bool appendMemberName = (m.Template != ((AstJsonClass)m.Parent).Template);
+            string memberTypeName;
+            
             if (m.Template.IsPrimitive) {
-                sb.Append(HelperFunctions.GetGlobalClassSpecifier(m.Template.InstanceType, true));
+                memberTypeName = HelperFunctions.GetGlobalClassSpecifier(m.Template.InstanceType, true);
             } else {
-                sb.Append(m.Type.GlobalClassSpecifier);
+                memberTypeName = m.Type.GlobalClassSpecifier;
+            }
+            
+            // Adding a backingfield for locally caching the value.
+            if (m.BackingFieldName != null) {
+                AppendLineDirectiveIfDefined(m.Prefix, LINE_HIDDEN, 0);
+                m.Prefix.Add("private " + memberTypeName + " " + m.BackingFieldName + ";");
+                AppendLineDirectiveIfDefined(m.Prefix, LINE_DEFAULT, 0);
             }
 
+            if (!m.GenerateAccessorProperty)
+                return;
+        
+            // Adding public accessors for the property.
+            m.Prefix.Add(MARKASCODEGEN);
+            sb.Append("public ");
+            sb.Append(memberTypeName);
             sb.Append(' ');
             sb.Append(m.MemberName);
-            sb.AppendLine(" {");
+            sb.Append(" {");
+            m.Prefix.Add(sb.ToString());
+            sb.Clear();
 
-            AppendLineDirectiveIfDefined(sb, 
-                                     "#line "
-                                     + m.Template.CompilerOrigin.LineNo
-                                     + " \""
-                                     + m.Template.CompilerOrigin.FileName
-                                     + "\"");
-
-            sb.AppendLine("    get {");
-
-            AppendLineDirectiveIfDefined(sb, "#line hidden");
-
+            AppendLineDirectiveIfDefined(m.Prefix, GetLinePosAndFile(m.Template), 0);
+            
+            m.Prefix.Add("    get {");
+            AppendLineDirectiveIfDefined(m.Prefix, LINE_HIDDEN, 4);
+            
             sb.Append("        return ");
+            
+            // AstJsonClass can be both object and array.
             if (!m.Template.IsPrimitive && m.Type is AstJsonClass) {
                 sb.Append('(');
                 sb.Append(m.Type.GlobalClassSpecifier);
@@ -320,118 +442,31 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 sb.Append('.');
                 sb.Append(m.MemberName);
             } 
-            sb.AppendLine(".Getter(this); }");
+            sb.Append(".Getter(this); }");
 
-            AppendLineDirectiveIfDefined(sb,
-                                     "#line "
-                                     + m.Template.CompilerOrigin.LineNo
-                                     + " \""
-                                     + m.Template.CompilerOrigin.FileName
-                                     + "\"");
-
-            sb.AppendLine("    set {");
-            AppendLineDirectiveIfDefined(sb, "#line hidden");
+            m.Prefix.Add(sb.ToString());
+            sb.Clear();
+            
+            AppendLineDirectiveIfDefined(m.Prefix, GetLinePosAndFile(m.Template), 4);
+            m.Prefix.Add("    set {");
+            AppendLineDirectiveIfDefined(m.Prefix, LINE_HIDDEN, 4);
             sb.Append("        Template");
             if (appendMemberName) {
                 sb.Append('.');
                 sb.Append(m.MemberName);
             } 
-            sb.AppendLine(".Setter(this, value); } }");
-
-            AppendLineDirectiveIfDefined(sb, "#line default");
-
+            sb.Append(".Setter(this, value); } }");
             m.Prefix.Add(sb.ToString());
-        }
+            sb.Clear();
 
+            AppendLineDirectiveIfDefined(m.Prefix, LINE_DEFAULT, 4);
+        }
+    
         /// <summary>
-        /// Writes the app class prefix.
-        /// </summary>
-        /// <param name="a">A.</param>
-        private void WriteAppClassPrefix(AstJsonClass a) {
-            var sb = new StringBuilder();
-
-            AppendLineDirectiveIfDefined(a.Prefix, "    #line hidden");
-
-            a.Prefix.Add("    " + markAsCodegen2);
-            a.Prefix.Add("    public static "
-                         + a.NTemplateClass.GlobalClassSpecifier
-                         + " DefaultTemplate = new "
-                         + a.NTemplateClass.GlobalClassSpecifier
-                         + "();");
-
-            a.Prefix.Add("    " + markAsCodegen);
-            a.Prefix.Add("    public "
-                         + a.ClassStemIdentifier
-                         + "() { }");
-            a.Prefix.Add("    " + markAsCodegen);
-            a.Prefix.Add("    public "
-                         + a.ClassStemIdentifier
-                         + "(" +
-                         a.NTemplateClass.GlobalClassSpecifier +
-                         " template) { Template = template; }");
-
-            a.Prefix.Add("    " + markAsCodegen);
-            a.Prefix.Add("    protected override _ScTemplate_ GetDefaultTemplate() { return DefaultTemplate; }");
-
-            a.Prefix.Add("    " + markAsCodegen);
-            a.Prefix.Add("    public new "
-                         + a.NTemplateClass.GlobalClassSpecifier
-                         + " Template { get { return ("
-                         + a.NTemplateClass.GlobalClassSpecifier
-                         + ")base.Template; } set { base.Template = value; } }");
-
-            if (a.CodebehindClass != null && a.CodebehindClass.BoundDataClass != null) {
-                a.Prefix.Add("    " + markAsCodegen);
-                a.Prefix.Add("    public new "
-                             + a.CodebehindClass.BoundDataClass
-                             + " Data { get { return ("
-                             + a.CodebehindClass.BoundDataClass
-                             + ")base.Data; } set { base.Data = value; } }");
-            }
-            a.Prefix.Add("    public override bool IsCodegenerated { get { return true; } }");
-
-            foreach (AstBase kid in a.NTemplateClass.Children) {
-                var prop = kid as AstProperty;
-                if (prop != null && prop.BackingFieldName != null) {
-                    string bfTypeName = null;
-                    if (prop.Template is TObjArr) {
-                        var templateClass = prop.Type as AstTemplateClass;
-                        if (templateClass != null)
-                            bfTypeName = templateClass.NValueClass.GlobalClassSpecifier;
-                    } else if (prop.Template is TObject) {
-                        var parent = prop.Type.Parent;
-                        while (parent != null) {
-                            if (parent is AstJsonClass) {
-                                bfTypeName = ((AstJsonClass)parent).GlobalClassSpecifier;
-                                break;
-                            }
-                            parent = parent.Parent;
-                        }
-                    }
-
-                    if (bfTypeName == null)
-                        bfTypeName = HelperFunctions.GetGlobalClassSpecifier(prop.Template.InstanceType, true);
-
-                    a.Prefix.Add("    private "
-                                + bfTypeName
-                                + " "
-                                + prop.BackingFieldName
-                                + ";");
-                }
-            }
-            AppendLineDirectiveIfDefined(a.Prefix, "    #line default");
-        }
-
-        private AstClass GetParentPropertyType(Template a) {
-            var x = Generator.ObtainValueClass((Template)a.Parent);
-            return x;
-        }
-
-        /// <summary>
-        /// Writes the app template member prefix.
+        /// Generates code for a member of a schema class.
         /// </summary>
         /// <param name="m">The m.</param>
-        private void WriteTAppMemberPrefix(AstProperty m) {
+        private void ProcessSchemaProperty(AstProperty m) {
             var sb = new StringBuilder();
             sb.Append("public ");
             sb.Append(m.Type.GlobalClassSpecifier);
@@ -440,13 +475,283 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(";");
             m.Prefix.Add(sb.ToString());
         }
+        
+        /// <summary>
+        /// Generates code for the constructor of the schema.
+        /// </summary>
+        /// <param name="cst">The AST node for the constructor</param>
+        private void ProcessSchemaConstructor(AstConstructor cst) {
+            TObjArr tArr;
+            TObject tObjElement;
+            AstSchemaClass schemaClass = (AstSchemaClass)cst.Parent;
+            var sb = new StringBuilder();
+
+            // Declaration of the constructor.
+            sb.Append("    public ");
+            sb.Append(schemaClass.ClassStemIdentifier);
+            sb.Append("()");
+            schemaClass.Prefix.Add(sb.ToString());
+            schemaClass.Prefix.Add("        : base() {");
+
+            // Initiation of settings for the schema itself.
+            if (schemaClass.BindChildren != BindingStrategy.Auto) {
+                schemaClass.Prefix.Add("        BindChildren = st::BindingStrategy." + schemaClass.BindChildren + ";");
+            }
+
+            sb.Clear();
+            sb.Append("        InstanceType = typeof(");
+            sb.Append(schemaClass.NValueClass.GlobalClassSpecifier);
+            sb.Append(");");
+            schemaClass.Prefix.Add(sb.ToString());
+
+            sb.Clear();
+            sb.Append("        ClassName = \"");
+            sb.Append(schemaClass.NValueClass.ClassStemIdentifier);
+            sb.Append("\";");
+            schemaClass.Prefix.Add(sb.ToString());
+
+            if (schemaClass.Template is TObject) {
+                schemaClass.Prefix.Add("        Properties.ClearExposed();");
+            }
+
+            tArr = schemaClass.Template as TObjArr;
+            if (tArr != null) {
+                tObjElement = tArr.ElementType as TObject;
+                bool isCustomClass = ((tArr.ElementType != null) && (tObjElement != null) && (tObjElement.Properties.Count > 0));
+                if (isCustomClass || !"Json".Equals(schemaClass.InheritedClass.Generic[0].ClassStemIdentifier)) {
+                    sb.Clear();
+                    sb.Append("        ");
+                    sb.Append("SetCustomGetElementType((arr) => { return ");
+                    sb.Append(schemaClass.InheritedClass.Generic[0].GlobalClassSpecifier);
+                    sb.Append(".DefaultTemplate;});");
+                    schemaClass.Prefix.Add(sb.ToString());
+                }
+            }
+
+            // Adding initialization code for each member of the constructor.
+            foreach (AstBase kid in cst.Children) {
+                if (kid is AstProperty)
+                    ProcessSchemaConstructorProperty((AstProperty)kid, schemaClass);
+                else if (kid is AstInputBinding)
+                    ProcessInputbinding((AstInputBinding)kid, schemaClass);
+            }
+
+            schemaClass.Prefix.Add("    }");
+        }
+
+        private void ProcessSchemaConstructorProperty(AstProperty property, AstSchemaClass schemaClass) {
+            TObjArr tArr;
+            TObject tObjElement;
+            TValue tv = property.Template as TValue;
+
+            string memberName = property.MemberName;
+            if (property.Template == schemaClass.Template)
+                memberName = "this";
+
+            var sb = new StringBuilder();
+
+            // Adding the property to the schema.
+            if (!"this".Equals(memberName)) {
+                sb.Append("        ");
+                sb.Append(memberName);
+                sb.Append(" = Add<");
+                sb.Append(property.Type.GlobalClassSpecifier);
+
+                sb.Append(">(\"");
+                sb.Append(property.Template.TemplateName);
+                sb.Append('"');
+
+                if (tv != null && tv.BindingStrategy != BindingStrategy.UseParent && tv.BindingStrategy != BindingStrategy.Auto) {
+                    if (tv.Bind == null) {
+                        sb.Append(", bind:null");
+                    } else {
+                        sb.Append(", bind:\"");
+                        sb.Append(tv.Bind);
+                        sb.Append('"');
+                    }
+                }
+                sb.Append(");");
+                schemaClass.Prefix.Add(sb.ToString());
+            }
+
+            if (tv != null) {
+                AddDefaultValue(schemaClass, property, tv, memberName);
+            }
+
+            if (property.Template.Editable) {
+                schemaClass.Prefix.Add("        " + memberName + ".Editable = true;");
+            }
+
+            // Special handling of arrays. Specify the ElementType of the array if it is specified.
+            tArr = property.Template as TObjArr;
+            if (tArr != null) {
+                tObjElement = tArr.ElementType as TObject;
+                bool isCustomClass = ((tArr.ElementType != null) && (tObjElement != null) && (tObjElement.Properties.Count > 0));
+                if (isCustomClass || !"Json".Equals(property.Type.Generic[0].ClassStemIdentifier)) {
+                    sb.Clear();
+                    sb.Append("        ");
+                    sb.Append(memberName);
+                    sb.Append(".SetCustomGetElementType((arr) => { return ");
+                    sb.Append(property.Type.Generic[0].GlobalClassSpecifier);
+                    sb.Append(".DefaultTemplate;});");
+                    schemaClass.Prefix.Add(sb.ToString());
+                }
+            }
+
+            // Override unbound getter and setter delegate to point to the backingfield if it exists.
+            if (property.BackingFieldName != null) {
+                sb.Clear();
+                sb.Append("        ");
+                sb.Append(memberName);
+                sb.Append(".SetCustomAccessors((_p_) => { return ((");
+                sb.Append(schemaClass.NValueClass.GlobalClassSpecifier);
+                sb.Append(")_p_).");
+                sb.Append(property.BackingFieldName);
+                sb.Append("; }, (_p_, _v_) => { ((");
+                sb.Append(schemaClass.NValueClass.GlobalClassSpecifier);
+                sb.Append(")_p_).");
+                sb.Append(property.BackingFieldName);
+                sb.Append(" = (");
+
+                AstProperty valueProp = (AstProperty)schemaClass.NValueClass.Children.Find((AstBase item) => {
+                    var prop = item as AstProperty;
+                    if (prop != null && (memberName.Equals("this") || prop.MemberName.Equals(memberName)))
+                        return true;
+                    return false;
+                });
+
+                if (valueProp.Template.IsPrimitive) {
+                    sb.Append(HelperFunctions.GetGlobalClassSpecifier(valueProp.Template.InstanceType, true));
+                } else {
+                    sb.Append(valueProp.Type.GlobalClassSpecifier);
+                }
+
+                sb.Append(")_v_; }, false);");
+                schemaClass.Prefix.Add(sb.ToString());
+            }
+        }
+        
+        /// <summary>
+        /// Generates code for assigning delegates for inputhandling.
+        /// </summary>
+        /// <param name="inputBinding"></param>
+        /// <param name="schemaClass"></param>
+        private void ProcessInputbinding(AstInputBinding inputBinding, AstSchemaClass schemaClass) {
+            bool hasValue = inputBinding.HasValue;
+            StringBuilder sb = new StringBuilder();
+            sb.Append("        ");
+
+            if (inputBinding.BindsToProperty.Type == inputBinding.DeclaringAppClass.NTemplateClass) {
+                sb.Append("this"); // Handler for a single value
+            } else {
+                sb.Append(inputBinding.BindsToProperty.Template.PropertyName);       // {0}
+            }
+            sb.Append(".AddHandler((Json pup, ");
+
+            if (hasValue) {
+                sb.Append("Property");
+                sb.Append('<');
+                sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
+                sb.Append('>');
+            } else {
+                sb.Append("TValue");
+            }
+            sb.Append(" prop");
+
+            if (hasValue) {
+                sb.Append(", ");
+                sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
+                sb.Append(" value");
+            }
+            sb.Append(") => { return (new ");
+            sb.Append(inputBinding.InputTypeName);                       // {2}
+            sb.Append("() { App = (");
+            sb.Append(inputBinding.PropertyAppClass.ClassStemIdentifier);          // {3}
+            sb.Append(")pup, Template = (");
+            sb.Append(inputBinding.BindsToProperty.Type.ClassStemIdentifier);      // {4}
+            sb.Append(")prop");
+
+            if (hasValue) {
+                sb.Append(", Value = value");
+            }
+
+            sb.Append(" }); }, (Json pup, Starcounter.Input");
+
+            if (hasValue) {
+                sb.Append('<');
+                sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
+                sb.Append('>');
+            }
+
+            sb.Append(" input) => { ((");
+            sb.Append(inputBinding.DeclaringAppClass.ClassStemIdentifier);         // {5}
+            sb.Append(")pup");
+
+            for (Int32 i = 0; i < inputBinding.AppParentCount; i++) {
+                sb.Append(".Parent");
+            }
+
+            sb.Append(").Handle((");
+            sb.Append(inputBinding.InputTypeName);                       // {2}
+            sb.Append(")input); });");
+            
+            schemaClass.Prefix.Add(sb.ToString());
+        }
 
         /// <summary>
-        /// Writes the app metadata member prefix.
+        /// Processes the class declaration and constructor for a metadata class.
+        /// </summary>
+        /// <param name="metadataClass">The class declaration syntax node</param>
+        private void ProcessMetadataClass(AstMetadataClass metadataClass) {
+            var sb = new StringBuilder();
+
+            metadataClass.Prefix.Add("");
+            AppendLineDirectiveIfDefined(metadataClass.Prefix, LINE_HIDDEN, 0);
+            sb.Append("public class ");
+            sb.Append(metadataClass.ClassStemIdentifier);
+            sb.Append("<__Tjsonobj__,__jsonobj__>");
+            if (metadataClass.InheritedClass != null) {
+                sb.Append(" : ");
+                sb.Append(metadataClass.InheritedClass.GlobalClassSpecifierWithoutGenerics);
+                sb.Append("<__Tjsonobj__,__jsonobj__>");
+            }
+            sb.Append(" {");
+
+            metadataClass.Prefix.Add(sb.ToString());
+
+            sb.Clear();
+            sb.Append("    public ");
+            sb.Append(metadataClass.ClassStemIdentifier);
+
+            sb.Append('(');
+            sb.Append(((AstJsonClass)metadataClass.NValueClass).GlobalClassSpecifier);
+            sb.Append(" obj, ");
+            sb.Append(((AstClass)metadataClass).GlobalClassSpecifier);
+            sb.Append(" template) : base(obj, template) { }");
+
+            metadataClass.Prefix.Add(sb.ToString());
+
+            metadataClass.Suffix.Add("}");
+            AppendLineDirectiveIfDefined(metadataClass.Suffix, LINE_DEFAULT, 0);
+        }
+
+        /// <summary>
+        /// Generates code for a metadata property.
         /// </summary>
         /// <param name="m">The m.</param>
-        private void WriteObjMetadataMemberPrefix(AstProperty m) {
+        private void ProcessMetadataProperty(AstProperty m) {
             var sb = new StringBuilder();
+
+            // Backing field for caching the metadata member.
+            sb.Clear();
+            sb.Append("private ");
+            sb.Append(m.Type.GlobalClassSpecifier);
+            sb.Append(" __p_");
+            sb.Append(m.MemberName);
+            sb.Append(';');
+            m.Prefix.Add(sb.ToString());
+
+            // Get accessor for the metadata-member.
             sb.Append("public ");
             sb.Append(m.Type.GlobalClassSpecifier);
             sb.Append(' ');
@@ -465,162 +770,24 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(m.MemberName);
             sb.Append(")); } }");
             m.Prefix.Add(sb.ToString());
-
-            sb.Clear();
-            sb.Append("private ");
-            sb.Append(m.Type.GlobalClassSpecifier);
-            sb.Append(" __p_");
-            sb.Append(m.MemberName);
-            sb.Append(';');
-            m.Prefix.Add(sb.ToString());
         }
 
         /// <summary>
-        /// Writes the class declaration and constructor for an TApp class
+        /// Generates code for aliasing a class.
         /// </summary>
-        /// <param name="cst">The CST.</param>
-        private void WriteTAppConstructor(AstConstructor cst) {
-            AstSchemaClass a = (AstSchemaClass)cst.Parent;
-            TObjArr tArr;
-            TObject tObjElement;
-            var sb = new StringBuilder();
-
-            sb.Append("    public ");
-            sb.Append(a.ClassStemIdentifier);
-            sb.Append("()");
-            a.Prefix.Add(sb.ToString());
-            a.Prefix.Add("        : base() {");
-
-            if (a.BindChildren != BindingStrategy.Auto) {
-                a.Prefix.Add("        BindChildren = st::BindingStrategy." + a.BindChildren + ";");
-            }
-
-            sb = new StringBuilder();
-            sb.Append("        InstanceType = typeof(");
-            sb.Append(a.NValueClass.GlobalClassSpecifier);
-            sb.Append(");");
-            a.Prefix.Add(sb.ToString());
-
-            sb = new StringBuilder();
-            sb.Append("        ClassName = \"");
-            sb.Append(a.NValueClass.ClassStemIdentifier);
-            sb.Append("\";");
-            a.Prefix.Add(sb.ToString());
-
-            if (a.Template is TObject) {
-                a.Prefix.Add("        Properties.ClearExposed();");
-            }
-
-            tArr = a.Template as TObjArr;
-            if (tArr != null) {
-                tObjElement = tArr.ElementType as TObject;
-                bool isCustomClass = ((tArr.ElementType != null) && (tObjElement != null) && (tObjElement.Properties.Count > 0));
-                if (isCustomClass || !"Json".Equals(a.InheritedClass.Generic[0].ClassStemIdentifier)) {
-                    sb.Clear();
-                    sb.Append("        ");
-                    sb.Append("SetCustomGetElementType((arr) => { return ");
-                    sb.Append(a.InheritedClass.Generic[0].GlobalClassSpecifier);
-                    sb.Append(".DefaultTemplate;});");
-                    a.Prefix.Add(sb.ToString());
-                }
-            }
-
-            foreach (AstBase kid in cst.Children) {
-                if (kid is AstProperty) {
-                    var mn = kid as AstProperty;
-                    TValue tv = mn.Template as TValue;
-
-                    string memberName = mn.MemberName;
-                    if (mn.Template == a.Template)
-                        memberName = "this";
-
-                    sb = new StringBuilder();
-
-                    if (!"this".Equals(memberName)) {
-                        sb.Append("        ");
-                        sb.Append(memberName);
-                        sb.Append(" = Add<");
-                        sb.Append(mn.Type.GlobalClassSpecifier);
-
-                        sb.Append(">(\"");
-                        sb.Append(mn.Template.TemplateName);
-                        sb.Append('"');
-    
-                        if (tv != null && tv.BindingStrategy != BindingStrategy.UseParent && tv.BindingStrategy != BindingStrategy.Auto) {
-                            if (tv.Bind == null) {
-                                sb.Append(", bind:null");
-                            } else {
-                                sb.Append(", bind:\"");
-                                sb.Append(tv.Bind);
-                                sb.Append('"');
-                            }
-                        }
-                        sb.Append(");");
-                        a.Prefix.Add(sb.ToString());
-                    }
-
-                    if (tv != null) {
-                        WriteDefaultValue(a, mn, tv, memberName);
-                    }
-
-                    if (mn.Template.Editable) {
-                        a.Prefix.Add("        " + memberName + ".Editable = true;");
-                    }
-
-                    tArr = mn.Template as TObjArr;
-                    if (tArr != null) {
-                        tObjElement = tArr.ElementType as TObject;
-                        bool isCustomClass = ((tArr.ElementType != null) && (tObjElement != null) && (tObjElement.Properties.Count > 0));
-                        if (isCustomClass || !"Json".Equals(mn.Type.Generic[0].ClassStemIdentifier)) {
-                            sb.Clear();
-                            sb.Append("        ");
-                            sb.Append(memberName);
-                            sb.Append(".SetCustomGetElementType((arr) => { return ");
-                            sb.Append(mn.Type.Generic[0].GlobalClassSpecifier);
-                            sb.Append(".DefaultTemplate;});");
-                            a.Prefix.Add(sb.ToString());
-                        }
-                    }
-
-                    if (mn.BackingFieldName != null /*&& !(mn.Template is TObjArr)*/) {
-                        sb.Clear();
-                        sb.Append("        ");
-                        sb.Append(memberName);
-                        sb.Append(".SetCustomAccessors((_p_) => { return ((");
-                        sb.Append(a.NValueClass.GlobalClassSpecifier);
-                        sb.Append(")_p_).");
-                        sb.Append(mn.BackingFieldName);
-                        sb.Append("; }, (_p_, _v_) => { ((");
-                        sb.Append(a.NValueClass.GlobalClassSpecifier);
-                        sb.Append(")_p_).");
-                        sb.Append(mn.BackingFieldName);
-                        sb.Append(" = (");
-
-                        AstProperty valueProp = (AstProperty)a.NValueClass.Children.Find((AstBase item) => {
-                            var prop = item as AstProperty;
-                            if (prop != null && (memberName.Equals("this") || prop.MemberName.Equals(memberName)))
-                                return true;
-                            return false;
-                        });
-
-                        if (valueProp.Template.IsPrimitive) {
-                            sb.Append(HelperFunctions.GetGlobalClassSpecifier(valueProp.Template.InstanceType, true));
-                        } else {
-                            sb.Append(valueProp.Type.GlobalClassSpecifier);
-                        }
-
-                        sb.Append(")_v_; }, false);");
-                        a.Prefix.Add(sb.ToString());
-                    }
-                } else if (kid is AstInputBinding) {
-                    a.Prefix.Add(GetAddInputHandlerCode((AstInputBinding)kid));
-                }
-            }
-            a.Prefix.Add(
-                "    }");
+        /// <param name="alias"></param>
+        private void ProcessClassAlias(AstClassAlias alias) {
+            alias.Prefix.Add("using " + alias.Alias + " = " + alias.Specifier + ";");
         }
 
-        private void WriteDefaultValue(AstSchemaClass a, AstProperty mn, TValue tv, string memberName) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="mn"></param>
+        /// <param name="tv"></param>
+        /// <param name="memberName"></param>
+        private void AddDefaultValue(AstSchemaClass a, AstProperty mn, TValue tv, string memberName) {
             string value = null;
 
             if (tv is TBool) {
@@ -636,10 +803,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (value == null) value = "null";
                 else value = '"' + EscapeStringValue(value) + '"';
             } 
-            //else if (tv is TOid) {
-            //    value = ((TOid)tv).DefaultValue + "UL";
-            //}
-
+            
             if (value != null) {
                 a.Prefix.Add("        " + memberName + ".DefaultValue = " + value + ";");
             }
@@ -663,157 +827,24 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             return result;
         }
-
-        private void WriteSchemaOverrides(AstSchemaClass node) {
-            node.Prefix.Add(
-                "    public override object CreateInstance(s.Json parent) { return new "
-                + node.NValueClass.GlobalClassSpecifier
-                + "(this) { Parent = parent }; }"
-            );
-        }
-
-        /// <summary>
-        /// Gets the add input handler code.
-        /// </summary>
-        /// <param name="ib">The ib.</param>
-        /// <returns>String.</returns>
-        private String GetAddInputHandlerCode(AstInputBinding ib) {
-            // TODO:
-            // Needs to be rewritten for better handling of changes in xson code.
-
-            bool hasValue = ib.HasValue;
-            StringBuilder sb = new StringBuilder();
-            sb.Append("        ");
-
-            if (ib.BindsToProperty.Type == ib.DeclaringAppClass.NTemplateClass) {
-                // Handler for a single value
-                sb.Append("this");
-            } else {
-                sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
-            }
-            sb.Append(".AddHandler((Json pup, ");
-
-            if (hasValue) {
-                sb.Append("Property");
-                sb.Append('<');
-                sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
-                sb.Append('>');
-            } else {
-                sb.Append("TValue");
-            }
-            sb.Append(" prop");
-
-            if (hasValue) {
-                sb.Append(", ");
-                sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
-                sb.Append(" value");
-            }
-            sb.Append(") => { return (new ");
-            sb.Append(ib.InputTypeName);                       // {2}
-            sb.Append("() { App = (");
-            sb.Append(ib.PropertyAppClass.ClassStemIdentifier);          // {3}
-            sb.Append(")pup, Template = (");
-            sb.Append(ib.BindsToProperty.Type.ClassStemIdentifier);      // {4}
-            sb.Append(")prop");
-
-            if (hasValue) {
-                sb.Append(", Value = value");
-            }
-
-            sb.Append(" }); }, (Json pup, Starcounter.Input");
-
-            if (hasValue) {
-                sb.Append('<');
-                sb.Append(ib.BindsToProperty.Template.JsonType);   // {1}
-                sb.Append('>');
-            }
-
-            sb.Append(" input) => { ((");
-            sb.Append(ib.DeclaringAppClass.ClassStemIdentifier);         // {5}
-            sb.Append(")pup");
-
-            for (Int32 i = 0; i < ib.AppParentCount; i++) {
-                sb.Append(".Parent");
-            }
-
-            sb.Append(").Handle((");
-            sb.Append(ib.InputTypeName);                       // {2}
-            sb.Append(")input); });");
-
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Writes the class declaration and constructor for an TApp class
-        /// </summary>
-        /// <param name="a">The class declaration syntax node</param>
-        private void WriteObjMetadataClassPrefix(AstMetadataClass a) {
-            var sb = new StringBuilder();
-            sb.Append("    public ");
-            sb.Append(a.ClassStemIdentifier);
-
-            sb.Append('(');
-            sb.Append(((AstJsonClass)a.NValueClass).GlobalClassSpecifier);
-            sb.Append(" obj, ");
-            sb.Append(((AstClass)a).GlobalClassSpecifier);
-            sb.Append(" template) : base(obj, template) { }");
-            a.Prefix.Add(sb.ToString());
-        }
-
-        /// <summary>
-        /// Writes the header of the CSharp file, including using directives.
-        /// </summary>
-        /// <param name="fileName">The name of the original json file</param>
-        /// <param name="h">The h.</param>
-        static internal void WriteHeader(AstRoot root, string fileName, StringBuilder h) {
-            if (defaultUsings == null) {
-                defaultUsings = new List<string>();
-                defaultUsings.Add("System");
-                defaultUsings.Add("System.Collections");
-                defaultUsings.Add("System.Collections.Generic");
-                defaultUsings.Add("Starcounter.Advanced");
-                defaultUsings.Add("Starcounter");
-                defaultUsings.Add("Starcounter.Internal");
-                defaultUsings.Add("Starcounter.Templates");
-            }
-
-            h.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");
-            h.Append(fileName);
-            h.Append('"');
-            h.AppendLine();
-            h.AppendLine("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN");
-            h.AppendLine();
-
-            foreach (var usingDirective in defaultUsings) {
-                h.AppendLine("using " + usingDirective + ";");
-            }
-
-            if (root.Generator.CodeBehindMetadata != null) {
-                var usingList = root.Generator.CodeBehindMetadata.UsingDirectives;
-                foreach (var usingDirective in usingList) {
-                    if (!defaultUsings.Contains(usingDirective))
-                        h.AppendLine("using " + usingDirective + ";");
-                }
-            }
-
-            h.AppendLine("#pragma warning disable 0108");
-            h.AppendLine("#pragma warning disable 1591");
-            h.AppendLine();
-        }
-
-        static internal void WriteFooter(StringBuilder f) {
-            f.AppendLine("#pragma warning restore 1591");
-            f.AppendLine("#pragma warning restore 0108");
+        
+        [Conditional("ADDLINEDIRECTIVES")]
+        private static void AppendLineDirectiveIfDefined(List<string> list, string str, int indentation) {
+            string tmp = "";
+            for (int i = 0; i < indentation; i++)
+                tmp += ' ';
+            tmp += str;
+            list.Add(tmp);
         }
 
         [Conditional("ADDLINEDIRECTIVES")]
-        private static void AppendLineDirectiveIfDefined(List<string> list, string str) {
-            list.Add(str);
-        }
-
-        [Conditional("ADDLINEDIRECTIVES")]
-        private static void AppendLineDirectiveIfDefined(StringBuilder sb, string str) {
+        private static void AppendLineDirectiveIfDefined(StringBuilder sb, string str, int indentation) {
+            sb.Append(' ', indentation);
             sb.AppendLine(str);
+        }
+        
+        private static string GetLinePosAndFile(Template template) {
+            return string.Format(LINE_POSANDFILE, template.CompilerOrigin.LineNo, template.CompilerOrigin.FileName);
         }
     }
 }

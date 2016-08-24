@@ -521,7 +521,7 @@ namespace Starcounter.XSON {
 					if (methodInfo.IsVirtual) {
 						methodInfo = methodInfo.GetBaseDefinition();
 					}
-					newExpr = CreatePropertyGetBinding<T>(methodInfo, variable, convertType, origin);
+					newExpr = CreatePropertyGetBinding<T>(bindToProperty, methodInfo, variable, convertType, origin);
 				}
 			} else {
 				var fieldInfo = (FieldInfo)member;
@@ -553,7 +553,7 @@ namespace Starcounter.XSON {
 					if (methodInfo.IsVirtual) {
 						methodInfo = methodInfo.GetBaseDefinition();
 					}
-					newExpr = CreatePropertySetBinding<T>(methodInfo, variable, value, convertType, origin);
+					newExpr = CreatePropertySetBinding<T>(bindToProperty, methodInfo, variable, value, convertType, origin);
 				}
 			} else {
 				var fieldInfo = (FieldInfo)member;
@@ -621,10 +621,11 @@ namespace Starcounter.XSON {
 		/// <param name="expr"></param>
 		/// <param name="convertType"></param>
 		/// <returns></returns>
-		private static Expression CreatePropertyGetBinding<T>(MethodInfo getMethod,
-													   Expression variable,
-													   bool convertType, 
-                                                       Template origin) {
+		private static Expression CreatePropertyGetBinding<T>(PropertyInfo propertyInfo,
+                                                              MethodInfo getMethod,
+													          Expression variable,
+													          bool convertType, 
+                                                              Template origin) {
 			Expression expr;
 
 			if (variable.Type != getMethod.DeclaringType)
@@ -634,7 +635,7 @@ namespace Starcounter.XSON {
 
 			expr = Expression.Call(expr, getMethod);
 			if (convertType && !getMethod.ReturnType.Equals(typeof(T))) {
-				expr = AddTypeConversionIfPossible(expr, getMethod.ReturnType, typeof(T), getMethod, origin);
+				expr = AddTypeConversionIfPossible(expr, getMethod.ReturnType, typeof(T), propertyInfo, origin);
 			}
 			return expr;
 		}
@@ -646,11 +647,12 @@ namespace Starcounter.XSON {
 		/// <param name="expr"></param>
 		/// <param name="convertType"></param>
 		/// <returns></returns>
-		private static Expression CreatePropertySetBinding<T>(MethodInfo setMethod,
-													   Expression variable,
-													   ParameterExpression value,
-													   bool convertType,
-                                                       Template origin) {
+		private static Expression CreatePropertySetBinding<T>(PropertyInfo propertyInfo,
+                                                              MethodInfo setMethod,
+													          Expression variable,
+													          ParameterExpression value,
+													          bool convertType,
+                                                              Template origin) {
 			Expression expr;
 			Type valueType = setMethod.GetParameters()[0].ParameterType;
 
@@ -661,7 +663,7 @@ namespace Starcounter.XSON {
 
 			Expression setValue = value;
 			if (convertType && !valueType.Equals(typeof(T))) {
-				setValue = AddTypeConversionIfPossible(value, typeof(T), valueType, setMethod, origin);
+				setValue = AddTypeConversionIfPossible(value, typeof(T), valueType, propertyInfo, origin);
 			}
 			return Expression.Call(expr, setMethod, setValue);
 		}

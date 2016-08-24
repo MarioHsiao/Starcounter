@@ -33,51 +33,48 @@ namespace Administrator.Server.Managers {
         /// <param name="errorCallback"></param>
         public static void GetApplications(AppStoreStore store, Action<IList<AppStoreApplication>> completionCallback = null, Action<string> errorCallback = null) {
 
-            lock (ServerManager.ServerInstance) {
+            if (string.IsNullOrEmpty(AppStoreManager.AppStoreServerHost)) {
 
-                if (string.IsNullOrEmpty(AppStoreManager.AppStoreServerHost)) {
-
-                    if (errorCallback != null) {
-                        errorCallback("Configuration error, Unknown App Store host");
-                    }
-                    return;
+                if (errorCallback != null) {
+                    errorCallback("Configuration error, Unknown App Store host");
                 }
+                return;
+            }
 
-                try {
+            try {
 
-                    Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
+                Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
 
-                    Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, (Response response) => {
+                Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, (Response response) => {
 
-                        try {
+                    try {
 
-                            if (!response.IsSuccessStatusCode) {
+                        if (!response.IsSuccessStatusCode) {
 
-                                StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0001] GetApplications(): StatusCode:" + response.StatusCode);
-                                if (!string.IsNullOrEmpty(response.Body)) {
-                                    StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0001]: resultBody:" + response.Body);
-                                }
-
-                                throw new InvalidOperationException("At the moment The App Store Service is not avaiable. Try again later.");
+                            StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0001] GetApplications(): StatusCode:" + response.StatusCode);
+                            if (!string.IsNullOrEmpty(response.Body)) {
+                                StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0001]: resultBody:" + response.Body);
                             }
 
-                            if (completionCallback != null) {
-                                completionCallback(PopulateApplicationsFromResponse(store, response));
-                            }
+                            throw new InvalidOperationException("At the moment The App Store Service is not avaiable. Try again later.");
                         }
-                        catch (InvalidOperationException e) {
 
-                            if (errorCallback != null) {
-                                errorCallback(e.Message);
-                            }
+                        if (completionCallback != null) {
+                            completionCallback(PopulateApplicationsFromResponse(store, response));
                         }
-                    });
-                }
-                catch (Exception e) {
-
-                    if (errorCallback != null) {
-                        errorCallback(e.Message);
                     }
+                    catch (InvalidOperationException e) {
+
+                        if (errorCallback != null) {
+                            errorCallback(e.Message);
+                        }
+                    }
+                });
+            }
+            catch (Exception e) {
+
+                if (errorCallback != null) {
+                    errorCallback(e.Message);
                 }
             }
         }
@@ -154,8 +151,6 @@ namespace Administrator.Server.Managers {
         /// <param name="errorCallback"></param>
         public static void GetStores(Action<IList<AppStoreStore>> completionCallback = null, Action<string> errorCallback = null) {
 
-            lock (ServerManager.ServerInstance) {
-
                 Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
 
                 Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, (Response response) => {
@@ -178,7 +173,6 @@ namespace Administrator.Server.Managers {
                         }
                     }
                 });
-            }
         }
 
         /// <summary>

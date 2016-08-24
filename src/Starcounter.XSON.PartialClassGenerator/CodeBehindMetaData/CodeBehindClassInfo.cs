@@ -15,30 +15,87 @@ namespace Starcounter.XSON.Metadata {
     /// </summary>
     public class CodeBehindClassInfo {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CodeBehindClassInfo" /> class.
+        /// The name of the class in the codebehind file.
         /// </summary>
-        public CodeBehindClassInfo( string raw ) {
-            RawDebugJsonMapAttribute = raw;
+        public string ClassName;
+
+        /// <summary>
+        /// The namespace of the class from the codebehind file.
+        /// </summary>
+        public string Namespace;
+        
+        /// <summary>
+        /// The name of the baseclass (if any) specified for the class.
+        /// </summary>
+        public string BaseClassName;
+
+        /// <summary>
+        /// If IBound-interface is specified for the class, this field contains the name 
+        /// of the type that should be used for binding.
+        /// </summary>
+        public string BoundDataClass { get; set; }
+
+        /// <summary>
+        /// The classname including any path specified by the user in the .cs file.
+        /// The root class name is denoted with an asterix (*) as it should always
+        /// match to the root JSON object in the JSON-by-example
+        /// </summary>
+        public string ClassPath;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public BindingStrategy BindChildren = BindingStrategy.Auto;
+        
+        /// <summary>
+        /// If the code-behind contains a partial class for this class, this property is true
+        /// </summary>
+        public bool IsDeclaredInCodeBehind;
+
+        /// <summary>
+        /// The original untouched attribute string (excluding enclosing brackets)
+        /// </summary>
+        public string JsonMapAttribute;
+
+        /// <summary>
+        /// If set to false the 'global::' specifier will not be added to the full name.
+        /// </summary>
+        public bool UseGlobalSpecifier = true;
+
+        /// <summary>
+        /// All parent classes of the specified class in the codebehind file.
+        /// If the class is not declared as an inner class this will be empty.
+        /// </summary>
+        public List<String> ParentClasses = new List<string>();
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsRootClass = false;
+
+        /// <summary>
+        /// A list of all declared methods that should be used for input-validation.
+        /// </summary>
+        public List<InputBindingInfo> InputBindingList = new List<InputBindingInfo>();
+
+        /// <summary>
+        /// A list of all properties that exists in the code-behind class.
+        /// </summary>
+        public List<CodeBehindFieldOrPropertyInfo> FieldOrPropertyList = new List<CodeBehindFieldOrPropertyInfo>();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public CodeBehindClassInfo(string raw) {
+            JsonMapAttribute = raw;
         }
 
         /// <summary>
+        /// 
         /// </summary>
         public bool DerivesDirectlyFromJson {
             get {
-//                bool gen;
                 bool cls;
-/*                switch (BaseClassGenericArg) {
-                    case "Object":
-                    case "system.Object":
-                    case "System.Object":
-                    case "object":
-                        gen = true;
-                        break;
-                    default:
-                        gen = false;
-                        break;
-                }
- */
                 switch (BaseClassName) {
                     case "":
                     case "Json":
@@ -49,7 +106,6 @@ namespace Starcounter.XSON.Metadata {
                         cls = false;
                         break;
                 }
-                //                return cls && gen;
                 return cls;
             }
         }
@@ -59,36 +115,10 @@ namespace Starcounter.XSON.Metadata {
         /// </summary>
         public bool IsMapped {
             get {
-                return (RawDebugJsonMapAttribute != null);
+                return (JsonMapAttribute != null);
             }
         }
-
-		/// <summary>
-		/// If set to false the 'global::' specifier will not be added to the full name.
-		/// </summary>
-		public bool UseGlobalSpecifier = true;
-
-        /// <summary>
-        /// If the code-behind contains a partial class for this class, this property is true
-        /// </summary>
-        public bool IsDeclaredInCodeBehind;
-
-        /// <summary>
-        /// The original untouched attribute string (excluding enclosing brackets)
-        /// </summary>
-        public string RawDebugJsonMapAttribute;
-
-        /// <summary>
-        /// The namespace of the class from the codebehind file.
-        /// </summary>
-        public string Namespace;
-
-        /// <summary>
-        /// The name of the class in the codebehind file.
-        /// </summary>
-        public string ClassName;
-
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -109,56 +139,7 @@ namespace Starcounter.XSON.Metadata {
                 return str;
             }
         }
-
-        /// <summary>
-        /// The name of the baseclass (if any) specified for the class.
-        /// </summary>
-        public string BaseClassName;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public BindingStrategy BindChildren = BindingStrategy.Auto;
-
-        /// <summary>
-        /// All parent classes of the specified class in the codebehind file.
-        /// If the class is not declared as an inner class this will be empty.
-        /// </summary>
-        public List<String> ParentClasses = new List<string>();
-
- //       /// <summary>
- //       /// The name of the property in the json-file to connect this class to.
- //       /// </summary>
- //       public String JsonMapName;
-
-        public bool IsRootClass = false;
-
-        //        /// <summary>
-        //        /// A list of inputbindings which should be registered in the generated code.
-        //        /// </summary>
-        public List<InputBindingInfo> InputBindingList = new List<InputBindingInfo>();
-
-
-
-        /// <summary>
-        /// The classname including any path specified by the user in the .cs file.
-        /// The root class name is denoted with an asterix (*) as it should always
-        /// match to the root JSON object in the JSON-by-example
-        /// </summary>
-        public string ClassPath {
-            get {
-                return _ClassPath;
-            }
-            internal set {
-                _ClassPath = value;
-            }
-        }
-
-
-        private string _ClassPath;
-
-
-
+        
         /// <summary>
         /// Create a new instance of JsonMapInfo
         /// </summary>
@@ -176,7 +157,7 @@ namespace Starcounter.XSON.Metadata {
 					if (existing == null)
 						existing = new CodeBehindClassInfo(attribute);
 					else
-						existing.RawDebugJsonMapAttribute = attribute;
+						existing.JsonMapAttribute = attribute;
 
 					existing.IsRootClass = (t == strings.Length - 1);
 					existing.ClassPath = CreateClassPathFromSplitAttributeString(strings);
@@ -188,7 +169,6 @@ namespace Starcounter.XSON.Metadata {
         }
 
         private static string CreateClassPathFromSplitAttributeString(string[] raw) {
-
             string output = "*";
             bool inFileClassQualifier = true;
 
@@ -204,9 +184,5 @@ namespace Starcounter.XSON.Metadata {
             }
             return output;
         }
-
-
-
-        public string BoundDataClass { get; set; }
     }
 }

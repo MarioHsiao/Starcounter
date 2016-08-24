@@ -1,4 +1,5 @@
-﻿using Microsoft.Build.Framework;
+﻿using System;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
 namespace Starcounter.Internal.MsBuild {
@@ -30,6 +31,27 @@ namespace Starcounter.Internal.MsBuild {
         /// <returns>true if the task successfully executed; otherwise, false.</returns>
         public override bool Execute() {
             return JsonToCsMsBuildTask.ExecuteTask(InputFiles, OutputFiles, Log);
+        }
+    }
+
+    /// <summary>
+    /// Task that reads the versionnumber of the csharp codegenerator and returns it as
+    /// output.
+    /// </summary>
+    public class GetTypedJsonCSharpCodegenVersionTaskNoLocking : AppDomainIsolatedTask {
+        /// <summary>
+        /// 
+        /// </summary>
+        [Output]
+        public long CSharpCodegenVersion { get; set; }
+
+        /// <summary>
+        /// When overridden in a derived class, executes the task.
+        /// </summary>
+        /// <returns>true if the task successfully executed; otherwise, false.</returns>
+        public override bool Execute() {
+            CSharpCodegenVersion = Starcounter.Internal.XSON.PartialClassGenerator.CSHARP_CODEGEN_VERSION;
+            return true;
         }
     }
 }

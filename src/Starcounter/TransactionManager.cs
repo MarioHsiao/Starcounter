@@ -55,7 +55,7 @@ namespace Starcounter.Internal {
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
-            ec = sccoredb.star_create_transaction(flags, 0, out handle);
+            ec = sccoredb.star_create_transaction(flags, out handle);
             if (ec == 0) {
                 verify = ThreadData.ObjectVerify;
                 try {
@@ -122,7 +122,7 @@ namespace Starcounter.Internal {
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
-            ec = sccoredb.star_create_transaction(flags, 0, out handle);
+            ec = sccoredb.star_create_transaction(flags, out handle);
             if (ec == 0) {
                 verify = ThreadData.ObjectVerify;
                 try {
@@ -580,10 +580,21 @@ namespace Starcounter.Internal {
             }
         }
 
+        public TResult Scope<T1, T2, T3, T4, T5, T6, TResult>(TransactionHandle handle, Func<T1, T2, T3, T4, T5, T6, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6) {
+            var old = CurrentHandle;
+
+            try {
+                SetCurrentTransaction(handle);
+                return func(arg1, arg2, arg3, arg4, arg5, arg6);
+            } finally {
+                SetCurrentTransaction(old);
+            }
+        }
+
         //public void MergeTransaction(TransactionHandle mainHandle, TransactionHandle toMergeHandle) {
         //    var old = currentHandle;
         //    uint ec;
-            
+
         //    try {
         //        SetCurrentTransaction(mainHandle);
         //        ec = sccoredb.star_transaction_merge_into_current(toMergeHandle.handle, toMergeHandle.verify);
@@ -670,14 +681,16 @@ namespace Starcounter.Internal {
 
                     for (;;)
                     {
+                        sccoredb.STAR_REFERENCE_VALUE rv;
                         ulong recordId, recordRef;
                         unsafe
                         {
-                            r = sccoredb.star_iterator_next(hi, &recordId, &recordRef, vi);
+                            r = sccoredb.star_iterator_next(hi, &rv, vi);
                         }
                         if (r != 0) throw ErrorCode.ToException(r);
+                        recordId = rv.handle.id;
+                        recordRef = DbHelper.EncodeObjectRef(rv.handle.opt, rv.layout_handle);
                         if (recordId == 0) break;
-
                         int s = sccoredb.star_context_get_trans_state(
                             ThreadData.ContextHandle, recordId, recordRef
                             );

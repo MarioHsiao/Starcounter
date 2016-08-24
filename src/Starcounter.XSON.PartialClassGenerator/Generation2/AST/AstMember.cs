@@ -26,6 +26,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="gen"></param>
         public AstProperty(Gen2DomGenerator gen)
             : base(gen) {
+            GenerateAccessorProperty = true;
         }
 
 //        public AstInstanceClass ElementTypeProperty { get; set; }
@@ -68,6 +69,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <value>The template.</value>
         public Template Template { get; set; }
+
+        /// <summary>
+        /// If set to true, a property to get and set the value will be generated. If false
+        /// no accessor property will be added.
+        /// </summary>
+        public bool GenerateAccessorProperty { get; set; }
 
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.

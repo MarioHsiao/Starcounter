@@ -537,7 +537,7 @@ namespace Starcounter.XSON {
         /// <param name="root">the root app for this request.</param>
         /// <param name="patchArrayPtr">The pointer to the content for the patches.</param>
         /// <param name="patchArraySize">The size of the content.</param>
-        /// <returns>The number of patches evaluated, or -1 if versioncheck is enabled and patches were queued.</returns>
+        /// <returns>The number of patches evaluated, or -1 if versioncheck is enabled and patches were queued or -2 if patches were already applied.</returns>
         public int Apply(Json root, IntPtr patchArrayPtr, int patchArraySize, bool strictPatchRejection = true) {
             int patchCount = 0;
             int patchStart = -1;
@@ -655,7 +655,8 @@ namespace Starcounter.XSON {
                                         remoteVersion = GetLongValue(valuePtr, valueSize, version.RemoteVersionPropertyName);
                                         if (remoteVersion != (version.RemoteVersion + 1)) {
                                             if (remoteVersion <= version.RemoteVersion) {
-                                                ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Remote version mismatched.");
+                                                patchCount = -2;
+                                                break;
                                             } else {
                                                 byte[] tmp = new byte[patchArraySize];
                                                 Marshal.Copy(patchArrayPtr, tmp, 0, patchArraySize);
@@ -696,7 +697,7 @@ namespace Starcounter.XSON {
                         token = reader.ReadNext();
                     }
 
-                    if (version != null && patchCount != -1) {
+                    if (version != null && patchCount >= 0) {
                         byte[] enqueuedPatch = version.GetNextEnqueuedPatch();
                         if (enqueuedPatch != null) {
                             patchCount += Apply(root, enqueuedPatch, strictPatchRejection);

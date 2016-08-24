@@ -212,6 +212,10 @@ namespace Starcounter {
             return changedRef;
         }
 
+        internal static ulong EncodeObjectRef(ulong recordOpt, ushort layoutHandle) {
+            return (recordOpt << 16) | layoutHandle;
+        }
+
         #region Extending FasterThanJson with writing and reading methods on Binary
         /// <summary>
         /// Adds given binary as byte array to the tuple.

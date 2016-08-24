@@ -431,7 +431,7 @@ namespace Starcounter {
 			}
 			set {
 				if (Template == null)
-					CreateDynamicTemplate();
+					CreateDynamicTemplate(null);
 
 				var template = this.Template as TObject;
                 if (template == null)

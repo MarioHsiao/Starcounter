@@ -1,5 +1,5 @@
 <!--
-imported-template.html version: 1.4.1
+imported-template.html version: 1.4.3
 (c) 2013 Joachim Wester
 MIT license
 https://github.com/Juicy/imported-template
@@ -82,8 +82,12 @@ https://github.com/Juicy/imported-template
 
                     }
 
+                } else if (this.import.body.childNodes.length === 0 && this.import.body.childNodes.length === 0){ // document is empty
+                    console.warn('content given for imported-template (', this, ') is an empty document');
+                    xhtml.stampedNodes = null;
+                    return;
                 } else { //there is no template in the response.
-                    // it could be a stack trace, or HTML document with imports, etc. which could be hard to handle
+                    // it could be a stack trace, or HTML document with some nodes (HTML imports or scripts) that should / should not get stamped
                     console.error("DON'T misbehave! At least one <template> tag is expected in content body", this.import.body.innerHTML);
                     return;
                 }
@@ -91,6 +95,8 @@ https://github.com/Juicy/imported-template
 
                 // convert dynamic NodeList to regullar array
                 xhtml.stampedNodes = Array.prototype.slice.call(fragment.childNodes);
+                // dispatch event before stamping
+                xhtml.dispatchEvent(new CustomEvent('stamping', {detail: fragment}));
                 // attach models
                 xhtml.attributeChangedCallback("model", undefined, xhtml.model || xhtml.getAttribute("model"));
 
@@ -164,7 +170,7 @@ https://github.com/Juicy/imported-template
                 return;
             }
 
-            var modelPrefix = "model.";
+            var modelPrefix = 'model';
 
             if (path.indexOf(modelPrefix) == 0) {
                 var childNo;
@@ -172,22 +178,17 @@ https://github.com/Juicy/imported-template
                 var len = scopedNodes && scopedNodes.length || 0;
 
                 for (childNo = 0; childNo < len; childNo++) {
-                    var modelScopePrefix = modelPrefix + scopedNodes[childNo].scope + ".";
+                    var modelScopePrefix = modelPrefix + '.' + scopedNodes[childNo].scope;
 
-                    //notify the scope if it is in path
-                    if (path.indexOf(modelScopePrefix) == 0) {
+                    if (path === modelScopePrefix) {
+                        // notify the scope if it is the path
+                        _notifyNodes(modelPrefix, value, scopedNodes[childNo]);
+                    } else if (path.indexOf(modelScopePrefix + '.') === 0) {
+                        // notify the scope if it is in path
                         var fixedScopePath = path.replace(modelScopePrefix, modelPrefix);
                         _notifyNodes(fixedScopePath, value, scopedNodes[childNo]);
-                        continue;
                     }
 
-                    modelScopePrefix = modelScopePrefix.substr(0, modelScopePrefix.length - 1);
-
-                    //notify the scope if it is the path
-                    if (path == modelScopePrefix) {
-                        var fixedScopePath = modelPrefix.substr(0, modelPrefix.length - 1);
-                        _notifyNodes(fixedScopePath, value, scopedNodes[childNo]);
-                    }
                 }
                 _notifyNodes(path, value, this.scopelessNodes);
             }

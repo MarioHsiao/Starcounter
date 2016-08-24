@@ -1,3 +1,5 @@
+'use strict';
+
 var util = require('./util');
 
 /**
@@ -7,6 +9,9 @@ var util = require('./util');
  */
 function History (editor) {
   this.editor = editor;
+  this.history = [];
+  this.index = -1;
+
   this.clear();
 
   // map with all supported actions
@@ -27,48 +32,6 @@ function History (editor) {
         params.node.updateValue(params.newValue);
       }
     },
-    'appendNode': {
-      'undo': function (params) {
-        params.parent.removeChild(params.node);
-      },
-      'redo': function (params) {
-        params.parent.appendChild(params.node);
-      }
-    },
-    'insertBeforeNode': {
-      'undo': function (params) {
-        params.parent.removeChild(params.node);
-      },
-      'redo': function (params) {
-        params.parent.insertBefore(params.node, params.beforeNode);
-      }
-    },
-    'insertAfterNode': {
-      'undo': function (params) {
-        params.parent.removeChild(params.node);
-      },
-      'redo': function (params) {
-        params.parent.insertAfter(params.node, params.afterNode);
-      }
-    },
-    'removeNode': {
-      'undo': function (params) {
-        var parent = params.parent;
-        var beforeNode = parent.childs[params.index] || parent.append;
-        parent.insertBefore(params.node, beforeNode);
-      },
-      'redo': function (params) {
-        params.parent.removeChild(params.node);
-      }
-    },
-    'duplicateNode': {
-      'undo': function (params) {
-        params.parent.removeChild(params.clone);
-      },
-      'redo': function (params) {
-        params.parent.insertAfter(params.clone, params.node);
-      }
-    },
     'changeType': {
       'undo': function (params) {
         params.node.changeType(params.oldType);
@@ -77,14 +40,86 @@ function History (editor) {
         params.node.changeType(params.newType);
       }
     },
-    'moveNode': {
+
+    'appendNodes': {
       'undo': function (params) {
-        params.startParent.moveTo(params.node, params.startIndex);
+        params.nodes.forEach(function (node) {
+          params.parent.removeChild(node);
+        });
       },
       'redo': function (params) {
-        params.endParent.moveTo(params.node, params.endIndex);
+        params.nodes.forEach(function (node) {
+          params.parent.appendChild(node);
+        });
       }
     },
+    'insertBeforeNodes': {
+      'undo': function (params) {
+        params.nodes.forEach(function (node) {
+          params.parent.removeChild(node);
+        });
+      },
+      'redo': function (params) {
+        params.nodes.forEach(function (node) {
+          params.parent.insertBefore(node, params.beforeNode);
+        });
+      }
+    },
+    'insertAfterNodes': {
+      'undo': function (params) {
+        params.nodes.forEach(function (node) {
+          params.parent.removeChild(node);
+        });
+      },
+      'redo': function (params) {
+        var afterNode = params.afterNode;
+        params.nodes.forEach(function (node) {
+          params.parent.insertAfter(params.node, afterNode);
+          afterNode = node;
+        });
+      }
+    },
+    'removeNodes': {
+      'undo': function (params) {
+        var parent = params.parent;
+        var beforeNode = parent.childs[params.index] || parent.append;
+        params.nodes.forEach(function (node) {
+          parent.insertBefore(node, beforeNode);
+        });
+      },
+      'redo': function (params) {
+        params.nodes.forEach(function (node) {
+          params.parent.removeChild(node);
+        });
+      }
+    },
+    'duplicateNodes': {
+      'undo': function (params) {
+        params.nodes.forEach(function (node) {
+          params.parent.removeChild(node);
+        });
+      },
+      'redo': function (params) {
+        var afterNode = params.afterNode;
+        params.nodes.forEach(function (node) {
+          params.parent.insertAfter(node, afterNode);
+          afterNode = node;
+        });
+      }
+    },
+    'moveNodes': {
+      'undo': function (params) {
+        params.nodes.forEach(function (node) {
+          params.oldBeforeNode.parent.moveBefore(node, params.oldBeforeNode);
+        });
+      },
+      'redo': function (params) {
+        params.nodes.forEach(function (node) {
+          params.newBeforeNode.parent.moveBefore(node, params.newBeforeNode);
+        });
+      }
+    },
+
     'sort': {
       'undo': function (params) {
         var node = params.node;
@@ -183,7 +218,7 @@ History.prototype.undo = function () {
         }
       }
       else {
-        util.log('Error: unknown action "' + obj.action + '"');
+        console.error(new Error('unknown action "' + obj.action + '"'));
       }
     }
     this.index--;
@@ -210,13 +245,23 @@ History.prototype.redo = function () {
         }
       }
       else {
-        util.log('Error: unknown action "' + obj.action + '"');
+        console.error(new Error('unknown action "' + obj.action + '"'));
       }
     }
 
     // fire onchange event
     this.onChange();
   }
+};
+
+/**
+ * Destroy history
+ */
+History.prototype.destroy = function () {
+  this.editor = null;
+
+  this.history = [];
+  this.index = -1;
 };
 
 module.exports = History;

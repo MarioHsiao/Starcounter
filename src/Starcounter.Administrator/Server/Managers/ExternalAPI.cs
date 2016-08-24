@@ -3,6 +3,7 @@ using Starcounter;
 using Starcounter.Administrator.Server;
 using Starcounter.Administrator.Server.Utilities;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,10 @@ namespace Administrator.Server.Managers {
         static List<Task> Tasks = new List<Task>();
 
         public static void Register() {
+
+            RegisterDatabaseHandlers();
+            RegisterApplicationHandlers();
+            RegisterSoftwareHandlers();
 
             // Get task
             Handle.GET("/api/tasks/{?}", (string taskID, Request request) => {
@@ -35,33 +40,66 @@ namespace Administrator.Server.Managers {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
                 }
             });
+        }
 
-            // Create database task
-            Handle.POST("/api/tasks/createdatabase", (Request request) => {
+        /// <summary>
+        /// Register Software task handlers
+        /// </summary>
+        private static void RegisterSoftwareHandlers() {
+
+            // Get installed software
+            Handle.GET("/api/admin/databases/{?}/software", (string databaseName, Request request) => {
 
                 lock (ServerManager.ServerInstance) {
 
-                    try {
-
-                        CreateDatabaseTaskJson task = new CreateDatabaseTaskJson();
-                        task.PopulateFromJson(request.Body);
-
-                        return CreateDatabase_Task(task.Settings);
+                    Database database = ServerManager.ServerInstance.GetDatabase(HttpUtility.UrlDecode(databaseName));
+                    if (database == null) {
+                        Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                        errorResponse.Text = "Database not found";
+                        errorResponse.StackTrace = string.Empty;
+                        errorResponse.Helplink = string.Empty;
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
                     }
-                    catch (Exception e) {
-                        return RestUtils.CreateErrorResponse(e);
-                    }
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, Body = SoftwareManager.GetInstalledSoftware(database).ToJson() };
                 }
             });
 
-            // Delete database task
-            Handle.POST("/api/tasks/deletedatabase", (Request request) => {
+            // Get installed software
+            Handle.GET("/api/admin/databases/{?}/software/{?}", (string databaseName, string id, Request request) => {
+
+                lock (ServerManager.ServerInstance) {
+
+                    Database database = ServerManager.ServerInstance.GetDatabase(HttpUtility.UrlDecode(databaseName));
+                    if (database == null) {
+                        Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                        errorResponse.Text = "Database not found";
+                        errorResponse.StackTrace = string.Empty;
+                        errorResponse.Helplink = string.Empty;
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+                    }
+
+                    Representations.JSON.InstalledSoftware installedSoftware = SoftwareManager.GetInstalledSoftware(database, HttpUtility.UrlDecode(id));
+                    if (installedSoftware == null) {
+                        Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                        errorResponse.Text = "Software not found";
+                        errorResponse.StackTrace = string.Empty;
+                        errorResponse.Helplink = string.Empty;
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+                    }
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, Body = installedSoftware.ToJson() };
+                }
+            });
+
+            // Install software task
+            Handle.POST("/api/tasks/installsoftware", (Request request) => {
 
                 lock (ServerManager.ServerInstance) {
 
                     try {
 
-                        DeleteDatabaseTaskJson task = new DeleteDatabaseTaskJson();
+                        InstallSoftwareTaskJson task = new InstallSoftwareTaskJson();
                         task.PopulateFromJson(request.Body);
 
                         Database database = ServerManager.ServerInstance.GetDatabase(task.DatabaseName);
@@ -71,10 +109,11 @@ namespace Administrator.Server.Managers {
                             errorResponse.Text = "Database not found";
                             errorResponse.StackTrace = string.Empty;
                             errorResponse.Helplink = string.Empty;
+
                             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
                         }
 
-                        return DeleteDatabase_Task(database);
+                        return InstallSoftware_Task(database, task);
                     }
                     catch (Exception e) {
                         return RestUtils.CreateErrorResponse(e);
@@ -82,6 +121,40 @@ namespace Administrator.Server.Managers {
                 }
             });
 
+            // UnInstall software task
+            Handle.POST("/api/tasks/uninstallsoftware", (Request request) => {
+
+                lock (ServerManager.ServerInstance) {
+
+                    try {
+
+                        UninstallSoftwareTaskJson task = new UninstallSoftwareTaskJson();
+                        task.PopulateFromJson(request.Body);
+
+                        Database database = ServerManager.ServerInstance.GetDatabase(task.DatabaseName);
+                        if (database == null) {
+
+                            Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                            errorResponse.Text = "Database not found";
+                            errorResponse.StackTrace = string.Empty;
+                            errorResponse.Helplink = string.Empty;
+
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+                        }
+
+                        return UninstallSoftware_Task(database, task);
+                    }
+                    catch (Exception e) {
+                        return RestUtils.CreateErrorResponse(e);
+                    }
+                }
+            });
+        }
+
+        /// <summary>
+        /// Register Application task handlers
+        /// </summary>
+        private static void RegisterApplicationHandlers() {
 
             // Install application task
             Handle.POST("/api/tasks/installapplication", (Request request) => {
@@ -165,7 +238,7 @@ namespace Administrator.Server.Managers {
                 }
             });
 
-            // Install application task
+            // UnInstall application task
             Handle.POST("/api/tasks/uninstallapplication", (Request request) => {
 
                 lock (ServerManager.ServerInstance) {
@@ -241,7 +314,58 @@ namespace Administrator.Server.Managers {
                     }
                 }
             });
+        }
 
+        /// <summary>
+        /// Register Database task handlers
+        /// </summary>
+        private static void RegisterDatabaseHandlers() {
+
+            // Create database task
+            Handle.POST("/api/tasks/createdatabase", (Request request) => {
+
+                lock (ServerManager.ServerInstance) {
+
+                    try {
+
+                        CreateDatabaseTaskJson task = new CreateDatabaseTaskJson();
+                        task.PopulateFromJson(request.Body);
+
+                        return CreateDatabase_Task(task.Settings);
+                    }
+                    catch (Exception e) {
+                        return RestUtils.CreateErrorResponse(e);
+                    }
+                }
+            });
+
+            // Delete database task
+            Handle.POST("/api/tasks/deletedatabase", (Request request) => {
+
+                lock (ServerManager.ServerInstance) {
+
+                    try {
+
+                        DeleteDatabaseTaskJson task = new DeleteDatabaseTaskJson();
+                        task.PopulateFromJson(request.Body);
+
+                        Database database = ServerManager.ServerInstance.GetDatabase(task.DatabaseName);
+                        if (database == null) {
+
+                            Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                            errorResponse.Text = "Database not found";
+                            errorResponse.StackTrace = string.Empty;
+                            errorResponse.Helplink = string.Empty;
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+                        }
+
+                        return DeleteDatabase_Task(database);
+                    }
+                    catch (Exception e) {
+                        return RestUtils.CreateErrorResponse(e);
+                    }
+                }
+            });
             // Start database task
             Handle.POST("/api/tasks/startdatabase", (Request request) => {
 
@@ -301,54 +425,122 @@ namespace Administrator.Server.Managers {
                     }
                 }
             });
+        }
 
+        #region Software Tasks
+
+        /// <summary>
+        /// Installation Task
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        static Response InstallSoftware_Task(Database database, InstallSoftwareTaskJson task) {
+
+            // Create TaskItem
+            Task responseTask = new Task();
+
+            List<string> contents = new List<string>();
+            foreach (var app in task.SoftwareContents) {
+                contents.Add(app.SourceUrl);
+            }
+
+            bool bTimeout = !SoftwareManager.InstallSoftware(database, task.ID, task.SoftwareContents, (installedSoftware) => {
+                // Success
+                responseTask.ResourceID = installedSoftware.ID;
+                responseTask.Message = null;
+                responseTask.Status = 0;
+            }, (text) => {
+                // Progress
+                responseTask.Message = text;
+            }, (code, text) => {
+                // Error
+                responseTask.Message = text;
+                responseTask.Status = code;
+            });
+
+            if (bTimeout) {
+                Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                errorResponse.Text = "Server is busy";
+                errorResponse.StackTrace = string.Empty;
+                errorResponse.Helplink = string.Empty;
+                errorResponse.ServerCode = (long)System.Net.HttpStatusCode.ServiceUnavailable;
+
+                Response response = new Response();
+                response.SetHeader("Retry-After", "15");
+                response.StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable;
+                response.BodyBytes = errorResponse.ToJsonUtf8();
+                return response;
+            }
+
+            TaskJson taskItemJson = new TaskJson();
+            taskItemJson.Data = responseTask;
+            ExternalAPI.Tasks.Add(responseTask);
+
+            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
         }
 
         /// <summary>
-        /// 
+        /// Uninstall Software
         /// </summary>
-        class Task {
-            public string ID;
-            public DateTime Created;
-            public string Namespace;
-            public string Channel;
-            public string Version;
-            public string VersionDate;
-            public string ResourceUri;
-            public string ResourceID;
-            public string TaskUri;
-            public int Status;  // 0 = Success, 1 = Busy, <0 Error
-            public String Message;
+        /// <param name="database"></param>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        static Response UninstallSoftware_Task(Database database, UninstallSoftwareTaskJson task) {
 
-            public Task() {
-                this.Created = DateTime.UtcNow;
-                this.ID = RestUtils.GetHashString(this.Created.ToString("o"));
-                this.TaskUri = string.Format("/api/tasks/{0}", this.ID);
+            // Create TaskItem
+            Task responseTask = new Task();
 
-                // Assure unique id
-                while (true) {
+            if (SoftwareManager.SoftwareExist(database, task.ID)) {
 
-                    bool unique = true;
+                // uninstall software
+                bool bTimeout = !SoftwareManager.UnInstallSoftware(database, task.ID, () => {
+                    responseTask.Message = null;
+                    responseTask.Status = 0; // Done;
+                }, (text) => {
+                    responseTask.Message = text;
+                }, (code, text) => {
+                    responseTask.Message = text;
+                    responseTask.Status = code;
+                });
 
-                    foreach (Task task in ExternalAPI.Tasks) {
-                        if (task.ID == this.ID) {
-                            this.ID += "0";
-                            unique = false;
-                            break;
-                        }
-                    }
+                if (bTimeout) {
+                    Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                    errorResponse.Text = "Server is busy";
+                    errorResponse.StackTrace = string.Empty;
+                    errorResponse.Helplink = string.Empty;
+                    errorResponse.ServerCode = (long)System.Net.HttpStatusCode.ServiceUnavailable;
 
-                    if (unique) break;
+                    Response response = new Response();
+                    response.SetHeader("Retry-After", "15");
+                    response.StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable;
+                    response.BodyBytes = errorResponse.ToJsonUtf8();
+                    return response;
+//                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
                 }
 
-
-                this.Status = 1; // Busy
             }
+            else {
+                Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                errorResponse.Text = "Software not found";
+                errorResponse.StackTrace = string.Empty;
+                errorResponse.Helplink = string.Empty;
+                errorResponse.ServerCode = (long)System.Net.HttpStatusCode.NotFound;
+                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+            }
+
+            TaskJson taskItemJson = new TaskJson();
+            taskItemJson.Data = responseTask;
+            ExternalAPI.Tasks.Add(responseTask);
+
+            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
         }
 
+        #endregion
 
+        #region Application Tasks
         /// <summary>
-        /// TODO: Installation Task
+        /// Installation Task
         /// </summary>
         /// <param name="database"></param>
         /// <param name="task"></param>
@@ -369,13 +561,12 @@ namespace Administrator.Server.Managers {
                     installedApplication.SetCanBeUninstalledFlag(task.CanBeUninstalled, (databaseApplication) => {
 
                         // Success
-                        // If database is started start application
+                        // If database is started start the application
                         if (installedApplication.Database.IsRunning) {
 
                             #region Start Application
-                            // TODO: Handle success
+
                             installedApplication.StartApplication((startedApplication) => {
-                                // TODO: Handle success
                                 taskItem.Namespace = startedApplication.Namespace;
                                 taskItem.Channel = startedApplication.Channel;
                                 taskItem.Version = startedApplication.Version;
@@ -384,7 +575,6 @@ namespace Administrator.Server.Managers {
                                 taskItem.ResourceID = databaseApplication.ID;
                                 taskItem.Status = 0; // Done;
                             }, (startedApplication, wasCancelled, title, message, helpLink) => {
-                                // TODO: Handle error
                                 taskItem.Status = -5; // Error;
                                 taskItem.Message = message;
                             });
@@ -402,24 +592,23 @@ namespace Administrator.Server.Managers {
                         }
 
                     }, (dapplication, wasCancelled, title, message, helpLink) => {
-
-                        taskItem.Status = -7; // Error;
-                        taskItem.Message = message;
                         // Error
+                        taskItem.Status = -7;
+                        taskItem.Message = message;
                     });
                     #endregion
 
                 }, (installedApplication, wasCancelled, title, message, helpLink) => {
-                    // TODO: Handle error
-                    taskItem.Status = -4; // Error;
+                    // Error;
+                    taskItem.Status = -4;
                     taskItem.Message = message;
                 });
 
                 #endregion
 
-
             }, (message) => {
-                taskItem.Status = -1; // Error;
+                // Error;
+                taskItem.Status = -1;
                 taskItem.Message = message;
             });
 
@@ -473,6 +662,7 @@ namespace Administrator.Server.Managers {
             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
         }
 
+
         /// <summary>
         /// Uninstall Application
         /// </summary>
@@ -484,12 +674,12 @@ namespace Administrator.Server.Managers {
             // Create TaskItem
             Task taskItem = new Task();
 
-            // TODO: Force delete
             databaseApplication.DeleteApplication(true, (startedApplication) => {
-                taskItem.Status = 0; // Done;
+                // Success;
+                taskItem.Status = 0;
             }, (startedApplication, wasCancelled, title, message, helpLink) => {
-
-                taskItem.Status = -1; // Error;
+                // Error;
+                taskItem.Status = -1;
                 taskItem.Message = message;
             });
 
@@ -532,7 +722,9 @@ namespace Administrator.Server.Managers {
 
             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
         }
+        #endregion
 
+        #region Database Tasks
         /// <summary>
         /// Start database 
         /// </summary>
@@ -593,7 +785,6 @@ namespace Administrator.Server.Managers {
             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
         }
 
-
         /// <summary>
         /// Create database 
         /// </summary>
@@ -652,6 +843,49 @@ namespace Administrator.Server.Managers {
             ExternalAPI.Tasks.Add(taskItem);
 
             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
+        }
+        #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        class Task {
+            public string ID;
+            public DateTime Created;
+            public string Namespace;
+            public string Channel;
+            public string Version;
+            public string VersionDate;
+            public string ResourceUri;
+            public string ResourceID;
+            public string TaskUri;
+            public int Status;  // 0 = Success, 1 = Busy, <0 Error
+            public String Message;
+
+            public Task() {
+                this.Created = DateTime.UtcNow;
+                this.ID = RestUtils.GetHashString(this.Created.ToString("o"));
+                this.TaskUri = string.Format("/api/tasks/{0}", this.ID);
+
+                // Assure unique id
+                while (true) {
+
+                    bool unique = true;
+
+                    foreach (Task task in ExternalAPI.Tasks) {
+                        if (task.ID == this.ID) {
+                            this.ID += "0";
+                            unique = false;
+                            break;
+                        }
+                    }
+
+                    if (unique) break;
+                }
+
+
+                this.Status = 1; // Busy
+            }
         }
 
     }

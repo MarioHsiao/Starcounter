@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace Starcounter.TransactionLog
 {
@@ -11,17 +12,26 @@ namespace Starcounter.TransactionLog
     {
         private const int PollTimeoutMs = 100;
 
-        public LogReader(string db_name, string log_dir, LogPosition position)
+        public LogReader(string db_name, string log_dir, LogPosition position, Func<string, bool> table_predicate)
         {
-            _log_handle = LogReaderImports.TransactionLogOpenAndSeek(db_name, log_dir, position);
+            CreateDelegate(table_predicate);
+            _log_handle = LogReaderImports.TransactionLogOpenAndSeek(db_name, log_dir, position, _table_predicate);
         }
 
-        public LogReader(string db_name, string log_dir)
+        public LogReader(string db_name, string log_dir, Func<string, bool> table_predicate)
         {
-            _log_handle = LogReaderImports.TransactionLogOpen(db_name, log_dir);
+            CreateDelegate(table_predicate);
+            _log_handle = LogReaderImports.TransactionLogOpen(db_name, log_dir, _table_predicate);
+        }
+
+        private void CreateDelegate(Func<string, bool> table_predicate)
+        {
+            _table_predicate = table_predicate == null ? null : new LogReaderImports.table_predicate_delegate(table_predicate);
         }
 
         private IntPtr _log_handle;
+        private LogReaderImports.table_predicate_delegate _table_predicate;
+        private MetadataCache _meta_cache = new MetadataCache();
 
         public Task<LogReadResult> ReadAsync(CancellationToken ct, bool wait_for_live_updates = true)
         {
@@ -30,8 +40,6 @@ namespace Starcounter.TransactionLog
 
         private async Task<LogReadResult> read_next_transaction(CancellationToken ct, bool wait_for_live_updates)
         {
-            await Task.Yield();
-
             while (LogReaderImports.TransactionLogIsEOF(_log_handle))
             {
                 if (!wait_for_live_updates)
@@ -42,78 +50,12 @@ namespace Starcounter.TransactionLog
 
             //read transaction
             LogReadResult res = new LogReadResult();
-            res.transaction_data = read_current_transaction();
+            res.transaction_data = LogReaderImports.TransactionLogGetCurrentTransactionInfoExtended(_log_handle, _meta_cache);
 
             //move to next record to get continuatin position. 
             LogReaderImports.TransactionLogMoveNext(_log_handle);
 
             res.continuation_position = LogReaderImports.TransactionLogGetPosition(_log_handle);
-
-            return res;
-        }
-
-        private TransactionData read_current_transaction()
-        {
-            uint insertupdate_entry_count;
-            uint delete_entry_count;
-            LogReaderImports.TransactionLogGetCurrentTransactionInfo(_log_handle, out insertupdate_entry_count, out delete_entry_count);
-
-            TransactionData res = new TransactionData
-            {
-                creates = new List<create_record_entry>((int)insertupdate_entry_count),
-                updates = new List<update_record_entry>((int)insertupdate_entry_count),
-                deletes = new List<delete_record_entry>((int)delete_entry_count)
-            };
-
-            for (uint i = 0; i < insertupdate_entry_count; ++i)
-            {
-                bool is_insert;
-                string table;
-                ulong object_id;
-                uint columns_count;
-
-                LogReaderImports.TransactionLogGetInsertUpdateEntryInfo(_log_handle, i, out is_insert, out table, out object_id, out columns_count);
-
-                if (is_insert)
-                    res.creates.Add(new create_record_entry
-                    {
-                        table = table,
-                        key = new reference { object_id = object_id },
-                        columns = read_columns(i, columns_count)
-                    });
-                else
-                    res.updates.Add(new update_record_entry
-                    {
-                        table = table,
-                        key = new reference { object_id = object_id },
-                        columns = read_columns(i, columns_count)
-                    });
-            }
-
-            for (uint i = 0; i < delete_entry_count; ++i)
-            {
-                string table;
-                ulong object_id;
-
-                LogReaderImports.TransactionLogGetDeleteEntryInfo(_log_handle, i, out table, out object_id);
-
-                res.deletes.Add(new delete_record_entry { table = table, key = new reference { object_id = object_id } });
-            }
-
-            return res;
-        }
-
-        private column_update[] read_columns(uint insertupdate_entry_index, uint columns_count)
-        {
-            column_update[] res = new column_update[columns_count];
-            for (uint c = 0; c < columns_count; ++c)
-            {
-                string name;
-                object value;
-                LogReaderImports.TransactionLogGetInsertUpdateEntryColumnInfo(_log_handle, insertupdate_entry_index, c, out name, out value);
-
-                res[c] = new column_update { name = name, value = value };
-            }
 
             return res;
         }

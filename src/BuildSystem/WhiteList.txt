@@ -152,10 +152,6 @@ sccoredb.dll
 sccoredb.exp
 sccoredb.lib
 sccoredb.pdb
-sccoredbg.dll
-sccoredbg.exp
-sccoredbg.lib
-sccoredbg.pdb
 sccoredbh.dll
 sccoredbh.exp
 sccoredbh.lib

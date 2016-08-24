@@ -4,17 +4,17 @@
   "private": true,
   "dependencies": {
     "PuppetJs": "^2.0.0",
-    "imported-template": "Juicy/imported-template#~1.4.0",
+    "imported-template": ">=1.4.3",
     "puppet-redirect": "PuppetJs/puppet-redirect#~0.4.0",
-    "dom-bind-notifier": "Juicy/dom-bind-notifier#deprecate",
-    "starcounter-debug-aid": "StarcounterSamples/starcounter-debug-aid#~2.0.5",
-    "puppet-client": "PuppetJs/puppet-polymer-client#^3.0.0",
+    "dom-bind-notifier": "#deprecate",
+    "starcounter-debug-aid": "StarcounterSamples/starcounter-debug-aid#>=2.0.7",
+    "puppet-client": "PuppetJs/puppet-polymer-client#^3.1.1",
     "bootswatch": "thomaspark/bootswatch#~3.3.5",
     "starcounter-include": ">=0.3.0",
-    "polymer": "polymer/polymer#>=1.4.0"
+    "polymer": ">=1.6.0"
   },
   "resolutions": {
-    "polymer": "^1.3.0",
-    "fast-json-patch": "~1.0.0"
+    "fast-json-patch": "~1.0.0",
+    "polymer": ">=1.6.0"
   }
 }

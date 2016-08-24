@@ -57,10 +57,11 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Bindables.cs" />
-    <Compile Include="Binding\BindingTests.cs" />
+    <Compile Include="DataObjects\Bindables.cs" />
+    <Compile Include="BindingTests.cs" />
     <Compile Include="DataObjects\Address.cs" />
     <Compile Include="DataObjects\Agent.cs" />
+    <Compile Include="DataObjects\ObjectWithTypes.cs" />
     <Compile Include="DataObjects\ObjectWOBindable.cs" />
     <Compile Include="DataObjects\Company.cs" />
     <Compile Include="DataObjects\Database.cs" />
@@ -69,14 +70,14 @@
     <Compile Include="DataObjects\Person.cs" />
     <Compile Include="DataObjects\PropertyAccessCounter.cs" />
     <Compile Include="DataObjects\Recursive.cs" />
-    <Compile Include="ExpandoTests.cs" />
+    <Compile Include="DynamicFunctionTests.cs" />
     <Compile Include="Helper.cs" />
-    <Compile Include="JsonPatchTests\ArrayPatchTests.cs" />
-    <Compile Include="JsonPatchTests\EvaluateJsonPatchTests.cs" />
-    <Compile Include="JsonPatchTests\GenerateJsonPatchTests.cs" />
+    <Compile Include="ArrayPatchTests.cs" />
+    <Compile Include="EvaluateJsonPatchTests.cs" />
+    <Compile Include="GenerateJsonPatchTests.cs" />
     <Compile Include="JsonSerializeBenchmarkTests.cs" />
     <Compile Include="JsonSerializeTests.cs" />
-    <Compile Include="PregeneratedSerializationCode.cs" />
+    <Compile Include="Json\PregeneratedSerializationCode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PuppetTests.cs" />
     <Compile Include="TypedJsonTests.cs" />

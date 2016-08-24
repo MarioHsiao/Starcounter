@@ -8,6 +8,7 @@ using System;
 using System.Text;
 using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
+using Starcounter.XSON;
 using Module = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter {
@@ -20,7 +21,7 @@ namespace Starcounter {
 		/// Serializes JSON object to a string.
 		/// </summary>
 		/// <returns></returns>
-		public string ToJson() {
+		public string ToJson(JsonSerializerSettings settings = null) {
             byte[] buffer;
             int exactSize;
 
@@ -31,14 +32,14 @@ namespace Starcounter {
             }
             
             var serializer = ((TValue)Template).JsonSerializer;
-            int estimatedSize = serializer.EstimateSizeBytes(this);
+            int estimatedSize = serializer.EstimateSizeBytes(this, settings);
             buffer = new byte[estimatedSize];
                 
             unsafe
             {
                 fixed (byte* pdest = buffer)
                 {
-                    exactSize = serializer.Serialize(this, (IntPtr)pdest, buffer.Length);
+                    exactSize = serializer.Serialize(this, (IntPtr)pdest, buffer.Length, settings);
                 }
             }
             
@@ -49,7 +50,7 @@ namespace Starcounter {
         /// Serializes JSON object to a byte array.
         /// </summary>
         /// <returns></returns>
-        public byte[] ToJsonUtf8() {
+        public byte[] ToJsonUtf8(JsonSerializerSettings settings = null) {
             byte[] buffer;
 
             if (Template == null) {
@@ -57,7 +58,7 @@ namespace Starcounter {
             }
 
             var serializer = ((TValue)Template).JsonSerializer;
-            int estimatedSize = serializer.EstimateSizeBytes(this);
+            int estimatedSize = serializer.EstimateSizeBytes(this, settings);
             buffer = new byte[estimatedSize];
             int exactSize;
 
@@ -65,7 +66,7 @@ namespace Starcounter {
             {
                 fixed (byte* pdest = buffer)
                 {
-                    exactSize = serializer.Serialize(this, (IntPtr)pdest, buffer.Length);
+                    exactSize = serializer.Serialize(this, (IntPtr)pdest, buffer.Length, settings);
                 }
             }
 
@@ -86,15 +87,15 @@ namespace Starcounter {
         /// </remarks>
         /// <param name="buf"></param>
         /// <returns></returns>
-        public int ToJsonUtf8(byte[] buf, int offset) {
+        public int ToJsonUtf8(byte[] buf, int offset, JsonSerializerSettings settings = null) {
             unsafe {
                 fixed (byte* pdest = &buf[offset]) {
-                    return ToJsonUtf8((IntPtr)pdest, buf.Length - offset);
+                    return ToJsonUtf8((IntPtr)pdest, buf.Length - offset, settings);
                 }
             }
         }
 
-        public int ToJsonUtf8(IntPtr dest, int destSize) {
+        public int ToJsonUtf8(IntPtr dest, int destSize, JsonSerializerSettings settings = null) {
             if (Template == null) {
                 // TODO:
                 // We probably should return null here instead of empty object since it can be anything.
@@ -105,22 +106,22 @@ namespace Starcounter {
                 }
                 return 2;
             }
-            return ((TValue)Template).JsonSerializer.Serialize(this, dest, destSize);
+            return ((TValue)Template).JsonSerializer.Serialize(this, dest, destSize, settings);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="json"></param>
-        public void PopulateFromJson(string json) {
+        public void PopulateFromJson(string json, JsonSerializerSettings settings = null) {
             if (Template == null) 
-                CreateDynamicTemplate();
+                CreateDynamicTemplate(null);
             
             if (string.IsNullOrEmpty(json))
                 return;
 
             byte[] source = Encoding.UTF8.GetBytes(json);
-            PopulateFromJson(source, source.Length);
+            PopulateFromJson(source, source.Length, settings);
         }		
 
         /// <summary>
@@ -129,13 +130,13 @@ namespace Starcounter {
         /// <param name="buf"></param>
         /// <param name="bufferSize"></param>
         /// <returns></returns>
-        public int PopulateFromJson(byte[] source, int sourceSize) {
+        public int PopulateFromJson(byte[] source, int sourceSize, JsonSerializerSettings settings = null) {
             if (Template == null) 
-                CreateDynamicTemplate();
+                CreateDynamicTemplate(null);
            
             unsafe {
                 fixed (byte* psrc = source) {
-                    return PopulateFromJson((IntPtr)psrc, sourceSize);
+                    return PopulateFromJson((IntPtr)psrc, sourceSize, settings);
                 }
             }
         }
@@ -146,25 +147,16 @@ namespace Starcounter {
         /// <param name="buf"></param>
         /// <param name="jsonSize"></param>
         /// <returns></returns>
-        public int PopulateFromJson(IntPtr source, int sourceSize) {
+        public int PopulateFromJson(IntPtr source, int sourceSize, JsonSerializerSettings settings = null) {
             if (Template == null) {
-                CreateDynamicTemplate();
+                CreateDynamicTemplate(null);
             }
             if (sourceSize == 0) return 0;
 
             var serializer = ((TValue)Template).JsonSerializer;
-			return serializer.Populate(this, source, sourceSize);
+			return serializer.Populate(this, source, sourceSize, settings);
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        internal void CreateDynamicTemplate() {
-            var t = new TObject();
-            t.IsDynamic = true;
-            Template = t; // IMPORTANT! It is important that the dynamic flag is set _before_ it is assigned to the Template property.
-        }
-
+        
         /// <summary>
         /// 
         /// </summary>

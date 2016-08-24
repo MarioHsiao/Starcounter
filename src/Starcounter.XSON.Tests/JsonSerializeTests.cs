@@ -401,50 +401,188 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Assert.AreEqual(@"{""SomeArray"":[{""SomeString"":""NewString!"",""AnotherString"":""AnotherString!"",""SomeDecimal"":1.234567,""SomeLong"":1234567},{""SomeString"":""NewString!"",""AnotherString"":""AnotherString!"",""SomeDecimal"":1.234567,""SomeLong"":1234567},{""SomeString"":""NewString!"",""AnotherString"":""AnotherString!"",""SomeDecimal"":1.234567,""SomeLong"":1234567}]}", serString);
         }
+        
+        [Test]
+        public static void TestJsonDeserializationWithMissingMembers_1() {
+            // Testing custom settings object specified each time to ignore missing members.
 
-		//[Test]
-		//public static void DebugPregeneratedSerializationCode() {
-		//	byte[] jsonArr;
-		//	int size;
-		//	int sizeAfterPopulate;
-		//	string correctJson;
-		//	string codegenJson;
-		//	TJson tPerson;
+            dynamic json = new Json();
+            json.id = "abc";
+            json.gender = "F";
 
-		//	tPerson = CreateJsonTemplateFromFile("supersimple.json");
-		//	var person = (Json)tPerson.CreateInstance();
-		//	//SetDefaultPersonValues(person);
+            var settings = new JsonSerializerSettings();
+            settings.MissingMemberHandling = MissingMemberHandling.Ignore;
 
-		//	TypedJsonSerializer serializer = new __starcountergenerated__.PreGeneratedSerializer();
+            // Unknown number property
+            string jsonSource = @" { ""id"":""1"", ""age"":19, ""gender"":""Female"" }";
+            Assert.DoesNotThrow(() => {
+                ((Json)json).PopulateFromJson(jsonSource, settings);
+            });
+            Assert.AreEqual("1", json.id);
+            Assert.AreEqual("Female", json.gender);
+            
+            // Unknown string property
+            jsonSource = @" { ""id"":""ab"", ""age"":""nineteen"", ""gender"":""Male"" }";
+            Assert.DoesNotThrow(() => {
+                ((Json)json).PopulateFromJson(jsonSource, settings);
+            });
+            Assert.AreEqual("ab", json.id);
+            Assert.AreEqual("Male", json.gender);
 
-		//	// First use fallback serializer to create a correct json string.
-		//	TJson.UseCodegeneratedSerializer = false;
-		//	TJson.FallbackSerializer = new NewtonsoftSerializer();
-		//	person.PopulateFromJson(File.ReadAllText("supersimple.json"));
-		//	correctJson = person.ToJson();
+            // Unknown object property
+            jsonSource = @" { ""id"":""3"", ""age"": { ""innermember"":""nineteen"" }, ""gender"":""Unknown"" }";
+            Assert.DoesNotThrow(() => {
+                ((Json)json).PopulateFromJson(jsonSource, settings);
+            });
+            Assert.AreEqual("3", json.id);
+            Assert.AreEqual("Unknown", json.gender);
 
-		//	// Then we do the same but use codegeneration. We use the pregenerated serializer here
-		//	// to be able to debug it, but we will get the same result by enabling codegenerated serializer 
-		//	// on the template.
-		//	TJson.UseCodegeneratedSerializer = true;
-		//	TJson.FallbackSerializer = DefaultSerializer.Instance;
+            // Unknown array property
+            jsonSource = @" { ""id"":""abc123"", ""age"": [ 19, 21, 32 ], ""gender"":""Ooops"" }";
+            Assert.DoesNotThrow(() => {
+                ((Json)json).PopulateFromJson(jsonSource, settings);
+            });
+            Assert.AreEqual("abc123", json.id);
+            Assert.AreEqual("Ooops", json.gender);
+        }
 
-		//	size = serializer.ToJsonUtf8(person, out jsonArr);
-		//	codegenJson = Encoding.UTF8.GetString(jsonArr, 0, size);
+        [Test]
+        public static void TestJsonDeserializationWithMissingMembers_2() {
+            // Testing changing default settings object to ignore missing members.
+
+            dynamic json = new Json();
+            json.id = "abc";
+            json.gender = "F";
+
+            var settings = new JsonSerializerSettings();
+            settings.MissingMemberHandling = MissingMemberHandling.Ignore;
+
+            var oldSettings = TypedJsonSerializer.DefaultSettings;
+            try {
+                TypedJsonSerializer.DefaultSettings = settings;
+
+                // Unknown number property
+                string jsonSource = @" { ""id"":""1"", ""age"":19, ""gender"":""Female"" }";
+                Assert.DoesNotThrow(() => {
+                    ((Json)json).PopulateFromJson(jsonSource);
+                });
+                Assert.AreEqual("1", json.id);
+                Assert.AreEqual("Female", json.gender);
+
+                // Unknown string property
+                jsonSource = @" { ""id"":""ab"", ""age"":""nineteen"", ""gender"":""Male"" }";
+                Assert.DoesNotThrow(() => {
+                    ((Json)json).PopulateFromJson(jsonSource);
+                });
+                Assert.AreEqual("ab", json.id);
+                Assert.AreEqual("Male", json.gender);
+
+                // Unknown object property
+                jsonSource = @" { ""id"":""3"", ""age"": { ""innermember"":""nineteen"" }, ""gender"":""Unknown"" }";
+                Assert.DoesNotThrow(() => {
+                    ((Json)json).PopulateFromJson(jsonSource);
+                });
+                Assert.AreEqual("3", json.id);
+                Assert.AreEqual("Unknown", json.gender);
+
+                // Unknown array property
+                jsonSource = @" { ""id"":""abc123"", ""age"": [ 19, 21, 32 ], ""gender"":""Ooops"" }";
+                Assert.DoesNotThrow(() => {
+                    ((Json)json).PopulateFromJson(jsonSource);
+                });
+                Assert.AreEqual("abc123", json.id);
+                Assert.AreEqual("Ooops", json.gender);
+            } finally {
+                TypedJsonSerializer.DefaultSettings = oldSettings;
+            }
+        }
+
+        [Test]
+        public static void TestJsonDeserializationWithMissingMembers_3() {
+            // Testing default settings object to throw errors on missing members.
+
+            Exception ex;
+            uint errorCode;
+            dynamic json = new Json();
+            json.id = "abc";
+            json.gender = "F";
+            
+            // Unknown number property
+            string jsonSource = @" { ""id"":""1"", ""age"":19, ""gender"":""Female"" }";
+            ex = Assert.Throws<Exception>(() => {
+                ((Json)json).PopulateFromJson(jsonSource);
+            });
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out errorCode));
+            Assert.AreEqual(Error.SCERRJSONPROPERTYNOTFOUND, errorCode);
+            
+            // Unknown string property
+            jsonSource = @" { ""id"":""ab"", ""age"":""nineteen"", ""gender"":""Male"" }";
+            ex = Assert.Throws<Exception>(() => {
+                ((Json)json).PopulateFromJson(jsonSource);
+            });
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out errorCode));
+            Assert.AreEqual(Error.SCERRJSONPROPERTYNOTFOUND, errorCode);
+
+            // Unknown object property
+            jsonSource = @" { ""id"":""3"", ""age"": { ""innermember"":""nineteen"" }, ""gender"":""Unknown"" }";
+            ex = Assert.Throws<Exception>(() => {
+                ((Json)json).PopulateFromJson(jsonSource);
+            });
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out errorCode));
+            Assert.AreEqual(Error.SCERRJSONPROPERTYNOTFOUND, errorCode);
+
+            // Unknown array property
+            jsonSource = @" { ""id"":""abc123"", ""age"": [ 19, 21, 32 ], ""gender"":""Ooops"" }";
+            ex = Assert.Throws<Exception>(() => {
+                ((Json)json).PopulateFromJson(jsonSource);
+            });
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out errorCode));
+            Assert.AreEqual(Error.SCERRJSONPROPERTYNOTFOUND, errorCode);
+        }
+        
+        //[Test]
+        //public static void DebugPregeneratedSerializationCode() {
+        //	byte[] jsonArr;
+        //	int size;
+        //	int sizeAfterPopulate;
+        //	string correctJson;
+        //	string codegenJson;
+        //	TJson tPerson;
+
+        //	tPerson = CreateJsonTemplateFromFile("supersimple.json");
+        //	var person = (Json)tPerson.CreateInstance();
+        //	//SetDefaultPersonValues(person);
+
+        //	TypedJsonSerializer serializer = new __starcountergenerated__.PreGeneratedSerializer();
+
+        //	// First use fallback serializer to create a correct json string.
+        //	TJson.UseCodegeneratedSerializer = false;
+        //	TJson.FallbackSerializer = new NewtonsoftSerializer();
+        //	person.PopulateFromJson(File.ReadAllText("supersimple.json"));
+        //	correctJson = person.ToJson();
+
+        //	// Then we do the same but use codegeneration. We use the pregenerated serializer here
+        //	// to be able to debug it, but we will get the same result by enabling codegenerated serializer 
+        //	// on the template.
+        //	TJson.UseCodegeneratedSerializer = true;
+        //	TJson.FallbackSerializer = DefaultSerializer.Instance;
+
+        //	size = serializer.ToJsonUtf8(person, out jsonArr);
+        //	codegenJson = Encoding.UTF8.GetString(jsonArr, 0, size);
 
         //	Helper.ConsoleWriteLine("Count: " + size);
         //	Helper.ConsoleWriteLine(codegenJson);
 
-		//	AssertAreEqual(Encoding.UTF8.GetBytes(correctJson), jsonArr, size);
-		//	Assert.AreEqual(correctJson, codegenJson);
+        //	AssertAreEqual(Encoding.UTF8.GetBytes(correctJson), jsonArr, size);
+        //	Assert.AreEqual(correctJson, codegenJson);
 
-		//	// Now we populate a new person instance with values from the serializer json.
-		//	// And compare it to the original. All values should be identical.
-		//	var person2 = (Json)tPerson.CreateInstance();
-		//	sizeAfterPopulate = serializer.PopulateFromJson(person2, jsonArr, size);
+        //	// Now we populate a new person instance with values from the serializer json.
+        //	// And compare it to the original. All values should be identical.
+        //	var person2 = (Json)tPerson.CreateInstance();
+        //	sizeAfterPopulate = serializer.PopulateFromJson(person2, jsonArr, size);
 
-		//	Assert.AreEqual(size, sizeAfterPopulate);
-		//	AssertAreEqual(person, person2);
-		//}
+        //	Assert.AreEqual(size, sizeAfterPopulate);
+        //	AssertAreEqual(person, person2);
+        //}
     }
 }
