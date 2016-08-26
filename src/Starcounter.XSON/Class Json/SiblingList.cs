@@ -66,6 +66,17 @@ namespace Starcounter.XSON {
             list.Add(new Sibling() { Json = sibling });
         }
 
+        public void Remove(Json sibling) {
+            int index = list.FindIndex((item) => {
+                return item.Json == sibling;
+            });
+            if (index != -1) {
+                list.RemoveAt(index);
+                sibling.wrapInAppName = false;
+                sibling.Siblings = null;
+            }
+        }
+
         public bool HasBeenSent(int index) {
             return list[index].HasBeenSent;
         }
