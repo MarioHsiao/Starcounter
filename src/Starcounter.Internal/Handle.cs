@@ -479,16 +479,12 @@ namespace Starcounter {
 
             try {
 
-                for (Int32 i = (requestFilters_.Count - 1); i >= 0; i--) {
-
-                    RequestFilter rf = requestFilters_[i];
-
-                    StarcounterEnvironment.AppName = rf.AppName;
-
-                    Response resp = rf.Filter(req);
-
-                    if (null != resp)
-                        return resp;
+                foreach (var filter in requestFilters_) {
+                    StarcounterEnvironment.AppName = filter.AppName;
+                    var response = filter.Filter(req);
+                    if (response != null) {
+                        return response;
+                    }
                 }
 
             } finally {
@@ -551,16 +547,12 @@ namespace Starcounter {
 
             try {
 
-                for (Int32 i = (outgoingFilters_.Count - 1); i >= 0; i--) {
-
-                    OutgoingFilter mf = outgoingFilters_[i];
-
-                    StarcounterEnvironment.AppName = mf.AppName;
-
-                    Response response = mf.Filter(req, resp);
-
-                    if (null != response)
+                foreach (var filter in outgoingFilters_) {
+                    StarcounterEnvironment.AppName = filter.AppName;
+                    var response = filter.Filter(req, resp);
+                    if (response != null) {
                         return response;
+                    }
                 }
 
             } finally {
