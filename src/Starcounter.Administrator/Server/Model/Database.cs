@@ -465,13 +465,10 @@ namespace Administrator.Server.Model {
 
             foreach (DatabaseApplication app in this.Applications) {
 
-                if (string.Equals(app.Namespace, nameSpace, StringComparison.InvariantCultureIgnoreCase) &&
-                    string.Equals(app.Channel, channel, StringComparison.InvariantCultureIgnoreCase)) {
+                if ((nameSpace.Equals("*") || string.Equals(app.Namespace, nameSpace, StringComparison.InvariantCultureIgnoreCase)) &&
+                    (channel.Equals("*") || string.Equals(app.Channel, channel, StringComparison.InvariantCultureIgnoreCase))) {
                     result.Add(app);
                 }
-                //if (app.Namespace == nameSpace && app.Channel == channel) {
-                //    result.Add(app);
-                //}
             }
 
             return result;
@@ -1087,32 +1084,32 @@ namespace Administrator.Server.Model {
             // Execute Command
             var c = runtime.Execute(command, (commandId) => {
 
-                    if (command is StartDatabaseCommand &&
-                        (this.Status.HasFlag(DatabaseStatus.Stopping) ||
-                        this.Status.HasFlag(DatabaseStatus.Deleting))) {
+                if (command is StartDatabaseCommand &&
+                    (this.Status.HasFlag(DatabaseStatus.Stopping) ||
+                    this.Status.HasFlag(DatabaseStatus.Deleting))) {
 
-                        return true;    // return true to cancel
-                    }
-                    else if (command is StopDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
+                    return true;    // return true to cancel
+                }
+                else if (command is StopDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
 
-                        return true;    // return true to cancel
-                    }
-                    else if (command is DeleteDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
+                    return true;    // return true to cancel
+                }
+                else if (command is DeleteDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
 
-                        return true;    // return true to cancel
-                    }
-                    else if (command is CreateDatabaseCommand && this.Status != DatabaseStatus.Creating) {
+                    return true;    // return true to cancel
+                }
+                else if (command is CreateDatabaseCommand && this.Status != DatabaseStatus.Creating) {
 
-                        return true;    // return true to cancel
-                    }
+                    return true;    // return true to cancel
+                }
 
-                    return false;   // return true to cancel
+                return false;   // return true to cancel
 
-                    //if (command is DeleteDatabaseCommand) {
-                    //    return this.WantDeleted == this.IsDeleted;  // return true to cancel
-                    //}
+                //if (command is DeleteDatabaseCommand) {
+                //    return this.WantDeleted == this.IsDeleted;  // return true to cancel
+                //}
 
-                    //return this.WantRunning == this.IsRunning;  // return true to cancel
+                //return this.WantRunning == this.IsRunning;  // return true to cancel
             }, (commandId) => {
 
                 lock (ServerManager.ServerInstance) {
