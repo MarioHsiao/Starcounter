@@ -465,8 +465,8 @@ namespace Administrator.Server.Model {
 
             foreach (DatabaseApplication app in this.Applications) {
 
-                if ((nameSpace.Equals('*') || string.Equals(app.Namespace, nameSpace, StringComparison.InvariantCultureIgnoreCase)) &&
-                    (channel.Equals('*') || string.Equals(app.Channel, channel, StringComparison.InvariantCultureIgnoreCase))) {
+                if ((nameSpace.Equals("*") || string.Equals(app.Namespace, nameSpace, StringComparison.InvariantCultureIgnoreCase)) &&
+                    (channel.Equals("*") || string.Equals(app.Channel, channel, StringComparison.InvariantCultureIgnoreCase))) {
                     result.Add(app);
                 }
             }
