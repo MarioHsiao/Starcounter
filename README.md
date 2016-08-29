@@ -10,6 +10,8 @@ This repository is reserved for the public Starcounter bits.
 
 ## Developer samples and prefabs
 
+* [GitHub.com/Starcounter](https://github.com/Starcounter)
+ * [InvoiceDemo](https://github.com/Starcounter/InvoiceDemo) - Series of tutorials about building your first in-memory computing app.
 * [GitHub.com/StarcounterSamples](https://github.com/StarcounterSamples)
  * [Simplified](https://github.com/StarcounterSamples/Simplified) - Simplified data model used by all demo apps.
  * [KitchenSink](https://github.com/StarcounterSamples/KitchenSink) - Shows how to model different UI patterns in JSON.
@@ -19,7 +21,6 @@ This repository is reserved for the public Starcounter bits.
  * [Products](https://github.com/StarcounterSamples/Products) - Sample product information management.
  * [Images](https://github.com/StarcounterSamples/Images) - Sample micro app that can put an image on anything.
  * [Barcodes](https://github.com/StarcounterSamples/Barcodes) - Sample micro app that can put a barcode on anything.
- * [Procurement](https://github.com/StarcounterSamples/Procurement) - Sample purchase order placing.
  * [Chatter](https://github.com/StarcounterSamples/Chatter) - Sample app to chat about anything.
 * [GitHub.com/StarcounterPrefabs](https://github.com/StarcounterPrefabs)
  * [Launcher](https://github.com/StarcounterPrefabs/Launcher) - A launcher is an app that gives a common UI feeling to multiple apps running simultaneously.
