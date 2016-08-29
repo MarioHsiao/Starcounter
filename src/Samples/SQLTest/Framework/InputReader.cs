@@ -118,9 +118,9 @@ namespace SQLTest
 
                         if (line.StartsWith("ShouldBeReorderedPartially:"))
                         {
-                            var range = line.Substring(27).Split('-').Select(s => int.Parse(s.Trim()));
+                            var ranges = line.Substring(27).Split(',').Select(r=>r.Split('-'));
 
-                            testQuery.ResultReorderIndexes = Tuple.Create( range.First(), range.Skip(1).First() );
+                            testQuery.ResultReorderIndexes = ranges.Select( r=> Tuple.Create( int.Parse(r.First()), int.Parse(r.Skip(1).First()) ) ).ToArray();
                             testQuery.ShouldBeReordered = false;
                             continue;
                         }

@@ -25,7 +25,6 @@
 #include "common/name_definitions.hpp"
 
 // Level0 includes.
-#include <sccoredbg.h>
 #include <sccorelog.h>
 #include <profiler.hpp>
 
@@ -105,7 +104,6 @@ enum GatewayErrorCodes
     SCERRGWFAILEDWSASEND,
     SCERRGWDISCONNECTFLAG,
     SCERRGWWEBSOCKETUNKNOWNOPCODE,
-    SCERRGWPORTNOTHANDLED,
     SCERRGWWRONGHTTPDATA,
     SCERRGWRECEIVEMORE,
     SCERRGWHTTPNONWEBSOCKETSUPGRADE,
@@ -419,82 +417,77 @@ typedef uint32_t (*GENERIC_HANDLER_CALLBACK) (
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t UdpPortProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t TcpPortProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t OuterUriProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t AppsUriProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 // HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
+
+uint32_t GatewaySocketsStats(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t GatewayTestSample(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 // Updates configuration for Gateway.
 uint32_t GatewayUpdateConfiguration(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd, 
-    BMX_HANDLER_TYPE handler_id, 
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_id);
 
 // Profilers statistics for Gateway.
 uint32_t GatewayProfilersInfo(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 // Aggregation on gateway.
 uint32_t PortAggregator(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 uint32_t GatewayUriProcessProxy(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
+    BMX_HANDLER_TYPE handler_info);
 
 // Waking up a thread using APC.
 void WakeUpThreadUsingAPC(HANDLE thread_handle);
@@ -760,6 +753,18 @@ enum SOCKET_FLAGS
 	SOCKET_FLAGS_CLONED_TO_RECEIVE = 2 << 5
 };
 
+enum SOCKET_STATE {
+    CREATED,
+    ACCEPTING,
+    ACCEPTED,
+    RECEIVING,
+    RECEIVED,
+    SENDING,
+    SENT,
+    DISCONNECTING,
+    DISCONNECTED
+};
+
 // Structure that facilitates the socket.
 _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 {
@@ -820,6 +825,14 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
+
+    // Socket state.
+    uint8_t state_;
+
+    // Set socket state.
+    void SetState(uint8_t state) {
+        state_ = state;
+    }
 
 	// Shutting down sending on socket.
 	void ShutdownSend() {
@@ -949,6 +962,9 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     {
         socket_timestamp_ = 0;
     }
+
+    // Printing the socket information.
+    void PrintInfo(std::stringstream& str);
 
     // Resets the session struct.
     void Reset()
@@ -1784,6 +1800,9 @@ public:
     // Printing statistics for all workers.
     void PrintWorkersStatistics(std::stringstream& stats_stream);
 
+    // Printing statistics for all workers sockets.
+    void PrintWorkersSockets(std::stringstream& stats_stream);
+
     // Registering all gateway handlers.
     uint32_t RegisterGatewayHandlers();
 
@@ -1853,6 +1872,9 @@ public:
 
     // Current gateway statistics.
     std::string GetGatewayStatisticsString();
+
+    // Current gateway sockets statistics.
+    std::string GetGatewaySocketsStatisticsString();
 
     // Current global profilers stats.
     std::string GetGlobalProfilersString(int32_t* out_len);

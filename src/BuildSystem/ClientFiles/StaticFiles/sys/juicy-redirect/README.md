@@ -71,4 +71,4 @@ For detailed changelog, check [Releases](https://github.com/juicy/redirect/relea
 
 ## License
 
-[MIT License](http://opensource.org/licenses/MIT)
+MIT

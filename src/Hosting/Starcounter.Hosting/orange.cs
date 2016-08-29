@@ -83,7 +83,7 @@ namespace StarcounterInternal.Hosting
 
                 ulong storedTransactionHandle = ThreadData.storedTransactionHandle_;
                 ThreadData.storedTransactionHandle_ = 0;
-                sccoredb.star_context_set_current_transaction( // Can not fail.
+                sccoredb.star_context_set_transaction( // Can not fail.
                     contextHandle, storedTransactionHandle
                     );
                 return;
@@ -99,12 +99,12 @@ namespace StarcounterInternal.Hosting
             ThreadData.contextHandle_ = 0;
 
             ulong currentTransactionHandle;
-            sccoredb.star_context_get_current_transaction( // Can not fail.
+            sccoredb.star_context_get_transaction( // Can not fail.
                 contextHandle, out currentTransactionHandle
                 );
             if (currentTransactionHandle == 0) return;
             ThreadData.storedTransactionHandle_ = currentTransactionHandle;
-            sccoredb.star_context_set_current_transaction(contextHandle, 0); // Can not fail.
+            sccoredb.star_context_set_transaction(contextHandle, 0); // Can not fail.
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace StarcounterInternal.Hosting
             Debug.Assert(ThreadData.storedTransactionHandle_ == 0);
             ulong contextHandle = ThreadData.contextHandle_;
             Debug.Assert(contextHandle != 0); // Only called on an attached thread.
-            sccoredb.star_context_set_current_transaction(contextHandle, 0); // Can not fail.
+            sccoredb.star_context_set_transaction(contextHandle, 0); // Can not fail.
         }
 
         /// <summary>

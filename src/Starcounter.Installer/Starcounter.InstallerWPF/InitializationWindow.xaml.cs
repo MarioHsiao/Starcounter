@@ -237,10 +237,11 @@ namespace Starcounter.InstallerWPF {
         /// Checks if another version of Starcounter is installed.
         /// </summary>
         /// <returns></returns>
-        Boolean IsAnotherVersionInstalled() {
+        Boolean IsAnotherVersionInstalled(out InstallationSettings previousSettings) {
 
             String installedVersion;
             DateTime installedVersionDate;
+            previousSettings = null;
 
             bool success = GetInstalledVersionInfo(out installedVersion, out installedVersionDate);
 
@@ -249,8 +250,7 @@ namespace Starcounter.InstallerWPF {
 
                 WpfMessageBoxResult userChoice = WpfMessageBoxResult.None;
 
-                String uninstallQuestion = string.Format("Do you want to {0} from version {1} to {2} ?", (ScVersionDate > installedVersionDate) ? "upgrade" : "downgrade", installedVersion, ScVersion),
-                    headingMessage = "Starcounter Installation";
+                String upgradeQuestion = string.Format("Would you like to {0} Starcounter v{1} to v{2}?", (ScVersionDate > installedVersionDate) ? "upgrade" : "downgrade", installedVersion, ScVersion), headingMessage = "Starcounter Installation";
 
                 // Checking for the existing databases compatibility.
                 List<String> dbListToUnload = new List<String>();
@@ -269,7 +269,7 @@ namespace Starcounter.InstallerWPF {
 
                         String dbListToUnloadText = String.Join(Environment.NewLine, dbListToUnload);
 
-                        uninstallQuestion += Environment.NewLine + Environment.NewLine +
+                        upgradeQuestion += Environment.NewLine + Environment.NewLine +
                             "Existing database image files are incompatible with this installation (database(s): " + dbListToUnloadText + "). " +
                             "Please follow the instructions at: " + Environment.NewLine +
                             "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions " + Environment.NewLine +
@@ -280,7 +280,7 @@ namespace Starcounter.InstallerWPF {
                 else {
 
                     // Some error occurred during the check.
-                    uninstallQuestion +=
+                    upgradeQuestion +=
                         "Error occurred during verification of existing database image files versions." + Environment.NewLine +
                         "Please follow the instructions at: " + Environment.NewLine +
                         "https://github.com/Starcounter/Starcounter/wiki/Reloading-database-between-Starcounter-versions " + Environment.NewLine +
@@ -294,11 +294,16 @@ namespace Starcounter.InstallerWPF {
 
                 // Asking for user choice about uninstalling.
                 userChoice = WpfMessageBox.Show(
-                    uninstallQuestion,
+                    upgradeQuestion,
                     headingMessage,
                     WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
 
                 if (userChoice == WpfMessageBoxResult.Yes) {
+
+                    this.isUpgrade = true;
+                    this.unattended = true;
+                    this.setupOptions = SetupOptions.Install;
+                    this.finishedMessage = string.Format("{0} successful.", (ScVersionDate > installedVersionDate) ? "Upgrade" : "Downgrade");
 
                     // Asking to launch current installed version uninstaller.
                     String installDir = GetInstalledDirFromEnv();
@@ -311,6 +316,9 @@ namespace Starcounter.InstallerWPF {
                             " in '" + installDir + "'. Please uninstall previous version of Starcounter manually.");
                         return true;
                     }
+
+                    previousSettings = new InstallationSettings();
+                    previousSettings.InitilizeWithCurrentInstallationValues();
 
                     Process prevSetupProcess = new Process();
                     prevSetupProcess.StartInfo.FileName = prevSetupExeFile;
@@ -407,7 +415,6 @@ namespace Starcounter.InstallerWPF {
             Element_Storyboard.Stop(this.PART_Canvas);
         }
 
-
         void InitializationWindow_Loaded(object sender, RoutedEventArgs e) {
 
             // TODO: Fix automatic loading of styles!
@@ -425,11 +432,12 @@ namespace Starcounter.InstallerWPF {
                            new Action(delegate {
                                // Checking if another Starcounter version is installed.
                                // NOTE: Environment.Exit is used on purpose here, not just "return";
-                               if (IsAnotherVersionInstalled())
+                               InstallationSettings previousSettings;
+                               if (IsAnotherVersionInstalled(out previousSettings))
                                    Environment.Exit(0);
 
                                this.Visibility = Visibility.Hidden;
-                               ThreadPool.QueueUserWorkItem(this.InitInstallerWrapper);
+                               ThreadPool.QueueUserWorkItem(this.InitInstallerWrapper, previousSettings);
                            }
             ));
 
@@ -483,7 +491,7 @@ namespace Starcounter.InstallerWPF {
                 // Success.
                 this._dispatcher.BeginInvoke(DispatcherPriority.Normal,
                     new Action(delegate {
-                        this.OnSuccess();
+                        this.OnSuccess(state as InstallationSettings);
                     }
                 ));
             }
@@ -497,7 +505,7 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
-        private void OnSuccess() {
+        private void OnSuccess(InstallationSettings previousSettings) {
             bool bWaitWindowGotFocus = false;
             if (this.IsFocused || this.IsKeyboardFocused) {
                 bWaitWindowGotFocus = true;
@@ -506,6 +514,8 @@ namespace Starcounter.InstallerWPF {
             System.Windows.Forms.Screen screen = this.GetCurrentScreen();
 
             MainWindow mainWindow = new MainWindow();
+            mainWindow.Configuration.CurrentInstallationSettings = previousSettings;
+            mainWindow.FinishedMessageInUnattendedMode = this.finishedMessage;
             mainWindow.DefaultSetupOptions = this.setupOptions;
             mainWindow.Configuration.Unattended = this.unattended;
             mainWindow.Configuration.IsUpgrade = this.isUpgrade;
@@ -553,7 +563,6 @@ namespace Starcounter.InstallerWPF {
         }
 
         private void OnError(Exception e) {
-
 
             // Send the tracking error before we close down.
             Dispatcher disp = Dispatcher.FromThread(Thread.CurrentThread);
@@ -668,7 +677,8 @@ namespace Starcounter.InstallerWPF {
         // unattended setup is not the same as silent, silent should not show any qui.
         Boolean unattended = false;
         SetupOptions setupOptions = SetupOptions.None;
-
+        // Message boxtext after upgrade
+        string finishedMessage = string.Empty;
         // Keep settings when uninstalling (set to true when updating starcounter)
         Boolean isUpgrade = false;
 
@@ -711,6 +721,11 @@ namespace Starcounter.InstallerWPF {
                     args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
                     i--;
                     this.setupOptions = SetupOptions.Uninstall;
+                }
+                else if (param.Equals("install", StringComparison.InvariantCultureIgnoreCase)) {
+                    args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)
+                    i--;
+                    this.setupOptions = SetupOptions.Install;
                 }
                 else if (param.Equals("upgrade", StringComparison.InvariantCultureIgnoreCase)) {
                     args = args.Where(w => w != args[i]).ToArray(); // This argument can not be passed along to RunInternalSetup(...)

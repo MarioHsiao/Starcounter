@@ -5,13 +5,33 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Starcounter.Internal.XSON;
-using Starcounter.Templates;namespace Starcounter {        public partial class Json : IDynamicMetaObjectProvider {        internal void OnUndefinedPropertyAdded(TValue property) {
+using Starcounter.Templates;using Starcounter.XSON;
+
+namespace Starcounter {
+    public partial class Json : IDynamicMetaObjectProvider {        internal void OnUndefinedPropertyAdded(TValue property) {
             this.valueList.Add(null);
             if (this.trackChanges)
                 stateFlags.Add(PropertyState.Default);
             property.SetDefaultValue(this);
         }                DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(            Expression parameter) {            return new DynamicPropertyMetaObject(parameter, this);        }
-                /// <summary>
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal void CreateDynamicTemplate(object dataObject) {
+            Template template;
+
+            if (dataObject != null) {
+                template = DynamicFunctions.GetTemplateFromType(dataObject.GetType(), true);
+            } else {
+                template = new TObject();
+                template.IsDynamic = true;
+            }
+
+            this.Template = template; // IMPORTANT! It is important that the dynamic flag is set _before_ it is assigned to the Template property.
+        }
+
+        /// <summary>
         /// Provides late bound (dynamic) access to Json properties defined in the Template 
         /// of the Json object. Also supports data binding using the Json.Data property.
         /// </summary>        private class DynamicPropertyMetaObject : DynamicMetaObject {            internal DynamicPropertyMetaObject(System.Linq.Expressions.Expression parameter, Json value)                : base(parameter, BindingRestrictions.Empty, value) {            }            /// <summary>
@@ -36,7 +56,7 @@ using Starcounter.Templates;namespace Starcounter {        public partial cla
             private DynamicMetaObject BindGetMemberForJsonObject( Json app, TValue template, GetMemberBinder binder ) {
                 TValue templ = null;
 
-                MemberInfo pi = ReflectionHelper.FindPropertyOrField(RuntimeType, binder.Name);                if (pi != null)                    return base.BindGetMember(binder);
+                MemberInfo pi = ReflectionHelper.FindPropertyOrField(RuntimeType, binder.Name, false);                if (pi != null)                    return base.BindGetMember(binder);
 
                 var templateAsObj = template as TObject;
 
@@ -151,10 +171,10 @@ using Starcounter.Templates;namespace Starcounter {        public partial cla
 
                 var ot = (TObject)app.Template;
                 if (ot == null) {
-                    app.CreateDynamicTemplate();
+                    app.CreateDynamicTemplate(null);
                     ot = (TObject)app.Template; 
 //                    app.Template = ot = new TDynamicObj(); // Make this an expando object like Obj
-                }                MemberInfo pi = ReflectionHelper.FindPropertyOrField(this.RuntimeType,binder.Name);                if (pi != null)                    return base.BindSetMember(binder, value);
+                }                MemberInfo pi = ReflectionHelper.FindPropertyOrField(this.RuntimeType,binder.Name, false);                if (pi != null)                    return base.BindSetMember(binder, value);
                 TValue templ = (TValue)(ot.Properties[binder.Name]);                if (templ == null) {
                     ot.OnSetUndefinedProperty(binder.Name, value.LimitType);
                     return this.BindSetMember(binder, value); // Try again

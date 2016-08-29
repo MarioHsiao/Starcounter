@@ -4,7 +4,6 @@
 #include "ws_proto.hpp"
 #include "http_proto.hpp"
 #include "socket_data.hpp"
-#include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
 #include "urimatch_codegen.hpp"
@@ -655,6 +654,27 @@ ServerPort::ServerPort()
 
 ServerPort::~ServerPort()
 {
+}
+
+// Printing the socket information.
+void ScSocketInfoStruct::PrintInfo(std::stringstream& str) {
+
+    str << "{\"port\":\"" << g_gateway.get_server_port(port_index_)->get_port_number() << "\",";
+    str << "\"index\":\"" << read_only_index_ << "\",";
+    str << "\"state\":\"";
+    switch ((SOCKET_STATE)state_) {
+        case SOCKET_STATE::CREATED: str << "CREATED\""; break;
+        case SOCKET_STATE::ACCEPTING: str << "ACCEPTING\""; break;
+        case SOCKET_STATE::ACCEPTED: str << "ACCEPTED\""; break;
+        case SOCKET_STATE::RECEIVING: str << "RECEIVING\""; break;
+        case SOCKET_STATE::RECEIVED: str << "RECEIVED\""; break;
+        case SOCKET_STATE::SENDING: str << "SENDING\""; break;
+        case SOCKET_STATE::SENT: str << "SENT\""; break;
+        case SOCKET_STATE::DISCONNECTING: str << "DISCONNECTING\""; break;
+        case SOCKET_STATE::DISCONNECTED: str << "DISCONNECTED\""; break;
+    }
+
+    str << "}";
 }
 
 // Getting gateway configuration XML contents.
@@ -1391,10 +1411,8 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
     return 0;
 }
 
-uint32_t UnregisterCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t UnregisterCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-	*is_handled = true;
-
 	char* request_begin = (char*)(sd->get_data_blob_start());
 
 	// Looking for the end of the request.
@@ -1443,10 +1461,8 @@ uint32_t UnregisterCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
 	}
 }
 
-uint32_t RegisterNewCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t RegisterNewCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-	*is_handled = true;
-
 	char* request_begin = (char*)(sd->get_data_blob_start());
 
 	// Looking for the end of the request.
@@ -1496,10 +1512,8 @@ uint32_t RegisterNewCodehost(HandlersList* hl, GatewayWorker *gw, SocketDataChun
 	}
 }
 
-uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-    *is_handled = true;
-
     char* request_begin = (char*)(sd->get_data_blob_start());
 
     // Looking for the \r\n\r\n\r\n\r\n.
@@ -1592,10 +1606,8 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     }
 }
 
-uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-	*is_handled = true;
-
 	char* request_begin = (char*)(sd->get_data_blob_start());
 
 	// Looking for the \r\n\r\n\r\n\r\n.
@@ -1673,10 +1685,8 @@ uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChu
 	}
 }
 
-uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id)
 {
-    *is_handled = true;
-
     uint32_t err_code;
 
     char* request_begin = (char*)(sd->get_data_blob_start());
@@ -1769,11 +1779,8 @@ uint32_t RegisterWsHandler(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_id,
-    bool* is_handled)
+    BMX_HANDLER_TYPE handler_id)
 {
-    *is_handled = true;
-
     char* request_begin = (char*)(sd->get_data_blob_start());
 
     // Looking for the \r\n\r\n\r\n\r\n.
@@ -2578,6 +2585,22 @@ uint32_t Gateway::RegisterGatewayHandlers() {
         &gw_workers_[0],
         setting_internal_system_port_,
         "gateway",
+        "GET /gw/sockets",
+        NULL,
+        0,
+        bmx::BMX_INVALID_HANDLER_INFO,
+        INVALID_DB_INDEX,
+        GatewaySocketsStats,
+        true);
+
+    if (err_code)
+        return err_code;
+
+    // Registering URI handler for gateway statistics.
+    err_code = AddUriHandler(
+        &gw_workers_[0],
+        setting_internal_system_port_,
+        "gateway",
         "GET /gw/test",
         NULL,
         0,
@@ -2662,24 +2685,51 @@ uint32_t Gateway::RegisterGatewayHandlers() {
 }
 
 // Printing statistics for all workers.
-void Gateway::PrintWorkersStatistics(std::stringstream& stats_stream)
+void Gateway::PrintWorkersStatistics(std::stringstream& str)
 {
     bool first = true;
 
     // Emptying the statistics stream.
-    stats_stream.str(std::string());
+    str.str(std::string());
 
-    // Going through all ports.
-    stats_stream << "[";
+    // Going through all workers.
+    str << "[";
     for (int32_t w = 0; w < setting_num_workers_; w++)
     {
         if (!first)
-            stats_stream << ",";
+            str << ",";
         first = false;
 
-        gw_workers_[w].PrintInfo(stats_stream);
+        gw_workers_[w].PrintInfo(str);
     }
-    stats_stream << "]";
+    str << "]";
+}
+
+// Printing statistics for all workers sockets.
+void Gateway::PrintWorkersSockets(std::stringstream& str)
+{
+    bool first = true;
+
+    // Emptying the statistics stream.
+    str.str(std::string());
+
+    // Going through all workers.
+    str << "[";
+    for (int32_t w = 0; w < setting_num_workers_; w++)
+    {
+        if (!first) {
+            str << ",";
+        }
+
+        first = false;
+
+        str << "{\"workerid\":\"" << w << "\",\"sockets\":";
+
+        gw_workers_[w].PrintSocketsInfo(str);
+
+        str << "}";
+    }
+    str << "]";
 }
 
 // Gateway URIs that are used for handlers registration and tests.
@@ -2828,7 +2878,29 @@ std::string Gateway::GetGlobalProfilersString(int32_t* out_stats_len_bytes)
     return str;
 }
 
-// Current gateway statistics value.
+// Current gateway sockets statistics.
+std::string Gateway::GetGatewaySocketsStatisticsString()
+{
+    std::stringstream str;
+
+    EnterCriticalSection(&cs_statistics_);
+
+    PrintWorkersSockets(str);
+
+    std::string stats_body_string = str.str();
+
+    std::stringstream stats_http_resp;
+    stats_http_resp << "HTTP/1.1 200 OK\r\n"
+        "Content-Type: application/json\r\n"
+        "Cache-control: no-store\r\n"
+        "Content-Length: " << stats_body_string.length() << "\r\n\r\n" << stats_body_string;
+
+    LeaveCriticalSection(&cs_statistics_);
+
+    return stats_http_resp.str();
+}
+
+// Current gateway statistics.
 std::string Gateway::GetGatewayStatisticsString()
 {
     std::stringstream port_statistics_stream;
@@ -4058,9 +4130,6 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
     // Catching all unhandled exceptions in this thread.
     GW_SC_BEGIN_FUNC
-
-    // Setting the critical log handler.
-    set_critical_log_handler(LogGatewayCrash, NULL);
 
     using namespace starcounter::network;
     uint32_t err_code = 0;

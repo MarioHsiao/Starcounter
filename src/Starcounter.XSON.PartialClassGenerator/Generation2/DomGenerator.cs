@@ -69,6 +69,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             var p4 = new GeneratorPhase4(this);
             var p5 = new GeneratorPhase5(this);
             var p6 = new GeneratorPhase6(this);
+            var p7 = new GeneratorPhase7(this);
 
             AstJsonClass acn;
             AstSchemaClass tcn;
@@ -80,6 +81,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             p4.RunPhase4(acn);
             p5.RunPhase5(acn, tcn, mcn);
             p6.RunPhase6(acn);
+            p7.RunPhase7(acn);
 
             return this.Root;
         }

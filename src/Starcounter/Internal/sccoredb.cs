@@ -85,8 +85,6 @@ namespace Starcounter.Internal
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
         public unsafe struct sccoredb_callbacks
         {
-            public void* query_highmem_cond;
-
             public void *on_index_updated;
         }
 
@@ -253,7 +251,7 @@ namespace Starcounter.Internal
         /// Always 0. Operation can not fail.
         /// </returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_get_current_transaction(
+        internal static extern uint star_context_get_transaction(
             ulong handle, out ulong transaction_handle
             );
 
@@ -264,13 +262,13 @@ namespace Starcounter.Internal
         /// Always 0. Operation can not fail.
         /// </returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_set_current_transaction(
+        internal static extern uint star_context_set_transaction(
             ulong handle, ulong transaction_handle
             );
 
         /// <summary>
         /// </summary>
-        public const uint MDB_TRANSCREATE_MERGING_WRITES = 0x0004;
+        public const uint MDB_TRANSCREATE_LONG_RUNNING = 0x0004;
 
         /// <summary>
         /// </summary>
@@ -279,9 +277,9 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_create_transaction(
-          ulong handle, uint flags, out ulong transaction_handle
-          );
+        internal static extern uint star_create_transaction(
+            uint flags, out ulong ptransaction_handle
+            );
 
         /// <summary>
         /// Frees transaction.
@@ -317,7 +315,7 @@ namespace Starcounter.Internal
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern unsafe uint star_context_insert(
-          ulong handle, ushort layout_handle, ulong* pnew_record_id, ulong* pnew_record_ref
+          ulong handle, ushort layout_handle, ulong* pnew_record_id
           );
 
         /// <summary>
@@ -331,15 +329,14 @@ namespace Starcounter.Internal
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal unsafe extern static uint star_context_insert_system(
-            ulong handle, ushort layout_handle, ulong* pnew_record_id,
-            ulong* pnew_record_ref
+            ulong handle, ushort layout_handle, ulong* pnew_record_id
             );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint stari_transaction_insert_with_id(
-          ulong handle, ushort layout_handle, ulong new_record_id, ulong* pnew_record_ref
+        internal static extern unsafe uint stari_context_insert_with_id(
+          ulong handle, ushort layout_handle, ulong new_record_id
           );
 
         /// <summary>
@@ -361,7 +358,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint star_context_get_binary(
+        internal static extern unsafe uint star_context_get_binary_OLD(
           ulong handle, ulong record_id, ulong record_ref, int column_index, byte** pvalue
           );
 
@@ -386,11 +383,25 @@ namespace Starcounter.Internal
           ulong handle, ulong record_id, ulong record_ref, int column_index, long* pvalue
           );
 
+        [StructLayout(LayoutKind.Sequential, Pack = 8)]
+        internal struct STAR_RECORD_HANDLE {
+            internal ulong id;
+            internal ulong opt;
+        };
+
+        [StructLayout(LayoutKind.Sequential, Pack = 8)]
+        internal struct STAR_REFERENCE_VALUE {
+            internal STAR_RECORD_HANDLE handle;
+            internal ushort layout_handle;
+            ushort fill1; ushort fill2; ushort fill3; // Align struct size to 8 bytes.
+        };
+
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern unsafe uint star_context_get_reference(
-          ulong handle, ulong record_id, ulong record_ref, int column_index, ulong* pvalue
+          ulong handle, ulong record_id, ulong record_ref, int column_index,
+          STAR_REFERENCE_VALUE* pvalue
           );
 
         /// <summary>
@@ -417,7 +428,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_put_binary(
+        internal static extern uint star_context_put_binary_OLD(
             ulong handle, ulong record_id, ulong record_ref, int column_index, byte[] value
             );
 
@@ -542,15 +553,15 @@ namespace Starcounter.Internal
         /// </remarks>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         private static extern unsafe uint star_iterator_next(
-            ulong handle, ulong* precord_id, ulong* precord_ref
+            ulong handle, STAR_REFERENCE_VALUE *pvalue
             );
 
         internal static unsafe uint star_iterator_next(
-            ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
+            ulong handle, STAR_REFERENCE_VALUE* pvalue, ulong verify
             ) {
-            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            var contextHandle = ThreadData.ContextHandle;
             if (verify == ThreadData.ObjectVerify)
-                return star_iterator_next(handle, precord_id, precord_ref);
+                return star_iterator_next(handle, pvalue);
             return Error.SCERRITERATORNOTOWNED;
         }
 
@@ -593,15 +604,15 @@ namespace Starcounter.Internal
         /// </remarks>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
         private static extern unsafe uint star_filter_iterator_next(
-            ulong handle, ulong* precord_id, ulong* precord_ref
+            ulong handle, STAR_REFERENCE_VALUE* pvalue
             );
 
         internal static unsafe uint star_filter_iterator_next(
-            ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
+            ulong handle, STAR_REFERENCE_VALUE* pvalue, ulong verify
             ) {
-            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            var contextHandle = ThreadData.ContextHandle;
             if (verify == ThreadData.ObjectVerify)
-                return star_filter_iterator_next(handle, precord_id, precord_ref);
+                return star_filter_iterator_next(handle, pvalue);
             return Error.SCERRITERATORNOTOWNED;
         }
 

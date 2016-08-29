@@ -201,14 +201,14 @@ namespace Starcounter.SqlProcessor {
                 unsafe {
                     uint r;
 
-                    r = sccoredb.star_context_create_transaction(
-                        contextHandle, 0, out transactionHandle
+                    r = sccoredb.star_create_transaction(
+                        0, out transactionHandle
                         );
                     if (r != 0) {
                         transactionHandle = 0;
                         goto err;
                     }
-                    r = sccoredb.star_context_set_current_transaction(
+                    r = sccoredb.star_context_set_transaction(
                         contextHandle, transactionHandle
                         );
                     if (r != 0) goto err;

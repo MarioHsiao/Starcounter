@@ -48,7 +48,7 @@ namespace Starcounter.Internal {
                     try {
                         Db.Transact(() => {
                             result = ExecuteQuery(req.Body, maxResult);
-                        }, false, 0);
+                        }, 0);
 
                     }
                     catch (Starcounter.DbException e) {
@@ -91,6 +91,10 @@ namespace Starcounter.Internal {
             Arr<Json> rowArr = (Arr<Json>)rowsTemplate.Getter(results.rows);
 
             try {
+
+                // Workaround for the newline problems in the parser.
+                query = query.Replace('\r', ' ');
+                query = query.Replace('\n', ' ');
 
                 QueryResultRows<dynamic> sqlResult = Db.SlowSQL(query);
 

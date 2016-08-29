@@ -26,7 +26,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             foreach (var metadata in new[] { monoMetadata, roslynMetadata }) {
                 Assert.AreEqual(null, metadata.RootClassInfo.BoundDataClass);
-                Assert.AreEqual("Simple_json", metadata.RootClassInfo.RawDebugJsonMapAttribute);
+                Assert.AreEqual("Simple_json", metadata.RootClassInfo.JsonMapAttribute);
                 Assert.AreEqual("Json", metadata.RootClassInfo.BaseClassName);
                 Assert.AreEqual("MySampleNamespace", metadata.RootClassInfo.Namespace);
 
@@ -36,7 +36,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 });
                 Assert.AreEqual("OrderItem", c2.BoundDataClass);
                 Assert.AreEqual("MyOtherNs.MySubNS.SubClass", c2.BaseClassName);
-                Assert.AreEqual("Apapa_json.Items", c2.RawDebugJsonMapAttribute);
+                Assert.AreEqual("Apapa_json.Items", c2.JsonMapAttribute);
 
                 Assert.AreEqual(3, metadata.UsingDirectives.Count);
                 Assert.AreEqual("System", metadata.UsingDirectives[0]);
@@ -53,7 +53,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             foreach (var metadata in new[] { monoMetadata, roslynMetadata }) {
                 Assert.AreEqual("Order", metadata.RootClassInfo.BoundDataClass);
-                Assert.AreEqual("Complex_json", metadata.RootClassInfo.RawDebugJsonMapAttribute);
+                Assert.AreEqual("Complex_json", metadata.RootClassInfo.JsonMapAttribute);
                 Assert.AreEqual("MyBaseJsonClass", metadata.RootClassInfo.BaseClassName);
                 Assert.AreEqual("MySampleNamespace", metadata.RootClassInfo.Namespace);
 
@@ -64,7 +64,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
                 Assert.AreEqual("OrderItem", c2.BoundDataClass);
                 Assert.AreEqual("Json", c2.BaseClassName);
-                Assert.AreEqual("Complex_json.ActivePage.SubPage1.SubPage2.SubPage3", c2.RawDebugJsonMapAttribute);
+                Assert.AreEqual("Complex_json.ActivePage.SubPage1.SubPage2.SubPage3", c2.JsonMapAttribute);
 
                 Assert.AreEqual(3, metadata.UsingDirectives.Count);
                 Assert.AreEqual("System", metadata.UsingDirectives[0]);
@@ -201,7 +201,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 Assert.AreEqual(mc.IsRootClass, rc.IsRootClass);
                 Assert.AreEqual(mc.Namespace, rc.Namespace);
                 Assert.AreEqual(mc.ParentClasses, rc.ParentClasses);
-                Assert.AreEqual(mc.RawDebugJsonMapAttribute, rc.RawDebugJsonMapAttribute);
+                Assert.AreEqual(mc.JsonMapAttribute, rc.JsonMapAttribute);
                 Assert.AreEqual(mc.UseGlobalSpecifier, rc.UseGlobalSpecifier);
             }
 
@@ -281,6 +281,66 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             Assert.IsNotNull(roslyn.RootClassInfo);
             Assert.AreEqual("Nullable<MyStruct>", roslyn.RootClassInfo.BoundDataClass);
+        }
+
+        [Test]
+        public static void CodeBehindCustomConstructorTest() {
+            InvalidCodeBehindException ex;
+            CodeBehindMetadata roslyn = null;
+            string source;
+
+            // Custom default constructor.
+            // TODO: Should this be allowed?
+            source = "public partial class Foo : Json { public Foo() { } }";
+            ex = Assert.Throws<InvalidCodeBehindException>(() => {
+                roslyn = ParserAnalyzeCode("Foo", source, true);
+            });
+            Assert.AreEqual((uint)ex.Error, Error.SCERRJSONWITHCONSTRUCTOR);
+
+            // Custom constructor with parameter
+            source = "public partial class Foo : Json { public Foo(int bar) { } }";
+            ex = Assert.Throws<InvalidCodeBehindException>(() => {
+                roslyn = ParserAnalyzeCode("Foo", source, true);
+            });
+            Assert.AreEqual((uint)ex.Error, Error.SCERRJSONWITHCONSTRUCTOR);
+            
+            // Inner unmapped class. Should be ignored.
+            source = "public partial class Foo : Json { public class Bar { public Bar(int value) { } } }";
+            roslyn = ParserAnalyzeCode("Foo", source, true);
+        }
+
+        [Test]
+        public static void CodeBehindDetectPropertiesAndFieldsTest() {
+            string source;
+            
+            source = "public partial class Foo: Json {"
+                    + "private string one; "
+                    + "private int two, thrEE; "
+                    + "static Int32 Four; "
+                    + "protected long Five { get; set; } "
+                    + "string Six { get; private set; } "
+                    + "public static long seven { get; set; } "
+                    + "}";
+
+            var roslyn = ParserAnalyzeCode("Foo", source, true);
+
+            Assert.IsNotNull(roslyn.RootClassInfo);
+            Assert.AreEqual(7, roslyn.RootClassInfo.FieldOrPropertyList.Count);
+            
+            AssertFieldOrPropertyInfo("one", "string", false, roslyn.RootClassInfo.FieldOrPropertyList[0]);
+            AssertFieldOrPropertyInfo("two", "int", false, roslyn.RootClassInfo.FieldOrPropertyList[1]);
+            AssertFieldOrPropertyInfo("thrEE", "int", false, roslyn.RootClassInfo.FieldOrPropertyList[2]);
+            AssertFieldOrPropertyInfo("Four", "Int32", false, roslyn.RootClassInfo.FieldOrPropertyList[3]);
+            AssertFieldOrPropertyInfo("Five", "long", true, roslyn.RootClassInfo.FieldOrPropertyList[4]);
+            AssertFieldOrPropertyInfo("Six", "string", true, roslyn.RootClassInfo.FieldOrPropertyList[5]);
+            AssertFieldOrPropertyInfo("seven", "long", true, roslyn.RootClassInfo.FieldOrPropertyList[6]);
+        }
+
+        private static void AssertFieldOrPropertyInfo(string name, string typeName, bool isProperty, 
+                                                      CodeBehindFieldOrPropertyInfo fop) {
+            Assert.AreEqual(name, fop.Name);
+            Assert.AreEqual(typeName, fop.TypeName);
+            Assert.AreEqual(isProperty, fop.IsProperty);
         }
     }
 }

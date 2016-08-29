@@ -4,7 +4,6 @@
 #include "ws_proto.hpp"
 #include "http_proto.hpp"
 #include "socket_data.hpp"
-#include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
 
@@ -193,15 +192,21 @@ socket_index_type GatewayWorker::ObtainFreeSocketIndex(
     si->socket_ = s;
     si->type_of_network_protocol_ = protocol_type;
 
+    // Setting state.
+    si->SetState(SOCKET_STATE::CREATED);
+
     // Checking if this socket is used for connecting to remote machine.
-    if (proxy_connect_socket)
+    if (proxy_connect_socket) {
         si->set_socket_proxy_connect_flag();
+    }
 
     // Creating new socket info.
     CreateNewSocketInfo(si->read_only_index_, port_index, get_worker_id());
 
     // Creating unique ids.
     GenerateUniqueSocketInfoIds(si->read_only_index_);
+
+    GW_ASSERT(si->read_only_index_ == free_socket_index);
 
     return si->read_only_index_;
 }
@@ -592,6 +597,9 @@ START_RECEIVING_AGAIN:
         err_code = sd->ReceiveTcp(this, &numBytes);
     }
 
+    // Setting state.
+    sd->get_socket_info()->SetState(SOCKET_STATE::RECEIVING);
+
     // Checking if operation completed immediately.
     if (0 != err_code)
     {
@@ -662,6 +670,9 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
+
+    // Setting state.
+    sd->get_socket_info()->SetState(SOCKET_STATE::RECEIVED);
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_received)
@@ -765,6 +776,12 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
+
+    // Checking if its a socket representer.
+    if (sd->get_socket_representer_flag()) {
+        // Setting state.
+        sd->get_socket_info()->SetState(SOCKET_STATE::SENDING);
+    }
 
     // Checking if aggregation is involved.
     if (sd->GetSocketAggregatedFlag())
@@ -872,6 +889,13 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
+
+    // Checking if its a socket representer.
+    if (sd->get_socket_representer_flag()) {
+
+        // Setting state.
+        sd->get_socket_info()->SetState(SOCKET_STATE::SENT);
+    }
 
     // Checking disconnect state.
     if (sd->get_disconnect_after_send_flag()) {
@@ -1133,6 +1157,9 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         if (sd->GetSocketAggregatedFlag())
             goto RELEASE_CHUNK_TO_POOL;
 
+        // Setting state.
+        sd->get_socket_info()->SetState(SOCKET_STATE::DISCONNECTING);
+
         // Disconnecting socket handle and invalidate it.
         sd->DisconnectSocket();
 
@@ -1173,6 +1200,9 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     // NOTE: Since we are here means that this socket data represents this socket.
     GW_ASSERT(sd->get_socket_representer_flag());
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
+
+    // Setting state.
+    sd->get_socket_info()->SetState(SOCKET_STATE::DISCONNECTED);
 
 	// Pushing disconnect message to host if needed.
 	PushDisconnectToCodehost(sd);
@@ -1339,6 +1369,9 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
         return SCERRGWFAILEDACCEPTEX;
     }
 
+    // Setting state.
+    sd->get_socket_info()->SetState(SOCKET_STATE::ACCEPTING);
+
     // Updating number of accepting sockets.
     ChangeNumAcceptingSockets(port_index, 1);
 
@@ -1361,6 +1394,9 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
+
+    // Setting state.
+    sd->get_socket_info()->SetState(SOCKET_STATE::ACCEPTED);
 
     // Checking if was rebalanced.
     if (0 == worker_id_) {
@@ -1710,19 +1746,9 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // Checking correct unique socket.
                     if (sd->get_socket_representer_flag()) {
 
-                        // Checking if its a UDP socket.
-                        if (sd->IsUdp()) {
-
-                            // Simply receiving again, if its a UDP socket.
-                            err_code = Receive(sd);
-                            GW_ASSERT(0 == err_code);
-                            
-                        } else {
-
-                            // Disconnecting TCP socket.
-                            err_code = FinishDisconnect(sd);
-                            GW_ASSERT(0 == err_code);
-                        }
+                        // Disconnecting socket.
+                        err_code = FinishDisconnect(sd);
+                        GW_ASSERT(0 == err_code);
 
                     } else {
 

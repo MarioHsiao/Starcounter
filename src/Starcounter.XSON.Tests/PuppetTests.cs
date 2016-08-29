@@ -772,6 +772,11 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestDirtyCheckForReplacingStatefulSibling_3583() {
+            // 20160816: Test modified after discussion and investigation which concluded that 
+            // the implementation for #3583 was not correct. Replacing a stateful sibling
+            // should lead to that the previous stateful sibling will be stateless...
+            // https://github.com/Starcounter/Starcounter/issues/3786
+            
             dynamic root = new Json();
             dynamic page = new Json();
 
@@ -801,18 +806,15 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
 
             changes = root.ChangeLog.Generate(true);
-            
+
+            // Replacing Current on siblingRoot should not lead to that the siblings are updated.
             sibling = new Json();
             sibling.Header = "New sibling";
             siblingRoot.Current = sibling;
 
             changes = root.ChangeLog.Generate(true);
 
-            Assert.AreEqual(1, changes.Length);
-            if (sibling != changes[0].Parent) {
-                throw new Exception("Instances of json are not the same.");
-            }
-            Assert.IsNull(changes[0].Property);
+            Assert.AreEqual(0, changes.Length);
         }
 
         [Test]

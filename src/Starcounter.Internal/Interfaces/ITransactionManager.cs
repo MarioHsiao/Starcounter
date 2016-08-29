@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Starcounter.Internal {
     internal interface ITransactionManager {
-        TransactionHandle Create(bool readOnly, bool detectConflicts = false, bool applyHooks = true);
+        TransactionHandle Create(bool readOnly, bool applyHooks = true);
         Starcounter.Advanced.ITransaction WrapHandle(TransactionHandle handle);
         void Commit(TransactionHandle handle);
         void Rollback(TransactionHandle handle);
@@ -29,11 +29,12 @@ namespace Starcounter.Internal {
         TResult Scope<T1, T2, T3, TResult>(TransactionHandle handle, Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3);
         TResult Scope<T1, T2, T3, T4, TResult>(TransactionHandle handle, Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4);
         TResult Scope<T1, T2, T3, T4, T5, TResult>(TransactionHandle handle, Func<T1, T2, T3, T4, T5, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5);
+        TResult Scope<T1, T2, T3, T4, T5, T6, TResult>(TransactionHandle handle, Func<T1, T2, T3, T4, T5, T6, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
     }
 
     public struct TransactionHandle {
         public const byte INVALID_VERIFY = 0xFF;
-        internal const uint FLAG_MERGING_WRITES = 0x0004;
+        internal const uint FLAG_LONG_RUNNING = 0x0004;
         internal const uint FLAG_TRANSCREATE_READ_ONLY = 0x0008;
         internal const uint FLAG_IMPLICIT = 0x2000;
         private const uint FLAG_CLAIMED = 0x4000;

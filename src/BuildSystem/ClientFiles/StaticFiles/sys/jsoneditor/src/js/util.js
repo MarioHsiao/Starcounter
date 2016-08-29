@@ -1,4 +1,6 @@
-var jsonlint = require('jsonlint');
+'use strict';
+
+var jsonlint = require('./assets/jsonlint/jsonlint');
 
 /**
  * Parse JSON using the parser built-in in the browser.
@@ -45,31 +47,36 @@ exports.sanitize = function (jsString) {
   function next()  { return jsString.charAt(i + 1); }
   function prev()  { return jsString.charAt(i - 1); }
 
-  // test whether the last non-whitespace character was a brace-open '{'
-  function prevIsBrace() {
-    var ii = i - 1;
-    while (ii >= 0) {
-      var cc = jsString.charAt(ii);
-      if (cc === '{') {
-        return true;
+  // get the last parsed non-whitespace character
+  function lastNonWhitespace () {
+    var p = chars.length - 1;
+
+    while (p >= 0) {
+      var pp = chars[p];
+      if (pp !== ' ' && pp !== '\n' && pp !== '\r' && pp !== '\t') { // non whitespace
+        return pp;
       }
-      else if (cc === ' ' || cc === '\n' || cc === '\r') { // whitespace
-        ii--;
-      }
-      else {
-        return false;
-      }
+      p--;
     }
-    return false;
+
+    return '';
   }
 
   // skip a block comment '/* ... */'
-  function skipComment () {
+  function skipBlockComment () {
     i += 2;
     while (i < jsString.length && (curr() !== '*' || next() !== '/')) {
       i++;
     }
     i += 2;
+  }
+
+  // skip a comment '// ...'
+  function skipComment () {
+    i += 2;
+    while (i < jsString.length && (curr() !== '\n')) {
+      i++;
+    }
   }
 
   // parse single or double quoted string
@@ -129,12 +136,15 @@ exports.sanitize = function (jsString) {
     var c = curr();
 
     if (c === '/' && next() === '*') {
+      skipBlockComment();
+    }
+    else if (c === '/' && next() === '/') {
       skipComment();
     }
     else if (c === '\'' || c === '"') {
       parseString(c);
     }
-    else if (/[a-zA-Z_$]/.test(c) && prevIsBrace()) {
+    else if (/[a-zA-Z_$]/.test(c) && ['{', ','].indexOf(lastNonWhitespace()) !== -1) {
       // an unquoted object key (like a in '{a:2}')
       parseKey();
     }
@@ -145,6 +155,21 @@ exports.sanitize = function (jsString) {
   }
 
   return chars.join('');
+};
+
+/**
+ * Escape unicode characters.
+ * For example input '\u2661' (length 1) will output '\\u2661' (length 5).
+ * @param {string} text
+ * @return {string}
+ */
+exports.escapeUnicodeChars = function (text) {
+  // see https://www.wikiwand.com/en/UTF-16
+  // note: we leave surrogate pairs as two individual chars,
+  // as JSON doesn't interpret them as a single unicode char.
+  return text.replace(/[\u007F-\uFFFF]/g, function(c) {
+    return '\\u'+('0000' + c.charCodeAt(0).toString(16)).slice(-4);
+  })
 };
 
 /**
@@ -190,16 +215,6 @@ exports.clear = function clear (a) {
     }
   }
   return a;
-};
-
-/**
- * Output text to the console, if console is available
- * @param {...*} args
- */
-exports.log = function log (args) {
-  if (typeof console !== 'undefined' && typeof console.log === 'function') {
-    console.log.apply(console, arguments);
-  }
 };
 
 /**
@@ -439,6 +454,11 @@ exports.setSelectionOffset = function setSelectionOffset(params) {
     var selection = window.getSelection();
     if(selection) {
       var range = document.createRange();
+
+      if (!params.container.firstChild) {
+        params.container.appendChild(document.createTextNode(''));
+      }
+
       // TODO: do not suppose that the first child of the container is a textnode,
       //       but recursively find the textnodes
       range.setStart(params.container.firstChild, params.startOffset);
@@ -610,4 +630,143 @@ exports.removeEventListener = function removeEventListener(element, action, list
     // Old IE browsers
     element.detachEvent("on" + action, listener);
   }
+};
+
+/**
+ * Parse a JSON path like '.items[3].name' into an array
+ * @param {string} jsonPath
+ * @return {Array}
+ */
+exports.parsePath = function parsePath(jsonPath) {
+  var prop, remainder;
+
+  if (jsonPath.length === 0) {
+    return [];
+  }
+
+  // find a match like '.prop'
+  var match = jsonPath.match(/^\.(\w+)/);
+  if (match) {
+    prop = match[1];
+    remainder = jsonPath.substr(prop.length + 1);
+  }
+  else if (jsonPath[0] === '[') {
+    // find a match like
+    var end = jsonPath.indexOf(']');
+    if (end === -1) {
+      throw new SyntaxError('Character ] expected in path');
+    }
+    if (end === 1) {
+      throw new SyntaxError('Index expected after [');
+    }
+
+    var value = jsonPath.substring(1, end);
+    prop = value === '*' ? value : JSON.parse(value); // parse string and number
+    remainder = jsonPath.substr(end + 1);
+  }
+  else {
+    throw new SyntaxError('Failed to parse path');
+  }
+
+  return [prop].concat(parsePath(remainder))
+};
+
+/**
+ * Improve the error message of a JSON schema error
+ * @param {Object} error
+ * @return {Object} The error
+ */
+exports.improveSchemaError = function (error) {
+  if (error.keyword === 'enum' && Array.isArray(error.schema)) {
+    var enums = error.schema;
+    if (enums) {
+      enums = enums.map(function (value) {
+        return JSON.stringify(value);
+      });
+
+      if (enums.length > 5) {
+        var more = ['(' + (enums.length - 5) + ' more...)'];
+        enums = enums.slice(0, 5);
+        enums.push(more);
+      }
+      error.message = 'should be equal to one of: ' + enums.join(', ');
+    }
+  }
+
+  if (error.keyword === 'additionalProperties') {
+    error.message = 'should NOT have additional property: ' + error.params.additionalProperty;
+  }
+
+  return error;
+};
+
+/**
+ * Test whether the child rect fits completely inside the parent rect.
+ * @param {ClientRect} parent
+ * @param {ClientRect} child
+ * @param {number} margin
+ */
+exports.insideRect = function (parent, child, margin) {
+  var _margin = margin !== undefined ? margin : 0;
+  return child.left   - _margin >= parent.left
+      && child.right  + _margin <= parent.right
+      && child.top    - _margin >= parent.top
+      && child.bottom + _margin <= parent.bottom;
+};
+
+/**
+ * Returns a function, that, as long as it continues to be invoked, will not
+ * be triggered. The function will be called after it stops being called for
+ * N milliseconds.
+ *
+ * Source: https://davidwalsh.name/javascript-debounce-function
+ *
+ * @param {function} func
+ * @param {number} wait                 Number in milliseconds
+ * @param {boolean} [immediate=false]   If `immediate` is passed, trigger the
+ *                                      function on the leading edge, instead
+ *                                      of the trailing.
+ * @return {function} Return the debounced function
+ */
+exports.debounce = function debounce(func, wait, immediate) {
+  var timeout;
+  return function() {
+    var context = this, args = arguments;
+    var later = function() {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
+    };
+    var callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func.apply(context, args);
+  };
+};
+
+/**
+ * Determines the difference between two texts.
+ * Can only detect one removed or inserted block of characters.
+ * @param {string} oldText
+ * @param {string} newText
+ * @return {{start: number, end: number}} Returns the start and end
+ *                                        of the changed part in newText.
+ */
+exports.textDiff = function textDiff(oldText, newText) {
+  var len = newText.length;
+  var start = 0;
+  var oldEnd = oldText.length;
+  var newEnd = newText.length;
+
+  while (newText.charAt(start) === oldText.charAt(start)
+  && start < len) {
+    start++;
+  }
+
+  while (newText.charAt(newEnd - 1) === oldText.charAt(oldEnd - 1)
+  && newEnd > start && oldEnd > 0) {
+    newEnd--;
+    oldEnd--;
+  }
+
+  return {start: start, end: newEnd};
 };

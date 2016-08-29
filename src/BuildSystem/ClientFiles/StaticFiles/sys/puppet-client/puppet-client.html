@@ -1,4 +1,4 @@
-<!-- puppet-polymer-client version: 2.0.0 | MIT License -->
+<!-- puppet-polymer-client version: 3.1.1 | MIT License -->
 
 <link rel="import" href="../polymer/polymer.html">
 <!-- <link rel="import" href="iron-request.html"> -->
@@ -29,6 +29,50 @@ All the changes from server are also received and propagated to your HTML.
 
 @demo demo/index.html
 -->
+<dom-module id="puppet-client">
+    <template>
+        <style>
+            .box-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                z-index: 1000;
+            }
+            .box-container[hidden] {
+                display: none;
+            }
+            .box {
+                width: 50%;
+                border-radius: 0 0 10px 10px;
+                border: thin solid;
+                border-top: none;
+                text-align: center;
+                padding: 5px 0;
+            }
+            @media only screen and (max-width: 640px) {
+                .box { width: 100%; }
+            }
+            .notice {
+                background-color: #fff4cc;
+                border-color: #ffe070;
+            }
+            .error {
+                background-color: #fad7d4;
+                border-color: #f08a81;
+            }
+            .error pre {
+                white-space: pre-wrap;
+                text-align: left;
+                padding: 0 15px;
+            }
+        </style>
+        <div class="box-container" hidden$="{{!showReconnectingIn}}"><div class="box notice"><strong>Not connected.</strong> Connecting in {{reconnectionSeconds}}s... <a href="" on-tap="reconnectNow">Retry now</a></div></div>
+        <div class="box-container" hidden$="{{!showReconnectingNow}}"><div class="box notice"><strong>Connecting now...</strong></div></div>
+        <div class="box-container" hidden$="{{!connectionError.length}}"><div class="box error"><strong>Connection error:</strong> <pre>{{connectionError}}</pre><a href="" on-tap="reload">Reload page</a> </div></div>
+    </template>
 
 <script>
 (function() {
@@ -64,12 +108,6 @@ All the changes from server are also received and propagated to your HTML.
          *
          * @event connectionerror
          */
-
-
-        hostAttributes: {
-            hidden: true
-        },
-
         properties: {
             /**
              * The remote's URL
@@ -138,9 +176,9 @@ All the changes from server are also received and propagated to your HTML.
             /**
              *  Interval in seconds between ping patches, `0` - disable ping patches
              */
-            pingInterval: {
+            pingIntervalS: {
                 type: Number,
-                value: '60'
+                value: '5'
             },
 
             /**
@@ -162,16 +200,50 @@ All the changes from server are also received and propagated to your HTML.
                 value: '/'
             },
 
+            /**
+             * show the "reconnecting in Xs..." box
+             */
+            showReconnectingIn: {
+                type: Boolean,
+                value: false,
+                readOnly: true,
+                notify: false
+            },
 
-            // /**
-            //  * If true, automatically performs an Ajax request when either `url` or
-            //  * `params` changes.
-            //  */
-            // auto: {
-            //     type: Boolean,
-            //     value: false
-            // },
+            /**
+             * show the "reconnecting now..." box
+             */
+            showReconnectingNow: {
+                type: Boolean,
+                value: false,
+                readOnly: true,
+                notify: false
+            },
 
+            /**
+             * the X in the "reconnecting in Xs..." box
+             */
+            reconnectionSeconds: {
+                type: Number,
+                readOnly: true,
+                notify: false
+            },
+
+            /**
+             * error to show in bright red box
+             */
+            connectionError: {
+                type: String,
+                value: "",
+                readOnly: true,
+                notify: false
+            }
+        },
+        reconnectNow: function() {
+            this.puppet.reconnectNow();
+        },
+        reload: function() {
+            window.location.reload();
         },
 
         /**
@@ -182,8 +254,7 @@ All the changes from server are also received and propagated to your HTML.
 
             var whereToBind = this.getAttribute("ref");
             var listenTo = this.listenTo;
-            var pingInterval = this.pingInterval / 1;
-            var me = this;
+            var pingIntervalS = this.pingIntervalS / 1;
 
             if (listenTo) {
                 listenTo = typeof listenTo == "string" ? document.getElementById(listenTo) : listenTo;
@@ -191,7 +262,7 @@ All the changes from server are also received and propagated to your HTML.
 
             this.puppet = new PuppetDOM({
                 remoteUrl: this.remoteUrl,
-                pingInterval: pingInterval,
+                pingIntervalS: pingIntervalS,
                 listenTo: listenTo,
                 obj: this.obj,
                 useWebSocket: this.useWebSocket,
@@ -202,24 +273,20 @@ All the changes from server are also received and propagated to your HTML.
                 onPatchSent: this.onPatchSent.bind(this),
                 onSocketStateChanged: this.onSocketStateChanged.bind(this),
                 onConnectionError: this.onConnectionError.bind(this),
+                onReconnectionCountdown: this.onReconnectionCountdown.bind(this),
+                onReconnectionEnd: this.onReconnectionEnd.bind(this),
 
                 localVersionPath: this.localVersionPath,
                 remoteVersionPath: this.remoteVersionPath,
                 ot: this.ot,
                 purity: this.purity,
-                jsonpatch: {
-                    apply: this.applyJSONPatch.bind(this),
-                    observe: jsonpatch.observe.bind(this),
-                    unobserve: jsonpatch.unobserve.bind(this),
-                    validate: this.validateJSONPatch.bind(this)
-                },
                 callback: function() {
                     if (whereToBind) {
                         this.bindTo(whereToBind);
                     }
                 }.bind(this)
             });
-            // this.puppet.addEventListener('patch-applied', this.notifyChange);
+            this.puppet.addEventListener('patch-applied', this.onPatchApplied.bind(this));
 
             this.network = this.puppet.network;
             this.morphUrl = this.puppet.morphUrl.bind(this.puppet);
@@ -239,7 +306,8 @@ All the changes from server are also received and propagated to your HTML.
             }
         },
         onLocalChange: function(patches) {
-            this.propagateDomBind(patches);
+            // todo #26
+            this.propagateDomBind({patches: patches, results: patches.map(function() { })});
         },
         onPatchReceived: function(data, url, method) {
             this.fire("patchreceived", {
@@ -275,10 +343,36 @@ All the changes from server are also received and propagated to your HTML.
             this.fire("connectionerror", eventDetail);
 
             if (!eventDetail.handled) {
-                alert("Connection error, please reload page!");
+                this._setConnectionError(JSON.stringify(eventDetail));
             }
         },
-        applyJSONPatch: function(tree, sequence) {
+        onReconnectionCountdown: function(milliseconds) {
+            var eventDetail = {
+                milliseconds: milliseconds,
+                handled: false
+            };
+
+            this.fire("reconnection-countdown", eventDetail);
+
+            if (!eventDetail.handled) {
+                this._setShowReconnectingNow(milliseconds == 0);
+                this._setShowReconnectingIn(milliseconds != 0);
+                this._setReconnectionSeconds(milliseconds / 1000);
+            }
+        },
+        onReconnectionEnd: function() {
+            var eventDetail = {
+                handled: false
+            };
+
+            this.fire("reconnection-end", eventDetail);
+
+            if (!eventDetail.handled) {
+                this._setShowReconnectingNow(false);
+                this._setShowReconnectingIn(false);
+            }
+        },
+        onPatchApplied: function(ev) {
             if (!this.bound) {
                 var whereToBind = this.getAttribute("ref");
                 if (whereToBind) {
@@ -286,25 +380,26 @@ All the changes from server are also received and propagated to your HTML.
                 }
             }
 
-            this.propagateDomBind(sequence);
+            this.propagateDomBind(ev.detail);
             // FIXME tomalec: DRY, puppet does the same
             this.dispatchEvent(new CustomEvent("patch-applied", {
                 bubbles: true,
                 cancelable: true,
-                detail: sequence
+                detail: ev.detail.patches
             }));
         },
-        notifyTemplateDomBind: function(tree, sequence, templateDomBind, polymerPathPrefix) {
+        notifyTemplateDomBind: function(tree, patchesAndResults, templateDomBind, polymerPathPrefix) {
             var operation, polymerPath;
-            for (var operationNo = 0, len = sequence.length; operationNo < len; operationNo++) {
-                operation = sequence[operationNo];
+            for (var operationNo = 0, len = patchesAndResults.patches.length; operationNo < len; operationNo++) {
+                operation = patchesAndResults.patches[operationNo];
+                var result = patchesAndResults.results[operationNo];
 
                 if (operation.path == "") {
                     //in case of root path, Polymer replaces the original obj, which detaches it from Puppet
-                    var newSequence = [];
+                    var newSequence = {patches:[], results: []};
                     for (var prop in operation.value) {
                         if (operation.value.hasOwnProperty(prop)) {
-                            newSequence.push({
+                            newSequence.patches.push({
                                 op: "add",
                                 path: "/" + prop,
                                 value: operation.value[prop]
@@ -333,35 +428,48 @@ All the changes from server are also received and propagated to your HTML.
                             case 'add':
                                 // JSONPatch push
                                 if (name === '-') {
-                                    name = parent.length;
+                                    name = result;
                                 }
-                                templateDomBind.splice(parentsPolymerPath, parseInt(name, 10), 0, operation.value);
-                                //console.info('Add /splice in array is fragile, as Polymer requires something they call normalization, so splices to appear in index order, what is not guaranteed by this element.')
+                                templateDomBind.notifySplices(parentsPolymerPath,
+                                        [{
+                                            index: parseInt(name, 10),
+                                            removed: [],
+                                            addedCount: 1,
+                                            object: parent,
+                                            type: 'splice' }]
+                                );
                                 break;
                             case 'replace':
-                                templateDomBind.splice(parentsPolymerPath, name, 1, operation.value);
+                                    templateDomBind.notifySplices(parentsPolymerPath,
+                                            [{
+                                                index: parseInt(name, 10),
+                                                removed: [result],
+                                                addedCount: 1,
+                                                object: parent,
+                                                type: 'splice' }]
+                                    );
                                 break;
-                                // addedCount = 1;
-                                // var col = Polymer.Collection.get(parent);
-                                // removed = col.getItem('#'+name);
                             case 'remove':
-                                templateDomBind.splice(parentsPolymerPath, name, 1);
-                                //console.info('Remove is fragile, as Polymer requires something they call normalization, so splices to appear in index order, what is not guaranteed by this element.')
+                                templateDomBind.notifySplices(parentsPolymerPath,
+                                        [{
+                                            index: parseInt(name, 10),
+                                            removed: [result],
+                                            addedCount: 0,
+                                            object: parent,
+                                            type: 'splice' }]
+                                );
                                 break;
                         }
                     } else {
                         switch (operation.op) {
                             case 'add':
                             case 'replace':
-                                templateDomBind.set(polymerPath, operation.value);
-                                // this.notifyPath(polymerPath, operation.value);
+                                templateDomBind.notifyPath(polymerPath, operation.value, false);
                                 break;
                             case 'remove':
-                                templateDomBind.set(polymerPath, null);
-                                templateDomBind.set(polymerPath, undefined);
-                                // this.notifyPath(polymerPath, undefined);
                                 //console.warn('Polymer does not support unsetting properties https://github.com/Polymer/polymer/issues/2565');
                                 //console.warn('remove is translated to JSON incompatible set to `undefined`, as there is no remove method in Polymer.')
+                                templateDomBind.notifyPath(polymerPath, undefined, false);
                                 break;
                         }
                     }
@@ -393,15 +501,10 @@ All the changes from server are also received and propagated to your HTML.
         return pointer.replace(/\//g, '.');
     }
 
-    function translatePolymerPathToJSONPointer(pointer) {
-        return pointer.replace(/~/g, '~0')
-            .replace(/\//g, '~1')
-            .replace(/\./g, '/');
-    }
-
     function isNormalInteger(str) {
         var n = ~~Number(str);
         return String(n) === str && n >= 0;
     }
 }());
 </script>
+</dom-module>

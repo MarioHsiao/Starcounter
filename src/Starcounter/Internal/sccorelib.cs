@@ -185,6 +185,8 @@ namespace Starcounter.Internal
             public void* pex_ctxt;
         }
 
+        [DllImport("coalmine.dll")]
+        internal static extern void cm6_init(ulong hlogs);
 
         /// <summary>
         /// Cm2_setups the specified psetup.

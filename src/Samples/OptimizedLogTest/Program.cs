@@ -176,6 +176,23 @@ namespace TransactionLogTest
             }
         }
 
+        static void check_filtering()
+        {
+            //ACT
+            IOptimizedLogManager optlog_manager = new OptimizedLogManager();
+
+            using (IOptimizedLogReader optlog_reader = optlog_manager.OpenLog(Starcounter.Db.Environment.DatabaseName, Starcounter.Db.Environment.DatabaseLogDir, t=>t== typeof(TestClass).FullName))
+            {
+                using (IOptimizedLogReader optlog_reader2 = optlog_manager.OpenLog(Starcounter.Db.Environment.DatabaseName, Starcounter.Db.Environment.DatabaseLogDir, t=>false))
+                {
+                    //CHECK
+                    Trace.Assert(optlog_reader.Records.Where(r => r.record.key.object_id == oid_in_optimized_log).Count() == 1);
+                    Trace.Assert(optlog_reader2.Records.Where(r => r.record.key.object_id == oid_in_optimized_log).Count() == 0);
+                }
+            }
+        }
+
+
 
         static void Main(string[] args)
         {
@@ -183,6 +200,7 @@ namespace TransactionLogTest
 
             check_record_in_optimized_log();
             check_continuity();
+            check_filtering();
 
             Environment.Exit(0);
         }

@@ -7,9 +7,8 @@
 # example: https://github.com/starcounter/pokerdemo.git %git_pokerdemo_branch% %sc_run_pokerdemo_test%
 
 https://github.com/starcounter/pokerdemo.git %git_pokerdemo_branch% %sc_run_pokerdemo_test%
-https://github.com/starcountersamples/launcher.git %git_launcher_branch% %sc_run_store_apps_test%
+https://github.com/StarcounterPrefabs/Launcher.git %git_launcher_branch% %sc_run_store_apps_test%
 https://github.com/starcountersamples/products.git master %sc_run_store_apps_test%
-https://github.com/starcountersamples/procurement.git master %sc_run_store_apps_test%
 https://github.com/starcountersamples/barcodes.git master %sc_run_store_apps_test%
 https://github.com/starcountersamples/skyper.git master %sc_run_store_apps_test%
 https://github.com/starcountersamples/images.git master %sc_run_store_apps_test%

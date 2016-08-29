@@ -15,23 +15,22 @@
     "preview.png"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#~1.1.4",
-    "jsoneditor": "josdejong/jsoneditor#^4.2.1",
-    "fast-json-patch": "~0.5.2"
+    "polymer": ">=1.5.0",
+    "jsoneditor": "josdejong/jsoneditor#^5.5.6",
+    "fast-json-patch": "~1.0.0"
   },
   "authors": [
     "Tomek Wytrebowicz <tomalecpub@gmail.com>"
   ],
   "homepage": "https://github.com/Juicy/juicy-jsoneditor",
-  "version": "1.0.5",
-  "_release": "1.0.5",
+  "version": "1.1.0",
+  "_release": "1.1.0",
   "_resolution": {
     "type": "version",
-    "tag": "1.0.5",
-    "commit": "07a8000771390de85ae2abd3567bf713d0f73af8"
+    "tag": "1.1.0",
+    "commit": "c7f83e89cd46a3bc8cc8216a3472cc63c538ebbf"
   },
-  "_source": "git://github.com/Juicy/juicy-jsoneditor.git",
-  "_target": "~1.0.5",
-  "_originalSource": "Juicy/juicy-jsoneditor",
-  "_direct": true
+  "_source": "https://github.com/Juicy/juicy-jsoneditor.git",
+  "_target": ">=1.1.0",
+  "_originalSource": "juicy-jsoneditor"
 }

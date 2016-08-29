@@ -111,10 +111,11 @@ namespace Starcounter.Internal
             ulong ref_local;
 
             unsafe {
-                contextHandle = ThreadData.ContextHandle;
                 string setpec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(tableId);
-                r = sccoredb.star_context_insert(contextHandle, tableId, &oid_local, &ref_local);
+                contextHandle = ThreadData.ContextHandle;
+                r = sccoredb.star_context_insert(contextHandle, tableId, &oid_local);
                 if (r == 0) {
+                    ref_local = DbHelper.EncodeObjectRef(0, tableId);
                     fixed (char* p = setpec) {
                         r = sccoredb.star_context_put_setspec(
                             contextHandle, oid_local, ref_local, p
@@ -142,12 +143,12 @@ namespace Starcounter.Internal
             ulong addr_local;
 
             unsafe {
-                contextHandle = ThreadData.ContextHandle;
                 string setpec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(tableId);
-                dr = sccoredb.star_context_insert_system(contextHandle, 
-                    tableId, &oid_local, &addr_local);
+                contextHandle = ThreadData.ContextHandle;
+                dr = sccoredb.star_context_insert_system(contextHandle, tableId, &oid_local);
                 if (dr == 0)
                 {
+                    addr_local = DbHelper.EncodeObjectRef(0, tableId);
                     fixed (char* p = setpec)
                     {
                         dr = sccoredb.star_context_put_setspec(
@@ -191,18 +192,16 @@ namespace Starcounter.Internal
 
             unsafe
             {
-                contextHandle = ThreadData.ContextHandle;
-
                 //look for existing object
                 if (Lookup(oid) != null)
                     throw ErrorCode.ToException(Error.SCERRCONSTRAINTVIOLATIONABORT);
 
                 string setpec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(tableId);
-                ulong transaction_handle;
-                sccoredb.star_context_get_current_transaction(contextHandle, out transaction_handle);
-                r = sccoredb.stari_transaction_insert_with_id(transaction_handle, tableId, oid, &ref_local);
+                contextHandle = ThreadData.ContextHandle;
+                r = sccoredb.stari_context_insert_with_id(contextHandle, tableId, oid);
                 if (r == 0)
                 {
+                    ref_local = DbHelper.EncodeObjectRef(0, tableId);
                     fixed (char* p = setpec)
                     {
                         r = sccoredb.star_context_put_setspec(
@@ -532,22 +531,19 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <returns></returns>
         public static IObjectView ReadObject(ulong oid, ulong address, Int32 index) {
-            uint r;
-            ushort cci;
-
             unsafe {
-                ulong* value = stackalloc ulong[2];
-
-                r = sccoredb.star_context_get_reference(
+                sccoredb.STAR_REFERENCE_VALUE value;
+                uint r = sccoredb.star_context_get_reference(
                     ThreadData.ContextHandle,
                     oid,
                     address,
                     index,
-                    value
+                    &value
                     );
                 if (r == 0) {
-                    cci = (ushort)(value[1] & 0xFFFF);
-                    return Bindings.GetTypeBinding(cci).NewInstance(value[1], value[0]);
+                    TypeBinding tb = Bindings.GetTypeBinding(value.layout_handle);
+                    ulong record_ref = DbHelper.EncodeObjectRef(value.handle.opt, tb.TableId);
+                    return tb.NewInstance(record_ref, value.handle.id);
                 }
                 else if (r == Error.SCERRVALUEUNDEFINED) {
                     return null;
@@ -705,7 +701,7 @@ namespace Starcounter.Internal
                 byte* pValue;
                 uint r;
 
-                r = sccoredb.star_context_get_binary(ThreadData.ContextHandle, oid, address, index, &pValue);
+                r = sccoredb.star_context_get_binary_OLD(ThreadData.ContextHandle, oid, address, index, &pValue);
                 if (r == 0) {
                     return Binary.FromNative(pValue);
                 }
@@ -1417,7 +1413,7 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteBinary(ulong oid, ulong address, Int32 index, Binary value) {
             uint r;
-            r = sccoredb.star_context_put_binary(
+            r = sccoredb.star_context_put_binary_OLD(
                       ThreadData.ContextHandle,
                       oid,
                       address,

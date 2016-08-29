@@ -177,20 +177,13 @@ namespace Starcounter {
         /// Executes the given <paramref name="action"/> within a new transaction.
         /// </summary>
         /// <param name="action">The action to execute.</param>
-        /// <param name="forceSnapshot">
-        /// If set, instructs Starcounter to raise an error if the transaction can't
-        /// be executed within a single snapshot (taken at the time of the transaction
-        /// start). The default is false, allowing the isolation to drop to "read
-        /// committed" in case the transaction for some reason should block or take a
-        /// long time.
-        /// </param>
         /// <param name="maxRetries">Number of times to retry the execution of the
         /// transaction if committing it fails because of a conflict with another
         /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
-        public static void Transact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Transact(action, 0, new Advanced.TransactOptions() { forceSnapshot = forceSnapshot, maxRetries = maxRetries });
+        public static void Transact(Action action, int maxRetries = 100) {
+            Transact(action, 0, new Advanced.TransactOptions() { maxRetries = maxRetries });
         }
 
         /// <summary>
@@ -199,20 +192,13 @@ namespace Starcounter {
         /// <typeparam name="T">The type of the parameter for the action.</typeparam>
         /// <param name="action">The action to execute.</param>
         /// <param name="arg">Parameter to use as input to the action.</param>
-        /// <param name="forceSnapshot">
-        /// If set, instructs Starcounter to raise an error if the transaction can't
-        /// be executed within a single snapshot (taken at the time of the transaction
-        /// start). The default is false, allowing the isolation to drop to "read
-        /// committed" in case the transaction for some reason should block or take a
-        /// long time.
-        /// </param>
         /// <param name="maxRetries">Number of times to retry the execution of the
         /// transaction if committing it fails because of a conflict with another
         /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
-        public static void Transact<T>(Action<T> action, T arg, bool forceSnapshot = false, int maxRetries = 100) {
-            Transact<T>(action, arg, 0, new Advanced.TransactOptions() { forceSnapshot = forceSnapshot, maxRetries = maxRetries });
+        public static void Transact<T>(Action<T> action, T arg, int maxRetries = 100) {
+            Transact<T>(action, arg, 0, new Advanced.TransactOptions() { maxRetries = maxRetries });
         }
 
         /// <summary>
@@ -220,21 +206,14 @@ namespace Starcounter {
         /// </summary>
         /// <typeparam name="TResult">The type of the return value of the func.</typeparam>
         /// <param name="func">The func to execute.</param>
-        /// <param name="forceSnapshot">
-        /// If set, instructs Starcounter to raise an error if the transaction can't
-        /// be executed within a single snapshot (taken at the time of the transaction
-        /// start). The default is false, allowing the isolation to drop to "read
-        /// committed" in case the transaction for some reason should block or take a
-        /// long time.
-        /// </param>
         /// <param name="maxRetries">Number of times to retry the execution of the
         /// transaction if committing it fails because of a conflict with another
         /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
         /// <returns>The return value of the func.</returns>
-        public static TResult Transact<TResult>(Func<TResult> func, bool forceSnapshot = false, int maxRetries = 100) {
-            return Transact<TResult>(func, 0, new Advanced.TransactOptions() { forceSnapshot = forceSnapshot, maxRetries = maxRetries });
+        public static TResult Transact<TResult>(Func<TResult> func, int maxRetries = 100) {
+            return Transact<TResult>(func, 0, new Advanced.TransactOptions() { maxRetries = maxRetries });
         }
 
         /// <summary>
@@ -244,29 +223,18 @@ namespace Starcounter {
         /// <typeparam name="T">The type of the parameter of the func.</typeparam>
         /// <param name="func">The func to execute.</param>
         /// <param name="arg">Parameter to use as input to the func</param>
-        /// <param name="forceSnapshot">
-        /// If set, instructs Starcounter to raise an error if the transaction can't
-        /// be executed within a single snapshot (taken at the time of the transaction
-        /// start). The default is false, allowing the isolation to drop to "read
-        /// committed" in case the transaction for some reason should block or take a
-        /// long time.
-        /// </param>
         /// <param name="maxRetries">Number of times to retry the execution of the
         /// transaction if committing it fails because of a conflict with another
         /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
         /// <returns>The return value of the func.</returns>
-        public static TResult Transact<T, TResult>(Func<T, TResult> func, T arg, bool forceSnapshot = false, int maxRetries = 100) {
-            return Transact<T, TResult>(func, arg, 0, new Advanced.TransactOptions() { forceSnapshot = forceSnapshot, maxRetries = maxRetries });
+        public static TResult Transact<T, TResult>(Func<T, TResult> func, T arg, int maxRetries = 100) {
+            return Transact<T, TResult>(func, arg, 0, new Advanced.TransactOptions() { maxRetries = maxRetries });
         }
         
         public static class Advanced {
             public class TransactOptions {
-                public bool forceSnapshot {
-                    get; set;
-                } = false;
-
                 public int maxRetries {
                     get; set;
                 } = 100;
@@ -290,7 +258,7 @@ namespace Starcounter {
             
             if (ThreadData.inTransactionScope_ == 0) {
                 for (;;) {
-                    r = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
+                    r = sccoredb.star_create_transaction(flags, out handle);
                     if (r == 0) {
                         var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
@@ -298,7 +266,7 @@ namespace Starcounter {
                             ThreadData.inTransactionScope_ = 1;
                             ThreadData.applyHooks_ = opts.applyHooks;
 
-                            sccoredb.star_context_set_current_transaction( // Can not fail.
+                            sccoredb.star_context_set_transaction( // Can not fail.
                                 ThreadData.ContextHandle, handle
                                 );
 
@@ -342,14 +310,14 @@ namespace Starcounter {
 
             if (ThreadData.inTransactionScope_ == 0) {
                 for (;;) {
-                    r = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
+                    r = sccoredb.star_create_transaction(flags, out handle);
                     if (r == 0) {
                         var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
                         try {
                             ThreadData.inTransactionScope_ = 1;
                             ThreadData.applyHooks_ = opts.applyHooks;
-                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
+                            sccoredb.star_context_set_transaction(ThreadData.ContextHandle, handle);
                             action(arg);
                             TransactionManager.Commit(1);
                             return;
@@ -385,14 +353,14 @@ namespace Starcounter {
 
             if (ThreadData.inTransactionScope_ == 0) {
                 for (;;) {
-                    r = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
+                    r = sccoredb.star_create_transaction(flags, out handle);
                     if (r == 0) {
                         var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
                         try {
                             ThreadData.inTransactionScope_ = 1;
                             ThreadData.applyHooks_ = opts.applyHooks;
-                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
+                            sccoredb.star_context_set_transaction(ThreadData.ContextHandle, handle);
                             TResult retValue = func();
                             TransactionManager.Commit(1);
                             return retValue;
@@ -428,14 +396,14 @@ namespace Starcounter {
 
             if (ThreadData.inTransactionScope_ == 0) {
                 for (;;) {
-                    r = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
+                    r = sccoredb.star_create_transaction(flags, out handle);
                     if (r == 0) {
                         var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
                         try {
                             ThreadData.inTransactionScope_ = 1;
                             ThreadData.applyHooks_ = opts.applyHooks;
-                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
+                            sccoredb.star_context_set_transaction(ThreadData.ContextHandle, handle);
                             TResult retValue = func(arg);
                             TransactionManager.Commit(1);
                             return retValue;
@@ -462,17 +430,13 @@ namespace Starcounter {
             }
         }
 
-        internal static void SystemTransact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Transact(action, 0, new Advanced.TransactOptions { forceSnapshot = forceSnapshot, maxRetries = maxRetries });
+        internal static void SystemTransact(Action action, int maxRetries = 100) {
+            Transact(action, 0, new Advanced.TransactOptions { maxRetries = maxRetries });
         }
 
         private static void VerifyTransactOptions(Advanced.TransactOptions opts) {
             if (opts.maxRetries < 0) {
                 throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
-            }
-
-            if (opts.forceSnapshot) {
-                throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Forcing snapshot isolation is not yet implemented.");
             }
         }
 
@@ -509,7 +473,7 @@ namespace Starcounter {
             bool create = (old.handle == 0 || old.IsImplicit);
             try {
                 if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
                 action();
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
@@ -524,7 +488,7 @@ namespace Starcounter {
             bool create = (old.handle == 0 || old.IsImplicit);
             try {
                 if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
                 action(arg);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
@@ -539,7 +503,7 @@ namespace Starcounter {
             bool create = (old.handle == 0 || old.IsImplicit);
             try {
                 if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
                 action(arg1, arg2);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
@@ -554,7 +518,7 @@ namespace Starcounter {
             bool create = (old.handle == 0 || old.IsImplicit);
             try {
                 if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
                 action(arg1, arg2, arg3);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
@@ -569,7 +533,7 @@ namespace Starcounter {
             bool create = (old.handle == 0 || old.IsImplicit);
             try {
                 if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
                 return func();
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
@@ -584,7 +548,7 @@ namespace Starcounter {
             bool create = (old.handle == 0 || old.IsImplicit);
             try {
                 if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
                 return func(arg);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
@@ -599,7 +563,7 @@ namespace Starcounter {
             bool create = (old.handle == 0 || old.IsImplicit);
             try {
                 if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
                 return func(arg1, arg2);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);

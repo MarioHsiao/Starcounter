@@ -1,4 +1,4 @@
-# JSON-Patch-Queue
+# JSON-Patch-Queue [![Build Status](https://travis-ci.org/PuppetJs/JSON-Patch-Queue.svg?branch=gh-pages)](https://travis-ci.org/PuppetJs/JSON-Patch-Queue)
 > Makes your JSON Patch application sequential
 
 Implements a queue of JSON Patches, based on [Versioned JSON Patch](https://github.com/tomalec/Versioned-JSON-Patch) convention, that will resolve a problem of sequential application of JSON Patches.
@@ -104,7 +104,7 @@ For detailed changelog, check [Releases](https://github.com/PuppetJs/JSON-Patch-
 
 ## License
 
-[MIT License](http://opensource.org/licenses/MIT)
+MIT
 
 ## See also
 - [fast JSON Patch](https://github.com/Starcounter-Jack/JSON-Patch)

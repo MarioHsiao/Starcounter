@@ -4,7 +4,6 @@
 #include "ws_proto.hpp"
 #include "http_proto.hpp"
 #include "socket_data.hpp"
-#include "tls_proto.hpp"
 #include "worker_db_interface.hpp"
 #include "worker.hpp"
 
@@ -235,12 +234,8 @@ uint32_t WsProto::SendWebSocketDisconnectToDb(
 uint32_t WsProto::ProcessWsDataToDb(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE user_handler_id,
-    bool* is_handled)
+    BMX_HANDLER_TYPE user_handler_id)
 {
-    // Handled successfully.
-    *is_handled = true;
-
     uint32_t mask;
     uint32_t err_code = 0;
 
@@ -387,11 +382,8 @@ uint32_t WsProto::ProcessWsDataToDb(
 }
 
 // Processes payload data from database.
-uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
 {
-    // Handled successfully.
-    *is_handled = true;
-
     // Checking if we want to disconnect the socket or we are already disconnected.
     if (sd->get_disconnect_socket_flag() ||
         sd->GetWsCloseAlreadySentFlag()) {
@@ -451,11 +443,8 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
 const int32_t MaxHandshakeResponseLenBytes = 256;
 
 // Performs the WebSocket handshake.
-uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled)
+uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
 {
-    // Handled successfully.
-    *is_handled = true;
-
     // Checking if client key is defined.
     if (g_ts_client_key_len_ <= 0)
         return SCERRGWWEBSOCKETWRONGHANDSHAKEDATA;

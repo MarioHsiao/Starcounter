@@ -55,8 +55,8 @@ Attribute              | Type          | Default                | Description
 `ignoreAdd`            | *RegExp*      |                        | Regular Expression for `add` operations to be ignored (tested against JSON Pointer in JSON Patch)
 `debug`                | *Boolean*     | `true`                 | Toggle debugging mode
 `onLocalChange`        | *Function*    |                        | Helper callback triggered each time a change is observed locally
-`onRemoteChange`       | *Function*    |                        | Helper callback triggered each time a patch is obtained from remote
-`onPatchReceived`      | *Function*    |                        | Helper callback triggered each time a JSON-patch is received, accepts two parameters: (*String* `data`, *String* `url`, *String*, `method`)
+`onRemoteChange`       | *Function*    |                        | Deprecated, please use patch-applied event. Helper callback triggered each time a remote patch is applied.
+`onPatchReceived`      | *Function*    |                        | Helper callback triggered each time a JSON-patch is received, accepts three parameters: (*String* `data`, *String* `url`, *String*, `method`)
 `onPatchSent`          | *Function*    |                        | Helper callback triggered each time a JSON-patch is sent, accepts two parameters: (*String* `data`, *String* `url`, *String*, `method`)
 `onSocketStateChanged` | *Function*    |                        | Helper callback triggered when socket state changes, accepts next parameters: (*int* `state`, *String* `url`, *String* `data`, *int* `code`, *String* `reason`)
 `onConnectionError`    | *Function*    |                        | Helper callback triggered when socket connection closed, socket connection failed to establish, http requiest failed. Accepts next parameters: (*String* `data`, *String* `url`, *String*, `method`)
@@ -64,7 +64,9 @@ Attribute              | Type          | Default                | Description
 `remoteVersionPath`    | *JSONPointer* | `disabled`             | remote version path, set it (and `localVersionPath`) to enable Versioned JSON Patch communication
 `ot`                   | *Boolean*     | `false`                | `true` to enable OT (requires `localVersionPath` and `remoteVersionPath`)
 `purity`               | *Boolean*     | `false`                | `true` to enable purist mode of OT
-`pingInterval`         | *Number*      | `0`                    | Interval in seconds between ping patches, `0` - disable ping patches
+`pingIntervalS`        | *Number*      | `0`                    | Puppet will generate heartbeats every `pingIntervalS` seconds if no activity is detected. `0` - disable heartbeat
+`onReconnectionCountdown`| *Function*  |                        | Triggered when puppet detected connection problem and reconnection is scheduled. Accepts number of milliseconds to scheduled reconnection. Called every second until countdown reaches 0 (inclusive)
+`onReconnectionEnd`    | *Function*    |                        | Triggered when puppet successfully reconnected
 `jsonpatch`            | *Object*      | window.jsonpatch       | The provider object for jsonpatch apply, validate, observe and unobserve. By default assumes Starcounter-Jack/JSON-Patch library available in global `jsonpatch` variable.
 
 most of them are accessible also in runtime:
@@ -141,6 +143,26 @@ Can be used as follows:
 </script>
 ```
 
+### Generating patches based on local changes
+
+PuppetJs automatically observes local changes. This is implemented by dirty checking, triggered in event listeners for typical browser events (`mousedown`, `mouseup`, etc). It is done by the JSON-Patch library ([source](https://github.com/Starcounter-Jack/JSON-Patch/blob/master/src/json-patch-duplex.ts#L352-L354)).
+
+To generate patches for changes made in code, you need to either simulate a browser event (recommended):
+
+```js
+var clickEvent = document.createEvent('MouseEvents');
+clickEvent.initEvent("mouseup", true, true);
+window.dispatchEvent(clickEvent);
+```
+
+Or use a low level API exposed by the JSON-Patch library, provided that you have a reference the PuppetJs instance:
+
+```js
+jsonpatch.generate(puppet.observer);
+```
+
+Future versions of PuppetJs may contain a high level API for generating patches. Please follow the issue [#29](https://github.com/PuppetJs/PuppetJs/issues/29) to know more.
+
 ### Ignoring local changes (`ignoreAdd`)
 
 If you want to create a property in the observed object that will remain local, there is an `ignoreAdd` option and property that
@@ -174,6 +196,19 @@ var puppet = new Puppet({useWebSocket: true});
 // change it later via property
 puppet.useWebSocket = false;
 ```
+
+### Heartbeat and reconnection
+
+Puppet will try to detect connection problems and then reconnect to server. If `pingIntervalS` is set it determines maximal time without network activity. When this time passes and no activity has been detected
+Puppet will issue a heartbeat patch (an empty patch, consisting only of version operations).
+
+When connection problem is detected (e.g. there was no response to heartbeat or websocket has been closed) puppet will schedule reconnection and trigger `onReconnectionCountdown` callback with number of milliseconds
+to scheduled reconnection as argument, it will then trigger it every second. When countdown reaches 0 (callback is still called then) puppet will try to reconnect (using `/reconnect` endpoint) to server. If this reconnection
+fails then new reconnection will be scheduled for twice as many seconds (i.e. first it will occur after a seconds, then two seconds, then four, etc.). If reconnection succeeds, `onReconnectionEnd` callback will be triggered
+and normal operations will continue.
+
+For successful reconnection, puppet sends a list of pending patches (those sent, but unconfirmed by server) to `/reconnect` endpoint and accepts a new state (along with version numbers) as a response. It then resets
+to this new state and resumes its operations.
 
 ### Dependencies
 
@@ -339,3 +374,7 @@ Open `test/SpecRunner.html` in your web browser to run Jasmine test suite.
 ### Changelog
 
 To see the list of recent changes, see [Releases](https://github.com/PuppetJs/PuppetJs/releases).
+
+## License
+
+MIT

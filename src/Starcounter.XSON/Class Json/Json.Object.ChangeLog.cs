@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal;
@@ -269,79 +268,78 @@ namespace Starcounter {
 		private void LogObjectValueChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings = true) {
             this.Scope<ChangeLog, Json, bool>((clog, json, css) => {
                 var template = (TValue)json.Template;
-                if (template == null)
-                    return;
+                if (template != null) {
+                    if (json.IsObject) {
+                        var exposed = ((TObject)template).Properties.ExposedProperties;
+                        if (json.dirty) {
+                            for (int t = 0; t < exposed.Count; t++) {
+                                if (json.IsDirty(exposed[t].TemplateIndex)) {
+                                    if (clog != null) {
+                                        if (json.IsArray) {
+                                            throw new NotImplementedException();
+                                        } else {
+                                            var childTemplate = (TValue)exposed[t];
+                                            clog.UpdateValue(json, childTemplate);
 
-                if (json.IsObject) {
-                    var exposed = ((TObject)template).Properties.ExposedProperties;
-                    if (json.dirty) {
-                        for (int t = 0; t < exposed.Count; t++) {
-                            if (json.IsDirty(exposed[t].TemplateIndex)) {
-                                if (clog != null) {
-                                    if (json.IsArray) {
-                                        throw new NotImplementedException();
-                                    } else {
-                                        var childTemplate = (TValue)exposed[t];
-                                        clog.UpdateValue(json, childTemplate);
-
-                                        TContainer container = childTemplate as TContainer;
-                                        if (container != null) {
-                                            var childJson = container.GetValue(json);
-                                            if (childJson != null) {
-                                                childJson.SetBoundValuesInTuple();
+                                            TContainer container = childTemplate as TContainer;
+                                            if (container != null) {
+                                                var childJson = container.GetValue(json);
+                                                if (childJson != null) {
+                                                    childJson.SetBoundValuesInTuple();
+                                                }
                                             }
                                         }
                                     }
+                                    json.MarkAsNonDirty(exposed[t].TemplateIndex);
+                                } else {
+                                    var p = exposed[t];
+                                    if (p is TContainer) {
+                                        var c = ((TContainer)p).GetValue(json);
+                                        if (c != null)
+                                            c.LogValueChangesWithDatabase(clog, true);
+                                    } else {
+                                        if (json.IsArray) {
+                                            throw new NotImplementedException();
+                                        } else {
+                                            ((TValue)p).CheckAndSetBoundValue(json, true);
+                                            if (json.IsDirty(p.TemplateIndex))
+                                                clog.UpdateValue(json, (TValue)p);
+                                        }
+                                    }
                                 }
-                                json.MarkAsNonDirty(exposed[t].TemplateIndex);
-                            } else {
-                                var p = exposed[t];
-                                if (p is TContainer) {
-                                    var c = ((TContainer)p).GetValue(json);
+                            }
+                            json.dirty = false;
+                        } else if (this.checkBoundProperties) {
+                            for (int t = 0; t < exposed.Count; t++) {
+                                if (exposed[t] is TContainer) {
+                                    var c = ((TContainer)exposed[t]).GetValue(json);
                                     if (c != null)
                                         c.LogValueChangesWithDatabase(clog, true);
                                 } else {
                                     if (json.IsArray) {
                                         throw new NotImplementedException();
                                     } else {
-                                        ((TValue)p).CheckAndSetBoundValue(json, true);
+                                        var p = exposed[t] as TValue;
+                                        p.CheckAndSetBoundValue(json, true);
                                         if (json.IsDirty(p.TemplateIndex))
-                                            clog.UpdateValue(json, (TValue)p);
+                                            clog.UpdateValue(json, p);
                                     }
                                 }
-                            }
-                        }
-                        json.dirty = false;
-                    } else if (this.checkBoundProperties) {
-                        for (int t = 0; t < exposed.Count; t++) {
-                            if (exposed[t] is TContainer) {
-                                var c = ((TContainer)exposed[t]).GetValue(json);
-                                if (c != null)
-                                    c.LogValueChangesWithDatabase(clog, true);
-                            } else {
-                                if (json.IsArray) {
-                                    throw new NotImplementedException();
-                                } else {
-                                    var p = exposed[t] as TValue;
-                                    p.CheckAndSetBoundValue(json, true);
-                                    if (json.IsDirty(p.TemplateIndex))
-                                        clog.UpdateValue(json, p);
-                                }
-                            }
 
+                            }
                         }
-                    }
-                } else {
-                    if (json.dirty) {
-                        if (json.IsDirty(template.TemplateIndex)) {
-                            if (clog != null)
-                                clog.UpdateValue(json, null);
-                            //json.CheckpointAt(template.TemplateIndex);
-                            json.MarkAsNonDirty(template.TemplateIndex);
-                        } else {
-                            template.CheckAndSetBoundValue(json, true);
-                            if (json.IsDirty(template.TemplateIndex))
-                                clog.UpdateValue(json, template);
+                    } else {
+                        if (json.dirty) {
+                            if (json.IsDirty(template.TemplateIndex)) {
+                                if (clog != null)
+                                    clog.UpdateValue(json, null);
+                                //json.CheckpointAt(template.TemplateIndex);
+                                json.MarkAsNonDirty(template.TemplateIndex);
+                            } else {
+                                template.CheckAndSetBoundValue(json, true);
+                                if (json.IsDirty(template.TemplateIndex))
+                                    clog.UpdateValue(json, template);
+                            }
                         }
                     }
                 }
@@ -886,21 +884,6 @@ namespace Starcounter {
                         return false;
                     }
                     return !log.BrandNew;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="newValue"></param>
-        internal void CheckAndUpdateSibling(Json newValue) {
-            if (this.Siblings != null) {
-                int index = this.Siblings.IndexOf(this);
-
-                if (index != -1) {
-                    this.Siblings[index] = newValue;
-                    this.Siblings = null;
                 }
             }
         }

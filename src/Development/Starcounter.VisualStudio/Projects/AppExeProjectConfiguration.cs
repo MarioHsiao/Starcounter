@@ -158,7 +158,7 @@ namespace Starcounter.VisualStudio.Projects {
             int statusCode;
             Dictionary<String, String> headers;
 
-            AppsEvents.OnDebuggerProcessChange = DebuggerStateChanged;
+            TypedJsonEvents.OnDebuggerProcessChange = DebuggerStateChanged;
             ResponseExtensions.OnUnexpectedResponse = this.HandleUnexpectedResponse;
 
             SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out serverName);
