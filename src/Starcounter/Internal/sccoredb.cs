@@ -358,7 +358,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint star_context_get_binary(
+        internal static extern unsafe uint star_context_get_binary_OLD(
           ulong handle, ulong record_id, ulong record_ref, int column_index, byte** pvalue
           );
 
@@ -428,7 +428,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_put_binary(
+        internal static extern uint star_context_put_binary_OLD(
             ulong handle, ulong record_id, ulong record_ref, int column_index, byte[] value
             );
 

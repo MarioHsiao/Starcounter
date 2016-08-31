@@ -44,7 +44,33 @@ namespace Administrator.Server.Managers {
             var databaseConfigPath = GetSoftwareConfigurationFile(database.ID);
             LoadSoftwareConfiguration(databaseConfigPath, out installedSoftwareItems);
 
+            ApplyStatusToResult(database, installedSoftwareItems);
+
             return installedSoftwareItems;
+        }
+
+        private static void ApplyStatusToResult(Database database, Representations.JSON.InstalledSoftwareItems result) {
+
+
+            foreach (var softwareJson in result.Items) {
+
+                bool isRunning = true;
+
+                foreach (var content in softwareJson.Contents) {
+                    IList<DatabaseApplication> databaseApplications = database.GetApplications(content.Namespace, content.Channel);
+                    foreach (DatabaseApplication databaseApplication in databaseApplications) {
+                        if (databaseApplication.IsRunning) {
+                            content.IsRunning = true;
+                            break;
+                        }
+                        else {
+                            isRunning = false;
+                        }
+                    }
+                }
+
+                softwareJson.IsRunning = isRunning;
+            }
         }
 
         /// <summary>
@@ -60,6 +86,8 @@ namespace Administrator.Server.Managers {
 
             Representations.JSON.InstalledSoftwareItems installedSoftwareItems;
             LoadSoftwareConfiguration(GetSoftwareConfigurationFile(database.ID), out installedSoftwareItems);
+
+            ApplyStatusToResult(database, installedSoftwareItems);
 
             foreach (var software in installedSoftwareItems.Items) {
                 if (software.ID == id) {
@@ -146,6 +174,9 @@ namespace Administrator.Server.Managers {
             }
 
             SaveSoftwareConfiguration(GetSoftwareConfigurationFile(database.ID), installedSoftwareItems);
+
+            ApplyStatusToResult(database, installedSoftwareItems);
+
             return item;
         }
 

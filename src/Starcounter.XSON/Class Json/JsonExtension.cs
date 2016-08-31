@@ -1,5 +1,6 @@
 ﻿using Starcounter.Internal;
 using System;
+using Starcounter.XSON;
 
 namespace Starcounter.Advanced.XSON {
     /// <summary>
@@ -13,6 +14,35 @@ namespace Starcounter.Advanced.XSON {
         /// <returns></returns>
         public static string GetAppName(this Json json) {
             return json.appName;
+        }
+
+        /// <summary>
+        /// Connects the json with an existing json as siblings.
+        /// </summary>
+        /// <remarks>
+        /// Using this method bypasses the standard merger (that merges
+        /// json in responses from Self.GET) and does not trigger the 
+        /// merge-callback.
+        /// 
+        /// </remarks>
+        /// <param name="json"></param>
+        /// <param name="toWrap"></param>
+        public static void MergeJson(this Json main, Json json) {
+            SiblingList siblings = json.Siblings;
+
+            if (siblings == null) {
+                siblings = new SiblingList();
+                siblings.Add(json);
+                json.Siblings = siblings;
+            }
+
+            if (main.Siblings != null) {
+                main.Siblings.Remove(main);
+            }
+            
+            siblings.Add(main);
+            main.wrapInAppName = true;
+            main.Siblings = siblings;
         }
         
         /// <summary>

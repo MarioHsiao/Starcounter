@@ -1,8 +1,8 @@
 ﻿{
-	"$": { Namespace: "Representations.JSON" },
-    "Items": [
-        {
-			"$" : { "Reuse" : "Representations.JSON.InstalledApplication" }
-        }
-    ]
+  "$": { "Namespace": "Representations.JSON" },
+  "Items": [
+    {
+      "$": { "Reuse": "Representations.JSON.InstalledApplication" }
+    }
+  ]
 }

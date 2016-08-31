@@ -57,6 +57,7 @@
 - Upgraded Juicy/imported-template to 1.4.3
 - Upgraded puppetjs/puppet-polymer-client to 3.1.0 which supports reconnection
 - Changed how Starcounter VS Extension handles JSON files to allow adding existing files without code-behind so that they are not treated as TypedJSON per default [#3075](https://github.com/Starcounter/Starcounter/issues/3075)
+- Changed invocation order of middleware, to execute in order of registration rather than the other way around. [#3810](https://github.com/Starcounter/Starcounter/issues/3810)
 
 ## [2.2.1834] - 2016-04-19
 ### Added

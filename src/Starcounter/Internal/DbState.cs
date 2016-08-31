@@ -701,7 +701,7 @@ namespace Starcounter.Internal
                 byte* pValue;
                 uint r;
 
-                r = sccoredb.star_context_get_binary(ThreadData.ContextHandle, oid, address, index, &pValue);
+                r = sccoredb.star_context_get_binary_OLD(ThreadData.ContextHandle, oid, address, index, &pValue);
                 if (r == 0) {
                     return Binary.FromNative(pValue);
                 }
@@ -1413,7 +1413,7 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteBinary(ulong oid, ulong address, Int32 index, Binary value) {
             uint r;
-            r = sccoredb.star_context_put_binary(
+            r = sccoredb.star_context_put_binary_OLD(
                       ThreadData.ContextHandle,
                       oid,
                       address,
