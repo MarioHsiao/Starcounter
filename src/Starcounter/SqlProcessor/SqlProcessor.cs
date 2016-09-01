@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
     public class SqlProcessor {
-        static ulong MaxErrorCode = 1000000;
+        internal const ulong MaxErrorCode = 1000000;
 
         [DllImport("scsqlprocessor.dll")]
         public static unsafe extern uint scsql_process_query([MarshalAs(UnmanagedType.LPWStr)]string query);
