@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
     internal class SqlProcessor {
-
+        static ulong MaxErrorCode = 1000000;
         internal const ulong STAR_MOM_OF_ALL_LAYOUTS_NAME_TOKEN = 11;
         internal const ulong STAR_GLOBAL_SETSPEC_INDEX_NAME_TOKEN = 12;
 
@@ -157,11 +157,11 @@ namespace Starcounter.SqlProcessor {
                 return null;
             Exception ex = GetSqlException(err, query, &scerror);
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
-            Debug.Assert(err < 10000);
+            Debug.Assert(err < MaxErrorCode);
             // create the exception
             scsql_free_memory();
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
-            Debug.Assert(err < 10000);
+            Debug.Assert(err < MaxErrorCode);
             return ex;
         }
 
@@ -174,11 +174,11 @@ namespace Starcounter.SqlProcessor {
                 return nrObjs;
             Exception ex = GetSqlException(err, query, &scerror);
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
-            Debug.Assert(err < 10000);
+            Debug.Assert(err < MaxErrorCode);
             // create the exception
             scsql_free_memory();
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
-            Debug.Assert(err < 10000);
+            Debug.Assert(err < MaxErrorCode);
             throw ex;
         }
 
