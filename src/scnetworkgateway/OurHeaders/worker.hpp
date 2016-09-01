@@ -321,12 +321,20 @@ public:
 
     void AddToActiveSockets(port_index_type port_index)
     {
-        g_gateway.get_server_port(port_index)->AddToActiveSockets(worker_id_);
+		ServerPort* sp = g_gateway.get_server_port(port_index);
+
+		GW_ASSERT(false == sp->is_udp());
+
+		sp->AddToActiveSockets(worker_id_);
     }
 
     void RemoveFromActiveSockets(port_index_type port_index)
     {
-        g_gateway.get_server_port(port_index)->RemoveFromActiveSockets(worker_id_);
+		ServerPort* sp = g_gateway.get_server_port(port_index);
+
+		GW_ASSERT(false == sp->is_udp());
+
+        sp->RemoveFromActiveSockets(worker_id_);
     }
 
     worker_id_type GetLeastBusyWorkerId(port_index_type port_index)

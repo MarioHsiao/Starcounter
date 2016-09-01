@@ -1226,7 +1226,9 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     }
 
     // Removing from active sockets.
-    RemoveFromActiveSockets(sd->GetPortIndex());
+	if (!sd->IsUdp()) {
+		RemoveFromActiveSockets(sd->GetPortIndex());
+	}
     
     // Resetting the socket data.
     sd->ResetWhenDisconnectIsDone(this);
