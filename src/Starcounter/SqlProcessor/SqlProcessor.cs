@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
     internal class SqlProcessor {
-        static ulong MaxErrorCode = 1000000;
+        internal const ulong MaxErrorCode = 1000000;
         internal const ulong STAR_MOM_OF_ALL_LAYOUTS_NAME_TOKEN = 11;
         internal const ulong STAR_GLOBAL_SETSPEC_INDEX_NAME_TOKEN = 12;
 
