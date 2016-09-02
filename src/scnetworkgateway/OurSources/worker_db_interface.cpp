@@ -14,9 +14,13 @@ namespace network {
 // Releases chunks from private chunk pool to the shared chunk pool.
 uint32_t WorkerDbInterface::ReleaseToSharedChunkPool(int32_t num_ipc_chunks)
 {
+	GW_ASSERT(num_ipc_chunks > 0);
+
     // Release chunks from this worker threads private chunk pool to the shared chunk pool.
     int32_t released_chunks_num = static_cast<int32_t> (shared_int_.release_from_private_to_shared(
-        private_chunk_pool_, num_ipc_chunks, &shared_int_.client_interface(), 1000));
+        private_chunk_pool_, num_ipc_chunks, &shared_int_.client_interface(), 10000));
+
+	GW_ASSERT(0 != released_chunks_num);
 
     GW_ASSERT(released_chunks_num == num_ipc_chunks);
 
@@ -282,12 +286,7 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(core::chunk_index& ipc_chunk_in
     if (private_chunk_pool_.size() > MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE)
     {
         uint32_t err_code = ReleaseToSharedChunkPool(static_cast<int32_t> (private_chunk_pool_.size() - MAX_CHUNKS_IN_PRIVATE_POOL));
-
-        // NOTE: The error can happen when for example the database is already dead
-        // but for the future with centralized chunk pool this should never happen!
-
-        // TODO: Uncomment when centralized chunks are ready!
-        //GW_ASSERT(0 == err_code);
+        GW_ASSERT(0 == err_code);
     }
 
     ipc_chunk_index = INVALID_CHUNK_INDEX;
@@ -300,12 +299,7 @@ void WorkerDbInterface::ReturnAllPrivateChunksToSharedPool()
     if (private_chunk_pool_.size() > 0)
     {
         uint32_t err_code = ReleaseToSharedChunkPool(static_cast<int32_t> (private_chunk_pool_.size()));
-
-        // NOTE: The error can happen when for example the database is already dead
-        // but for the future with centralized chunk pool this should never happen!
-
-        // TODO: Uncomment when centralized chunks are ready!
-        //GW_ASSERT(0 == err_code);
+        GW_ASSERT(0 == err_code);
     }
 }
 
