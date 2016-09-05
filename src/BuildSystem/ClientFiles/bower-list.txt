@@ -1,5 +1,5 @@
 bower check-new     Checking for new versions of the project dependencies...
-sys#1.0.0 C:\www\Starcounter\src\BuildSystem\ClientFiles
+sys#1.0.0 D:\repos\Starcounter\src\BuildSystem\ClientFiles
 ├─┬ PuppetJs#2.1.0
 │ ├── fast-json-patch#1.0.0
 │ ├── json-patch-ot#73a40c7e4a
@@ -27,5 +27,8 @@ sys#1.0.0 C:\www\Starcounter\src\BuildSystem\ClientFiles
 │ │ └─┬ polymer#1.6.1
 │ │   └── webcomponentsjs#0.7.22
 │ └── polymer#1.6.1
-└─┬ starcounter-include#0.3.0
-  └── imported-template#1.4.3
+└─┬ starcounter-include#24c9807118
+  ├─┬ imported-template#1.4.3
+  │ └── juicy-html#1.1.0
+  └─┬ juicy-composition#0.0.5
+    └── webcomponentsjs#0.7.22

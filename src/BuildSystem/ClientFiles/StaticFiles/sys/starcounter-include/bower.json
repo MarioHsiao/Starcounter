@@ -10,24 +10,27 @@
     "template",
     "partial",
     "starcounter",
-    "imported-template",
-    "web-components"
+    "web-components",
+    "include",
+    "imported-template"
   ],
   "license": "MIT",
   "ignore": [
     "**/.*",
     "node_modules",
     "bower_components",
-    "StaticFiles/sys",
     "Gruntfile.js",
+    "wwwroot/sys",
     "test",
-    "wct.conf.json"
+    "wct.conf.json",
+    "demo"
   ],
   "dependencies": {
-    "imported-template": ">=1.3.0"
+    "imported-template": ">=1.4.3",
+    "juicy-composition": ">=0.0.5"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#>=4.2.2",
-    "polymer": "^1.3.1"
+    "polymer": ">=1.3.1"
   }
 }
