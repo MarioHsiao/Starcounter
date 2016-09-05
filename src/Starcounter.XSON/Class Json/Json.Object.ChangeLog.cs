@@ -212,7 +212,7 @@ namespace Starcounter {
                         item.dirty = false;
                     }
                 }
-                
+
                 for (int i = 0; i < this.valueList.Count; i++) {
                     // Skip all items we have already added to the changelog.
                     logChanges = true;
@@ -225,21 +225,16 @@ namespace Starcounter {
 
                     if (logChanges) {
                         ((Json)this.valueList[i]).LogValueChangesWithDatabase(changeLog, callStepSiblings);
-                     }
+                    }
                 }
 
-                if (changeLog.Version != null) {
-                    if (versionLog == null)
-                        versionLog = new List<ArrayVersionLog>();
-                    versionLog.Add(new ArrayVersionLog(changeLog.Version.LocalVersion, this.arrayAddsAndDeletes));
-                }
+                this.CheckAndAddArrayVersionLog(changeLog);
                 this.arrayAddsAndDeletes = null;
             } else {
                 for (int t = 0; t < this.valueList.Count; t++) {
                     var arrItem = ((Json)this.valueList[t]);
                     if (this.IsDirty(t)) { // A refresh of an existing row (that is not added or removed)
                         changeLog.Add(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
-//                        this.CheckpointAt(t);
                         this.MarkAsNonDirty(t);
                     } else {
                         arrItem.LogValueChangesWithDatabase(changeLog, callStepSiblings);
@@ -285,6 +280,7 @@ namespace Starcounter {
                                             if (container != null) {
                                                 var childJson = container.GetValue(json);
                                                 if (childJson != null) {
+                                                    childJson.CheckAndAddArrayVersionLog(clog);
                                                     childJson.SetBoundValuesInTuple();
                                                 }
                                             }
@@ -331,9 +327,15 @@ namespace Starcounter {
                     } else {
                         if (json.dirty) {
                             if (json.IsDirty(template.TemplateIndex)) {
-                                if (clog != null)
-                                    clog.UpdateValue(json, null);
-                                //json.CheckpointAt(template.TemplateIndex);
+                                clog.UpdateValue(json, null);
+
+                                if (template.TemplateTypeId == TemplateTypeEnum.Array) {
+                                    var childJson = ((TContainer)template).GetValue(json);
+                                    if (childJson != null) {
+                                        childJson.CheckAndAddArrayVersionLog(clog);
+                                        childJson.SetBoundValuesInTuple();
+                                    }
+                                }
                                 json.MarkAsNonDirty(template.TemplateIndex);
                             } else {
                                 template.CheckAndSetBoundValue(json, true);
@@ -365,7 +367,7 @@ namespace Starcounter {
             this,
             callStepSiblings);
 		}
-
+        
 		internal void SetBoundValuesInTuple(bool callStepSiblings = true) {
             if (!this.checkBoundProperties)
                 return;
