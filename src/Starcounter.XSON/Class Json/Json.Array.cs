@@ -110,13 +110,24 @@ namespace Starcounter {
             cacheIndexInArr = ((IList)Parent).IndexOf(this);
         }
 
+        private void CheckAndAddArrayVersionLog(ChangeLog clog) {
+            if (clog.Version != null && this.IsArray) {
+                if (this.versionLog == null)
+                    this.versionLog = new List<ArrayVersionLog>();
+                this.versionLog.Add(
+                    new ArrayVersionLog(clog.Version.LocalVersion,
+                                        this.arrayAddsAndDeletes)
+                );
+            }
+        }
+
         internal int TransformIndex(ViewModelVersion version, long fromVersion, int orgIndex) {
             int transformedIndex;
             long currentVersion;
             
             if ((dirty == false) && (versionLog == null || versionLog.Count == 0))
                 return orgIndex;
-
+            
             currentVersion = version.LocalVersion;
             transformedIndex = orgIndex;
 
@@ -131,17 +142,21 @@ namespace Starcounter {
                         break;
                 }
             }
-
+            
             if (transformedIndex != -1 && this.arrayAddsAndDeletes != null) {
                 // There are current changes made that haven't been pushed to client yet.
                 transformedIndex = FindAndTransformIndex(this.arrayAddsAndDeletes, transformedIndex);
             }
+            
             return transformedIndex;
         }
 
         private int FindAndTransformIndex(List<Change> changes, int index) {
             Change change;
             int transformedIndex = index;
+
+            if (changes == null)
+                return -1;
 
             for (int i = 0; i < changes.Count; i++) {
                 change = changes[i];
