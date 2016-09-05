@@ -9,6 +9,7 @@
 - Added a new itemtemplate for Starcounter projects, `HTML template with dom-bind` [#2931](https://github.com/Starcounter/Starcounter/issues/2931)
 - Added support for enums when a template for TypedJSON is created based on the type for a dataobject [#3759](https://github.com/Starcounter/Starcounter/issues/3759)
 - Added possibility to configure how missing members (i.e. members that exists in the source, but not in the template) should be handled in TypedJSON when populating an instance. Options are to either throw an error or ignore and skip the member [#3802](https://github.com/Starcounter/Starcounter/issues/3802)
+- ShadowDOM layout capabilities to [`<starcounter-include>`](https://github.com/Starcounter/starcounter-include) shipped in `/sys/` folder. Layout can now be served as `DocumentFragment` full of rich HTML & CSS features to be served with [`juicy-composition`](https://github.com/Juicy/juicy-composition). It's now the resposibility of Starcounter and particular app, not the Launcher. Launcher may only provide additional visual editing features to it.
 
 ### Fixed
 - Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
@@ -129,7 +130,7 @@
 - Fixed bug in PrivateAssemblyStore, causing some path comparisons to use an unsupported comparison type, see [#3501](https://github.com/Starcounter/Starcounter/issues/3501)
 - Fixed a bug in TypedJson where databinding for a property was not properly invalidated when a dataobject with a different type (including null) was set, [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
 - Fixed gateway getting timeout waiting for workers to suspend [#3515](https://github.com/Starcounter/Starcounter/issues/3515)
-- Fixed incorrect case-insensitive comparison when deciding if generating an accessor-property should be skipped [#3794](https://github.com/Starcounter/Starcounter/issues/3794) 
+- Fixed incorrect case-insensitive comparison when deciding if generating an accessor-property should be skipped [#3794](https://github.com/Starcounter/Starcounter/issues/3794)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
