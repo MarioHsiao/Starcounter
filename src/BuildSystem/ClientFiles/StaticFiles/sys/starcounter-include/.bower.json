@@ -10,34 +10,36 @@
     "template",
     "partial",
     "starcounter",
-    "imported-template",
-    "web-components"
+    "web-components",
+    "include",
+    "imported-template"
   ],
   "license": "MIT",
   "ignore": [
     "**/.*",
     "node_modules",
     "bower_components",
-    "StaticFiles/sys",
     "Gruntfile.js",
+    "wwwroot/sys",
     "test",
-    "wct.conf.json"
+    "wct.conf.json",
+    "demo"
   ],
   "dependencies": {
-    "imported-template": ">=1.3.0"
+    "imported-template": ">=1.4.3",
+    "juicy-composition": ">=0.0.5"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#>=4.2.2",
-    "polymer": "^1.3.1"
+    "polymer": ">=1.3.1"
   },
-  "version": "0.3.0",
-  "_release": "0.3.0",
+  "_release": "24c9807118",
   "_resolution": {
-    "type": "version",
-    "tag": "0.3.0",
-    "commit": "02bbc5d683b9abb071a0866acce7ce874af72e39"
+    "type": "branch",
+    "branch": "next",
+    "commit": "24c980711869e83b79f845d1ad2bbff3ae552ccf"
   },
   "_source": "https://github.com/Starcounter/starcounter-include.git",
-  "_target": ">=0.3.0",
+  "_target": "next",
   "_originalSource": "starcounter-include"
 }

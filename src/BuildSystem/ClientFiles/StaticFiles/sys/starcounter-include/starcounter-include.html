@@ -1,26 +1,40 @@
 <!--
-starcounter-include.html
-MIT license
-https://github.com/Starcounter/starcounter-include
-version: 0.3.0
+`launcher-include` - Launcher's `starcounter-include` -
+Custom Element (w/ Polymer's TempalteBinding)
+with predefined template content, which should be used to include partials.
+It's just <template is="imported-template"> wrapped within <juicy-composition> bindable by layout editor.
+Uses juicy-composition.composition given from DB as `Starcounter.MergedPartial.Composition$`.
+version: 1.3.0
+
 -->
+<!-- Import dependencies -->
 <link rel="import" href="../imported-template/imported-template.html">
+<link rel="import" href="../juicy-composition/juicy-composition.html">
+<!-- <link rel="import" href="/sys/console-log/console-log.html"> -->
+
+<template id="partial-template">
+    <juicy-composition auto-stamp>
+        <template is="imported-template"></template>
+    </juicy-composition>
+</template>
 <script>
     (function() {
-        var StarcounterIncludePrototype = Object.create(HTMLElement.prototype);
 
-        StarcounterIncludePrototype.partial = null;
-        // StarcounterIncludePrototype.html = null;
-        StarcounterIncludePrototype.mergedHtmlPrefix = '/sc/htmlmerger?';
-        StarcounterIncludePrototype.defaultHtml = '';
+        var isSafari = navigator.vendor && navigator.vendor.indexOf("Apple") > -1 && navigator.userAgent && !navigator.userAgent.match("CriOS");
 
+        var templ = (document._currentScript || document.currentScript).ownerDocument.getElementById("partial-template");
+        var LauncherPartialPrototype = Object.create(HTMLElement.prototype);
+        LauncherPartialPrototype.partial = null;
+        LauncherPartialPrototype.partialId = null;
+        //FIXME: this one should not be needed, once we get rid of workarounds for server-side
+        LauncherPartialPrototype.compositionAPI = '/sc/partial/composition';
+        // LauncherPartialPrototype.html = null;
+        LauncherPartialPrototype.mergedHtmlPrefix = '/sc/htmlmerger?';
+        LauncherPartialPrototype.defaultHtml = '';
         /**
-         * Read the `partial` attribute of given element,
-         * filter if it's not Polymer's mustaches, and set it to `partial` property.
-         * @param  {HTMLElement} element
-         * @return {undefined | null | object} `undefined` - there is no value set; null - Polymer's mustaches are set, value is to come; object - parsed JSON object
+         * @see Starcounter/starcounter-include - partialAttributeToProperty It's just a copy
          */
-        function partialAttributeToProperty(element) {
+        function partialAttributeToProperty(element, attrVal) {
             var attrVal = element.getAttribute("partial");
             if(!attrVal){
                 // no value
@@ -32,73 +46,146 @@ version: 0.3.0
             }
         }
         /**
-         * Define partial setter, stamp inner `imported-template`
+         * Use predefined template content, rewrite attributes.
          */
-        StarcounterIncludePrototype.createdCallback = function() {
-            //d console.log("starcounter-partial created");
-            //this.partial = /*this.partial ||*/ {};
+        LauncherPartialPrototype.createdCallback = function LPartialCreated() {
+            // ugly https://code.google.com/p/chromium/issues/detail?id=430578 workaround
+            // if( inDocumentFragment( this ) ){
+            //   return ;
+            // }
             var partial = partialAttributeToProperty(this);
             var html = buildURL(partial, this.mergedHtmlPrefix, this.defaultHtml);
             var starcounterInclude = this;
+            var partialId = this.partialId;
+            // build shadow DOM
+            var sroot = this.createShadowRoot();
+            sroot.innerHTML = "<style>:host{display:block;}</style><content></content>";
+
+            var clone = document.importNode(templ.content, true);
+            this.compositionElement = clone.children[0]; // .getElementsByTagName("juicy-composition");
+            this.template = this.compositionElement.firstElementChild; // .getElementsByTagName("TEMPLATE");
+            var that = this;
+            this.template.addEventListener('stamping', function fetchCompositions(event) {
+                var mergedComposition = document.createDocumentFragment();
+                var templates = event.detail.querySelectorAll('template[is="starcounter-composition"]');
+                Array.prototype.forEach.call(templates, function mergeContents(individualComposition) {
+                    mergedComposition.appendChild(individualComposition.content);
+                });
+                that.defaultComposition = mergedComposition;
+                // notify composition property
+                // TODO: consider moving entire partialChanged or appendChild here
+                that._compositionChanged();
+            });
+            html && this.template.setAttribute('content', html);
+
             // define a setter for partial attribute,
             // so it could be change by VanillaJs without Polymer Template Binding
-            Object.defineProperty(this, "partial", {
-                set: function(newValue) {
-                    //d console.log("partial set");
-                    partial = newValue;
-                    starcounterInclude.partialChanged(partial);
+            Object.defineProperties(this, {
+                partial: {
+                    set: function(newValue) {
+                        partial = newValue;
+                        starcounterInclude.partialChanged(partial);
+                    },
+                    get: function() {
+                        return partial;
+                    }
                 },
-                get: function() {
-                    return partial;
+                partialId: {
+                    set: function(newValue) {
+                        // do nothing if value is the same or null is being changed to undefined
+                        if (newValue != partialId) {
+                            partialId = newValue || null;
+                            if (!partialId) {
+                                // this.compositionElement.removeAttribute("name");
+                                this.removeAttribute("partial-id");
+                            } else {
+                                // this.compositionElement.setAttribute("name", partialId);
+                                this.setAttribute("partial-id", partialId);
+                            }
+                        }
+                    },
+                    get: function() {
+                        return partialId;
+                    }
                 }
             });
-
-            var importedTemplate = document.createElement("template", "imported-template");
-            html && importedTemplate.setAttribute('content', html);
-            importedTemplate.model = partial;
-            this.template = importedTemplate;
-
-            this.appendChild(this.template);
+            // attach partial
+            this.partialChanged();
+            // attach to light DOM
+            this.appendChild(clone);
         };
-
-
-        StarcounterIncludePrototype.detachedCallback = function() {
-            //d console.log("starcounter-partial detached");
-        };
-
-        StarcounterIncludePrototype.attributeChangedCallback = function(name, oldVal, newVal) {
+        /**
+         * @see Starcounter/starcounter-include#attributeChangedCallback It's just a copy
+         */
+        LauncherPartialPrototype.attributeChangedCallback = function(name, oldVal, newVal) {
             if (name === "partial") {
-                this.partial = partialAttributeToProperty(this);
+                this.partial = partialAttributeToProperty(this, newVal);
                 //d console.log("starcounter-partial attr changed");
             }
         };
         /**
          * Updates inner `imported-template` with partial data given (if applicable)
+         * @see Starcounter/starcounter-include#partialChanged it's alsmost a copy
          * @param  {Object} newVal new partial value
          */
-        StarcounterIncludePrototype.partialChanged = function(newVal) {
-            var html = undefined;
-            html = buildURL(this.partial, this.mergedHtmlPrefix, this.defaultHtml);
-            if(html === null || html === undefined){
-                this.template.removeAttribute("content");
-            } else {
-                this.template.setAttribute("content", html);
-            }
-
-            this.template.model = this.partial;
+        LauncherPartialPrototype.partialChanged = function(newVal) {
+            this._htmlChanged();
+            this.partialId = this.partial && this.partial.LauncherLayoutInfo && this.partial.LauncherLayoutInfo.PartialId; //should always be string
+            this._compositionChanged();
         };
-
+        LauncherPartialPrototype._htmlChanged = function() {
+            var html = buildURL(this.partial, this.mergedHtmlPrefix, this.defaultHtml);
+            if (html !== this._lastHtml) {
+                if (this._lastHtml) {
+                    this.template.clear();
+                }
+                if (!html) {
+                    this.template.removeAttribute("content");
+                } else {
+                    this.template.setAttribute("content", html);
+                }
+                this._forceLayoutChange = true;
+                this._lastHtml = html;
+            }
+            if (this.template.model != this.partial) {
+                this.template.model = this.partial
+            }
+        };
+        LauncherPartialPrototype._compositionChanged = function(composition) {
+            if (this.partial && composition === undefined) {
+                if (this.partial.LauncherLayoutInfo) {
+                    composition = this.partial.LauncherLayoutInfo.Composition$; //should always be string
+                }
+            }
+            // do not change if there is one, it's same as before, and we are not forced
+            if (!composition || composition !== this._lastLayout || this._forceLayoutChange) {
+                if (!composition) {
+                    this.storedLayout = null;
+                    this.compositionElement.composition = this.defaultComposition && this.defaultComposition.cloneNode(true);
+                    // this.compositionElement.composition = '<div style="min-width: 1200px;"><content></content></div>';
+                } else {
+                    this.storedLayout = composition;
+                    // make clone to avoid direct binding
+                    this.compositionElement.composition = this.stringToDocumentFragment(composition);
+                }
+                this._forceLayoutChange = false;
+                this._lastLayout = composition;
+            }
+        };
         /**
          * Forward Polymer notification downwards from `<template is="dom-bind">`
          * to <template is="imported-template">
          * @param  {String} path Polymer notification path
          * @param  {Mixed} value New value
          */
-        StarcounterIncludePrototype._notifyPath = function(path, value) {
-            if (path.indexOf("partial.") === 0) {
-
-                // if(path.match(/^partial\.[^.]+\.Html$/)) {
-                if( (path.indexOf('.Html') === path.length - 5) && path.slice(8, -5).indexOf('.') === -1){
+        LauncherPartialPrototype._notifyPath = function(path, value) {
+            if (path.indexOf("partial.") == 0) {
+                if (
+                    path === "partial.Html" ||
+                    path.indexOf("partial.LauncherLayoutInfo") === 0 ||
+                    // path.match(/^partial\.[^.]+\.Html$/)
+                    (path.indexOf('.Html') === path.length - 5) && path.slice(8, -5).indexOf('.') === -1
+                ) {
                     this.partialChanged(this.partial);
                 } else {
                     if (this.template._notifyPath) {
@@ -123,6 +210,10 @@ version: 0.3.0
             if(partial){
                 if(partial.Html !== undefined){
                     return partial.Html;
+                } else if (partial.LauncherLayoutInfo) {
+                    //workaround for https://github.com/StarcounterPrefabs/Launcher/issues/224
+                    //should be removed when the original issue with not patched Html is resolved
+                    return partial.LauncherLayoutInfo.MergedHtml;
                 } else {
                     var htmls = [];
                     for (var key in partial){
@@ -143,11 +234,56 @@ version: 0.3.0
                 return undefined;
             }
         };
+        /**
+         * Saves given or current composition as stored one, (TODO:) notifies binding about it.
+         * @param  {String} [compositionStr] composition to be saved, if not given current one will be used
+         */
+        LauncherPartialPrototype.saveLayout = function(compositionStr){
+            compositionStr = compositionStr || this.compositionElement.shadowRoot.innerHTML;
+            this.storedLayout = compositionStr;
+            //TODO: trigger polymer-protocol-compliant event
+
+            // FIXME: temporary workaround for servers not accepting JSON-Patch
+            // from juicy-tiles-setup-sync
+            var req = new XMLHttpRequest();
+            req.open("POST", this.compositionAPI + "?key=" + encodeURIComponent(this.partialId) + '&ver=', true);
+            req.onreadystatechange = function () {
+                if (req.readyState == 4) {
+                    if (!(req.status >= 200 && req.status <= 299)) {
+                        console.error("Failed to save juicy-tile-list configuration");
+                        return;
+                    }
+                    console.info("juicy-composition configuration saved");
+                }
+                // FIXME: bellow is required for save button not to overwrite with old value, but it fails due to puppet error
+                console.info('Direct change to model is required for save button not to overwrite with old value, but it fails due to puppet error.');
+                this.partial.LauncherLayoutInfo.Composition$ = this.storedLayout;
+                this.dispatchEvent(new CustomEvent("starcounter-include-composition-saved", {detail: this.storedLayout}));
+                // trigger polymer-notification-protocol-compilant event
+                this.dispatchEvent(new CustomEvent("partial-changed", {detail: {value: this.storedLayout, path: 'partial.LauncherLayoutInfo.Composition$'}}));
+            }.bind(this);
+            return req.send(this.storedLayout);
+
+        };
+
+        // stringToDocumentFragment(strHTML) from http://stackoverflow.com/a/25214113/868184
+        /**
+         * Creates DocumentFragment from a string.
+         * @param  {string} htmlStr  string to parse
+         * @param  {HTMLElement} node node to select a range, need for Safari workaround
+         * @return {DocumentFragment}      parsed string
+         */
+        LauncherPartialPrototype.stringToDocumentFragment = function (htmlStr) {
+            var range = document.createRange();
+            // Safari does not support `createContextualFragment` without selecting a node.
+            if (isSafari) {
+                range.selectNode(this);
+            }
+            return range.createContextualFragment(htmlStr);
+        }
 
         document.registerElement('starcounter-include', {
-            prototype: StarcounterIncludePrototype
+            prototype: LauncherPartialPrototype
         });
-
-
     })();
 </script>
