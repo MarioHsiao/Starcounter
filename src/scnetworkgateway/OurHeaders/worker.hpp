@@ -580,7 +580,10 @@ public:
 
         HandlersList* ph = g_gateway.get_server_port(port_index)->get_port_handlers();
 
-        GW_ASSERT(NULL != ph);
+		// Checking if port has no handlers (unregistered for example).
+		if (NULL == ph) {
+			return SCERRGWWRONGPORTINDEX;
+		}
 
         return ph->RunHandlers(gw, sd);
     }
