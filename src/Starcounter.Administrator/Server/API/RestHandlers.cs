@@ -64,6 +64,14 @@ namespace Server.API {
                     return Self.POST("/api/tasks/startdatabase", null, request.BodyBytes, null);
                 }, opt);
 
+                // Initiate task, stop database
+                Handle.POST(port, "/serverapi/tasks/stopdatabase", (Request request) => {
+
+                    Response response;
+                    if (!Authentication.Authenticate(settings, request, out response)) { return response; }
+                    return Self.POST("/api/tasks/stopdatabase", null, request.BodyBytes, null);
+                }, opt);
+
                 // Initiate task, install software
                 Handle.POST(port, "/serverapi/tasks/installsoftware", (Request request) => {
 
