@@ -108,10 +108,6 @@
       <Project>{c3e5398f-48fb-4565-8720-d73af2acfc1c}</Project>
       <Name>Starcounter.Rest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
-      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
-      <Name>Starcounter.XSON.JsonByExample</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
