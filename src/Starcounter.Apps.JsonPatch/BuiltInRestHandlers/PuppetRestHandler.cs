@@ -13,7 +13,7 @@ namespace Starcounter.Internal {
     /// the public Session data of a Starcounter application.
     /// </summary>
     internal static class PuppetRestHandler {
-
+        private static byte[] emptyPatchArr = new byte[] { (byte)'[', (byte)']' };
         private static JsonPatch jsonPatch = new JsonPatch();
 
         private static List<UInt16> registeredPorts = new List<UInt16>();
@@ -66,6 +66,9 @@ namespace Starcounter.Internal {
 
                     // Sending the patch bytes to the client.
                     ws.Send(patchResponse, sizeBytes, ws.IsText);
+                } else if (patchCount == 0) {
+                    // ping, send empty patch back.
+                    ws.Send(emptyPatchArr, 2, ws.IsText);
                 }
             } catch (JsonPatchException nex) {
                 ws.Disconnect(nex.Message, WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
@@ -102,9 +105,11 @@ namespace Starcounter.Internal {
                     int patchCount = jsonPatch.Apply(root, bodyPtr, (int)bodySize, session.CheckOption(SessionOptions.StrictPatchRejection));
 
                     if (patchCount < 1) {
-                        if (patchCount == 0) { // 0 means empty patch. Used for ping. Send nothing back.
+                        if (patchCount == 0) { // 0 means empty patch. Used for ping. Send empty patch back.
                             return new Response() {
-                                StatusCode = 204
+                                BodyBytes = emptyPatchArr,
+                                ContentLength = 2,
+                                ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_JsonPatch__Json)
                             };
                         } else if (patchCount == -1) { // -1 means that the patch was queued due to clientversion mismatch.
                             return new Response() {
