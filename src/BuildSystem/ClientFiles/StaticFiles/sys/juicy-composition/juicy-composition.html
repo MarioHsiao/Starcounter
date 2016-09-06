@@ -1,0 +1,290 @@
+<!-- juicy-composition @version: 0.0.5 @license: MIT -->
+<script>
+(function() {
+    // Creates an object based in the HTML Element prototype
+    var JuicyCompositionPrototype = Object.create(HTMLElement.prototype);
+
+    // <V1 assignedSlot shim>
+    /**
+     * Map of shadow DOM elements (shimmed slots)
+     * @type {Object}
+     */
+    JuicyCompositionPrototype.elementsMap = null;
+    /**
+     * Document Fragment withdecorators for elements that were not specified in composition
+     * @type {DocumentFragment}
+     */
+    JuicyCompositionPrototype.remainingDecorators = null;
+    // </V1 assignedSlot shim>
+
+    /**
+    * Tree of shadow nodes
+    * @type {Object}
+    */
+    JuicyCompositionPrototype.composition = null;
+    /**
+    * Should element stamp it's shadow dom on created and every composition change?
+    * @type {Boolean}
+    */
+    JuicyCompositionPrototype.autoStamp = false;
+    /**
+     * Creates a juicy-composer, runs #stamp method, and attaches mutation observer.
+     */
+    JuicyCompositionPrototype.createdCallback = function() {
+        var that = this,
+            composition;
+        this.attributeChangedCallback('composition', this.composition, this.getAttribute('composition'));
+        composition = this.composition;
+        this.autoStamp = this.hasAttribute('auto-stamp');
+        Object.defineProperty(this, 'composition', {
+            get: function(){
+                // IDEA: use just this.shadowRoot
+                return composition;
+            },
+            set: function(newVal){
+                if(this.autoStamp && newVal !== composition){
+                    composition = newVal;
+                    this.stamp();
+                    composition = this.shadowRoot;
+                } else {
+                    composition = newVal;
+                }
+            }
+        });
+        this.elementsMap = {};
+        this.remainingDecorators = document.createDocumentFragment();
+
+        this.autoStamp && this.stamp();
+
+
+        this.observer = new MutationObserver(function (mutations) {
+            // do nothing if it's not yet attached
+            if(!that.isStamped){
+              return;
+            }
+            // update / distribute slots on each mutation
+            mutations.forEach(that.update);
+
+        });
+        // IDEA: make it cofigurable?
+        this.observer.observe(this, { childList: true });
+    };
+    /**
+     * Creates shadow root, stamps slot wrappers and insertion points into shadow dom, and modify light dom according to given composition.
+     */
+    JuicyCompositionPrototype.stamp = function(){
+        var givenComposition = this.composition;// document.importNode(this.composition, true);
+        var shadowRoot = this.shadowRoot;
+        if (shadowRoot) {
+            shadowRoot.innerHTML = '';
+        }
+        if (givenComposition) {
+            if (!shadowRoot) {
+                shadowRoot = this.createShadowRoot();
+                // shadowRoot = this.attachShadow({mode: "open"});
+            }
+
+            // <V1 slot shim>
+            // adding it to a this.shadowContainer manually
+            decorateFilteredElements(this.composition, this.elementsMap, filterElements(this.children), this.remainingDecorators, '');
+            // </V1 slot shim>
+            // add remaining decorators
+            givenComposition.appendChild(this.remainingDecorators);
+
+            shadowRoot.appendChild(givenComposition);
+            this.isStamped = true;
+        }
+        this.dispatchEvent(new CustomEvent("stamped"));
+    }
+
+    JuicyCompositionPrototype.clear = function (){
+        console.error('clear is not yet defined!');
+    }
+
+    // Fires when an instance was inserted into the document
+    JuicyCompositionPrototype.attachedCallback = function () {
+        // console.info('attached children.length', this.children.length);
+    };
+    /**
+     * Handles mutations.
+     * Applies composition, and distribution to added nodes, cleans and undistributes removed nodes.
+     * @param  {MutationRecord} mutation mutation of an element
+     */
+    JuicyCompositionPrototype.update = function(mutation){
+        if (mutation.addedNodes.length) {
+            var element = mutation.target || this;
+            // TODO: make it cleaner
+            element.observer.disconnect();
+
+
+            if(mutation.addedNodes.length){
+                var previousElementSibling = mutation.previousSibling && !(mutation.previousSibling instanceof HTMLElement) ?
+                    mutation.previousSibling.previousElementSibling :  mutation.previousSibling;
+                var scopedIndex = previousElementSibling && previousElementSibling._juicyScopedIndex || -1;
+                scopedIndex++;
+                var scopePrefix = previousElementSibling && previousElementSibling._juicyScopePrefix || '';
+
+                var nodesToDistribute = filterElements(mutation.addedNodes);
+                // console.log('adding nodes to', element, 'prefixed by', scopePrefix, 'starting from index', scopedIndex);
+
+                // <V1 slot shim>
+                // adding it to a this.shadowContainer manually
+                decorateFilteredElements(element.shadowRoot, element.elementsMap, nodesToDistribute, element.remainingDecorators, '', scopePrefix, scopedIndex);
+                // </V1 slot shim>
+                // add remaining decorators
+                element.shadowRoot.appendChild(element.remainingDecorators);
+            }
+
+            // TODO: make it cleaner
+            element.observer.observe(element, { childList: true });
+        }
+    }
+
+    // Fires when an instance was removed from the document
+    JuicyCompositionPrototype.detachedCallback = function() {};
+
+    /**
+     * Apply changes of attributes
+     * `default-tag-name` - recreates element TBD
+     * `composition` - updates shadow DOM structure TBD
+     * @param  {String} attr   attribute name
+     * @param  {String} oldVal old value
+     * @param  {String} newVal new value
+     */
+    JuicyCompositionPrototype.attributeChangedCallback = function(attr, oldVal, newVal) {
+        switch(attr){
+            case "auto-stamp":
+                this.autoStamp = newVal !== null && newVal !== undefined;
+                this.autoStamp && oldVal != newVal && this.stamp();
+                break;
+            case 'composition':
+                this.composition = newVal || null;
+                break;
+        }
+    };
+
+    /**
+     * Decorates given child nodes.
+     * - Build slot ids
+     * 	- Use DOM order as base
+     * 	- Apply juicy-composition-scope prefix if given (to distinguish elements given within same elemen but by different vendors)
+     * - Create slot decorator/wrapper per each distributed element - to workaround lack of SD.V1 <slot> element, and give more encapsulated element for tiles
+     * - Update elementsMap list to shim SD.V1 .assignedSlot method
+     *
+     * @param  {DocumentFragment} composition composition to which we are supposed to add missing slots
+     * @param  {Object} elementsMap map of decorated elements, will be modified
+     * @param  {NodeList|Array} nodesList   list of nodes to be decorated
+     * @param  {DocumentFragment} fragment    where slots should be aadded, will be modified
+     * @param  {String} prefix    prefix for all ids
+     * --@return {Object<HTMLElement>}   map of unattached decoretors
+     */
+    function decorateFilteredElements(composition, elementsMap, nodesList, fragment, prefix, scopePrefix, scopedIndex){
+        var tiles = [], tile, child,
+            id;
+        scopePrefix = scopePrefix || '';
+        scopedIndex = scopedIndex || 0;
+        for (var nodeNo = 0, len = nodesList.length; nodeNo < len; nodeNo++) {
+            child = nodesList[nodeNo];
+            // id scoping magic
+            if (child.tagName === "JUICY-COMPOSITION-SCOPE" || child.tagName === "JUICY-TILE-GROUP") {
+                scopePrefix = child.getAttribute("name") || "";
+                scopePrefix += "/";
+                child._juicyScopePrefix = scopePrefix;
+                child._juicyScopedIndex = -1;
+                scopedIndex = 0;
+                continue;
+            }
+            // Mark each node with scope prefix, so elements added on fly will be aware of the scope
+            child._juicyScopePrefix = scopePrefix;
+            child._juicyScopedIndex = scopedIndex;
+            // construct slot id
+            id = child.getAttribute('slot') || prefix + scopePrefix + scopedIndex;
+            scopedIndex++;
+
+            // <V1 slot shim>
+            // check if we need to create a missing slot
+            // TODO: check the performance impac of those selectors (at least once V1 is released)
+            // consider .getDestinationInsertionPoints()
+            tile = composition.querySelector('content[select="[slot=\'' + id + '\']"], content[select="[slot=\\"' + id + '\\"]"]');
+            if (!tile) {
+                tile = createSlot(id);
+                fragment.appendChild(tile);
+            }
+            // <V1 assignedSlot shim>
+            // https://www.w3.org/TR/shadow-dom/#extensions-to-nondocumenttypechildnode-interface
+            elementsMap[id] = tile;
+            child._juicyElementId = id;
+            // child._juicyAssignedShadowElement = tile;
+            // </V1 assignedSlot shim>
+
+            // forward per-element attributes here
+
+
+            // </V1 slot shim>
+            // attach a selectable key to each light-dom node
+            child.hasAttribute('slot') || child.setAttribute('slot', id);
+        }
+        // <V1 slot shim>
+        // return fragment;
+        // </V1 slot shim>
+
+    }
+
+    /**
+     * Creates decorator & V1 <slot> shim for an element
+     * @param  {String} id identifier of the element.
+     * @return {HTMLElement}    decorator with <content> tag to be put into shadow tree
+     */
+    function createSlot(id){
+        var slot = document.createElement('content'); // 'slot'
+        // slot.name = id;
+        slot.setAttribute("select", "[slot='" + id + "']");
+        return slot;
+    }
+    /**
+     * Sets attributes given in attrsMap (key-value map) to given element
+     * @param {HTMLElement} element
+     * @param {Object} attrsMap
+     */
+    function setAttributes(element, attrsMap){
+        for (var key in attrsMap){
+            if (attrsMap.hasOwnProperty(key)) {
+                 element.setAttribute(key, attrsMap[key]);
+            }
+        }
+    }
+    /**
+     * Sets properties given in propsMap (key-value map) to given element
+     * @param {HTMLElement} element
+     * @param {Object} propsMap
+     */
+    function setProperties(element, propsMap){
+        for (var key in propsMap){
+            if (propsMap.hasOwnProperty(key)) {
+                 element[key] = propsMap[key];
+            }
+        }
+    }
+
+    /**
+     * Filters nodes that we would like to compose
+     * @param  {nodesList} nodeList nodes list to filter
+     * @return {Array}          array of filtered ndoes
+     */
+    function filterElements(nodeList){
+        return Array.prototype.filter.call(nodeList, function(node){
+            return !(node instanceof Text) &&
+                !(node instanceof HTMLLinkElement) &&
+                !(node instanceof HTMLStyleElement) &&
+                !(node instanceof HTMLTemplateElement) &&
+                // !(node.nodeName == "PUPPET-MORPHURL") && //ok, this is too much. ideas?
+                !(node instanceof HTMLScriptElement) &&
+                !(node instanceof Comment);
+        });
+    }
+
+    document.registerElement('juicy-composition', {
+        prototype: JuicyCompositionPrototype
+    });
+}());
+</script>

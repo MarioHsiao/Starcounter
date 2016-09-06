@@ -21,6 +21,14 @@ namespace Starcounter.Internal.XSON.Tests {
         //}
 
         [Test]
+        public static void TestEmptyPatch() {
+            var json = new Json();
+
+            int count = jsonPatch.Apply(json, "[]", true);
+            Assert.AreEqual(0, count);
+        }
+
+        [Test]
         public static void TestSoftPatchRejection() {
             string patch;
             byte[] patchArr;

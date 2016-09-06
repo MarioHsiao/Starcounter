@@ -609,7 +609,7 @@ namespace Starcounter.Binding
             {
                 e = sccoredb.SCIteratorCreate(
                     indexHandle,
-                    0,
+                    sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY,
                     ulk,
                     uhk,
                     &hiter,

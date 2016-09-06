@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
     public class SqlProcessor {
+        internal const ulong MaxErrorCode = 1000000;
+
         [DllImport("scsqlprocessor.dll")]
         public static unsafe extern uint scsql_process_query([MarshalAs(UnmanagedType.LPWStr)]string query);
             /*void* caller, void* executor, */
@@ -27,11 +29,11 @@ namespace Starcounter.SqlProcessor {
                 return null;
             Exception ex = GetSqlException(err, query);
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
-            Debug.Assert(err < 10000);
+            Debug.Assert(err < MaxErrorCode);
             // create the exception
             scsql_free_memory();
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
-            Debug.Assert(err < 10000);
+            Debug.Assert(err < MaxErrorCode);
             return ex;
         }
 
@@ -42,11 +44,11 @@ namespace Starcounter.SqlProcessor {
                 return nrObjs;
             Exception ex = GetSqlException(err, query);
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
-            Debug.Assert(err < 10000);
+            Debug.Assert(err < MaxErrorCode);
             // create the exception
             scsql_free_memory();
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
-            Debug.Assert(err < 10000);
+            Debug.Assert(err < MaxErrorCode);
             throw ex;
         }
 

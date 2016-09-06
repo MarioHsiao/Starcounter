@@ -57,7 +57,8 @@ namespace Starcounter.Internal {
                 int patchCount = jsonPatch.Apply(root, bs, session.CheckOption(SessionOptions.StrictPatchRejection));
 
                 // -1 means that the patch was queued due to clientversion mismatch. We send no response.
-                if (patchCount != -1) {
+                // 0 mean empty patch which we treat as a simple ping.
+                if (patchCount > 0) {
                     // Getting changes from the root.
                     Byte[] patchResponse;
                     Int32 sizeBytes = jsonPatch.Generate(root, true,
@@ -100,18 +101,24 @@ namespace Starcounter.Internal {
                     request.GetBodyRaw(out bodyPtr, out bodySize);
                     int patchCount = jsonPatch.Apply(root, bodyPtr, (int)bodySize, session.CheckOption(SessionOptions.StrictPatchRejection));
 
-                    if (patchCount == -1) { // -1 means that the patch was queued due to clientversion mismatch.
-                        return new Response() {
-                            Resource = root,
-                            StatusCode = 202,
-                            StatusDescription = "Patch enqueued until earlier versions have arrived. Last known version is " + root.ChangeLog.Version.RemoteVersion
-                        };
-                    } else if (patchCount == -2) { // -2 means that patch had already been applied and now it's been ignored 
-                        return new Response() {
-                            Resource = root,
-                            StatusCode = 200,
-                            StatusDescription = "Patch already applied"
-                        };
+                    if (patchCount < 1) {
+                        if (patchCount == 0) { // 0 means empty patch. Used for ping. Send nothing back.
+                            return new Response() {
+                                StatusCode = 204
+                            };
+                        } else if (patchCount == -1) { // -1 means that the patch was queued due to clientversion mismatch.
+                            return new Response() {
+                                Resource = root,
+                                StatusCode = 202,
+                                StatusDescription = "Patch enqueued until earlier versions have arrived. Last known version is " + root.ChangeLog.Version.RemoteVersion
+                            };
+                        } else if (patchCount == -2) { // -2 means that patch had already been applied and now it's been ignored 
+                            return new Response() {
+                                Resource = root,
+                                StatusCode = 200,
+                                StatusDescription = "Patch already applied"
+                            };
+                        }
                     }
 
                     return root;
