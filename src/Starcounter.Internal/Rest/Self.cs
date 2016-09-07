@@ -331,8 +331,8 @@ namespace Starcounter {
             Request req) {
 
             // Checking if we are not on scheduler.
-            if (!StarcounterEnvironment.IsOnScheduler()) {
-                throw new InvalidOperationException("You are trying to perform a Self call while not being on Starcounter scheduler.");
+            if (!StarcounterEnvironment.IsStarcounterThread()) {
+                throw new InvalidOperationException("You are trying to perform a Self call while not being on Starcounter thread.");
             }
 
             // Checking if URI starts with a slash.

@@ -629,8 +629,13 @@ namespace Starcounter
                 // Initializing connection.
                 syncTaskInfo_.ResetButKeepSocket(req, null, receiveTimeoutSeconds, 0);
 
-                // Doing synchronous request and returning response.
-                return syncTaskInfo_.PerformSyncRequest();
+                Response resp = null;
+                StarcounterEnvironment.RunDetached(() => {
+                    // Doing synchronous request and returning response.
+                    resp = syncTaskInfo_.PerformSyncRequest();
+                });
+
+                return resp;
             }
         }
     }

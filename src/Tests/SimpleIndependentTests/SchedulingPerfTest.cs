@@ -159,6 +159,118 @@ class SchedulingPerfTest {
         return 0;
     }
 
+    public static Int32 TestRunDetachedPerformance(Int32 numDetaches) {
+
+        Console.WriteLine("Starting run-detached performance tests...");
+
+        Int32 numFinishedTasks = 0;
+
+        Stopwatch sw = Stopwatch.StartNew();
+
+        for (Int32 i = 0; i < numDetaches; i++) {
+
+            StarcounterEnvironment.RunDetached(() => {
+                Interlocked.Increment(ref numFinishedTasks);
+            });
+        }
+
+        sw.Stop();
+
+        Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
+            "NumRunDetached_PerSec", (Int32)(numFinishedTasks / (sw.ElapsedMilliseconds / 1000.0)));
+
+        Console.WriteLine("Finished run-detached performance tests...");
+
+        return 0;
+    }
+
+    public static Int32 EasyhookPerformanceTest(Int32 numRuns) {
+
+        Console.WriteLine("Starting EasyHook performance tests...");
+
+        Int32 numFinishedTasks = 0;
+        Mutex m = new Mutex(false);
+
+        Stopwatch sw = Stopwatch.StartNew();
+
+        for (Int32 i = 0; i < numRuns; i++) {
+            m.WaitOne();
+            Interlocked.Increment(ref numFinishedTasks);
+            m.ReleaseMutex();
+        }
+
+        sw.Stop();
+
+        Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
+            "NumEasyHookCalls_PerSec", (Int32)(numFinishedTasks / (sw.ElapsedMilliseconds / 1000.0)));
+
+        Console.WriteLine("Finished EasyHook performance tests...");
+
+        return 0;
+    }
+
+    public static Int32 CooperativeSchedulingTest(Int32 numLongRunningTasks) {
+
+        Console.WriteLine("Starting cooperative scheduling performance tests...");
+
+        Int32 numFinishedTasks = 0;
+        Mutex m = new Mutex(false);
+        Int64 sharedCounter = 0;
+        Int64 fakeCounter = 0;
+        Int32 prevTaskId = 0;
+
+        Stopwatch sw = Stopwatch.StartNew();
+
+        for (Int32 i = 0; i < numLongRunningTasks; i++) {
+
+            Int32 z = i;
+
+            Scheduling.ScheduleTask(() => {
+
+                Int32 taskId = z;
+                prevTaskId = taskId;
+
+                for (Int32 k = 0; k < 100; k++) {
+
+                    // This causes scheduler to switch.
+                    m.WaitOne();
+                    for (Int32 v = 0; v < 10000000 * (taskId + 1); v++) {
+                        fakeCounter++;
+                    }
+                    m.ReleaseMutex();
+
+                    Int64 orig = sharedCounter;
+                    const Int32 numTimes = 10000000;
+                    for (Int32 v = 0; v < numTimes; v++) {
+                        sharedCounter++;
+                    }
+
+                    // Checking if two parallel tasks didn't run simultaneously.
+                    if (orig + numTimes != sharedCounter) {
+                        throw new Exception("Parallel execution detected in cooperative scheduling test!");
+                    }
+                }
+
+                Interlocked.Increment(ref numFinishedTasks);
+
+            }, false, 0);
+        }
+
+        while (numFinishedTasks != numLongRunningTasks) {
+            Thread.Sleep(1000);
+            Console.WriteLine("Finished: " + numFinishedTasks);
+        }
+
+        sw.Stop();
+
+        Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
+            "NumLongTasksWithCooperativeScheduling_PerSec", (Int32)(numLongRunningTasks / (sw.ElapsedMilliseconds / 1000.0)));
+
+        Console.WriteLine("Finished cooperative scheduling performance tests...");
+
+        return 0;
+    }
+
     public static Int32 LargeAsyncTaskOnAnyScheduler(Int32 numTasks) {
 
         Int32 numFinishedTasks = 0;
@@ -341,7 +453,22 @@ class SchedulingPerfTest {
         });
 
         Int32 errCode;
-        
+
+        errCode = EasyhookPerformanceTest(1000000);
+        if (0 != errCode) {
+            return errCode;
+        }
+
+        errCode = TestRunDetachedPerformance(1000000);
+        if (0 != errCode) {
+            return errCode;
+        }
+
+        errCode = CooperativeSchedulingTest(10);
+        if (0 != errCode) {
+            return errCode;
+        }
+
         errCode = SimplestAsyncTaskOnAnyScheduler(10000000);
         if (0 != errCode) {
             return errCode;

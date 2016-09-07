@@ -32,6 +32,12 @@ namespace Starcounter.Internal
         [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         extern static UInt32 cm3_eautodet(IntPtr h_opt);
 
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern unsafe uint cm3_bdetach(void* h_opt);
+
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern unsafe uint cm3_edetach(void* h_opt);
+
         /// <summary>
         /// Name of the database.
         /// </summary>
@@ -128,6 +134,24 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Runs a given delegate detached from scheduler, then re-attaches.
+        /// </summary>
+        public static void RunDetached(Action action) {
+
+            unsafe {
+                try {
+                    cm3_bdetach(null);
+
+                    // Running the delegate.
+                    action();
+
+                } finally {
+                    cm3_edetach(null);
+                }
+            }
+        }
+
+        /// <summary>
         /// Name of the application.
         /// </summary>
         [ThreadStatic]
@@ -159,8 +183,16 @@ namespace Starcounter.Internal
         /// <summary>
         /// Checks if execution occurs on scheduler.
         /// </summary>
-        public static bool IsOnScheduler() {
+        public static bool IsStarcounterThread() {
             return (StarcounterEnvironment.InvalidSchedulerId != StarcounterEnvironment.CurrentSchedulerId);
+        }
+
+        /// <summary>
+        /// Checks if execution occurs on scheduler.
+        /// </summary>
+        [Obsolete("Please use IsStarcounterThread instead.")]
+        public static bool IsOnScheduler() {
+            return IsStarcounterThread();
         }
 
         /// <summary>
