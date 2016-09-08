@@ -202,8 +202,19 @@ namespace Starcounter {
                 for (int i = 0; i < this.arrayAddsAndDeletes.Count; i++) {
                     var change = this.arrayAddsAndDeletes[i];
 
+                    if (change.ChangeType == Change.REMOVE && change.Index == int.MaxValue) {
+                        // TBH I'm not sure we can ever get here when having a remove all (it should refresh 
+                        // the whole array), but if we do we treat it as adding a remove change for each item 
+                        // removed (i.e count in change).
+                        for (int k = 0; k < change.FromIndex; k++) {
+                            ChangeLog.Add(Change.Remove(change.Parent, (TObjArr)change.Property, k, null));
+                        }
+                        continue;
+                    } 
+
                     changeLog.Add(change);
                     var index = change.Item.cacheIndexInArr;
+                    
                     if (change.ChangeType != Change.REMOVE && index >= 0 && index < this.valueList.Count) {
                         //CheckpointAt(index);
                         this.MarkAsNonDirty(index);

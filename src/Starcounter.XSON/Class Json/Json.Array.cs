@@ -167,9 +167,16 @@ namespace Starcounter {
                     if (change.Index <= transformedIndex)
                         transformedIndex++;
                 } else if (change.ChangeType == Change.REMOVE) {
-                    // If the type of change is remove and index in change is equal to transformed index, it is invalid.
+                    // If index in change is set to int.MaxValue, the whole list have been cleared.
+                    // If index in change is equal to transformed index, it is invalid.
                     // If the index in change is lower than transformed index we decrease the transformed index.
-                    if (change.Index < transformedIndex) {
+
+                    if (change.Index == int.MaxValue) { // All items removed.
+                        if (change.FromIndex >= transformedIndex) { // FromIndex = highest index of the removed items.
+                            transformedIndex = -1;
+                            break;
+                        }
+                    } else if (change.Index < transformedIndex) {
                         transformedIndex--;
                     } else if (change.Index == transformedIndex) {
                         transformedIndex = -1;

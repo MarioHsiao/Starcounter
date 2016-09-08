@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Starcounter;
 using System.Collections;
 using Starcounter.Templates;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter {
     partial class Json : IList {
@@ -363,12 +364,22 @@ namespace Starcounter {
             int indexesToRemove;
             var app = this.Parent;
             TObjArr property = (TObjArr)Template;
-            indexesToRemove = this.valueList.Count;
-            for (int i = (indexesToRemove - 1); i >= 0; i--) {
-                ((Json)this.valueList[i]).SetParent(null);
-                app.ChildArrayHasRemovedAnElement(property, i);
+            indexesToRemove = this.valueList.Count - 1;
+
+            if (indexesToRemove >= 0) {
+                for (int i = (indexesToRemove - 1); i >= 0; i--) {
+                    ((Json)this.valueList[i]).SetParent(null);
+                    app.ChildArrayHasRemovedAnElement(property, i);
+                }
+            
+                if (this.arrayAddsAndDeletes == null)
+                    this.arrayAddsAndDeletes = new List<Internal.XSON.Change>();
+
+                // The operations that happened before the clear is no longer relevant so we remove all first.
+                this.arrayAddsAndDeletes.Clear();
+                this.arrayAddsAndDeletes.Add(Change.RemoveAll(this.parent, property, indexesToRemove));
+                this.valueList.Clear();
             }
-            this.valueList.Clear();
         }
 
         /// <summary>
