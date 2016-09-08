@@ -115,6 +115,10 @@ namespace Starcounter
             return FullQueryProcess<T>(query, true, values);
         }
 
+        public static SqlProcessor.NewQueryResultRows<T> NewSQL<T>(String query, params Object[] values) {
+            return SqlProcessor.NewQueryResultRows<T>.ProcessSqlQuery(query, values);
+        }
+
         public static int Update(String query, params Object[] values) {
             return SqlProcessor.SqlProcessor.ExecuteQuerySqlProcessor(query);
         }

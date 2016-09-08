@@ -1,11 +1,13 @@
 {
   "name": "imported-template",
-  "version": "1.4.1",
+  "version": "1.4.3",
   "devDependencies": {
     "dom-bind-notifier": "~1.0.0",
     "iron-icon": "PolymerElements/iron-icon#~1.0.4",
     "iron-iconset-svg": "PolymerElements/iron-iconset-svg#~1.0.4",
-    "web-component-tester": "Polymer/web-component-tester#~4.0.3"
+    "web-component-tester": "Polymer/web-component-tester#~4.0.3",
+    "object.observe": "^0.2.6",
+    "array.observe": "^0.0.1"
   },
   "keywords": [
     "html",
@@ -21,7 +23,7 @@
     "Joachim Wester <joachimwester@me.com>",
     "Marcin Warpechowski <marcin@nextgen.pl>"
   ],
-  "description": "`<imported-template>` is a custom element that let's you load HTML partials into your Web Components, and take full control over loaded `<script>`s and `<link rel=\\\"import\\\">`s.Thanks to HTML Imports - caching, script execution, etc. is completely native. It also provides simple data-binding feature, that plays nice with Polymer or pure JavaScript + HTML data-binding.",
+  "description": "Custom element that loads HTML partials into your DOM, control loaded `<script>`s, `<link>`s, caching in native way. Plays nice with Polymer",
   "main": "./imported-template.html",
   "license": "MIT",
   "ignore": [
@@ -38,16 +40,13 @@
   "dependencies": {
     "juicy-html": ">=1.1.0"
   },
-  "resolutions": {
-    "chai": "^3.2.0"
-  },
-  "_release": "1.4.1",
+  "_release": "1.4.3",
   "_resolution": {
     "type": "version",
-    "tag": "1.4.1",
-    "commit": "2cfacbd7c10af35b4f1b5e0dd4be3f46996242ba"
+    "tag": "1.4.3",
+    "commit": "538898f61f6526ff4144d7a55dc405c141181d06"
   },
-  "_source": "git://github.com/Juicy/imported-template.git",
-  "_target": "~1.4.0",
-  "_originalSource": "Juicy/imported-template"
+  "_source": "https://github.com/Juicy/imported-template.git",
+  "_target": ">=1.4.3",
+  "_originalSource": "imported-template"
 }

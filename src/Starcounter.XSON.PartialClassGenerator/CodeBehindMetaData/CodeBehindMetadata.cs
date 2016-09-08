@@ -4,40 +4,34 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Internal;
-using System;
 using System.Collections.Generic;
 
-namespace Starcounter.XSON.Metadata
-{
+namespace Starcounter.XSON.Metadata {
     /// <summary>
-    /// Class containing metadata information parsed from a codebehind file for an App
+    /// Class containing metadata information parsed from a codebehind file for a TypedJson object.
     /// </summary>
-    public class CodeBehindMetadata
-    {
+    public class CodeBehindMetadata {
         /// <summary>
-        /// An empty instance of the codebehind metadata. Used when there is no
-        /// codebehind file.
+        /// An empty instance of the codebehind metadata. Used when there is no codebehind file.
         /// </summary>
-        public static CodeBehindMetadata Empty;
-
-        static CodeBehindMetadata() {
-            Empty = new CodeBehindMetadata();
-        }
-
+        public static CodeBehindMetadata Empty = new CodeBehindMetadata();
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="CodeBehindMetadata" /> class.
         /// </summary>
         public CodeBehindMetadata() { }
 
         /// <summary>
+        /// Finds and return an existing instance of <c>CodeBehindClassInfo</c> which
+        /// have the same classpath.
+        /// </summary>
+        /// <remarks>
         /// The classpath looks like this example "*.SomeChild.SomeGrandChild.SomeProp"
         /// wherein the asterix denotes the root class of the JSON object.
-        /// </summary>
+        /// </remarks>
         /// <param name="fullClassPath"></param>
         /// <returns></returns>
         public CodeBehindClassInfo FindClassInfo(string fullClassPath) {
-            //throw new Exception(fullClassPath);
             foreach (var ci in CodeBehindClasses) {
                 if (ci.ClassPath == fullClassPath)
                     return ci;
@@ -45,10 +39,10 @@ namespace Starcounter.XSON.Metadata
             return null;
         }
 
-		/// <summary>
-		/// A list containing all using directives in the codebehind file.
-		/// </summary>
-		public List<string> UsingDirectives = new List<string>();
+        /// <summary>
+        /// A list containing all using directives in the codebehind file.
+        /// </summary>
+        public List<string> UsingDirectives = new List<string>();
 
         /// <summary>
         /// A list of classes from the code-behind file that reference the JSON-by-example
@@ -69,6 +63,5 @@ namespace Starcounter.XSON.Metadata
                 return null;
             }
         }
-
     }
 }

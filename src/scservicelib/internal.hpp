@@ -7,7 +7,6 @@
 
 // Level0 includes.
 #include <sccorelog.h>
-#include <sccoredbg.h>
 #include <sccorelib.h>
 
 #include <stdint.h>

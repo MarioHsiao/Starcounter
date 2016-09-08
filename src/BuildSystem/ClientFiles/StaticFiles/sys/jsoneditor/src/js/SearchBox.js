@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * @constructor SearchBox
  * Create a search box in given HTML container
@@ -18,7 +20,7 @@ function SearchBox (editor, container) {
 
   var table = document.createElement('table');
   this.dom.table = table;
-  table.className = 'search';
+  table.className = 'jsoneditor-search';
   container.appendChild(table);
   var tbody = document.createElement('tbody');
   this.dom.tbody = tbody;
@@ -30,14 +32,14 @@ function SearchBox (editor, container) {
   tr.appendChild(td);
   var results = document.createElement('div');
   this.dom.results = results;
-  results.className = 'results';
+  results.className = 'jsoneditor-results';
   td.appendChild(results);
 
   td = document.createElement('td');
   tr.appendChild(td);
   var divInput = document.createElement('div');
   this.dom.input = divInput;
-  divInput.className = 'frame';
+  divInput.className = 'jsoneditor-frame';
   divInput.title = 'Search fields and values';
   td.appendChild(divInput);
 
@@ -50,7 +52,7 @@ function SearchBox (editor, container) {
   tbodySearch.appendChild(tr);
 
   var refreshSearch = document.createElement('button');
-  refreshSearch.className = 'refresh';
+  refreshSearch.className = 'jsoneditor-refresh';
   td = document.createElement('td');
   td.appendChild(refreshSearch);
   tr.appendChild(td);
@@ -61,7 +63,7 @@ function SearchBox (editor, container) {
     searchBox._onDelayedSearch(event);
   };
   search.onchange = function (event) { // For IE 9
-    searchBox._onSearch(event);
+    searchBox._onSearch();
   };
   search.onkeydown = function (event) {
     searchBox._onKeyDown(event);
@@ -80,7 +82,7 @@ function SearchBox (editor, container) {
 
   var searchNext = document.createElement('button');
   searchNext.title = 'Next result (Enter)';
-  searchNext.className = 'next';
+  searchNext.className = 'jsoneditor-next';
   searchNext.onclick = function () {
     searchBox.next();
   };
@@ -90,7 +92,7 @@ function SearchBox (editor, container) {
 
   var searchPrevious = document.createElement('button');
   searchPrevious.title = 'Previous result (Shift+Enter)';
-  searchPrevious.className = 'previous';
+  searchPrevious.className = 'jsoneditor-previous';
   searchPrevious.onclick = function () {
     searchBox.previous();
   };
@@ -203,20 +205,19 @@ SearchBox.prototype._onDelayedSearch = function (event) {
   this._clearDelay();
   var searchBox = this;
   this.timeout = setTimeout(function (event) {
-        searchBox._onSearch(event);
-      },
-      this.delay);
+    searchBox._onSearch();
+  },
+  this.delay);
 };
 
 /**
  * Handle onSearch event
- * @param {Event} event
  * @param {boolean} [forceSearch]  If true, search will be executed again even
  *                                 when the search text is not changed.
  *                                 Default is false.
  * @private
  */
-SearchBox.prototype._onSearch = function (event, forceSearch) {
+SearchBox.prototype._onSearch = function (forceSearch) {
   this._clearDelay();
 
   var value = this.dom.search.value;
@@ -251,14 +252,14 @@ SearchBox.prototype._onKeyDown = function (event) {
   var keynum = event.which;
   if (keynum == 27) { // ESC
     this.dom.search.value = '';  // clear search
-    this._onSearch(event);
+    this._onSearch();
     event.preventDefault();
     event.stopPropagation();
   }
   else if (keynum == 13) { // Enter
     if (event.ctrlKey) {
       // force to search again
-      this._onSearch(event, true);
+      this._onSearch(true);
     }
     else if (event.shiftKey) {
       // move to the previous search result
@@ -283,6 +284,29 @@ SearchBox.prototype._onKeyUp = function (event) {
   if (keynum != 27 && keynum != 13) { // !show and !Enter
     this._onDelayedSearch(event);   // For IE 9
   }
+};
+
+/**
+ * Clear the search results
+ */
+SearchBox.prototype.clear = function () {
+  this.dom.search.value = '';
+  this._onSearch();
+};
+
+/**
+ * Destroy the search box
+ */
+SearchBox.prototype.destroy = function () {
+  this.editor = null;
+  this.dom.container.removeChild(this.dom.table);
+  this.dom = null;
+
+  this.results = null;
+  this.activeResult = null;
+
+  this._clearDelay();
+
 };
 
 module.exports = SearchBox;

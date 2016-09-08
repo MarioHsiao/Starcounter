@@ -1,3 +1,6 @@
+if (typeof require !== "undefined" && typeof JSONPatchQueue === 'undefined') {
+	JSONPatchQueue = require('json-patch-queue');
+}
 /**
  * [JSONPatchOTAgent description]
  * @param {Function} transform function(seqenceA, sequences) that transforms `seqenceA` against `sequences`.
@@ -6,18 +9,13 @@
  * @param {Boolean} purity       [description]
  * @constructor
  * @extends {JSONPatchQueue}
- * @version: 1.0.0
+ * @version: 1.1.0
  */
 var JSONPatchOTAgent = function(transform, versionPaths, apply, purity){
 	JSONPatchQueue.call(this, versionPaths, apply, purity);
 	this.transform = transform;
 	/**
-	 * Function to apply JSONPatchSequence to JSON object
-	 * @type {Function}
-	 */
-	this.apply = JSONPatchOTAgent.applyOT( apply );
-	/**
-	 * History of performed JSON Patch sequences that maight not yet be acknowledged by Peer
+	 * History of performed JSON Patch sequences that might not yet be acknowledged by Peer
 	 * @type {Array<JSONPatch>}
 	 */
 	this.pending = [];
@@ -39,36 +37,64 @@ JSONPatchOTAgent.prototype.send = function(sequence){
 		path: this.remotePath,
 		value: this.remoteVersion
 	});
-	this.pending.push(sequence);
-	return JSONPatchQueue.prototype.send.call(this, newSequence);
+	var versionedJSONPatch = JSONPatchQueue.prototype.send.call(this, newSequence);
+	this.pending.push(versionedJSONPatch);
+    return versionedJSONPatch;
 };
 
-JSONPatchOTAgent.applyOT = function(callback){
-	return function applyOT(obj, remoteVersionedJsonPatch){
-		// console.log("applyPatch", this, arguments);
-        // transforming / applying
-        var consecutivePatch = remoteVersionedJsonPatch.slice(0);
 
-        // shift first operation object as it should contain test for our local version.
-        // ! We assume correct sequence structure, and queuing applied before.
-        //
-        // Latest local version acknowledged by remote
-        // Thanks to the queue version may only be higher or equal to current.
-        var localVersionAckByRemote = consecutivePatch.shift().value;
-        var ackDistance = localVersionAckByRemote - this.ackLocalVersion;
-        this.ackLocalVersion = localVersionAckByRemote;
+/**
+ * Process received versioned JSON Patch
+ * Adds to queue, transform and apply when applicable.
+ * @param  {Object} obj                   object to apply patches to
+ * @param  {JSONPatch} versionedJsonPatch patch to be applied
+ * @param  {Function} [applyCallback]     optional `function(object, consecutiveTransformedPatch)` to be called when applied, if not given #apply will be called
+ */
+JSONPatchOTAgent.prototype.receive = function(obj, versionedJsonPatch, applyCallback){
+	var apply = applyCallback || this.apply,
+		queue = this;
 
-        //clear pending operations
-        this.pending.splice(0,ackDistance);
-        if(this.pending.length){// is there any pending local operation?
-            // => Remote sent us something based on outdated versionDistance
-            // console.info("Transformation needed", consecutivePatch, 'by', this.nonAckList);
-            consecutivePatch = this.transform(
-                    consecutivePatch,
-                    this.pending
-                );
+	return JSONPatchQueue.prototype.receive.call(this, obj, versionedJsonPatch,
+		function applyOT(obj, remoteVersionedJsonPatch){
+			// console.log("applyPatch", queue, arguments);
+	        // transforming / applying
+	        var consecutivePatch = remoteVersionedJsonPatch.slice(0);
 
-        }
-        callback(obj, consecutivePatch);
-	};
+	        // shift first operation object as it should contain test for our local version.
+	        // ! We assume correct sequence structure, and queuing applied before.
+	        //
+	        // Latest local version acknowledged by remote
+	        // Thanks to the queue version may only be higher or equal to current.
+	        var localVersionAckByRemote = consecutivePatch.shift().value;
+	        var ackDistance = localVersionAckByRemote - queue.ackLocalVersion;
+	        queue.ackLocalVersion = localVersionAckByRemote;
+
+	        //clear pending operations
+	        queue.pending.splice(0,ackDistance);
+	        if(queue.pending.length){// is there any pending local operation?
+	            // => Remote sent us something based on outdated versionDistance
+	            // console.info("Transformation needed", consecutivePatch, 'by', queue.nonAckList);
+	            consecutivePatch = queue.transform(
+	                    consecutivePatch,
+	                    queue.pending
+	                );
+
+	        }
+	    	apply(obj, consecutivePatch);
+		});
 };
+
+/**
+ * Reset queue internals and object to new, given state
+ * @param obj object to apply new state to
+ * @param newState versioned object representing desired state along with versions
+ */
+JSONPatchOTAgent.prototype.reset = function(obj, newState){
+	this.ackLocalVersion = JSONPatchQueue.getPropertyByJsonPointer(newState, this.localPath);
+	this.pending = [];
+	JSONPatchQueue.prototype.reset.call(this, obj, newState);
+};
+
+if (typeof module !== "undefined") {
+    module.exports = JSONPatchOTAgent;
+}

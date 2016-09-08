@@ -198,7 +198,7 @@ namespace Starcounter
             IObjectProxy current;
             UInt16 previousCCI;
             UInt32 ir;
-            ObjectRef currentRef;
+            sccoredb.STAR_REFERENCE_VALUE currentRef;
             UInt16 currentCCI;
             Boolean br;
             current = null;
@@ -209,9 +209,7 @@ namespace Starcounter
             Boolean newIterator = _handle == 0;
             unsafe
             {
-                ir = sccoredb.star_iterator_next(
-                    _handle, &currentRef.ObjectID, &currentRef.ETI, _verify
-                    );
+                ir = sccoredb.star_iterator_next(_handle, &currentRef, _verify);
             }
             //Application.Profiler.Stop(2);
 
@@ -226,10 +224,10 @@ namespace Starcounter
                     ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
             }
 
-            if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
+            if (currentRef.handle.id == sccoredb.MDBIT_OBJECTID)
                 goto last;
 
-            currentCCI = (ushort)(currentRef.ETI & 0xFFFF);
+            currentCCI = currentRef.layout_handle;
 
             // Check if the current object has the same code class as the
             // previous object. If so we re-use the instance instead of
@@ -239,12 +237,7 @@ namespace Starcounter
                 goto attach;
 
             typeBinding = Bindings.GetTypeBinding(currentCCI);
-
-            // Check and update expected layouthandle
-            if (currentCCI != typeBinding.TableId) {
-                currentRef.ETI = DbHelper.EncodeObjectRefWithLayoutHandle(currentRef.ETI, typeBinding.TableId);
-                currentCCI = typeBinding.TableId;
-            }
+            currentCCI = typeBinding.TableId;
 
             current = typeBinding.NewInstanceUninit();
             if (current == null)
@@ -255,8 +248,9 @@ namespace Starcounter
             }
             previousCCI = currentCCI;
 
-        attach:        
-            current.Bind(currentRef.ETI, currentRef.ObjectID, typeBinding);
+        attach:
+            ulong recordRef = DbHelper.EncodeObjectRef(currentRef.handle.opt, currentCCI);
+            current.Bind(recordRef, currentRef.handle.id, typeBinding);
             if (_filterCallback != null)
             {
                 br = _filterCallback(current);
@@ -475,7 +469,7 @@ namespace Starcounter
             IObjectProxy current;
             UInt16 previousCCI;
             UInt32 ir;
-            ObjectRef currentRef;
+            sccoredb.STAR_REFERENCE_VALUE currentRef;
             UInt16 currentCCI;
             Boolean br;
             current = null;
@@ -485,9 +479,7 @@ namespace Starcounter
             //Application.Profiler.Start("filter_iterator_next", 2);
             Boolean newIterator = _handle == 0;
             unsafe {
-                ir = sccoredb.star_filter_iterator_next(
-                    _handle, &currentRef.ObjectID, &currentRef.ETI, _verify
-                    );
+                ir = sccoredb.star_filter_iterator_next(_handle, &currentRef, _verify);
             }
             //Application.Profiler.Stop(2);
 
@@ -502,10 +494,10 @@ namespace Starcounter
                     ErrorCode.ToException(Error.SCERRTOMANYOPENITERATORS);
             }
 
-            if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
+            if (currentRef.handle.id == sccoredb.MDBIT_OBJECTID)
                 goto last;
 
-            currentCCI = (ushort)(currentRef.ETI & 0xFFFF);
+            currentCCI = currentRef.layout_handle;
 
             // Check if the current object has the same code class as the
             // previous object. If so we re-use the instance instead of
@@ -515,12 +507,7 @@ namespace Starcounter
                 goto attach;
 
             typeBinding = Bindings.GetTypeBinding(currentCCI);
-
-            // Check and update expected layouthandle
-            if (currentCCI != typeBinding.TableId) {
-                currentRef.ETI = DbHelper.EncodeObjectRefWithLayoutHandle(currentRef.ETI, typeBinding.TableId);
-                currentCCI = typeBinding.TableId;
-            }
+            currentCCI = typeBinding.TableId;
 
             current = typeBinding.NewInstanceUninit();
             if (current == null) {
@@ -531,7 +518,8 @@ namespace Starcounter
             previousCCI = currentCCI;
 
         attach:
-            current.Bind(currentRef.ETI, currentRef.ObjectID, typeBinding);
+            ulong recordRef = DbHelper.EncodeObjectRef(currentRef.handle.opt, currentCCI);
+            current.Bind(recordRef, currentRef.handle.id, typeBinding);
             if (_filterCallback != null) {
                 br = _filterCallback(current);
 

@@ -321,12 +321,20 @@ public:
 
     void AddToActiveSockets(port_index_type port_index)
     {
-        g_gateway.get_server_port(port_index)->AddToActiveSockets(worker_id_);
+		ServerPort* sp = g_gateway.get_server_port(port_index);
+
+		GW_ASSERT(false == sp->is_udp());
+
+		sp->AddToActiveSockets(worker_id_);
     }
 
     void RemoveFromActiveSockets(port_index_type port_index)
     {
-        g_gateway.get_server_port(port_index)->RemoveFromActiveSockets(worker_id_);
+		ServerPort* sp = g_gateway.get_server_port(port_index);
+
+		GW_ASSERT(false == sp->is_udp());
+
+        sp->RemoveFromActiveSockets(worker_id_);
     }
 
     worker_id_type GetLeastBusyWorkerId(port_index_type port_index)
@@ -423,6 +431,31 @@ public:
     int64_t get_worker_stats_recv_num()
     {
         return worker_stats_recv_num_;
+    }
+
+    // Printing the socket information.
+    void PrintSocketsInfo(std::stringstream& str)
+    {
+        bool first = true;
+
+        str << "[";
+        for (socket_index_type i = 0; i < g_gateway.setting_max_connections_per_worker(); i++)
+        {
+            ScSocketInfoStruct* si = sockets_infos_ + i;
+
+            // Checking that socket is alive.
+            if ((!si->IsReset()) && (INVALID_SOCKET != si->get_socket())) {
+
+                if (!first) {
+                    str << ",";
+                }
+
+                first = false;
+
+                si->PrintInfo(str);
+            }
+        }
+        str << "]";
     }
 
     // Printing the worker information.
@@ -547,7 +580,10 @@ public:
 
         HandlersList* ph = g_gateway.get_server_port(port_index)->get_port_handlers();
 
-        GW_ASSERT(NULL != ph);
+		// Checking if port has no handlers (unregistered for example).
+		if (NULL == ph) {
+			return SCERRGWWRONGPORTINDEX;
+		}
 
         return ph->RunHandlers(gw, sd);
     }

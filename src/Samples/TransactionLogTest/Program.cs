@@ -59,14 +59,7 @@ namespace TransactionLogTest
             {
                 var cts = new CancellationTokenSource();
 
-                //rewind to the end of log
-                LogReadResult lr;
-                do
-                {
-                    lr = log_reader.ReadAsync(cts.Token, false).Result;
-                }
-                while (lr != null);
-
+                RewindLog(log_reader, cts);
                 ulong t_record_key = 0;
 
                 Db.Transact(() =>
@@ -88,7 +81,7 @@ namespace TransactionLogTest
                 });
 
                 // ACT
-                lr = log_reader.ReadAsync(cts.Token).Result;
+                LogReadResult lr = log_reader.ReadAsync(cts.Token).Result;
 
                 //CHECK
                 Trace.Assert(lr.transaction_data.creates.Count() == 1);
@@ -119,13 +112,7 @@ namespace TransactionLogTest
             {
                 var cts = new CancellationTokenSource();
 
-                //rewind to the end of log
-                LogReadResult lr;
-                do
-                {
-                    lr = log_reader.ReadAsync(cts.Token, false).Result;
-                }
-                while (lr != null);
+                RewindLog(log_reader, cts);
 
                 Db.Transact(() =>
                 {
@@ -133,7 +120,7 @@ namespace TransactionLogTest
                 });
 
                 // ACT
-                lr = log_reader.ReadAsync(cts.Token).Result;
+                LogReadResult lr = log_reader.ReadAsync(cts.Token).Result;
 
                 //CHECK
                 Trace.Assert(lr.transaction_data.creates.Count() == 1);
@@ -158,13 +145,7 @@ namespace TransactionLogTest
             {
                 var cts = new CancellationTokenSource();
 
-                //rewind to the end of log
-                LogReadResult lr;
-                do
-                {
-                    lr = log_reader.ReadAsync(cts.Token, false).Result;
-                }
-                while (lr != null);
+                RewindLog(log_reader, cts);
 
                 TestClass t = null;
                 Db.Transact(() =>
@@ -185,7 +166,7 @@ namespace TransactionLogTest
 
                 // ACT
                 log_reader.ReadAsync(cts.Token).Wait(); //skip creating transaction
-                lr = log_reader.ReadAsync(cts.Token).Result; //deal with update transaction
+                var lr = log_reader.ReadAsync(cts.Token).Result; //deal with update transaction
 
 
                 //CHECK
@@ -243,6 +224,58 @@ namespace TransactionLogTest
                 Trace.Assert(lr.transaction_data.creates.First().key.object_id == t_record_key);
                 Trace.Assert(lr.continuation_position.commit_id > new_record_position.commit_id);
             }
+        }
+
+        static void check_filtering()
+        {
+            // ARRANGE
+            ILogManager log_manager = new LogManager();
+
+            using (ILogReader log_reader = log_manager.OpenLog(Starcounter.Db.Environment.DatabaseName, Starcounter.Db.Environment.DatabaseLogDir, t=>t!=typeof(TestClassBase).FullName))
+            {
+                using (ILogReader log_reader2 = log_manager.OpenLog(Starcounter.Db.Environment.DatabaseName, Starcounter.Db.Environment.DatabaseLogDir, t => t != typeof(TestClass).FullName))
+                {
+                    using (ILogReader log_reader3 = log_manager.OpenLog(Starcounter.Db.Environment.DatabaseName, Starcounter.Db.Environment.DatabaseLogDir, t => false))
+                    {
+
+                        var cts = new CancellationTokenSource();
+
+                        RewindLog(log_reader, cts);
+                        RewindLog(log_reader2, cts);
+                        RewindLog(log_reader3, cts);
+
+
+                        ulong key1 = 0;
+                        ulong key2 = 0;
+
+                        Db.Transact(() =>
+                        {
+                            key1 = new TestClass().GetObjectNo();
+                            key2 = new TestClassBase().GetObjectNo();
+                        });
+
+                        // ACT
+                        var lr = log_reader.ReadAsync(cts.Token).Result;
+                        var lr2 = log_reader2.ReadAsync(cts.Token).Result;
+                        var lr3 = log_reader3.ReadAsync(cts.Token).Result;
+
+                        //CHECK
+                        Trace.Assert(lr.transaction_data.creates.Count() == 1);
+                        Trace.Assert(lr.transaction_data.creates.Single().key.object_id == key1);
+
+                        Trace.Assert(lr2.transaction_data.creates.Count() == 1);
+                        Trace.Assert(lr2.transaction_data.creates.Single().key.object_id == key2);
+
+                        Trace.Assert(lr3.transaction_data.creates.Count() == 0);
+                    }
+                }
+            }
+        }
+
+        private static void RewindLog(ILogReader log_reader, CancellationTokenSource cts)
+        {
+            while ( log_reader.ReadAsync(cts.Token, false).Result != null )
+                ;
         }
 
         static void check_apply_create()
@@ -535,6 +568,7 @@ namespace TransactionLogTest
             check_create_entry_for_inherited_tables();
             check_update_entry();
             check_positioning();
+            check_filtering();
             check_apply_create();
             check_apply_create_in_nonexistent_table();
             check_apply_create_of_nonexistent_column();

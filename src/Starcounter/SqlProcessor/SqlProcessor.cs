@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
     internal class SqlProcessor {
-
+        internal const ulong MaxErrorCode = 1000000;
         internal const ulong STAR_MOM_OF_ALL_LAYOUTS_NAME_TOKEN = 11;
         internal const ulong STAR_GLOBAL_SETSPEC_INDEX_NAME_TOKEN = 12;
 
@@ -13,7 +13,10 @@ namespace Starcounter.SqlProcessor {
             CharSet = CharSet.Unicode)]
         public static unsafe extern uint scsql_process_query(ulong context,
             string query, out byte query_type, out ulong iter, ScError* error);
-        /*void* caller, void* executor, */
+        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
+            CharSet = CharSet.Unicode)]
+        public static unsafe extern uint scsql_process_select_query(ulong context_handle,
+            string query, out ulong iter, ScError* error);
         [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
             CharSet = CharSet.Unicode)]
         internal static unsafe extern uint scsql_process_modifyquery(ulong context,
@@ -128,7 +131,9 @@ namespace Starcounter.SqlProcessor {
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static unsafe extern char* star_metalayer_errbuf(ulong context_handle);
-        
+
+        public const byte SQL_QUERY_TYPE_SELECT = 0;
+        public const byte SQL_QUERY_TYPE_NONSELECT = 1;
 
         public static unsafe Exception CallSqlProcessor(String query, out byte queryType, out ulong iterator) {
             ScError scerror;
@@ -145,6 +150,21 @@ namespace Starcounter.SqlProcessor {
             return ex;
         }
 
+        internal static unsafe Exception CallSelectPrepare(String query, out ulong iterator) {
+            ScError scerror;
+            uint err = scsql_process_select_query(ThreadData.ContextHandle, query, out iterator, &scerror);
+            if (err == 0)
+                return null;
+            Exception ex = GetSqlException(err, query, &scerror);
+            Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+            Debug.Assert(err < MaxErrorCode);
+            // create the exception
+            scsql_free_memory();
+            Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+            Debug.Assert(err < MaxErrorCode);
+            return ex;
+        }
+
         internal static unsafe int ExecuteQuerySqlProcessor(String query) {
             int nrObjs = 0;
 
@@ -154,11 +174,11 @@ namespace Starcounter.SqlProcessor {
                 return nrObjs;
             Exception ex = GetSqlException(err, query, &scerror);
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
-            Debug.Assert(err < 10000);
+            Debug.Assert(err < MaxErrorCode);
             // create the exception
             scsql_free_memory();
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
-            Debug.Assert(err < 10000);
+            Debug.Assert(err < MaxErrorCode);
             throw ex;
         }
 
@@ -202,7 +222,7 @@ namespace Starcounter.SqlProcessor {
                     uint r;
 
                     r = sccoredb.star_create_transaction(
-                        0, 0, out transactionHandle
+                        0, out transactionHandle
                         );
                     if (r != 0) {
                         transactionHandle = 0;
@@ -330,6 +350,15 @@ namespace Starcounter.SqlProcessor {
                 return ErrorCode.ToException(errorCode, message, (m, e) => new SqlException(errorCode, m, message, position, token, query));
             }
         }
+        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
+            CharSet = CharSet.Unicode)]
+        internal static extern uint scsql_advance_iter(ulong iter);
+        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
+            CharSet = CharSet.Unicode)]
+        internal static extern uint scsql_delete_iter(ulong iter);
+        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
+            CharSet = CharSet.Unicode)]
+        internal static extern uint scsql_deref_db_iter(ulong iter, out ulong rec_id, out ulong rec_ref);
     }
 
     [StructLayout(LayoutKind.Sequential)]

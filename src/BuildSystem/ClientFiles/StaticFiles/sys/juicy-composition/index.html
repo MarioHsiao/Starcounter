@@ -1,0 +1,195 @@
+<!doctype html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <title>&lt;juicy-composition&gt;</title>
+    <link rel="stylesheet" href="http://juicy.github.io/github-markdown-css/github-markdown.css">
+
+    <!-- Imports polyfill -->
+    <script src="../webcomponentsjs/webcomponents.min.js"></script>
+    <script>
+        /* this script must run before Polymer is imported */
+        window.Polymer = {
+            dom: 'shadow',
+            lazyRegister: true
+        };
+    </script>
+
+    <!-- Imports custom element -->
+    <link rel="import" href="juicy-composition.html">
+
+    <base href="https://polygit.org/components/">
+    <base href="http://polygit.org/polymer+:master/juicy-*+juicy+:master/components/">
+    <script src="webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link href="paper-toolbar/paper-toolbar.html" rel="import">
+    <link href="paper-card/paper-card.html" rel="import">
+    <link href="paper-item/paper-item.html" rel="import">
+    <link href="iron-icons/iron-icons.html" rel="import">
+    <link href="paper-icon-button/paper-icon-button.html" rel="import">
+    <style>
+        body.markdown-body {
+            overflow: auto;
+        }
+
+        .output {
+            margin: 2em auto;
+            padding: 1em;
+            position: relative;
+            background-color: rgb(238, 238, 238);
+            box-shadow: rgba(0, 0, 0, 0.137255) 0px 2px 2px 0px, rgba(0, 0, 0, 0.117647) 0px 1px 5px 0px, rgba(0, 0, 0, 0.2) 0px 3px 1px -2px;
+        }
+
+        #result {
+            flex: 1;
+        }
+
+        .codeGiven {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        .JSONHTML {
+            align-items: flex-start;
+        }
+        .JSONHTML > *{
+            padding: 2em;
+        }
+    </style>
+    <script>
+        (function() {
+            var MyFlexbox = Object.create(HTMLElement.prototype);
+            MyFlexbox.createdCallback = function() {
+                var shadowRoot = this.createShadowRoot();
+                shadowRoot.innerHTML = '<style>:host{display: flex; align-items: center; justify-content: space-around;margin: 1em 0 0;} ::content > * {margin: 0; flex: 1; margin-right: 1em;} ::content > :nth-child(2) {flex: 9; margin: 0;}</style><content></content>';
+            }
+            document.registerElement('my-flexbox', {
+                prototype: MyFlexbox
+            });
+        }());
+    </script>
+
+    </script>
+</head>
+
+<body>
+    <a href="https://github.com/Juicy/juicy-composition"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
+    <article class="markdown-body">
+        <h1>&lt;juicy-composition&gt;</h1>
+        <blockquote>
+            <p>Custom Element that adds given Document Fragment to Shadow DOM</p>
+        </blockquote>
+        <section>
+            <p>Consider you received set of HTML Elements from different vendors, like:</p>
+            <div class="codeGiven">
+                <pre><code>&lt;span&gt;&lt;paper-icon-button src="//assets-cdn.github.com/images/modules/logos_page/Octocat.png"&gt;&lt;/paper-icon-button&gt; tomalec&lt;/span&gt;
+&lt;span&gt;Person details&lt;/span&gt;
+&lt;span&gt;Tomek&lt;/span&gt;
+&lt;span&gt;Wytrębowicz&lt;/span&gt;
+&lt;img src="http://www.gravatar.com/avatar/a733c006efdb183b5d46c62a6e4bff84?s=128" alt="Gravatar" /&gt;</code></pre>
+                <section class="output">
+                    <a href="https://github.com/tomalec"><paper-icon-button src="//assets-cdn.github.com/images/modules/logos_page/Octocat.png"></paper-icon-button> tomalec</a>
+                    <span>Person details</span>
+                    <span>Tomek</span>
+                    <span>Wytrębowicz</span>
+                    <img src="http://www.gravatar.com/avatar/a733c006efdb183b5d46c62a6e4bff84?s=128" alt="Gravatar" />
+                </section>
+            </div>
+        </section>
+        <section>
+            <p>Kinda ugly, isn't it? Now, you would like to <strong>make it look better</strong>, but without changing their HTML structure and position, as they may interact with each other.</p>
+            <p>
+                Thanks to <code>juicy-composition</code> you can do so. Just provide a layout - Shadow DOM, DocumentFragment given by <code>.composition</code> property.
+                Then it will build regular HTML tree in Shadow DOM, and distribute your elements accordingly. For example
+                you can build something like this:
+            </p>
+        </section>
+        <section>
+            <div class="codeGiven JSONHTML">
+                <div>
+                    <h4>Document Fragment</h4>
+                    <p>Put it into <code>composition</code> property... </p>
+                    <pre><code>&lt;div&gt;
+    &lt;paper-toolbar&gt;
+        &lt;content select="[slot='1']"&gt;&lt;/content&gt;
+    &lt;/paper-toolbar&gt;
+    &lt;my-flexbox&gt;
+        &lt;div&gt;&lt;content select="[slot='4']"&gt;&lt;/content&gt;&lt;/div&gt;
+        &lt;paper-card&gt;
+            &lt;paper-item&gt;
+                &lt;content select="[slot='custom-slot-name']"&gt;&lt;/content&gt;
+            &lt;/paper-item&gt;
+            &lt;paper-item&gt;
+                &lt;content select="[slot='3']"&gt;&lt;/content&gt;
+            &lt;/paper-item&gt;
+            &lt;paper-item&gt;
+                &lt;content select="[slot='0']"&gt;&lt;/content&gt;
+            &lt;/paper-item&gt;
+        &lt;/paper-card&gt;
+    &lt;/my-flexbox&gt;
+    &lt;/div&gt;</code></pre></div>
+                <div id="result">
+                    <h3>Result</h3>
+                    <p>...to get such result</p>
+
+                    <section class="output">
+
+                        <template id="my-composition">
+                            <div>
+                                <paper-toolbar>
+                                    <content select="[slot='1']"></content>
+                                </paper-toolbar>
+                                <my-flexbox>
+                                    <div><content select="[slot='4']"></content></div>
+                                    <paper-card>
+                                        <paper-item>
+                                            <content select="[slot='custom-slot-name']"></content>
+                                        </paper-item>
+                                        <paper-item>
+                                            <content select="[slot='3']"></content>
+                                        </paper-item>
+                                        <paper-item>
+                                            <content select="[slot='0']"></content>
+                                        </paper-item>
+                                    </paper-card>
+                                </my-flexbox>
+                            </div>
+                        </template>
+                        <juicy-composition auto-stamp>
+                            <a href="https://github.com/tomalec"><paper-icon-button src="//assets-cdn.github.com/images/modules/logos_page/Octocat.png"></paper-icon-button> tomalec</a>
+                            <span>Person details</span>
+                            <span slot="custom-slot-name">Tomek</span>
+                            <span>Wytrębowicz</span>
+                            <img src="http://www.gravatar.com/avatar/a733c006efdb183b5d46c62a6e4bff84?s=128" alt="Gravatar" />
+                        </juicy-composition>
+                        <script>
+                        (function () {
+                            var juicyElement = document.querySelector('juicy-composition'),
+                                shadow = document.querySelector('#my-composition').content;
+                            juicyElement.composition = document.importNode(shadow, true);
+                        })();
+                        </script>
+                    </section>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h2>Additional features</h2>
+            <ul>
+                <li>
+                    Auto-adding (hidden) slots for non-distributed elements.
+                    <ul>
+                        <li>Filters/does not apply to non visual elements, like: <code>template, link, script, style</code></li>
+                        <li>Prefixes the automatically created slot names with vendor name if given</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+    </article>
+
+</body>
+
+</html>

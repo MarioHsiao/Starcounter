@@ -63,7 +63,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BaseVsPackage.cs" />
-    <Compile Include="AppsEvents.cs" />
+    <Compile Include="TypedJsonEvents.cs" />
     <Compile Include="CodeHostMonitor.cs" />
     <Compile Include="ErrorListProvider.cs" />
     <Compile Include="ErrorLogDisplay.cs" />

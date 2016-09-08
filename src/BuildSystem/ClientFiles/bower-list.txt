@@ -1,37 +1,34 @@
 bower check-new     Checking for new versions of the project dependencies...
-sys#1.0.0 C:\Users\joozek\dev\starcounter\src\BuildSystem\ClientFiles
-├─┬ PuppetJs#2.0.0
+sys#1.0.0 D:\repos\Starcounter\src\BuildSystem\ClientFiles
+├─┬ PuppetJs#2.1.0
 │ ├── fast-json-patch#1.0.0
 │ ├── json-patch-ot#73a40c7e4a
-│ ├─┬ json-patch-ot-agent#9087706c29
-│ │ └── json-patch-queue#1312e44c83
-│ └── json-patch-queue#1312e44c83
+│ ├─┬ json-patch-ot-agent#84fc4e4301
+│ │ └── json-patch-queue#4e279479ca
+│ └── json-patch-queue#4e279479ca
 ├── array.observe#0.0.1 extraneous
-├─┬ bootswatch#3.3.6+2
-│ └─┬ bootstrap#3.3.6 (latest is 4.0.0-alpha.2)
-│   └── jquery#2.2.4 (latest is 3.0.0)
+├─┬ bootswatch#3.3.6+2 (3.3.7 available)
+│ └─┬ bootstrap#3.3.7 (latest is 4.0.0-alpha.3)
+│   └── jquery#3.1.0
 ├── dom-bind-notifier#9a0a4d20a1
-├─┬ imported-template#1.4.1
+├─┬ imported-template#1.4.3
 │ └── juicy-html#1.1.0
-├── juicy-jsoneditor#1.0.5 extraneous
 ├── juicy-redirect#0.4.2 extraneous
 ├── object.observe#0.2.6 extraneous
-├── polymer#1.5.0
-├─┬ puppet-client#3.0.0
-│ ├─┬ PuppetJs#2.0.0
-│ │ ├── fast-json-patch#1.0.0
-│ │ ├── json-patch-ot#73a40c7e4a
-│ │ ├─┬ json-patch-ot-agent#9087706c29
-│ │ │ └── json-patch-queue#1312e44c83
-│ │ └── json-patch-queue#1312e44c83
-│ └── polymer#1.5.0
+├── polymer#1.6.1
+├─┬ puppet-client#3.1.1
+│ ├── PuppetJs#2.1.0
+│ └── polymer#1.6.1
 ├── puppet-redirect#0.4.3
-├─┬ starcounter-debug-aid#2.0.5
-│ ├─┬ juicy-jsoneditor#1.0.5
-│ │ ├── fast-json-patch#1.0.0 incompatible with ~0.5.2 (0.5.7 available, latest is 1.0.0)
-│ │ ├── jsoneditor#4.2.1 (latest is 5.5.6)
-│ │ └─┬ polymer#1.5.0 incompatible with ~1.1.4 (1.1.5 available, latest is 1.5.0)
+├─┬ starcounter-debug-aid#2.0.7
+│ ├─┬ juicy-jsoneditor#1.1.0
+│ │ ├── fast-json-patch#1.0.0
+│ │ ├── jsoneditor#5.5.6 (5.5.7 available)
+│ │ └─┬ polymer#1.6.1
 │ │   └── webcomponentsjs#0.7.22
-│ └── polymer#1.5.0 incompatible with ~1.1.4 (1.1.5 available, latest is 1.5.0)
-└─┬ starcounter-include#0.3.0
-  └── imported-template#1.4.1
+│ └── polymer#1.6.1
+└─┬ starcounter-include#24c9807118
+  ├─┬ imported-template#1.4.3
+  │ └── juicy-html#1.1.0
+  └─┬ juicy-composition#0.0.5
+    └── webcomponentsjs#0.7.22

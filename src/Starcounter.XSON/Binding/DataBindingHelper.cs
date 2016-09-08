@@ -1,10 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Starcounter.Internal;
-using Starcounter.Logging;
-using Starcounter.Templates;
 using Starcounter.Internal.XSON;
-using System.Collections.Generic;
+using Starcounter.Templates;
 
 namespace Starcounter.XSON {
     internal static class DataBindingHelper {
@@ -31,26 +30,25 @@ namespace Starcounter.XSON {
             bInfo.BoundToType = parent.GetType();
             bInfo.IsBoundToParent = true;
 
-            // We dont try to bind to the json if there is a template with the same name as the 
-            // binding since we only want to bind to properties declared in codebehind.
             string pname = bindingName;
             int index = pname.IndexOf('.');
             if (index != -1) {
                 pname = pname.Substring(0, index);
             }
 
-            if (tobj.Properties.GetTemplateByPropertyName(pname) == null) {
-                bInfo = GetBindingPath(bInfo.BoundToType, parent, bindingName, template, false);
-                bInfo.BoundToType = parent.GetType();
-                bInfo.IsBoundToParent = true;
-            }
+            // First check in code-behind. We exclude all (non-user) generated properties from the result to avoid
+            // binding to an generated accessor property.
+            bInfo = GetBindingPath(bInfo.BoundToType, parent, bindingName, template, false, true);
+            bInfo.BoundToType = parent.GetType();
+            bInfo.IsBoundToParent = true;
           
             if (bInfo.Member == null) {
+                // No member found in code-behind, lets try the dataobject.
                 bInfo.IsBoundToParent = false;
                 bInfo.BoundToType = null;
                 dataObject = parent.Data;
                 if (dataObject != null) {
-                    bInfo = GetBindingPath(dataObject.GetType(), dataObject, bindingName, template, throwException);
+                    bInfo = GetBindingPath(dataObject.GetType(), dataObject, bindingName, template, throwException, false);
                     if (bInfo.BoundToType == null) {
                         if (bInfo.Member != null) {
                             bInfo.BoundToType = bInfo.Member.DeclaringType;
@@ -72,7 +70,7 @@ namespace Starcounter.XSON {
         /// <param name="template"></param>
 		/// <param name="throwException"></param>
         /// <returns></returns>
-        private static BindingInfo GetBindingPath(Type dataType, object data, string bindingName, Template template, bool throwException) {
+        private static BindingInfo GetBindingPath(Type dataType, object data, string bindingName, Template template, bool throwException, bool excludeCodegenMembers) {
 			int index;
 			int offset;
 			string partName;
@@ -84,7 +82,7 @@ namespace Starcounter.XSON {
 
 			index = bindingName.IndexOf('.');
 			if (index == -1) {
-				memberInfo = GetMemberForBinding(dataType, bindingName, template, throwException);
+				memberInfo = GetMemberForBinding(dataType, bindingName, template, throwException, excludeCodegenMembers);
 			} else {
 				offset = 0;
 				partType = dataType;
@@ -104,7 +102,7 @@ namespace Starcounter.XSON {
 						index = bindingName.IndexOf('.', offset);
 					}
 
-					memberInfo = GetMemberForBinding(partType, partName, template, throwException);
+					memberInfo = GetMemberForBinding(partType, partName, template, throwException, excludeCodegenMembers);
 					if (memberInfo == null) {
 						memberPath = null;
 						break;
@@ -152,8 +150,8 @@ namespace Starcounter.XSON {
 		/// <param name="template"></param>
 		/// <param name="throwException"></param>
 		/// <returns></returns>
-		private static MemberInfo GetMemberForBinding(Type dataType, string bindingName, Template template, bool throwException) {
-			var pInfo = ReflectionHelper.FindPropertyOrField(dataType, bindingName);
+		private static MemberInfo GetMemberForBinding(Type dataType, string bindingName, Template template, bool throwException, bool excludeCodegenMembers) {
+			var pInfo = ReflectionHelper.FindPropertyOrField(dataType, bindingName, excludeCodegenMembers);
 			if (pInfo == null && throwException) {
 				throw ErrorCode.ToException(Error.SCERRCREATEDATABINDINGFORJSON,
 											string.Format(propNotFound,

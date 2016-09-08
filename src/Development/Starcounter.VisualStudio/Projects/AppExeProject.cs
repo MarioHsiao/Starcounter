@@ -15,7 +15,7 @@ namespace Starcounter.VisualStudio.Projects {
     internal class AppExeProject : StarcounterProject {
         private static readonly Icon projectIcon;
 
-        private AppsEvents appsEvents;
+        private TypedJsonEvents appsEvents;
 
         static AppExeProject() {
             try {
@@ -27,7 +27,7 @@ namespace Starcounter.VisualStudio.Projects {
 
         public AppExeProject(VsPackage package)
             : base(package) {
-                appsEvents = new AppsEvents();
+                appsEvents = new TypedJsonEvents();
                 appsEvents.AddEventListeners(package);
         }
 
