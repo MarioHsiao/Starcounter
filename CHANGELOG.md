@@ -50,13 +50,13 @@
 - `PartialToStandaloneHtmlProvider` middleware no longer forces Shadow DOM in Polymer [#3562](https://github.com/Starcounter/Starcounter/issues/3562)
 - `PartialToStandaloneHtmlProvider` middleware no longer overwrites default Bootstrap font size [#3665](https://github.com/Starcounter/Starcounter/issues/3665)
 - Upgraded Polymer to 1.6.1 [#3673](https://github.com/Starcounter/Starcounter/issues/3673), [#3797](https://github.com/Starcounter/Starcounter/issues/3797)
-- Upgraded PuppetJs to 2.1.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
+- Upgraded PuppetJs to 2.2.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
 - For request to invalid (non-existent) session, return 404 instead of 400
 - Upgraded starcounter-debug-aid to 2.0.7
 - Upgraded Juicy/juicy-jsoneditor to 1.1.0
 - Upgraded Josdejong/jsoneditor to 5.5.6
 - Upgraded Juicy/imported-template to 1.4.3
-- Upgraded puppetjs/puppet-polymer-client to 3.1.0 which supports reconnection
+- Upgraded puppetjs/puppet-polymer-client to 3.2.0 which supports reconnection
 - Changed how Starcounter VS Extension handles JSON files to allow adding existing files without code-behind so that they are not treated as TypedJSON per default [#3075](https://github.com/Starcounter/Starcounter/issues/3075)
 - Changed invocation order of middleware, to execute in order of registration rather than the other way around. [#3810](https://github.com/Starcounter/Starcounter/issues/3810)
 - Changed behaviour of default patchhandler to treat empty incoming patches as ping/heartbeats and send no patches back to client (i.e. not collecting the latest changes) [PuppetJs/#94](https://github.com/PuppetJs/PuppetJs/issues/94)
