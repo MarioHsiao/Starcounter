@@ -1,4 +1,4 @@
-/*! puppet-dom.js version: 2.1.0
+/*! puppet-dom.js version: 2.2.0
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -15,8 +15,7 @@
   /**
    * PuppetDOM
    * @extends {Puppet}
-   * @param {Object} [options] options object as in Puppet
-   * @param {HTMLElement} [options.listenTo=document.body] HTML node to listen events.
+   * @param {Object} [options] map of arguments. See README.md for description
    */
   var PuppetDOM = function (options){
     options || (options={});
