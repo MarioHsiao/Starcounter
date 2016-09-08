@@ -148,6 +148,13 @@ namespace Starcounter.Server.Commands {
                 Directory.Delete(appsFolder, true);
             }
 
+            // Delete Applications "Software" configuration file
+            string softwareConfiguration = Path.Combine(Path.GetDirectoryName(file.FilePath), "software.json");
+            if (File.Exists(softwareConfiguration)) {
+                File.Delete(softwareConfiguration);
+            }
+
+
             // Delete the file itself.
             // Then Delete the directory it resides in, if empty. Don't
             // fail if this does not succeed (deleting the directory is
