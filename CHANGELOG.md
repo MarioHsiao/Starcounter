@@ -51,13 +51,13 @@
 - Upgraded Polymer to 1.6.1 [#3673](https://github.com/Starcounter/Starcounter/issues/3673), [#3797](https://github.com/Starcounter/Starcounter/issues/3797)
 - Removed parameter `forceSnapshot` from `Db.Transact()` methods since the parameter is no longer valid. A `Db.Transact()` is always executed in snapshot isolation.
 - Removed parameter `detectConflicts` from `Transaction` since the parameter is no longer valid. A `Transaction` can no longer detect conflicts.
-- Upgraded PuppetJs to 2.1.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
+- Upgraded PuppetJs to 2.2.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
 - For request to invalid (non-existent) session, return 404 instead of 400
 - Upgraded starcounter-debug-aid to 2.0.7
 - Upgraded Juicy/juicy-jsoneditor to 1.1.0
 - Upgraded Josdejong/jsoneditor to 5.5.6
 - Upgraded Juicy/imported-template to 1.4.3
-- Upgraded puppetjs/puppet-polymer-client to 3.1.0 which supports reconnection
+- Upgraded puppetjs/puppet-polymer-client to 3.2.0 which supports reconnection
 - Changed how Starcounter VS Extension handles JSON files to allow adding existing files without code-behind so that they are not treated as TypedJSON per default [#3075](https://github.com/Starcounter/Starcounter/issues/3075)
 - Changed invocation order of middleware, to execute in order of registration rather than the other way around. [#3810](https://github.com/Starcounter/Starcounter/issues/3810)
 - Changed behaviour of default patchhandler to treat empty incoming patches as ping/heartbeats and send no patches back to client (i.e. not collecting the latest changes) [PuppetJs/#94](https://github.com/PuppetJs/PuppetJs/issues/94)
