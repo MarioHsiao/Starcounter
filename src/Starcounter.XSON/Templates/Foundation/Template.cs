@@ -15,7 +15,7 @@ namespace Starcounter.Templates {
     /// A template describes an App or a property of an App. A tree of
     /// templates defines the schema of an App.
     /// </summary>
-    public abstract partial class Template : IReadOnlyTree {
+    public abstract class Template : IReadOnlyTree {
         private bool _dynamic;
         private string _className;
         private string _name;
@@ -385,15 +385,6 @@ namespace Starcounter.Templates {
 
             return reader.CompileMarkup<TJson, TTemplate>(markup, origin);
         }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public struct CompilerOrigin {
-        public string FileName;
-        public int LineNo;
-        public int ColNo;
     }
 
     internal enum TemplateTypeEnum {

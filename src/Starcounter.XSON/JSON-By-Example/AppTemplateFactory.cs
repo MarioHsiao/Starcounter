@@ -11,8 +11,9 @@ using Starcounter.Templates;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Text;
+using Starcounter.XSON.Interfaces;
 
-namespace Starcounter.Internal.JsonTemplate {
+namespace Starcounter.XSON.JSONByExample {
     /// <summary>
     /// The template factory is intended for template parsers as a clean
     /// interface used to built Starcounter controller templates.
@@ -36,7 +37,7 @@ namespace Starcounter.Internal.JsonTemplate {
         /// <param name="parent">The parent.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>Template.</returns>
-        private Template CheckAndAddOrReplaceTemplate(Template newTemplate, object parent, DebugInfo debugInfo) {
+        private Template CheckAndAddOrReplaceTemplate(Template newTemplate, object parent, ISourceInfo debugInfo) {
             Template existing;
             ReplaceableTemplate rt;
             String name;

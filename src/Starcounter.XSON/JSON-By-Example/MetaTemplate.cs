@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Starcounter.Templates;
 
-namespace Starcounter.Internal.JsonTemplate {
+namespace Starcounter.XSON.JSONByExample {
     /// <summary>
     /// Class MetaTemplate
     /// </summary>

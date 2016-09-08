@@ -4,7 +4,7 @@ using Starcounter.Advanced.XSON;
 using Starcounter.Internal.JsonTemplate;
 using Starcounter.Templates;
 
-namespace Starcounter.Internal.XSON.JsonByExample {
+namespace Starcounter.XSON.JSONByExample {
     /// <summary>
     /// 
     /// </summary>

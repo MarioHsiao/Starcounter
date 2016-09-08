@@ -4,27 +4,30 @@
 // </copyright>
 // ***********************************************************************
 
-namespace Starcounter.Templates.Interfaces {
+namespace Starcounter.XSON.Interfaces {
 
     /// <summary>
-    /// Interface IDebugInfo
+    /// 
     /// </summary>
-    public interface IDebugInfo {
+    public interface ISourceInfo {
         /// <summary>
-        /// Gets the line no.
-        /// </summary>
-        /// <value>The line no.</value>
-        int LineNo { get; }
-        /// <summary>
-        /// Gets the col no.
-        /// </summary>
-        /// <value>The col no.</value>
-        int ColNo { get;  }
-        /// <summary>
-        /// Gets the name of the file.
+        /// Gets the name of the sourcefile.
         /// </summary>
         /// <value>The name of the file.</value>
-        string FileName { get;  }
+        string Filename { get; }
+
+        /// <summary>
+        /// Gets the line number.
+        /// </summary>
+        /// <value>The line no.</value>
+        int Line { get; }
+
+        /// <summary>
+        /// Gets the column number.
+        /// </summary>
+        /// <value>The col no.</value>
+        int Column { get;  }
+        
     }
 }
 

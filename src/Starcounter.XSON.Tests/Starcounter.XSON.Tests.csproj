@@ -91,10 +91,6 @@
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsTemplateParser\Starcounter.XSON.JsTemplateParser.fsproj">
-      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
-      <Name>Starcounter.XSON.JsTemplateParser</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.Tests.CompiledJson\Starcounter.XSON.Tests.CompiledJson.csproj">
       <Project>{43C7287D-816A-4C82-A0CB-188A51E6C94A}</Project>
       <Name>Starcounter.XSON.Tests.CompiledJson</Name>

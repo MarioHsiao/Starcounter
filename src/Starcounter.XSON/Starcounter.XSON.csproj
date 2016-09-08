@@ -62,6 +62,8 @@
     <Compile Include="Class Json\Json.State.cs" />
     <Compile Include="Class Json\JsonExtension.cs" />
     <Compile Include="Class Json\SiblingList.cs" />
+    <Compile Include="Interfaces\ITemplateFactory.cs" />
+    <Compile Include="JSON-By-Example\SourceInfo.cs" />
     <Compile Include="JsonDebugHelper.cs" />
     <Compile Include="JSON-By-Example\MetaTemplate.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstJSConstructor.cs" />
@@ -115,7 +117,7 @@
     <Compile Include="Properties\Module.cs" />
     <Compile Include="Binding\DataBindingHelper.cs" />
     <Compile Include="DynamicJson.cs" />
-    <Compile Include="Interfaces\IDebugInfo.cs" />
+    <Compile Include="Interfaces\ISourceInfo.cs" />
     <Compile Include="Interfaces\Template\ITemplateCodeGenerator.cs" />
     <Compile Include="Interfaces\Template\ITemplateCodeGeneratorModule.cs" />
     <Compile Include="Input.cs" />
@@ -175,10 +177,6 @@
     <ProjectReference Include="..\Starcounter.Logging\Starcounter.Logging.csproj">
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsTemplateParser\Starcounter.XSON.JsTemplateParser.fsproj">
-      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
-      <Name>Starcounter.XSON.JsTemplateParser</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
