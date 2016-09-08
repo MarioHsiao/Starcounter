@@ -127,6 +127,17 @@ namespace Starcounter.Internal.XSON {
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="list"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        internal static Change RemoveAll(Json obj, TObjArr list, Int32 count) {
+            return new Change(Change.REMOVE, obj, list, int.MaxValue, null, count);
+        }
+
+        /// <summary>
         /// Creates and returns an instance of an Update change.
         /// </summary>
         /// <param name="app">The app.</param>
