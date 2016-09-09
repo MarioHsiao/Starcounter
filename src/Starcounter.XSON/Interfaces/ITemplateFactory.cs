@@ -13,25 +13,25 @@ namespace Starcounter.XSON.Interfaces {
     interface ITemplateFactory {
 
         // object AddAppProperty(object parent, string name, string dotNetName, ISourceInfo debugInfo);
-        TObject AddObject(Template parent, string name, string dotNetName, ISourceInfo sourceInfo);
+        Template AddObject(Template parent, string name, string dotNetName, ISourceInfo sourceInfo);
 
         //object AddTString(object parent, string name, string dotNetName, string value, ISourceInfo debugInfo);
-        TString AddString(Template parent, string name, string dotNetName, string value, ISourceInfo sourceInfo);
+        Template AddString(Template parent, string name, string dotNetName, string value, ISourceInfo sourceInfo);
 
         //object AddIntegerProperty(object parent, string name, string dotNetName, int value, ISourceInfo debugInfo);
-        TLong AddInteger(Template parent, string name, string dotNetName, int value, ISourceInfo sourceInfo);
+        Template AddInteger(Template parent, string name, string dotNetName, int value, ISourceInfo sourceInfo);
 
         //object AddTDecimal(object parent, string name, string dotNetName, decimal value, ISourceInfo debugInfo);
-        TDecimal AddDecimal(Template parent, string name, string dotNetName, decimal value, ISourceInfo sourceInfo);
+        Template AddDecimal(Template parent, string name, string dotNetName, decimal value, ISourceInfo sourceInfo);
 
         //object AddTDouble(object parent, string name, string dotNetName, double value, ISourceInfo debugInfo);
-        TDouble AddDouble(Template parent, string name, string dotNetName, double value, ISourceInfo debugInfo);
+        Template AddDouble(Template parent, string name, string dotNetName, double value, ISourceInfo debugInfo);
 
         //object AddBooleanProperty(object parent, string name, string dotNetName, int value, ISourceInfo debugInfo);
-        TBool AddBoolean(Template parent, string name, string dotNetName, bool value, ISourceInfo sourceInfo);
+        Template AddBoolean(Template parent, string name, string dotNetName, bool value, ISourceInfo sourceInfo);
 
         //object AddArrayProperty(object parent, string name, string dotNetName, int value, ISourceInfo debugInfo);
-        TObjArr AddArrayProperty(Template parent, string name, string dotNetName, ISourceInfo sourceInfo);
+        Template AddArrayProperty(Template parent, string name, string dotNetName, ISourceInfo sourceInfo);
 
         // REMOVE
         //object AddEventProperty(object parent, string name, string dotNetName, int value, ISourceInfo debugInfo);
@@ -43,17 +43,15 @@ namespace Starcounter.XSON.Interfaces {
         //object AddMetaProperty(object template, ISourceInfo debugInfo);
 
         //object GetMetaTemplate(object template, ISourceInfo debugInfo);
-        MetaTemplate GetMetaTemplate(Template template, ISourceInfo sourceInfo);
+        Template GetMetaTemplate(Template template, ISourceInfo sourceInfo);
 
         //object GetMetaTemplateForProperty(object template, string name, ISourceInfo debugInfo);
-        MetaTemplate GetMetaTemplate(Template parent, string propertyName, ISourceInfo debugInfo);
+        Template GetMetaTemplate(Template parent, string propertyName, ISourceInfo debugInfo);
 
-        // REMOVE
-        //void SetEditableProperty(object template, bool b, ISourceInfo debugInfo);
-        //void SetClassProperty(object template, string className, ISourceInfo debugInfo);
-        //void SetIncludeProperty(object template, string className, ISourceInfo debugInfo);
-        //void SetNamespaceProperty(object template, string namespaceName, ISourceInfo debugInfo);
-        //void SetOnUpdateProperty(object template, string functionName, ISourceInfo debugInfo);
-        //void SetBindProperty(object template, string path, ISourceInfo debugInfo);
+        void SetEditableProperty(Template template, bool b, ISourceInfo debugInfo);
+        void SetClassProperty(Template template, string className, ISourceInfo debugInfo);
+        void SetIncludeProperty(Template template, string className, ISourceInfo debugInfo);
+        void SetNamespaceProperty(Template template, string namespaceName, ISourceInfo debugInfo);
+        void SetBindProperty(Template template, string path, ISourceInfo debugInfo);
     }
 }

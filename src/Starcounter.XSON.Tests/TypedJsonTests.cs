@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Advanced;
 using Starcounter.Templates;
+using Starcounter.XSON.Templates.Factory;
 using Starcounter.XSON.Tests;
 using CJ = Starcounter.Internal.XSON.Tests.CompiledJson;
 
@@ -809,25 +810,25 @@ namespace Starcounter.Internal.XSON.Tests {
             TValue template;
 
             string json = @"{""Name with space"":1}";
-            var ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+            var ex = Assert.Throws<TemplateFactoryException>(
                 () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
             );
             Helper.ConsoleWriteLine(ex.Message);
 
             json = @"{""7Name--with .dea@"":1}";
-            ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+            ex = Assert.Throws<TemplateFactoryException>(
                 () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
             );
             Helper.ConsoleWriteLine(ex.Message);
 
             json = @"{""£blhaha"":1}";
-            ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+            ex = Assert.Throws<TemplateFactoryException>(
                 () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
             );
             Helper.ConsoleWriteLine(ex.Message);
 
             json = @"{""blhaha@1"":1}";
-            ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+            ex = Assert.Throws<TemplateFactoryException>(
                 () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
             );
             Helper.ConsoleWriteLine(ex.Message);

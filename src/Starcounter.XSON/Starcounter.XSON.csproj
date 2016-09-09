@@ -63,9 +63,10 @@
     <Compile Include="Class Json\JsonExtension.cs" />
     <Compile Include="Class Json\SiblingList.cs" />
     <Compile Include="Interfaces\ITemplateFactory.cs" />
-    <Compile Include="JSON-By-Example\SourceInfo.cs" />
+    <Compile Include="Templates\Factory\FactoryExceptionHelper.cs" />
+    <Compile Include="Templates\Factory\SourceInfo.cs" />
     <Compile Include="JsonDebugHelper.cs" />
-    <Compile Include="JSON-By-Example\MetaTemplate.cs" />
+    <Compile Include="Templates\Factory\MetaTemplate.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstJSConstructor.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstJsonSerializerClass.cs" />
     <Compile Include="Serializer\Codegen\AstTree\AstBase.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Sessions\JSON-Patch\JsonProperty.cs" />
     <Compile Include="TemplateDelegateGenerator.cs" />
     <Compile Include="Templates\DynamicFunctions.cs" />
+    <Compile Include="Templates\Factory\TemplateFactoryException.cs" />
     <Compile Include="Templates\Foundation\TValue.cs" />
     <Compile Include="Templates\TArray.cs" />
     <Compile Include="Templates\TObject.cs" />
@@ -112,8 +114,8 @@
     <Compile Include="Templates\Foundation\Bound.cs" />
     <Compile Include="Templates\Foundation\Property.cs" />
     <Compile Include="Interfaces\IXsonMarkupReader.cs" />
-    <Compile Include="JSON-By-Example\AppTemplateFactory.cs" />
-    <Compile Include="JSON-By-Example\JsonByExampleTemplateReader.cs" />
+    <Compile Include="Templates\Factory\TemplateFactory.cs" />
+    <Compile Include="JsonByExample\JsonByExampleTemplateReader.cs" />
     <Compile Include="Properties\Module.cs" />
     <Compile Include="Binding\DataBindingHelper.cs" />
     <Compile Include="DynamicJson.cs" />

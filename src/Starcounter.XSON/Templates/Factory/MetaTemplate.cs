@@ -1,17 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using Starcounter.Templates;
+using Starcounter.XSON.Interfaces;
 
-namespace Starcounter.XSON.JSONByExample {
+namespace Starcounter.XSON.Templates.Factory {
     /// <summary>
     /// Class MetaTemplate
     /// </summary>
-    internal class MetaTemplate {
+    internal class MetaTemplate : Template {
         private static List<string> booleanProperties;
         private static List<string> stringProperties;
 
         private Starcounter.Templates.Template template;
-        private DebugInfo debugInfo;
+        private ISourceInfo sourceInfo;
+
+        public override bool IsPrimitive { get { return false; } }
+        public override Type MetadataType { get { return null; } }
+        public override bool HasInstanceValueOnClient { get { return false; } }
+        internal override TemplateTypeEnum TemplateTypeId { get { return TemplateTypeEnum.Unknown; } }
 
         /// <summary>
         /// Initializes static members of the <see cref="MetaTemplate" /> class.
@@ -22,7 +28,6 @@ namespace Starcounter.XSON.JSONByExample {
             booleanProperties.Add("BOUND");
 
             stringProperties = new List<string>();
-            stringProperties.Add("UPDATE");
             stringProperties.Add("CLASS");
             stringProperties.Add("RUN");
             stringProperties.Add("BIND");
@@ -37,9 +42,9 @@ namespace Starcounter.XSON.JSONByExample {
         /// </summary>
         /// <param name="template"></param>
         /// <param name="debugInfo"></param>
-        internal MetaTemplate(Template template, DebugInfo debugInfo) {
+        internal MetaTemplate(Template template, ISourceInfo sourceInfo) {
             this.template = template;
-            this.debugInfo = debugInfo;
+            this.sourceInfo = sourceInfo;
         }
 
         /// <summary>
@@ -65,14 +70,15 @@ namespace Starcounter.XSON.JSONByExample {
             upperName = name.ToUpper();
             if (upperName == "EDITABLE") {
                 property = template as TValue;
-                if (property == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
-
+                if (property == null)
+                    FactoryExceptionHelper.RaiseInvalidPropertyError(name, sourceInfo);
+                
                 property.Editable = v;
             } else {
                 if (stringProperties.Contains(upperName))
-                    ErrorHelper.RaiseWrongValueForPropertyError(name, "string", "boolean", debugInfo);
+                    FactoryExceptionHelper.RaiseWrongValueForPropertyError(name, "string", "boolean", sourceInfo);
                 else
-                    ErrorHelper.RaiseUnknownPropertyError(name, debugInfo);
+                    FactoryExceptionHelper.RaiseUnknownPropertyError(name, sourceInfo);
             }
         }
 
@@ -100,27 +106,25 @@ namespace Starcounter.XSON.JSONByExample {
                 return;
             }
 
-            if (upperName == "UPDATE") {
-                valueTemplate = template as TValue;
-                if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
-
-                valueTemplate.OnUpdate = v;
-            } else if (upperName == "CLASS") {
+            if (upperName == "CLASS") {
                 appTemplate = template as TObject;
-                if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
+                if (appTemplate == null)
+                    FactoryExceptionHelper.RaiseInvalidPropertyError(name, sourceInfo);
                 appTemplate.ClassName = v;
             } else if (upperName == "RUN") {
                 actionTemplate = template as TTrigger;
-                if (actionTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
+                if (actionTemplate == null)
+                    FactoryExceptionHelper.RaiseInvalidPropertyError(name, sourceInfo);
                 actionTemplate.OnRun = v;
             } else if (upperName == "BIND") {
                 valueTemplate = template as TValue;
-                if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
+                if (valueTemplate == null)
+                    FactoryExceptionHelper.RaiseInvalidPropertyError(name, sourceInfo);
                 valueTemplate.Bind = v;
             } else if (upperName == "TYPE") {
                 TValue oldProperty = template as TValue;
                 if (oldProperty == null || (oldProperty is TObject))
-                    ErrorHelper.RaiseInvalidTypeConversionError(debugInfo);
+                    FactoryExceptionHelper.RaiseInvalidTypeConversionError(sourceInfo);
 
                 TValue newProperty = GetPropertyFromTypeName(v);
                 oldProperty.CopyTo(newProperty);
@@ -131,7 +135,7 @@ namespace Starcounter.XSON.JSONByExample {
             } else if (upperName == "REUSE") {
                 var tobj = template as TObject;
                 if (tobj == null)
-                    ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
+                    FactoryExceptionHelper.RaiseInvalidPropertyError(name, sourceInfo);
 
                 tobj.CodegenMetadata.Add("Reuse", v);
             } else if (upperName == "NAMESPACE") {
@@ -143,13 +147,13 @@ namespace Starcounter.XSON.JSONByExample {
                 if (template is TObjArr || template is TObject) {
                     template.CodegenMetadata.Add("InstanceDataTypeName", v);
                 } else {
-                    ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
+                    FactoryExceptionHelper.RaiseInvalidPropertyError(name, sourceInfo);
                 }
             } else {
                 if (booleanProperties.Contains(upperName))
-                    ErrorHelper.RaiseWrongValueForPropertyError(name, "boolean", "string", debugInfo);
+                    FactoryExceptionHelper.RaiseWrongValueForPropertyError(name, "boolean", "string", sourceInfo);
                 else
-                    ErrorHelper.RaiseUnknownPropertyError(name, debugInfo);
+                    FactoryExceptionHelper.RaiseUnknownPropertyError(name, sourceInfo);
             }
         }
 
@@ -159,44 +163,33 @@ namespace Starcounter.XSON.JSONByExample {
         /// <param name="typeName">The name of the type.</param>
         /// <returns></returns>
         private TValue GetPropertyFromTypeName(string typeName) {
-            TValue p = null;
+            TValue property = null;
             String nameToUpper = typeName.ToUpper();
             switch (nameToUpper) {
                 case "DOUBLE":
                 case "FLOAT":
-                    p = new TDouble();
+                    property = new TDouble();
                     break;
                 case "DECIMAL":
-                    p = new TDecimal();
+                    property = new TDecimal();
                     break;
                 case "INT":
                 case "INTEGER":
                 case "INT32":
-                    p = new TLong();
+                    property = new TLong();
                     break;
                 case "STRING":
-                    p = new TString();
+                    property = new TString();
                     break;
                 default:
-                    ErrorHelper.RaiseUnknownPropertyTypeError(typeName, debugInfo);
+                    FactoryExceptionHelper.RaiseUnknownPropertyTypeError(typeName, sourceInfo);
                     break;
             }
 
-            if (p != null)
-                SetCompilerOrigin(p, debugInfo);
+            if (property != null)
+                property.SourceInfo = sourceInfo;
 
-            return p;
-        }
-
-        /// <summary>
-        /// Sets the compiler origin.
-        /// </summary>
-        /// <param name="t">The t.</param>
-        /// <param name="d">The d.</param>
-        private void SetCompilerOrigin(Template t, DebugInfo d) {
-            t.CompilerOrigin.LineNo = d.LineNo;
-            t.CompilerOrigin.ColNo = d.ColNo;
-            t.CompilerOrigin.FileName = d.FileName;
+            return property;
         }
     }
 }

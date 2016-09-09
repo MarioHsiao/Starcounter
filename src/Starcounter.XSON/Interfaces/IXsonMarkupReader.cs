@@ -1,6 +1,6 @@
 ﻿
 using Starcounter.Templates;
-namespace Starcounter.Advanced.XSON {
+namespace Starcounter.XSON.Interfaces {
 
     /// <summary>
     /// Starcounter provides JSON-by-example to create XSON templates from
@@ -8,18 +8,12 @@ namespace Starcounter.Advanced.XSON {
     /// to create templates.
     /// </summary>
     public interface IXsonTemplateMarkupReader {
-
         /// <summary>
         /// Compile markup.
         /// </summary>
-        /// <typeparam name="TJson">The Json instance type described by this schema</typeparam>
-        /// <typeparam name="TTemplate">The schema for the Json.</typeparam>
         /// <param name="markup"></param>
         /// <param name="origin"></param>
         /// <returns></returns>
-        TTemplate CompileMarkup<TJson, TTemplate>(string markup, string origin)
-            where TJson : Json, new()
-            where TTemplate : TValue;
-
+        Template CompileMarkup(string markup, string origin);
     }
 }
