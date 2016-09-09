@@ -1,20 +1,13 @@
-﻿// ***********************************************************************
-// <copyright file="NEventClass.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿using Starcounter.Internal;
 using Starcounter.Templates;
-namespace Starcounter.Internal.MsBuild.Codegen {
 
-
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Event classes (like the Input) class are used in the Handle functions
     /// defined by the user in the code behind to catch events. An example of
     /// an event class in the InputEvent class.
     /// </summary>
     public class AstEventClass : AstClass {
-
         /// <summary>
         /// 
         /// </summary>
@@ -59,8 +52,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public AstJsonClass NApp {
             get { return (AstJsonClass)NMember.Parent; }
         }
-
-
+        
         /// <summary>
         /// Gets the inherits.
         /// </summary>

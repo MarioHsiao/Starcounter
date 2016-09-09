@@ -1,5 +1,4 @@
-﻿
-namespace Starcounter.Internal.MsBuild.Codegen {
+﻿namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Adds input classes (event handler classes)
     /// </summary>
@@ -35,9 +34,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             };
             GeneratePrimitiveValueEvents(input, acn, "Input");
         }
-
-
-
+        
         /// <summary>
         /// Used to generate Handle( ... ) event classes used by the user programmer
         /// to catch events such as the Input event.

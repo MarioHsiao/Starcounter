@@ -5,6 +5,7 @@ using TJson = Starcounter.Templates.TObject;
 using Starcounter.Templates;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using SXP = Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     [TestFixture]
@@ -51,7 +52,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void GenerateMinimalClassWithoutCodebehind() {
             var tj = ReadTemplate("Input/minimal.json");
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
 
             Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
@@ -59,7 +60,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void GenerateReusedJson() {
             var tj = ReadTemplate("Input/ReuseJson.json");
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
 
             Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
@@ -67,7 +68,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void GenerateReusedJsonWithAdditionalProperties() {
             var tj = ReadTemplate("Input/ReuseJson2.json");
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
 
             Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
@@ -76,7 +77,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void GenerateMinimalClassWithCodebehind() {
             var tj = ReadTemplate("Input/minimal.json");
             var cb = File.ReadAllText("Input/minimal.json.cs");
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             //            var dom = codegen.GenerateAST();
             Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
@@ -91,7 +92,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void TestClassNames() {
-            var code = PartialClassGenerator.GenerateTypedJsonCode(
+            var code = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/ThreadPage.json",
                 "Input/ThreadPage.json.cs").GenerateCode();
             Helper.ConsoleWriteLine(code);
@@ -100,7 +101,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void TestNamespaceWithoutCodeBehind() {
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/Namespaces.json", null);
 //            var dump = codegen.DumpAstTree();
             var code = codegen.GenerateCode();
@@ -140,7 +141,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var tobj = TObject.CreateFromMarkup<Json, TObject>("json", json, className);
             tobj.ClassName = className;
 
-            var generator = PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);
+            var generator = SXP.PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);
             Helper.ConsoleWriteLine(generator.GenerateCode());
         }
 
@@ -152,7 +153,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var tobj = TObject.CreateFromMarkup<Json, TObject>("json", json, className);
             tobj.ClassName = className;
 
-            var generator = PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);
+            var generator = SXP.PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);
             string code = generator.GenerateCode();
             string pattern = @"using .*\..* = .*;";
 

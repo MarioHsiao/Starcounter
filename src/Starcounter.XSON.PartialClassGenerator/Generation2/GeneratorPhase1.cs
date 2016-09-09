@@ -2,7 +2,7 @@
 using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Creates a code dom from a JSON template. 
     /// </summary>

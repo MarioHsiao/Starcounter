@@ -1,12 +1,11 @@
-﻿using Starcounter.Internal.MsBuild.Codegen;
-using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
-using Starcounter.XSON.Compiler.Mono;
-using Starcounter.XSON.Metadata;
-using System;
+﻿using System;
 using System.IO;
+using Starcounter.Templates;
+using Starcounter.XSON.Compiler.Mono;
+using Starcounter.XSON.Interfaces;
+using Starcounter.XSON.Metadata;
 
-namespace Starcounter.Internal.XSON {
+namespace Starcounter.XSON.PartialClassGenerator {
     public class PartialClassGenerator {
         // DONT FORGET:
         // Currently this value is not used in the buildtasks due to problems

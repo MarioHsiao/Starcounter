@@ -1,25 +1,13 @@
-﻿// ***********************************************************************
-// <copyright file="NApp.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿using System;
 using Starcounter.Templates;
-using Starcounter.XSON.Metadata;
-using System;
-using System.Collections.Generic;
-using TJson = Starcounter.Templates.TObject;
 
-
-namespace Starcounter.Internal.MsBuild.Codegen {
-
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Represents a Json instance class (a class that is 
     /// derived from Json&ltobject&gt or the Json&ltobject&gt
     /// class.
     /// </summary>
     public class AstJsonClass : AstInstanceClass {
-
         /// <summary>
         /// The constructor
         /// </summary>
@@ -65,9 +53,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         public AstOtherClass NJsonByExample = null;
-
-
-
+        
         /// <summary>
         /// Returns false if there are no children defined. This indicates that the property
         /// that uses this node as a type should instead use the default Obj class (Json,Puppet) inside
@@ -121,6 +107,5 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         public AstInstanceClass ParentProperty { get; set; }
-
     }
 }

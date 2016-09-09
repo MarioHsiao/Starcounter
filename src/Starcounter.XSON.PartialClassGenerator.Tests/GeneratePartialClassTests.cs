@@ -7,11 +7,12 @@
 using System;
 using System.IO;
 using NUnit.Framework;
-using Starcounter.Internal.MsBuild.Codegen;
 using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.Interfaces;
 using Starcounter.XSON.Metadata;
+using Starcounter.XSON.PartialClassGenerator;
 using TJson = Starcounter.Templates.TObject;
+using SXP = Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     /// <summary>
@@ -116,7 +117,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             string codeBehindFilePath = "Input\\" + className + ".json.cs";
             string codeBehind = File.ReadAllText(codeBehindFilePath);
 
-            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath);
+            CodeBehindMetadata metadata = SXP.PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath);
 
             TJson actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TJson), actual);
@@ -131,7 +132,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
 		[Test]
 		public static void GenerateInheritedPartialClass() {
-			var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+			var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
 				"Input/ChildMsg.json",
 				"Input/ChildMsg.json.cs");
 			var astTree = codegen.DumpAstTree();
@@ -143,7 +144,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void EmptyArrayCodeGenerationTest(){
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/emptyarray.json",
                 null);
 
@@ -152,7 +153,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void GeneratePrimitiveCode1() {
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/Primitive.json",
                 "Input/Primitive.json.cs");
 
@@ -165,7 +166,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void GeneratePrimitiveCode2() {
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/Primitive2.json",
                 null);
 
@@ -178,7 +179,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void GeneratePrimitiveCode3() {
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/Primitive3.json",
                 null);
 
@@ -193,7 +194,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void GeneratePrimitiveArrayCode() {
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/Primitive.json",
                 null);
 
@@ -208,7 +209,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void GeneratePrimitiveUntypedArrayCode() {
             TObjArr tarr = (TObjArr)Template.CreateFromJson("[]");
 
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 tarr,
                 null,
                 null);

@@ -1,9 +1,8 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Starcounter.Internal;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
-
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// The DOM tree node base class. The simple DOM tree node is a coarse node tree that
     /// handles classes and properties as block elements. I.e. a complete tree representing
@@ -12,7 +11,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// manipulating easier and also anables simplicity in source code text generation.
     /// </summary>
     public abstract class AstBase : IReadOnlyTree {
-
         public bool IsProcessedForAlias = false;   
 
         /// <summary>
@@ -84,24 +82,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
-//        public NRoot Root {
-//            get {
-//                NBase p = this;
-//                while (p.Parent != null) {
-//                    p = p._Parent;
-//                }
-//                return (NRoot)p;
-//            }
-        //        }
-
-        /// <summary>
-        /// The _ prefix
-        /// </summary>
         private List<string> _Prefix = new List<string>();
 
-        /// <summary>
-        /// The _ suffix
-        /// </summary>
         private List<string> _Suffix = new List<string>();
 
         /// <summary>
@@ -150,8 +132,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 return Parent;
             }
         }
-
-
+        
         public virtual bool MarkAsCodegen {
             get {
                 return false;

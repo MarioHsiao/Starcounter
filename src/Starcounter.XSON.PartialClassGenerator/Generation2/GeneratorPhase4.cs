@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Starcounter.Internal;
 using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Hooks up the code-behind bind classes and reorders the generated partials accordingly.
     /// </summary>
@@ -52,7 +53,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     appTemplate = FindTemplate(mapInfo, rootTemplate);
 
                     if (appTemplate.GetCodegenMetadata(Gen2DomGenerator.InstanceDataTypeName) != null) {
-                        generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CompilerOrigin);
+                        generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.SourceInfo);
                     }
 
                     // TODO:
@@ -396,7 +397,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                 parent = parent.Parent;
                             }
                             propertyName = ((TObject)parent).ClassName + propertyName;
-                            generator.ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.CompilerOrigin);
+                            generator.ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.SourceInfo);
                         }
                         CheckMissingBindingInformation(childTApp);
                     }

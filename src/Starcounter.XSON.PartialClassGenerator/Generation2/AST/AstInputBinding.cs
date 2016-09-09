@@ -1,14 +1,7 @@
-﻿// ***********************************************************************
-// <copyright file="NInputBinding.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using System;
-using System.Text;
+﻿using System;
 using Starcounter.Templates;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Defines an input handler in one app-class for a specified property.
     /// The handler can be declared either in the same class as the property
@@ -16,7 +9,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// if the first one didn't handle it.
     /// </summary>
     public class AstInputBinding : AstBase {
-
         /// <summary>
         /// The property this binding binds to
         /// </summary>

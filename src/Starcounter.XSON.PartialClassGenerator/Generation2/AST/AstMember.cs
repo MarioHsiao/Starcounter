@@ -1,19 +1,6 @@
-﻿// ***********************************************************************
-// <copyright file="NMember.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
+﻿using Starcounter.Templates;
 
-using Starcounter.Templates;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Starcounter.Internal.MsBuild.Codegen {
-
-
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Represents a property, a field or a function
     /// </summary>

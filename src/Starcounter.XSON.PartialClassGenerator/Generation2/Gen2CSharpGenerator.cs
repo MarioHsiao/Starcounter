@@ -1,10 +1,4 @@
-﻿// ***********************************************************************
-// <copyright file="CSharpGenerator.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-// Remove this define to generate code without #line directives
+﻿// Remove this define to generate code without #line directives
 #define ADDLINEDIRECTIVES
 
 using System;
@@ -12,10 +6,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using Starcounter.Internal;
 using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.Interfaces;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Generates C# code from an AST tree.
     /// </summary>
@@ -157,11 +152,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         private void WriteHeader() {
             output.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");
-            output.Append(root.AppClassClassNode.Template.CompilerOrigin.FileName);
+            output.Append(root.AppClassClassNode.Template.SourceInfo.Filename);
             output.Append('"');
             output.AppendLine();
             output.Append("// Version: ");
-            output.Append(XSON.PartialClassGenerator.CSHARP_CODEGEN_VERSION);
+            output.Append(PartialClassGenerator.CSHARP_CODEGEN_VERSION);
             output.AppendLine();
             output.AppendLine("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN");
             output.AppendLine();
@@ -844,7 +839,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
         
         private static string GetLinePosAndFile(Template template) {
-            return string.Format(LINE_POSANDFILE, template.CompilerOrigin.LineNo, template.CompilerOrigin.FileName);
+            return string.Format(LINE_POSANDFILE, template.SourceInfo.Line, template.SourceInfo.Filename);
         }
     }
 }

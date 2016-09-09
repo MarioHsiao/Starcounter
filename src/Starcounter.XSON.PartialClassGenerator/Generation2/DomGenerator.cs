@@ -1,15 +1,11 @@
-﻿// ***********************************************************************
-// <copyright file="DomGenerator.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Starcounter.Internal;
 using Starcounter.Templates;
+using Starcounter.XSON.Interfaces;
 using Starcounter.XSON.Metadata;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Simple code-dom generator for the Template class. In a Template tree structure,
     /// each Template will be represented by a temporary CsGen_Template object. The reason
@@ -705,15 +701,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="errorCode"></param>
         /// <param name="messagePostFix"></param>
         /// <param name="innerException"></param>
-        /// <param name="co"></param>
-        internal void ThrowExceptionWithLineInfo(uint errorCode, string messagePostFix, Exception innerException, CompilerOrigin co) {
-            var tuple = new Tuple<int, int>(co.LineNo, co.ColNo);
+        /// <param name="sourceInfo"></param>
+        internal void ThrowExceptionWithLineInfo(uint errorCode, 
+                                                 string messagePostFix, 
+                                                 Exception innerException, 
+                                                 ISourceInfo sourceInfo) {
             throw ErrorCode.ToException(
                     errorCode,
                     innerException,
                     messagePostFix,
                     (msg, e) => {
-                        return Starcounter.Internal.JsonTemplate.Error.CompileError.Raise<Exception>(msg, tuple, co.FileName);
+                        return new GeneratorException(msg, sourceInfo);
                     });
         }
 

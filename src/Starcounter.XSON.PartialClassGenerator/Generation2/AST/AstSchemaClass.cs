@@ -1,27 +1,14 @@
-﻿// ***********************************************************************
-// <copyright file="NTApp.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
+﻿using Starcounter.Templates;
 
-using Starcounter.Templates;
-using Starcounter.XSON.Metadata;
-using System;
-using System.Collections.Generic;
-
-namespace Starcounter.Internal.MsBuild.Codegen {
-
-
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// The source code representation of the TApp class.
     /// </summary>
     public class AstSchemaClass : AstTemplateClass {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="AstSchemaClass" /> class.
         /// </summary>
-        public AstSchemaClass( Gen2DomGenerator gen ) : base( gen )
-        {
+        public AstSchemaClass( Gen2DomGenerator gen ) : base( gen ) {
             Constructor = new AstConstructor( gen ) { Parent = this };
         }
 
