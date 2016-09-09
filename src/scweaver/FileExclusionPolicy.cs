@@ -46,7 +46,6 @@ namespace Starcounter.Weaver {
                 "scerrres.dll",
                 "schttpparser.dll",
                 "PostSharp*.dll",
-                "Roslyn*.dll",
                 "FasterThanJson.dll",
                 "BizArk.Core.dll",
                 "HtmlAgilityPack.dll",
@@ -66,7 +65,8 @@ namespace Starcounter.Weaver {
                 "Mono.CSharp.dll",
                 "NetworkIoTest.exe",
                 "Starcounter.XSON.JsonByExample",
-                "FSharp.Core"
+                "FSharp.Core",
+                "xunit.*.dll"
             }) {
                 AddExcludeExpression(exclude, excludes);
             }
