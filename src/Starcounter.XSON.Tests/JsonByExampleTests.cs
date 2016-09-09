@@ -116,12 +116,76 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestJsonByExampleLegacySupport() {
             string json;
             Template template;
+            TObject tobj;
+            
+            // Supported metadata properties are (case doesn't matter):
+            // namespace : string
+            // datatype : string 
+            // bind : string
+            // reuse : string
+
+            // Test covers that all are set correctly, and incorrect metadata is detected.
+
+            // Namespace and Datatype
+            json = @"{ ""$"": { ""namespace"": ""my.custom.ns"", ""datatype"": ""my.datatype"" } }";
+            template = jbeReader.CreateTemplate(json, "Test", factory);
+            Assert.IsInstanceOf<TObject>(template);
+            Assert.AreEqual("my.custom.ns", template.Namespace);
+            Assert.AreEqual("my.datatype", template.GetCodegenMetadata("InstanceDataTypeName"));
+
+            // Bind
+            json = @"{ ""Value1"": ""value"", ""$Value1"": { ""bind"": ""my.path"" } }"; 
+            template = jbeReader.CreateTemplate(json, "Test", factory);
+            Assert.IsInstanceOf<TObject>(template);
+            Assert.AreEqual("my.path", ((TValue)((TObject)template).Properties[0]).Bind);
+
+            // Reuse
+            json = @"{ ""Value1"": { }, ""$Value1"": { ""reuse"": ""my.existing.json"" } }";
+            template = jbeReader.CreateTemplate(json, "Test", factory);
+            Assert.IsInstanceOf<TObject>(template);
+            tobj = (TObject)template;
+            Assert.IsInstanceOf<TObject>(tobj.Properties[0]);
+            Assert.AreEqual("my.existing.json", tobj.Properties[0].GetCodegenMetadata("Reuse"));
 
             json = @"{ ""$"": ""incorrect"" }"; // old metadata object (that is not object here)
             Assert.Throws<TemplateFactoryException>(() => {
                 template = jbeReader.CreateTemplate(json, "Test", factory);
             });
-            
+
+            json = @"{ ""Value1"": ""value"", ""$Value1"": ""incorrect"" }"; // old metadata object (that is not object here)
+            Assert.Throws<TemplateFactoryException>(() => {
+                template = jbeReader.CreateTemplate(json, "Test", factory);
+            });
+
+            json = @"{ ""$"": { ""namespace"": 123 } }"; // Wrong type
+            Assert.Throws<TemplateFactoryException>(() => {
+                template = jbeReader.CreateTemplate(json, "Test", factory);
+            });
+
+            json = @"{ ""$"": { ""datatype"": 123.34 } }"; // Wrong type
+            Assert.Throws<TemplateFactoryException>(() => {
+                template = jbeReader.CreateTemplate(json, "Test", factory);
+            });
+
+            json = @"{ ""$"": { ""bind"": true } }"; // Wrong type
+            Assert.Throws<TemplateFactoryException>(() => {
+                template = jbeReader.CreateTemplate(json, "Test", factory);
+            });
+
+            json = @"{ ""$"": { ""reuse"": [1] } }"; // Wrong type
+            Assert.Throws<TemplateFactoryException>(() => {
+                template = jbeReader.CreateTemplate(json, "Test", factory);
+            });
+
+            json = @"{ ""$"": { ""reuse"": { } } }"; // Wrong type
+            Assert.Throws<TemplateFactoryException>(() => {
+                template = jbeReader.CreateTemplate(json, "Test", factory);
+            });
+
+            json = @"{ ""$"": { ""ConvertTo"": 123 } }"; // Unsupported metadata
+            Assert.Throws<TemplateFactoryException>(() => {
+                template = jbeReader.CreateTemplate(json, "Test", factory);
+            });
         }
     }
 }
