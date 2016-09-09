@@ -193,18 +193,33 @@ namespace Starcounter.XSON.PartialClassGenerator {
             DiscoverProperty(node);
         }
 
-        private void DiscoverProperty(PropertyDeclarationSyntax node) {
-            var isStatic = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.StaticKeyword);
-            if (isStatic) 
-                return;
-            
-            var isAbstract = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.AbstractKeyword);
-            if (isAbstract)
-                return;
+        public override void VisitFieldDeclaration(FieldDeclarationSyntax node) {
+            // By design: Let's not invoke base visitor, since we don't need to analyze 
+            // anything else about it, and we provide a faster execution if we don't.
 
+            DiscoverField(node);
+        }
+
+        private void DiscoverProperty(PropertyDeclarationSyntax node) {
             var name = node.Identifier.Text;
             var typeName = node.Type.ToString();
-            codeBehindMetadata.PropertyList.Add(new CodeBehindPropertyInfo() { Name = name, TypeName = typeName });
+
+            codeBehindMetadata.FieldOrPropertyList.Add(
+                new CodeBehindFieldOrPropertyInfo() { Name = name, TypeName = typeName, IsProperty = true }
+            );
+        }
+
+        private void DiscoverField(FieldDeclarationSyntax node) {
+            var declaration = node.Declaration;
+            var typeName = declaration.Type.ToString();
+
+            // There can be several identifiers in one declaration (i.e. "private int ett, tva;")
+            foreach (VariableDeclaratorSyntax variable in declaration.Variables) {
+                var name = variable.Identifier.Text;
+                codeBehindMetadata.FieldOrPropertyList.Add(
+                    new CodeBehindFieldOrPropertyInfo() { Name = name, TypeName = typeName, IsProperty = false }
+                );
+            }
         }
 
         void DiscoverInputHandler(MethodDeclarationSyntax node) {

@@ -556,6 +556,29 @@ namespace Starcounter {
                     return _stateList[publicViewModelIndex];
                 return null;
             }
+            set {
+                ViewModelVersion version = null;
+                int index = _stateList.IndexOf(value);
+                if (index == -1)
+                    throw new Exception("The viewmodel to set as public must be stored in Data first.");
+
+                if (publicViewModelIndex != -1) {
+                    Json oldJson = _stateList[publicViewModelIndex];
+                    if (oldJson != null) {
+                        // Existing public viewmodel exists. ChangeLog should be reused.
+                        oldJson.ChangeLog.ChangeEmployer(value);
+                    } 
+                }
+
+                if (value.ChangeLog == null) {
+                    if (CheckOption(SessionOptions.PatchVersioning)) {
+                        version = new ViewModelVersion();
+                    }
+                    value.ChangeLog = new ChangeLog(value, version);
+                }
+
+                publicViewModelIndex = index;
+            }
         }
 
         /// <summary>

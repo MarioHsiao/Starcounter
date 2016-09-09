@@ -134,13 +134,18 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                         IList<DatabaseApplication> applications = database.GetApplications(HttpUtility.UrlDecode(nameSpace), HttpUtility.UrlDecode(channel));
 
-                        DatabaseApplicationsJson result = new DatabaseApplicationsJson();
+                        if (applications == null || applications.Count == 0) {
+                            ErrorResponse errorResponse = new ErrorResponse();
+                            errorResponse.Text = string.Format("Failed to find applications");
+                            errorResponse.Helplink = "http://en.wikipedia.org/wiki/HTTP_404"; // TODO
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+                        }
 
+                        DatabaseApplicationsJson result = new DatabaseApplicationsJson();
                         foreach (DatabaseApplication application in applications) {
                             DatabaseApplicationJson appItem = application.ToDatabaseApplication();
                             result.Items.Add(appItem);
                         }
-
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = result.ToJsonUtf8() };
                     }
                     catch (Exception e) {

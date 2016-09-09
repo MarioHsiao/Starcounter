@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal;
@@ -203,8 +202,19 @@ namespace Starcounter {
                 for (int i = 0; i < this.arrayAddsAndDeletes.Count; i++) {
                     var change = this.arrayAddsAndDeletes[i];
 
+                    if (change.ChangeType == Change.REMOVE && change.Index == int.MaxValue) {
+                        // TBH I'm not sure we can ever get here when having a remove all (it should refresh 
+                        // the whole array), but if we do we treat it as adding a remove change for each item 
+                        // removed (i.e count in change).
+                        for (int k = 0; k < change.FromIndex; k++) {
+                            ChangeLog.Add(Change.Remove(change.Parent, (TObjArr)change.Property, k, null));
+                        }
+                        continue;
+                    } 
+
                     changeLog.Add(change);
                     var index = change.Item.cacheIndexInArr;
+                    
                     if (change.ChangeType != Change.REMOVE && index >= 0 && index < this.valueList.Count) {
                         //CheckpointAt(index);
                         this.MarkAsNonDirty(index);
@@ -213,7 +223,7 @@ namespace Starcounter {
                         item.dirty = false;
                     }
                 }
-                
+
                 for (int i = 0; i < this.valueList.Count; i++) {
                     // Skip all items we have already added to the changelog.
                     logChanges = true;
@@ -226,21 +236,16 @@ namespace Starcounter {
 
                     if (logChanges) {
                         ((Json)this.valueList[i]).LogValueChangesWithDatabase(changeLog, callStepSiblings);
-                     }
+                    }
                 }
 
-                if (changeLog.Version != null) {
-                    if (versionLog == null)
-                        versionLog = new List<ArrayVersionLog>();
-                    versionLog.Add(new ArrayVersionLog(changeLog.Version.LocalVersion, this.arrayAddsAndDeletes));
-                }
+                this.CheckAndAddArrayVersionLog(changeLog);
                 this.arrayAddsAndDeletes = null;
             } else {
                 for (int t = 0; t < this.valueList.Count; t++) {
                     var arrItem = ((Json)this.valueList[t]);
                     if (this.IsDirty(t)) { // A refresh of an existing row (that is not added or removed)
                         changeLog.Add(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
-//                        this.CheckpointAt(t);
                         this.MarkAsNonDirty(t);
                     } else {
                         arrItem.LogValueChangesWithDatabase(changeLog, callStepSiblings);
@@ -286,6 +291,7 @@ namespace Starcounter {
                                             if (container != null) {
                                                 var childJson = container.GetValue(json);
                                                 if (childJson != null) {
+                                                    childJson.CheckAndAddArrayVersionLog(clog);
                                                     childJson.SetBoundValuesInTuple();
                                                 }
                                             }
@@ -332,9 +338,15 @@ namespace Starcounter {
                     } else {
                         if (json.dirty) {
                             if (json.IsDirty(template.TemplateIndex)) {
-                                if (clog != null)
-                                    clog.UpdateValue(json, null);
-                                //json.CheckpointAt(template.TemplateIndex);
+                                clog.UpdateValue(json, null);
+
+                                if (template.TemplateTypeId == TemplateTypeEnum.Array) {
+                                    var childJson = ((TContainer)template).GetValue(json);
+                                    if (childJson != null) {
+                                        childJson.CheckAndAddArrayVersionLog(clog);
+                                        childJson.SetBoundValuesInTuple();
+                                    }
+                                }
                                 json.MarkAsNonDirty(template.TemplateIndex);
                             } else {
                                 template.CheckAndSetBoundValue(json, true);
@@ -366,7 +378,7 @@ namespace Starcounter {
             this,
             callStepSiblings);
 		}
-
+        
 		internal void SetBoundValuesInTuple(bool callStepSiblings = true) {
             if (!this.checkBoundProperties)
                 return;
@@ -885,21 +897,6 @@ namespace Starcounter {
                         return false;
                     }
                     return !log.BrandNew;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="newValue"></param>
-        internal void CheckAndUpdateSibling(Json newValue) {
-            if (this.Siblings != null) {
-                int index = this.Siblings.IndexOf(this);
-
-                if (index != -1) {
-                    this.Siblings[index] = newValue;
-                    this.Siblings = null;
                 }
             }
         }

@@ -81,7 +81,7 @@ namespace Starcounter.XSON.Metadata {
         /// <summary>
         /// A list of all properties that exists in the code-behind class.
         /// </summary>
-        public List<CodeBehindPropertyInfo> PropertyList = new List<CodeBehindPropertyInfo>();
+        public List<CodeBehindFieldOrPropertyInfo> FieldOrPropertyList = new List<CodeBehindFieldOrPropertyInfo>();
 
         /// <summary>
         /// 

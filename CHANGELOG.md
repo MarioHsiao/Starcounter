@@ -8,6 +8,8 @@
 - Improved binding in TypedJSON from property in Json-by-example to property in code-behind with allowing using the same name (and type) to automatically bind [#2964](https://github.com/Starcounter/Starcounter/issues/2964)
 - Added a new itemtemplate for Starcounter projects, `HTML template with dom-bind` [#2931](https://github.com/Starcounter/Starcounter/issues/2931)
 - Added support for enums when a template for TypedJSON is created based on the type for a dataobject [#3759](https://github.com/Starcounter/Starcounter/issues/3759)
+- Added possibility to configure how missing members (i.e. members that exists in the source, but not in the template) should be handled in TypedJSON when populating an instance. Options are to either throw an error or ignore and skip the member [#3802](https://github.com/Starcounter/Starcounter/issues/3802)
+- ShadowDOM layout capabilities to [`<starcounter-include>`](https://github.com/Starcounter/starcounter-include) shipped in `/sys/` folder. Layout can now be served as `DocumentFragment` full of rich HTML & CSS features to be served with [`juicy-composition`](https://github.com/Juicy/juicy-composition). It's now the resposibility of Starcounter and particular app, not the Launcher. Launcher may only provide additional visual editing features to it.
 
 ### Fixed
 - Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
@@ -37,6 +39,8 @@
 - Fixed a bug in Response-serialization (`Response.ConstructFromFields()`), which could cause estimated size to be smaller then actual needed size in some cases [#3735](https://github.com/Starcounter/Starcounter/issues/3735)
 - Fixed a bug where using an empty jsonobject as response for a mapped uri, did not get properly serialized to client or changes collected correctly when sending patches [#3755](https://github.com/Starcounter/Starcounter/issues/3755)
 - Fixed detecting if a jsonobject is already merged or not when attaching it to a parent [#3771](https://github.com/Starcounter/Starcounter/issues/3771)
+- Fixed bug in schemaupgrade, where all records were not included when moving existing records to new table [#3817](https://github.com/Starcounter/Starcounter/issues/3817)
+- Fixed a bug in TypedJSON where versionlog of changes in arrays were not properly updated, which in some cases led to a `NullReferenceException` being thrown [#3816](https://github.com/Starcounter/Starcounter/issues/3816)  
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
@@ -45,14 +49,17 @@
 - CLI command `staradmin delete db` will no longer fail when, but instead stop, database is running [#3649](https://github.com/Starcounter/Starcounter/issues/3649)
 - `PartialToStandaloneHtmlProvider` middleware no longer forces Shadow DOM in Polymer [#3562](https://github.com/Starcounter/Starcounter/issues/3562)
 - `PartialToStandaloneHtmlProvider` middleware no longer overwrites default Bootstrap font size [#3665](https://github.com/Starcounter/Starcounter/issues/3665)
-- Upgraded Polymer to 1.6.0 [#3673](https://github.com/Starcounter/Starcounter/issues/3673)
-- Upgraded PuppetJs to 2.1.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
+- Upgraded Polymer to 1.6.1 [#3673](https://github.com/Starcounter/Starcounter/issues/3673), [#3797](https://github.com/Starcounter/Starcounter/issues/3797)
+- Upgraded PuppetJs to 2.2.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
 - For request to invalid (non-existent) session, return 404 instead of 400
 - Upgraded starcounter-debug-aid to 2.0.7
 - Upgraded Juicy/juicy-jsoneditor to 1.1.0
 - Upgraded Josdejong/jsoneditor to 5.5.6
 - Upgraded Juicy/imported-template to 1.4.3
-- Upgraded puppetjs/puppet-polymer-client to 3.1.0 which supports reconnection
+- Upgraded puppetjs/puppet-polymer-client to 3.2.0 which supports reconnection
+- Changed how Starcounter VS Extension handles JSON files to allow adding existing files without code-behind so that they are not treated as TypedJSON per default [#3075](https://github.com/Starcounter/Starcounter/issues/3075)
+- Changed invocation order of middleware, to execute in order of registration rather than the other way around. [#3810](https://github.com/Starcounter/Starcounter/issues/3810)
+- Changed behaviour of default patchhandler to treat empty incoming patches as ping/heartbeats and send no patches back to client (i.e. not collecting the latest changes) [PuppetJs/#94](https://github.com/PuppetJs/PuppetJs/issues/94)
 
 ## [2.2.1834] - 2016-04-19
 ### Added
@@ -124,6 +131,7 @@
 - Fixed bug in PrivateAssemblyStore, causing some path comparisons to use an unsupported comparison type, see [#3501](https://github.com/Starcounter/Starcounter/issues/3501)
 - Fixed a bug in TypedJson where databinding for a property was not properly invalidated when a dataobject with a different type (including null) was set, [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
 - Fixed gateway getting timeout waiting for workers to suspend [#3515](https://github.com/Starcounter/Starcounter/issues/3515)
+- Fixed incorrect case-insensitive comparison when deciding if generating an accessor-property should be skipped [#3794](https://github.com/Starcounter/Starcounter/issues/3794)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.

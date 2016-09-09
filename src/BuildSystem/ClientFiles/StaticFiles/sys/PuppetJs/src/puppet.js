@@ -1,4 +1,4 @@
-/*! puppet.js version: 2.1.0
+/*! puppet.js version: 2.2.0
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -107,13 +107,13 @@
         reconnection,
         defaultIntervalMs = 1000;
 
-    var reset = (function () {
+    function reset() {
       intervalMs = defaultIntervalMs;
       timeToCurrentReconnectionMs = 0;
       reconnectionPending = false;
       clearTimeout(reconnection);
       reconnection = null;
-    });
+    }
 
     var step = (function () {
       if(timeToCurrentReconnectionMs == 0) {
@@ -274,14 +274,14 @@
     });
   }
   PuppetNetworkChannel.prototype.establish = function(bootstrap){
-    _establish(this, this.remoteUrl.href, null, bootstrap);
+    establish(this, this.remoteUrl.href, null, bootstrap);
   };
   PuppetNetworkChannel.prototype.reestablish = function(pending, bootstrap) {
-    _establish(this, this.remoteUrl.href + "/reconnect", JSON.stringify(pending), bootstrap);
+    establish(this, this.remoteUrl.href + "/reconnect", JSON.stringify(pending), bootstrap);
   };
 
   // TODO: auto-configure here #38 (tomalec)
-  function _establish(network, url, body, bootstrap){
+  function establish(network, url, body, bootstrap){
     return network.xhr(
         url,
         'application/json',
@@ -375,7 +375,7 @@
           url: upgradeURL
       };
 
-      that.onError(JSON.stringify(m), upgradeURL, "WS");
+      that.onFatalError(m, upgradeURL, "WS");
     };
     that._ws.onclose = function (event) {
       that.onStateChange(that._ws.readyState, upgradeURL, null, event.code, event.reason);
@@ -389,7 +389,7 @@
       };
 
       if(event.reason) {
-        that.onFatalError(JSON.stringify(m), upgradeURL, "WS");
+        that.onFatalError(m, upgradeURL, "WS");
       } else {
         that.onConnectionError();
       }
@@ -439,8 +439,7 @@
       var res = this;
       that.handleResponseHeader(res);
       if (res.status >= 400 && res.status <= 599) {
-        that.onFatalError(JSON.stringify({ statusCode: res.status, statusText: res.statusText, text: res.responseText }), url, method);
-        throw new Error('PuppetJs JSON response error. Server responded with error ' + res.status + ' ' + res.statusText + '\n\n' + res.responseText);
+        that.onFatalError({ statusCode: res.status, statusText: res.statusText, reason: res.responseText }, url, method);
       }
       else {
         callback && callback.call(that.puppet, res, method);
@@ -499,7 +498,6 @@
         puppet.remoteObj = responseText; // JSON.parse(JSON.stringify(puppet.obj));
       }
 
-      recursiveMarkObjProperties(puppet.obj);
       puppet.observe();
       if (puppet.onDataReady) {
         puppet.onDataReady.call(puppet, puppet.obj);
@@ -521,25 +519,7 @@
 
   /**
    * Defines a connection to a remote PATCH server, serves an object that is persistent between browser and server.
-   * @param {Object}             [options]                    map of arguments
-   * @param {String}             [options.remoteUrl]          PATCH server URL
-   * @param {Function}           [options.callback]        Called after initial state object is received from the remote (NOT necessarily after WS connection was established)
-   * @param {Object}             [options.obj]                object where the parsed JSON data will be inserted
-   * @param {Boolean}            [options.useWebSocket=false] Set to true to enable WebSocket support
-   * @param {RegExp}             [options.ignoreAdd=null]     Regular Expression for `add` operations to be ignored (tested against JSON Pointer in JSON Patch)
-   * @param {Boolean}            [options.debug=false]        Set to true to enable debugging mode
-   * @param {Function}           [options.onLocalChange]      Helper callback triggered each time a change is observed locally
-   * @param {Function}           [options.onRemoteChange]     Helper callback triggered each time a patch is obtained from remote
-   * @param {JSONPointer}        [options.localVersionPath]   local version path, set it to enable Versioned JSON Patch communication
-   * @param {JSONPointer}        [options.remoteVersionPath]  remote version path, set it (and `localVersionPath`) to enable Versioned JSON Patch communication
-   * @param {Number}             [options.retransmissionThreshold]  after server reports this number of messages missing, we start retransmission
-   * @param {Number}             [options.pingIntervalS]      heartbeat rate, in seconds
-   * @param {Boolean}            [options.ot=false]           true to enable OT
-   * @param {Boolean}            [options.purity=false]       true to enable purist mode of OT
-   * @param {Function}           [options.onPatchReceived]
-   * @param {Function}           [options.onPatchSent]
-   * @param {Function}           [options.jsonpatch=jsonpatch] jsonpatch provider
-   * @param {HTMLElement | window} [options.listenTo]         HTMLElement or window to listen to clicks
+   * @param {Object} [options] map of arguments. See README.md for description
    */
   function Puppet(options) {
     options || (options={});
@@ -577,7 +557,7 @@
 
     if(options.pingIntervalS) {
       const intervalMs = options.pingIntervalS*1000;
-      this.heartbeat = new Heartbeat(this.sendHeartbeat.bind(this), this.handleConnectionError.bind(this), intervalMs, intervalMs);
+      this.heartbeat = new Heartbeat(this.ping.bind(this), this.handleConnectionError.bind(this), intervalMs, intervalMs);
     } else {
       this.heartbeat = new NoHeartbeat();
     }
@@ -632,41 +612,6 @@
     makeInitialConnection(this);
   }
 
-  function markObjPropertyByPath(obj, path) {
-    var keys = path.split('/');
-    var len = keys.length;
-    if (len > 2) {
-      for (var i = 1; i < len - 1; i++) {
-        obj = obj[keys[i]];
-      }
-    }
-    recursiveMarkObjProperties(obj[keys[len - 1]], len > 1? obj : undefined);
-  }
-
-  function placeMarker(subject, parent) {
-    if (parent != undefined && !subject.hasOwnProperty('$parent')) {
-      Object.defineProperty(subject, '$parent', {
-        enumerable: false,
-        get: function () {
-          return parent;
-        }
-      });
-    }
-  }
-
-  function recursiveMarkObjProperties(subject, parent) {
-    var child;
-    if(subject !== null && typeof subject === 'object'){
-      placeMarker(subject, parent);
-      for (var i in subject) {
-        child = subject[i];
-        if (subject.hasOwnProperty(i)) {
-          recursiveMarkObjProperties(child, subject);
-      }
-    }
-  }
-  }
-
   Puppet.prototype = Object.create(EventDispatcher.prototype); //inherit EventTarget API from EventDispatcher
 
   var dispatchErrorEvent = function (puppet, error) {
@@ -683,8 +628,8 @@
 
   Puppet.prototype.jsonpatch = global.jsonpatch;
 
-  Puppet.prototype.sendHeartbeat = function () {
-    this.handleLocalChange([]); // sends empty message to server
+  Puppet.prototype.ping = function () {
+    sendPatches(this, []); // sends empty message to server
   };
 
   Puppet.prototype.observe = function () {
@@ -735,28 +680,20 @@
     return patches;
   };
 
-  Puppet.prototype._sendPatches = function(patches) {
+  function sendPatches(puppet, patches) {
     var txt = JSON.stringify(patches);
-    if (txt.indexOf('__Jasmine_been_here_before__') > -1) {
-      throw new Error("PuppetJs did not handle Jasmine test case correctly");
-    }
-    this.unobserve();
-    this.heartbeat.notifySend();
-    this.network.send(txt);
-    this.observe();
-  };
+    puppet.unobserve();
+    puppet.heartbeat.notifySend();
+    puppet.network.send(txt);
+    puppet.observe();
+  }
 
   Puppet.prototype.handleLocalChange = function (patches) {
-    var that = this;
-
     if(this.debug) {
       this.validateSequence(this.remoteObj, patches);
     }
 
-    this._sendPatches(this.queue.send(patches));
-    patches.forEach(function (patch) {
-      markObjPropertyByPath(that.obj, patch.path);
-    });
+    sendPatches(this, this.queue.send(patches));
     if (this.onLocalChange) {
       this.onLocalChange(patches);
     }
@@ -786,9 +723,6 @@
         }
         //TODO Error
         that.showWarning("Server pushed patch that replaces the object root", desc);
-      }
-      if (patch.op === "add" || patch.op === "replace" || patch.op === "test") {
-        markObjPropertyByPath(that.obj, patch.path);
       }
     });
 
@@ -847,6 +781,9 @@
   Puppet.prototype.handleRemoteChange = function (data, url, method) {
     this.heartbeat.notifyReceive();
     var patches = JSON.parse(data || '[]'); // fault tolerance - empty response string should be treated as empty patch array
+    if(patches.length === 0) { // ping message
+      return;
+    }
 
     if (this.onPatchReceived) {
       this.onPatchReceived(data, url, method);
@@ -861,7 +798,7 @@
     if(this.queue.pending && this.queue.pending.length && this.queue.pending.length > this.retransmissionThreshold) {
       // remote counterpart probably failed to receive one of earlier messages, because it has been receiving
       // (but not acknowledging messages for some time
-      this.queue.pending.forEach(this._sendPatches.bind(this));
+      this.queue.pending.forEach(sendPatches.bind(null, this));
     }
     if (this.debug) {
       this.remoteObj = JSON.parse(JSON.stringify(this.obj));

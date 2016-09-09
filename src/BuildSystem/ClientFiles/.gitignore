@@ -1,11 +1,4 @@
-# Ignore jQuery and Bootstrap dependency of Bootswatch, because it is not needed
-StaticFiles/sys/bootstrap
-StaticFiles/sys/jquery
-
 # Ignore all the Bootswatch themes apart from Paper
 StaticFiles/sys/bootswatch/*/*
 !StaticFiles/sys/bootswatch/fonts/*
 !StaticFiles/sys/bootswatch/paper/*
-
-# Ignore platform.js, which is indirectly requested by juicy-jsoneditor
-StaticFiles/sys/platform

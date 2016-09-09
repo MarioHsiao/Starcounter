@@ -9,7 +9,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// This will allow automatic binding to code-behind.
     /// </summary>
     internal class GeneratorPhase7 {
-        private const StringComparison COMPARE = StringComparison.InvariantCultureIgnoreCase;
+        private const StringComparison COMPAREIGNORECASE = StringComparison.InvariantCultureIgnoreCase;
+        private const StringComparison COMPAREWITHCASE = StringComparison.InvariantCulture;
         private Gen2DomGenerator generator;
         
         internal GeneratorPhase7(Gen2DomGenerator generator) {
@@ -23,7 +24,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void SuppressExistingCodeBehindAccessorProperties(AstJsonClass jsonClass) {
             AstProperty property;
             CodeBehindClassInfo codeBehindClass;
-            CodeBehindPropertyInfo codeBehindProperty;
+            CodeBehindFieldOrPropertyInfo codeBehindProperty;
             string bindingName;
             bool suppressGenerateProperty;
 
@@ -33,8 +34,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (codeBehindClass != null && property != null) {
                     suppressGenerateProperty = true;
                     bindingName = property.MemberName;
-                    codeBehindProperty = jsonClass.CodebehindClass.PropertyList.Find((item) => {
-                        return (item.Name.Equals(bindingName, COMPARE));
+                    codeBehindProperty = jsonClass.CodebehindClass.FieldOrPropertyList.Find((item) => {
+                        return (item.Name.Equals(bindingName, COMPAREWITHCASE));
                     });
                     
                     // TODO:
@@ -72,7 +73,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                 var schemaProp = (AstProperty)schemaClass.Constructor.Children.Find((item) => {
                                     var prop = item as AstProperty;
                                     if (prop != null)
-                                        return (prop.MemberName.Equals(bindingName, COMPARE));
+                                        return (prop.MemberName.Equals(bindingName, COMPAREIGNORECASE));
                                     return false;
                                 });
                                 if (schemaProp != null) 

@@ -1,11 +1,12 @@
 ﻿{
   "$": { "Namespace": "Representations.JSON" },
   "ID": "",
-  "SourceUrl": "",
+  "IsRunning": false,
   "Contents": [
     {
       "Namespace": "",
-      "Channel": ""
+      "Channel": "",
+      "IsRunning": false
     }
   ]
 }
