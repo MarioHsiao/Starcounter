@@ -102,6 +102,10 @@
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\UnitTesting\Starcounter.UnitTesting\Starcounter.UnitTesting.csproj">
+      <Project>{9069f445-2b78-4e7c-bde9-9802846d7508}</Project>
+      <Name>Starcounter.UnitTesting</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
