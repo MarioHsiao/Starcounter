@@ -1,10 +1,11 @@
 ﻿
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using SXP = Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.Internal.MsBuild {
     /// <summary>
-    /// Task that creates a C# message class from JSON file(s).
+    /// Task for MsBuild responsible for generating partial class for TypedJSON.
     /// </summary>
     public class JsonToTypedJsonCsMsBuildTask : Task {
         static JsonToTypedJsonCsMsBuildTask() {
@@ -35,7 +36,7 @@ namespace Starcounter.Internal.MsBuild {
     }
 
     /// <summary>
-    /// Task that reads the versionnumber of the csharp codegenerator and returns it as
+    /// Task for MsBuild that reads the versionnumber of the csharp codegenerator and returns it as
     /// output.
     /// </summary>
     public class GetTypedJsonCSharpCodegenVersionTask : Task {
@@ -50,7 +51,7 @@ namespace Starcounter.Internal.MsBuild {
         /// </summary>
         /// <returns>true if the task successfully executed; otherwise, false.</returns>
         public override bool Execute() {
-            CSharpCodegenVersion = Starcounter.Internal.XSON.PartialClassGenerator.CSHARP_CODEGEN_VERSION;
+            CSharpCodegenVersion = SXP.PartialClassGenerator.CSHARP_CODEGEN_VERSION;
             return true;
         }
     }
