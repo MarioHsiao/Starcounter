@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="TestHost.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestHostFactory.cs" />
     <Compile Include="xUnitTestHost.cs" />
   </ItemGroup>
   <ItemGroup>
