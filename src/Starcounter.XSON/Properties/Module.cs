@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Starcounter.Advanced.XSON;
 using Starcounter.XSON.Interfaces;
+using Starcounter.XSON.JSONByExample;
 
 namespace Starcounter.Internal.XSON.Modules {
     /// <summary>
@@ -110,7 +111,7 @@ namespace Starcounter.Internal.XSON.Modules {
             /// 
             /// </summary>
             internal static void Initialize() {
-//                MarkupReaders.Add("json", new JsonByExampleTemplateReader());
+                MarkupReaders.Add("json", new JsonByExampleTemplateReader());
             }
 
             ///// <summary>

@@ -75,6 +75,7 @@
     <Compile Include="ArrayPatchTests.cs" />
     <Compile Include="EvaluateJsonPatchTests.cs" />
     <Compile Include="GenerateJsonPatchTests.cs" />
+    <Compile Include="JsonByExampleTests.cs" />
     <Compile Include="JsonSerializeBenchmarkTests.cs" />
     <Compile Include="JsonSerializeTests.cs" />
     <Compile Include="Json\PregeneratedSerializationCode.cs" />

@@ -32,7 +32,7 @@
    
    boolToString: true,
 
-   login: event,
+   login: 0,
 
    untypedList: [{}],
    untypedList2: [{}],
@@ -61,6 +61,5 @@
 		}
 	},
 
-   userLink: "/users/admin",
-   user: null
+   userLink: "/users/admin"
 }

@@ -1,37 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Starcounter.Templates;
-using Starcounter.XSON.JSONByExample;
+﻿using Starcounter.Templates;
 
 namespace Starcounter.XSON.Interfaces {
     /// <summary>
     /// 
     /// </summary>
-    interface ITemplateFactory {
-
-        // object AddAppProperty(object parent, string name, string dotNetName, ISourceInfo debugInfo);
+    public interface ITemplateFactory {
         Template AddObject(Template parent, string name, string dotNetName, ISourceInfo sourceInfo);
 
-        //object AddTString(object parent, string name, string dotNetName, string value, ISourceInfo debugInfo);
         Template AddString(Template parent, string name, string dotNetName, string value, ISourceInfo sourceInfo);
 
-        //object AddIntegerProperty(object parent, string name, string dotNetName, int value, ISourceInfo debugInfo);
-        Template AddInteger(Template parent, string name, string dotNetName, int value, ISourceInfo sourceInfo);
+        Template AddInteger(Template parent, string name, string dotNetName, long value, ISourceInfo sourceInfo);
 
-        //object AddTDecimal(object parent, string name, string dotNetName, decimal value, ISourceInfo debugInfo);
         Template AddDecimal(Template parent, string name, string dotNetName, decimal value, ISourceInfo sourceInfo);
 
-        //object AddTDouble(object parent, string name, string dotNetName, double value, ISourceInfo debugInfo);
         Template AddDouble(Template parent, string name, string dotNetName, double value, ISourceInfo debugInfo);
 
-        //object AddBooleanProperty(object parent, string name, string dotNetName, int value, ISourceInfo debugInfo);
         Template AddBoolean(Template parent, string name, string dotNetName, bool value, ISourceInfo sourceInfo);
 
-        //object AddArrayProperty(object parent, string name, string dotNetName, int value, ISourceInfo debugInfo);
-        Template AddArrayProperty(Template parent, string name, string dotNetName, ISourceInfo sourceInfo);
+        Template AddArray(Template parent, string name, string dotNetName, ISourceInfo sourceInfo);
 
         // REMOVE
         //object AddEventProperty(object parent, string name, string dotNetName, int value, ISourceInfo debugInfo);

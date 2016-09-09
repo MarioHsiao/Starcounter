@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using NUnit.Framework;
 using Starcounter.Templates;
-using Starcounter.XSON.Serializer.Ast;
+using Starcounter.XSON.PartialClassGenerator;
 using SXP = Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {

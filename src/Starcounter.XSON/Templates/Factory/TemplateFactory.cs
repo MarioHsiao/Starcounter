@@ -208,7 +208,7 @@ namespace Starcounter.XSON.Templates.Factory {
         Template ITemplateFactory.AddInteger(Template parent,
                                              string name,
                                              string dotNetName,
-                                             int value,
+                                             long value,
                                              ISourceInfo sourceInfo) {
             Template newTemplate;
 
@@ -321,7 +321,7 @@ namespace Starcounter.XSON.Templates.Factory {
         /// <param name="dotNetName">A legal C# property name (with non C# characters, such as $, stripped out)</param>
         /// <param name="sourceInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
-        Template ITemplateFactory.AddArrayProperty(Template parent,
+        Template ITemplateFactory.AddArray(Template parent,
                                                    string name, 
                                                    string dotNetName,
                                                    ISourceInfo sourceInfo) {

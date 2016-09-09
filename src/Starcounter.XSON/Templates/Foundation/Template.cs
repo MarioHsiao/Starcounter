@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal.XSON.Modules;
 using Starcounter.XSON.Interfaces;
+using Starcounter.XSON.Templates.Factory;
 
 namespace Starcounter.Templates {
     /// <summary>
@@ -349,11 +350,13 @@ namespace Starcounter.Templates {
         }
 
         internal static Template CreateFromMarkup(string json) {
-            //IXsonTemplateMarkupReader reader;
+            IXsonTemplateMarkupReader reader;
             string format = "json";
 
-            //if (Starcounter_XSON.JsonByExample.MarkupReaders.TryGetValue(format, out reader))
-            //    return reader.CompileMarkup<Json, TValue>(json, null);
+            if (Starcounter_XSON.JsonByExample.MarkupReaders.TryGetValue(format, out reader)) {
+                var factory = new TemplateFactory();
+                return reader.CreateTemplate(json, null, factory);
+            }
             
             throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
         }
@@ -370,15 +373,16 @@ namespace Starcounter.Templates {
         public static TTemplate CreateFromMarkup<TJson, TTemplate>(string format, string markup, string origin)
             where TJson : Json, new()
             where TTemplate : TValue {
-//            IXsonTemplateMarkupReader reader;
-//            try {
+            IXsonTemplateMarkupReader reader;
+            try {
                 format = format.ToLower();
-//                reader = Starcounter.Internal.XSON.Modules.Starcounter_XSON.JsonByExample.MarkupReaders[format];
-//            } catch {
+                reader = Starcounter.Internal.XSON.Modules.Starcounter_XSON.JsonByExample.MarkupReaders[format];
+            } catch {
                 throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
-//            }
+            }
 
-//            return reader.CompileMarkup<TJson, TTemplate>(markup, origin);
+            var factory = new TemplateFactory();
+            return (TTemplate)reader.CreateTemplate(markup, origin, factory);
         }
     }
 
