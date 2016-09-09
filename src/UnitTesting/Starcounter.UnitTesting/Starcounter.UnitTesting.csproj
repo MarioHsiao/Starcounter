@@ -50,6 +50,13 @@
   <ItemGroup>
     <Compile Include="TestHost.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="xUnitTestHost.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Starcounter.UnitTesting.xUnit\Starcounter.UnitTesting.xUnit.csproj">
+      <Project>{be8d8113-5a69-424b-82be-d50fe290b054}</Project>
+      <Name>Starcounter.UnitTesting.xUnit</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
