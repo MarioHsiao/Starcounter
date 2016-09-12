@@ -5,11 +5,9 @@
 // ***********************************************************************
 
 using Starcounter;
-using Starcounter.Binding;
 using Starcounter.Hosting;
 using Starcounter.Internal;
 using Starcounter.Logging;
-using Starcounter.Metadata;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -17,7 +15,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace StarcounterInternal.Hosting {
+namespace StarcounterInternal.Hosting
+{
+
     /// <summary>
     /// Class Loader
     /// </summary>
@@ -25,6 +25,11 @@ namespace StarcounterInternal.Hosting {
     {
         static AssemblyResolver assemblyResolver = new AssemblyResolver(new PrivateAssemblyStore());
 
+        static Loader()
+        {
+            TestLoader.Setup();
+        }
+        
         internal static LogSource Log = LogSources.CodeHostLoader;
 
         [ThreadStatic]
@@ -35,7 +40,7 @@ namespace StarcounterInternal.Hosting {
                 return assemblyResolver;
             }
         }
-
+        
         /// <summary>
         /// Resolves the assembly.
         /// </summary>
