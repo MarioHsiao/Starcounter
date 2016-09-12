@@ -213,6 +213,8 @@ namespace Starcounter.XSON.Templates.Factory {
             Template newTemplate;
 
             VerifyPropertyName(dotNetName, sourceInfo);
+
+
             if (!(parent is MetaTemplate)) {
                 newTemplate = new TLong() { TemplateName = name };
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
@@ -480,6 +482,27 @@ namespace Starcounter.XSON.Templates.Factory {
                 }
 
                 FactoryExceptionHelper.RaiseInvalidPropertyCharactersError(propertyName, invalidTokens.ToString(), sourceInfo);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void VerifyTemplate(Template template) {
+            TContainer container;
+
+            if (template == null)
+                return;
+
+            if (template is ReplaceableTemplate) {
+                FactoryExceptionHelper.ThrowMetadataButNoPropertyException(template.TemplateName, template.SourceInfo);
+            }
+
+            container = template as TContainer;
+            if (container != null) {
+                foreach (Template child in container.Children) {
+                    VerifyTemplate(child);
+                }
             }
         }
 
