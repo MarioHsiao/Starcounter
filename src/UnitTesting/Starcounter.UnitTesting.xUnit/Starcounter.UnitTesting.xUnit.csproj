@@ -58,9 +58,18 @@
   <ItemGroup>
     <Compile Include="HostedAssemblyTestRunner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="xUnitTestAssembly.cs" />
+    <Compile Include="xUnitTestHost.cs" />
+    <Compile Include="xUnitTestHostFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Starcounter.UnitTesting\Starcounter.UnitTesting.csproj">
+      <Project>{9069f445-2b78-4e7c-bde9-9802846d7508}</Project>
+      <Name>Starcounter.UnitTesting</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
