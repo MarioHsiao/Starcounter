@@ -54,6 +54,7 @@
     <Compile Include="TestHostFactory.cs" />
     <Compile Include="TestResult.cs" />
     <Compile Include="Hosts\xUnitTestHost.cs" />
+    <Compile Include="TestRoot.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.UnitTesting.xUnit\Starcounter.UnitTesting.xUnit.csproj">
