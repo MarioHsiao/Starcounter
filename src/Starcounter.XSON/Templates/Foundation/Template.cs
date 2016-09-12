@@ -345,44 +345,29 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static TValue CreateFromJson(string json) {
-            return CreateFromMarkup<Json, TValue>("json", json, null);
+        public static Template CreateFromJson(string json) {
+            return CreateFromMarkup("json", json, null);
         }
-
-        internal static Template CreateFromMarkup(string json) {
-            IXsonTemplateMarkupReader reader;
-            string format = "json";
-
-            if (Starcounter_XSON.JsonByExample.MarkupReaders.TryGetValue(format, out reader)) {
-                var factory = new TemplateFactory();
-                return reader.CreateTemplate(json, null, factory);
-            }
-            
-            throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
-        }
-
+        
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="TJson"></typeparam>
-        /// <typeparam name="TTemplate"></typeparam>
         /// <param name="format"></param>
         /// <param name="markup"></param>
         /// <param name="origin"></param>
         /// <returns></returns>
-        public static TTemplate CreateFromMarkup<TJson, TTemplate>(string format, string markup, string origin)
-            where TJson : Json, new()
-            where TTemplate : TValue {
+        public static Template CreateFromMarkup(string format, string markup, string origin) {
             IXsonTemplateMarkupReader reader;
-            try {
-                format = format.ToLower();
-                reader = Starcounter.Internal.XSON.Modules.Starcounter_XSON.JsonByExample.MarkupReaders[format];
-            } catch {
-                throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
-            }
-
+            string formatToLower = format.ToLower();
+            Template template;
+            
+            if (!Starcounter_XSON.JsonByExample.MarkupReaders.TryGetValue(formatToLower, out reader))
+                throw new Exception(String.Format("Cannot create XSON template. No markup reader is registred for the format {0}.", format));
+            
             var factory = new TemplateFactory();
-            return (TTemplate)reader.CreateTemplate(markup, origin, factory);
+            template = reader.CreateTemplate(markup, origin, factory);
+            factory.VerifyTemplate(template);
+            return template;
         }
     }
 

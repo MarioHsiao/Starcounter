@@ -277,7 +277,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestSuppressingInputChange() {
             TObject schema;
 
-            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            schema = (TObject)Template.CreateFromMarkup("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
             var session = new Session();
             session.Data = json;
@@ -369,7 +369,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestCancellingInputChange() {
             TObject schema;
 
-            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            schema = (TObject)Template.CreateFromMarkup("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
             var session = new Session();
             session.Data = json;

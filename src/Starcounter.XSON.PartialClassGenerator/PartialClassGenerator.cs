@@ -27,7 +27,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 codeBehind = null;
             }
 
-            var t = TObject.CreateFromMarkup<Json, TValue>("json", jsonContent, jsonFilePath);
+            var t = (TValue)Template.CreateFromMarkup("json", jsonContent, jsonFilePath);
             t.ClassName = Path.GetFileNameWithoutExtension(jsonFilePath);
 
             return GenerateTypedJsonCode(t, codeBehind, codeBehindFilePath);

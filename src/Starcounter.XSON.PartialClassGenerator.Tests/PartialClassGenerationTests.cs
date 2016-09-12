@@ -138,7 +138,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             string json = @"{ myarr:[ { $: {Reuse:""MyNamespace.Person""} } ] }";
 
             var className = "Test";
-            var tobj = TObject.CreateFromMarkup<Json, TObject>("json", json, className);
+            var tobj = (TObject)Template.CreateFromMarkup("json", json, className);
             tobj.ClassName = className;
 
             var generator = SXP.PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);
@@ -150,7 +150,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             string json = @"{ myarr:[ { $: {Reuse:""Test.myarr""} } ] }";
 
             var className = "Test";
-            var tobj = TObject.CreateFromMarkup<Json, TObject>("json", json, className);
+            var tobj = (TObject)Template.CreateFromMarkup("json", json, className);
             tobj.ClassName = className;
 
             var generator = SXP.PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);

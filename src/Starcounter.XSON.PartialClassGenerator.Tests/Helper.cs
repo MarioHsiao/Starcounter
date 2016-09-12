@@ -11,7 +11,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         private static Random Random = new Random(2134235);
 
         internal static TObject Create(string json, string className) {
-            var tobj = TObject.CreateFromMarkup<Json, TObject>("json", json, "NodeJson");
+            var tobj = (TObject)Template.CreateFromMarkup("json", json, "NodeJson");
 
             // This is needed since we don't have any generated code to add this.
             TObjArr toa = (tobj.Properties.Count > 3) ? tobj.Properties[3] as TObjArr : null;
