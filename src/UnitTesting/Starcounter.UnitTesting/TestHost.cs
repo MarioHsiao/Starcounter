@@ -10,7 +10,7 @@ namespace Starcounter.UnitTesting
     /// how to run them.
     /// </summary>
     public abstract class TestHost {
-        readonly List<string> testAssemblyPaths = new List<string>();
+        readonly Dictionary<string, TestAssembly> testAssemblies = new Dictionary<string, TestAssembly>();
         
         public void IncludeAssembly(Assembly assembly)
         {
@@ -24,13 +24,20 @@ namespace Starcounter.UnitTesting
 
         public void Run()
         {
-            testAssemblyPaths.ForEach((path) =>
-            {
-                RunTestsInAssambly(path);
-            });
+            // When we run, we must allocate a new Result on disk, including
+            // headers, config, etc. Emit that here, and then give the stream
+            // further to implementations.
+            // TODO:
+            // No. This comes from the root. At this level, we are already in
+            // a context.
+
+            //testAssemblyPaths.ForEach((path) =>
+            //{
+            //    RunTestsInAssambly(path);
+            //});
         }
 
-        protected abstract void RunTestsInAssambly(string assemblyPath);
+        protected abstract TestAssembly CreateTestAssembly(string assemblyPath);
 
         void InternalIncludeAssemblyByPath(string assemblyPath)
         {
@@ -39,7 +46,10 @@ namespace Starcounter.UnitTesting
                 throw new FileNotFoundException(nameof(assemblyPath));
             }
 
-            testAssemblyPaths.Add(assemblyPath);
+            var testAssembly = CreateTestAssembly(assemblyPath);
+            testAssembly.Host = this;
+
+            testAssemblies.Add(assemblyPath, testAssembly);
         }
     }
 }

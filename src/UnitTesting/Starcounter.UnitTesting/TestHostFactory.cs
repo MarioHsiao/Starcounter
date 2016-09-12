@@ -1,11 +1,8 @@
 ﻿
 namespace Starcounter.UnitTesting
 {
-    public class TestHostFactory
+    public interface ITestHostFactory
     {
-        public static TestHost CreateHost()
-        {
-            return new xUnitTestHost();
-        }
+        TestHost CreateHost();
     }
 }

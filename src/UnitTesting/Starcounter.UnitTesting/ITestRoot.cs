@@ -18,7 +18,9 @@ namespace Starcounter.UnitTesting
         /// </summary>
         /// <param name="application">Name of application.
         /// </param>
+        /// <param name="factory">Optional factory to use,
+        /// overriding any default.</param>
         /// <returns></returns>
-        TestHost IncludeNewHost(string application);
+        TestHost IncludeNewHost(string application, ITestHostFactory factory = null);
     }
 }
