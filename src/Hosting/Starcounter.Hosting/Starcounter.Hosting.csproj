@@ -81,6 +81,7 @@
     <Compile Include="sccoreapp.cs" />
     <Compile Include="StarcounterPackage.cs" />
     <Compile Include="TaskSchedulerImpl.cs" />
+    <Compile Include="TestLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -101,6 +102,10 @@
     <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\UnitTesting\Starcounter.UnitTesting.xUnit\Starcounter.UnitTesting.xUnit.csproj">
+      <Project>{be8d8113-5a69-424b-82be-d50fe290b054}</Project>
+      <Name>Starcounter.UnitTesting.xUnit</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\UnitTesting\Starcounter.UnitTesting\Starcounter.UnitTesting.csproj">
       <Project>{9069f445-2b78-4e7c-bde9-9802846d7508}</Project>
