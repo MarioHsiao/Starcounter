@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="HostedAssemblyTestRunner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestDiscoverer.cs" />
     <Compile Include="xUnitTestAssembly.cs" />
     <Compile Include="xUnitTestHost.cs" />
     <Compile Include="xUnitTestHostFactory.cs" />
