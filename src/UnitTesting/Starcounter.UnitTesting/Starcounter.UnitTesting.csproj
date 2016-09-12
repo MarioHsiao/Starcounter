@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IHostedTest.cs" />
     <Compile Include="ITestRoot.cs" />
     <Compile Include="TestHost.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
