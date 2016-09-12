@@ -1,7 +1,7 @@
 ﻿
 using Starcounter.UnitTesting.xUnit;
 
-namespace Starcounter.UnitTesting
+namespace Starcounter.UnitTesting.Hosts
 {
     internal class xUnitTestHost : TestHost
     {

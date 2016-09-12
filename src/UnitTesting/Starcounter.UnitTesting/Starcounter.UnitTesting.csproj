@@ -52,7 +52,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestHostFactory.cs" />
     <Compile Include="TestResult.cs" />
-    <Compile Include="xUnitTestHost.cs" />
+    <Compile Include="Hosts\xUnitTestHost.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.UnitTesting.xUnit\Starcounter.UnitTesting.xUnit.csproj">
