@@ -67,6 +67,8 @@
     <Compile Include="Class Json\JsonExtension.cs" />
     <Compile Include="Class Json\SiblingList.cs" />
     <Compile Include="Interfaces\ITemplateFactory.cs" />
+    <Compile Include="JsonByExample\JsonByExampleParser.cs" />
+    <Compile Include="JsonByExample\JsonParser.cs" />
     <Compile Include="Templates\Factory\FactoryExceptionHelper.cs" />
     <Compile Include="Templates\Factory\SourceInfo.cs" />
     <Compile Include="JsonDebugHelper.cs" />
@@ -119,7 +121,7 @@
     <Compile Include="Templates\Foundation\Property.cs" />
     <Compile Include="Interfaces\IXsonMarkupReader.cs" />
     <Compile Include="Templates\Factory\TemplateFactory.cs" />
-    <Compile Include="JsonByExample\JsonByExampleTemplateReader.cs" />
+    <Compile Include="JsonByExample\JsonByExampleMarkupReader.cs" />
     <Compile Include="Properties\Module.cs" />
     <Compile Include="Binding\DataBindingHelper.cs" />
     <Compile Include="DynamicJson.cs" />

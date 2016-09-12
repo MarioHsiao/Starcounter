@@ -1,13 +1,13 @@
 ﻿using NUnit.Framework;
 using Starcounter.Templates;
 using Starcounter.XSON.Interfaces;
-using Starcounter.XSON.JSONByExample;
+using Starcounter.XSON.JsonByExample;
 using Starcounter.XSON.Templates.Factory;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
     public static class JsonByExampleTests {
-        private static JsonByExampleTemplateReader jbeReader = new JsonByExampleTemplateReader();
+        private static JsonByExampleMarkupReader jbeReader = new JsonByExampleMarkupReader();
         private static ITemplateFactory factory = new TemplateFactory();
 
         [Test]
