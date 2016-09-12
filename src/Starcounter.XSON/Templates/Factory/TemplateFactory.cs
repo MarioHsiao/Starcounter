@@ -58,15 +58,7 @@ namespace Starcounter.XSON.Templates.Factory {
                 if (existing != null) {
                     rt = existing as ReplaceableTemplate;
                     if (rt != null) {
-                        if (rt.ConvertTo != null) {
-                            if (!(newTemplate is TValue))
-                                FactoryExceptionHelper.RaiseInvalidTypeConversionError(rt.ConvertTo.SourceInfo);
-                            
-                            newTemplate.CopyTo(rt.ConvertTo);
-                            newTemplate = rt.ConvertTo;
-                        }
-
-                        CopyReplaceableTemplateValues(rt, newTemplate);
+                        rt.CopyValuesTo(newTemplate);
                         objParent.Properties.Replace(newTemplate);
                     } else {
                         FactoryExceptionHelper.RaisePropertyExistsError(name, debugInfo);
@@ -80,15 +72,7 @@ namespace Starcounter.XSON.Templates.Factory {
                 if (existing != null) {
                     rt = existing as ReplaceableTemplate;
                     if (rt != null) {
-                        if (rt.ConvertTo != null) {
-                            if (!(newTemplate is TValue))
-                                FactoryExceptionHelper.RaiseInvalidTypeConversionError(rt.ConvertTo.SourceInfo);
-
-                            newTemplate.CopyTo(rt.ConvertTo);
-                            newTemplate = rt.ConvertTo;
-                        }
-
-                        CopyReplaceableTemplateValues(rt, newTemplate);
+                        rt.CopyValuesTo(newTemplate);
                     }
                 }
                 
@@ -97,29 +81,7 @@ namespace Starcounter.XSON.Templates.Factory {
             } 
             return newTemplate;
         }
-
-        /// <summary>
-        /// Copies the replaceable template values.
-        /// </summary>
-        /// <param name="rt">The rt.</param>
-        /// <param name="newTemplate">The new template.</param>
-        private void CopyReplaceableTemplateValues(ReplaceableTemplate rt, Template newTemplate) {
-            bool boolVal;
-            string strVal;
-            MetaTemplate tm = new MetaTemplate(newTemplate, rt.SourceInfo);
-
-            foreach (KeyValuePair<String, Object> value in rt.Values) {
-                strVal = value.Value as String;
-                if (value.Value == null || strVal != null) {
-                    tm.Set(value.Key, strVal);
-                    continue;
-                }
-
-                boolVal = (bool)value.Value;
-                tm.Set(value.Key, boolVal);
-            }
-        }
-
+        
         /// <summary>
         /// Gets the meta template.
         /// </summary>
@@ -215,7 +177,10 @@ namespace Starcounter.XSON.Templates.Factory {
             VerifyPropertyName(dotNetName, sourceInfo);
 
 
-            if (!(parent is MetaTemplate)) {
+            if (parent is MetaTemplate) {
+                ((MetaTemplate)parent).Set(name, value);
+                return null;
+            } else {
                 newTemplate = new TLong() { TemplateName = name };
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
                 if (newTemplate is TLong)
@@ -223,7 +188,6 @@ namespace Starcounter.XSON.Templates.Factory {
                 newTemplate.SourceInfo = sourceInfo;
                 return newTemplate;
             } 
-            return null;
         }
 
         /// <summary>
@@ -244,7 +208,10 @@ namespace Starcounter.XSON.Templates.Factory {
 
             VerifyPropertyName(dotNetName, sourceInfo);
 
-            if (!(parent is MetaTemplate)) {
+            if (parent is MetaTemplate) {
+                ((MetaTemplate)parent).Set(name, value);
+                return null;
+            } else {
                 newTemplate = new TDecimal() { TemplateName = name };
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
                 if (newTemplate is TDecimal)
@@ -252,7 +219,6 @@ namespace Starcounter.XSON.Templates.Factory {
                 newTemplate.SourceInfo = sourceInfo;
                 return newTemplate;
             }
-            return null;
         }
 
         /// <summary>
@@ -273,7 +239,10 @@ namespace Starcounter.XSON.Templates.Factory {
 
             VerifyPropertyName(dotNetName, sourceInfo);
 
-            if (!(parent is MetaTemplate)) {
+            if (parent is MetaTemplate) {
+                ((MetaTemplate)parent).Set(name, value);
+                return null;
+            } else {
                 newTemplate = new TDouble() { TemplateName = name };
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
                 if (newTemplate is TDouble)
@@ -282,7 +251,6 @@ namespace Starcounter.XSON.Templates.Factory {
                 newTemplate.SourceInfo = sourceInfo;
                 return newTemplate;
             }
-            return null;
         }
 
         /// <summary>
@@ -324,17 +292,22 @@ namespace Starcounter.XSON.Templates.Factory {
         /// <param name="sourceInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
         Template ITemplateFactory.AddArray(Template parent,
-                                                   string name, 
-                                                   string dotNetName,
-                                                   ISourceInfo sourceInfo) {
+                                           string name, 
+                                           string dotNetName,
+                                           ISourceInfo sourceInfo) {
             Template newTemplate;
 
             VerifyPropertyName(dotNetName, sourceInfo);
 
-            newTemplate = new TArray<Json>() { TemplateName = name };
-            newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
-            newTemplate.SourceInfo = sourceInfo;
-            return newTemplate;
+            if (parent is MetaTemplate) {
+                FactoryExceptionHelper.RaiseWrongValueForPropertyError(name, "string", "array", sourceInfo);
+                return null;
+            } else {
+                newTemplate = new TArray<Json>() { TemplateName = name };
+                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
+                newTemplate.SourceInfo = sourceInfo;
+                return newTemplate;
+            }
         }
 
         /// <summary>
@@ -350,76 +323,20 @@ namespace Starcounter.XSON.Templates.Factory {
 
             VerifyPropertyName(dotNetName, sourceInfo);
 
-            newTemplate = new TObject();
-            if (parent != null) {
-                newTemplate.TemplateName = name;
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
+            if (parent is MetaTemplate) {
+                FactoryExceptionHelper.RaiseWrongValueForPropertyError(name, "string", "object", sourceInfo);
+                return null;
+            } else {
+                newTemplate = new TObject();
+                if (parent != null) {
+                    newTemplate.TemplateName = name;
+                    newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
+                }
+                newTemplate.SourceInfo = sourceInfo;
+                return newTemplate;
             }
-            newTemplate.SourceInfo = sourceInfo;
-            return newTemplate;
         }
         
-        ///// <summary>
-        ///// Adds the meta property.
-        ///// </summary>
-        ///// <param name="template">The template.</param>
-        ///// <param name="debugInfo">The debug info.</param>
-        ///// <returns>System.Object.</returns>
-        ///// <exception cref="System.NotImplementedException"></exception>
-        //object ITemplateFactory.AddMetaProperty(object template, DebugInfo debugInfo) {
-        //    throw new NotImplementedException();
-        //}
-
-        /// <summary>
-        /// Sets the editable property.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <param name="b">if set to <c>true</c> [b].</param>
-        /// <param name="debugInfo">The debug info.</param>
-        void ITemplateFactory.SetEditableProperty(Template template, bool editable, ISourceInfo sourceInfo) {
-            template.Editable = editable;
-        }
-
-        /// <summary>
-        /// Sets the class property.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <param name="className">Name of the class.</param>
-        /// <param name="debugInfo">The debug info.</param>
-        void ITemplateFactory.SetClassProperty(Template template, string className, ISourceInfo sourceInfo) {
-            ((TObject)template).ClassName = className;
-        }
-
-        /// <summary>
-        /// Sets the include property.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <param name="className">Name of the class.</param>
-        /// <param name="debugInfo">The debug info.</param>
-        void ITemplateFactory.SetIncludeProperty(Template template, string className, ISourceInfo sourceInfo) {
-            ((TObject)template).Include = className;
-        }
-
-        /// <summary>
-        /// Sets the namespace property.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <param name="namespaceName">Name of the namespace.</param>
-        /// <param name="debugInfo">The debug info.</param>
-        void ITemplateFactory.SetNamespaceProperty(Template template, string namespaceName, ISourceInfo sourceInfo) {
-            ((TObject)template).Namespace = namespaceName;
-        }
-        
-        /// <summary>
-        /// Sets the bind property.
-        /// </summary>
-        /// <param name="template">The template.</param>
-        /// <param name="path">The path.</param>
-        /// <param name="debugInfo">The debug info.</param>
-        void ITemplateFactory.SetBindProperty(Template template, string path, ISourceInfo dsourceInfo) {
-            ((TValue)template).Bind = path;
-        }
-
         private void VerifyPropertyName(string propertyName, ISourceInfo sourceInfo) {
             if (propertyName == null)
                 return;

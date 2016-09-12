@@ -142,7 +142,7 @@
     <Compile Include="Sessions\Session.cs" />
     <Compile Include="TemplateAttribute.cs" />
     <Compile Include="Templates\Foundation\PropertyList.cs" />
-    <Compile Include="Templates\Foundation\ReplaceableTemplate.cs" />
+    <Compile Include="Templates\Factory\ReplaceableTemplate.cs" />
     <Compile Include="Templates\Foundation\TContainer.cs" />
     <Compile Include="Templates\Foundation\Template.cs" />
     <Compile Include="Templates\TObjArr.cs" />
