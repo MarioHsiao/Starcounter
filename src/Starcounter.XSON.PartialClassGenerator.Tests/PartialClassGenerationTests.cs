@@ -85,7 +85,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         internal static TObject ReadTemplate(string path) {
             var str = File.ReadAllText(path);
             var tj = (TObject)TObject.CreateFromJson(str);
-            tj.ClassName = Path.GetFileNameWithoutExtension(path);
+            tj.CodegenInfo.ClassName = Path.GetFileNameWithoutExtension(path);
             return tj;
         }
 
@@ -139,7 +139,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             var className = "Test";
             var tobj = (TObject)Template.CreateFromMarkup("json", json, className);
-            tobj.ClassName = className;
+            tobj.CodegenInfo.ClassName = className;
 
             var generator = SXP.PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);
             Helper.ConsoleWriteLine(generator.GenerateCode());
@@ -151,7 +151,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             var className = "Test";
             var tobj = (TObject)Template.CreateFromMarkup("json", json, className);
-            tobj.ClassName = className;
+            tobj.CodegenInfo.ClassName = className;
 
             var generator = SXP.PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);
             string code = generator.GenerateCode();

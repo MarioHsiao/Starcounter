@@ -32,7 +32,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             string json = File.ReadAllText("Input\\" + filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
             var tobj = (TObject)Template.CreateFromMarkup("json", json, className);
-            tobj.ClassName = className;
+            tobj.CodegenInfo.ClassName = className;
             return tobj;
         }
 
@@ -62,7 +62,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void GenerateCsFromSimpleJs() {
             TObject actual = CreateJsonTemplateFromFile("simple.json");
-            actual.ClassName = "PlayerApp";
+            actual.CodegenInfo.ClassName = "PlayerApp";
 
 //            var file = new System.IO.StreamReader("simple.facit.cs");
 //            var facit = file.ReadToEnd();
@@ -81,7 +81,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void GenerateCsFromPrimitiveJs() {
             TValue actual = (TValue)Template.CreateFromJson(@"{""Items"":[19]}");
-            actual.ClassName = "PlayerApp";
+            actual.CodegenInfo.ClassName = "PlayerApp";
 
             Assert.IsInstanceOf(typeof(TObject), actual);
 
@@ -99,7 +99,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void GenerateCsFromSuperSimpleJs() {
             TObject actual = CreateJsonTemplateFromFile("supersimple.json");
-            actual.ClassName = "PlayerApp";
+            actual.CodegenInfo.ClassName = "PlayerApp";
 
             Assert.IsInstanceOf(typeof(TObject), actual);
             var codegenmodule = new Gen2CodeGenerationModule();

@@ -63,7 +63,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     // here.
                     // Do we need to create a new TApp and replace the existing one
                     // for all NClasses?
-                    appTemplate.ClassName = mapInfo.ClassName;
+                    appTemplate.CodegenInfo.ClassName = mapInfo.ClassName;
                     if (!String.IsNullOrEmpty(mapInfo.Namespace))
                         appTemplate.CodegenInfo.Namespace = mapInfo.Namespace;
 
@@ -396,7 +396,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                                     break;
                                 parent = parent.Parent;
                             }
-                            propertyName = ((TObject)parent).ClassName + propertyName;
+                            propertyName = ((TObject)parent).CodegenInfo.ClassName + propertyName;
                             generator.ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.CodegenInfo.SourceInfo);
                         }
                         CheckMissingBindingInformation(childTApp);

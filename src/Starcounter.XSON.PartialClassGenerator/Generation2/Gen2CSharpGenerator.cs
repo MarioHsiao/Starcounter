@@ -498,13 +498,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             sb.Append(schemaClass.NValueClass.GlobalClassSpecifier);
             sb.Append(");");
             schemaClass.Prefix.Add(sb.ToString());
-
-            sb.Clear();
-            sb.Append("        ClassName = \"");
-            sb.Append(schemaClass.NValueClass.ClassStemIdentifier);
-            sb.Append("\";");
-            schemaClass.Prefix.Add(sb.ToString());
-
+            
             if (schemaClass.Template is TObject) {
                 schemaClass.Prefix.Add("        Properties.ClearExposed();");
             }

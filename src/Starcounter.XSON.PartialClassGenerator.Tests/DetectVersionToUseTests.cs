@@ -10,7 +10,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         internal static TObject ReadTemplate(string path) {
             var str = File.ReadAllText(path);
             var tj = (TObject)TObject.CreateFromJson(str);
-            tj.ClassName = Path.GetFileNameWithoutExtension(path);
+            tj.CodegenInfo.ClassName = Path.GetFileNameWithoutExtension(path);
             return tj;
         }
 

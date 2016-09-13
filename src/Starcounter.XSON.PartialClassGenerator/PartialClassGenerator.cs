@@ -28,7 +28,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             }
 
             var t = (TValue)Template.CreateFromMarkup("json", jsonContent, jsonFilePath);
-            t.ClassName = Path.GetFileNameWithoutExtension(jsonFilePath);
+            t.CodegenInfo.ClassName = Path.GetFileNameWithoutExtension(jsonFilePath);
 
             return GenerateTypedJsonCode(t, codeBehind, codeBehindFilePath);
         }
@@ -38,7 +38,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             ITemplateCodeGenerator codegen;
             ITemplateCodeGeneratorModule codegenmodule;
 
-            metadata = CodeBehindParser.Analyze(template.ClassName, codebehind, codeBehindFilePathNote);
+            metadata = CodeBehindParser.Analyze(template.CodegenInfo.ClassName, codebehind, codeBehindFilePathNote);
             var rootClassInfo = metadata.RootClassInfo;
 
             if (rootClassInfo != null) {

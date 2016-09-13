@@ -21,7 +21,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                     return (TObject)arr.Parent;
                 });
             }
-            tobj.ClassName = "NodeJson";
+            tobj.CodegenInfo.ClassName = "NodeJson";
             return tobj;
         }
 

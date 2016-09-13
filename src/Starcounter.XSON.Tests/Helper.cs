@@ -36,14 +36,14 @@ namespace Starcounter.Internal.XSON.Tests {
             string json = File.ReadAllText("json\\" + filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
             var tval = (TValue)Template.CreateFromMarkup("json", json, className);
-            tval.ClassName = className;
+            tval.CodegenInfo.ClassName = className;
             return tval;
         }
 
         internal static TValue CreateJsonTemplateFromContent(string filename, string json) {
             var className = Path.GetFileNameWithoutExtension(filename);
             var tval = (TValue)Template.CreateFromMarkup("json", json, className);
-            tval.ClassName = className;
+            tval.CodegenInfo.ClassName = className;
             return tval;
         }
 

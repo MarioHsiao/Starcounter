@@ -92,8 +92,8 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     return "";
                 var template = NTemplateClass.Template;
                 string className = null;
-                if (template.ClassName != null) {
-                    className = template.ClassName;
+                if (template.CodegenInfo.ClassName != null) {
+                    className = template.CodegenInfo.ClassName;
                 }
                 if (className == null) {
                     className = template.PropertyName;

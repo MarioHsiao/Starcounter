@@ -22,11 +22,11 @@ namespace Starcounter.XSON.Serializer {
 
 			AstRoot root = new AstRoot();
 
-			string className = template.ClassName;
+			string className = template.InstanceType?.Name;
 			if (String.IsNullOrEmpty(className))
 				className = template.PropertyName;
 
-			AstJsonSerializerClass jsClass = BuildAstTree(parseTree, template.ClassName + "Serializer");
+			AstJsonSerializerClass jsClass = BuildAstTree(parseTree, template.InstanceType?.Name + "Serializer");
 			jsClass.Parent = root;
 			jsClass.Namespace = ns;
 

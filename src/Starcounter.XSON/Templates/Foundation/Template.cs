@@ -72,15 +72,6 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// Gets or sets the name of the class.
-        /// </summary>
-        /// <value>The name of the class.</value>
-        public string ClassName {
-            get { return _className; }
-            set { _className = value; }
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         public abstract bool IsPrimitive { get; }
@@ -275,8 +266,8 @@ namespace Starcounter.Templates {
                 } else {
                     if (PropertyName != null) {
                         str += PropertyName;
-                    } else if (ClassName != null) {
-                        str += this.ClassName;
+                    } else if (InstanceType?.Name != null) {
+                        str += this.InstanceType.Name;
                     } else {
                         str += "(anonymous)";
                     }

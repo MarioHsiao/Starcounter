@@ -330,7 +330,7 @@ namespace Starcounter.Internal.XSON.Tests {
             TObject objTemplate;
 
             objTemplate = (TObject)Helper.CreateJsonTemplateFromFile("supersimple.json");
-			objTemplate.ClassName = "PreGenerated";
+			objTemplate.CodegenInfo.ClassName = "PreGenerated";
 
 			StdCSharpGenerator generator = new StdCSharpGenerator(new StdDomGenerator(objTemplate));
             Helper.ConsoleWriteLine(generator.GenerateCode());
@@ -341,7 +341,7 @@ namespace Starcounter.Internal.XSON.Tests {
             TObject objTemplate;
 
             objTemplate = (TObject)Helper.CreateJsonTemplateFromFile("supersimple.json");
-			objTemplate.ClassName = "PreGenerated";
+			objTemplate.CodegenInfo.ClassName = "PreGenerated";
 
 			FTJCSharpGenerator generator = new FTJCSharpGenerator(new FTJDomGenerator(objTemplate));
             Helper.ConsoleWriteLine(generator.GenerateCode());

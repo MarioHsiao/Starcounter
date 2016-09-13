@@ -42,7 +42,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
         internal Gen2DomGenerator(Gen2CodeGenerationModule mod, TValue template, Type defaultNewTemplateType, CodeBehindMetadata metadata) {
             defaultObjTemplate = new TObject();//(TValue)defaultNewTemplateType.GetConstructor(new Type[0]).Invoke(null);
             defaultObjTemplate.CodegenInfo.Namespace = "Starcounter";
-            defaultObjTemplate.ClassName = "Json";
+            defaultObjTemplate.CodegenInfo.ClassName = "Json";
             defaultArrayTemplate = new TArray<Json>();
             defaultArrayTemplate.ElementType = defaultObjTemplate;
             defaultArrayTemplate.CodegenInfo.Namespace = "Starcounter";
@@ -94,7 +94,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             while (candidate != null) {
                 appTemplate = candidate as TValue;
                 if (appTemplate != null) {
-                    if (info.DeclaringClassName.Equals(appTemplate.ClassName)) {
+                    if (info.DeclaringClassName.Equals(appTemplate.CodegenInfo.ClassName)) {
                         declaringAppClass = (AstJsonClass)ObtainRootValueClass(appTemplate);
                         break;
                     }
@@ -198,7 +198,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             if (elementTemplate == null) {
                 elementTemplate = new TObject();
                 elementTemplate.CodegenInfo.Namespace = "Starcounter";
-                elementTemplate.ClassName = "Json";
+                elementTemplate.CodegenInfo.ClassName = "Json";
                 template.ElementType = elementTemplate;
             }
 
@@ -236,7 +236,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 jsonClass = new AstJsonClass(this);
                 valueClasses.Add(template, jsonClass);
 
-                if (template.ClassName == null && template.TemplateName == null)
+                if (template.CodegenInfo.ClassName == null && template.TemplateName == null)
                     template.TemplateName = "Anonymous" + anonymousClassId++;
 
                 if (template is TObjArr) {
