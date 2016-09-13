@@ -152,7 +152,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// </summary>
         private void WriteHeader() {
             output.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");
-            output.Append(root.AppClassClassNode.Template.SourceInfo.Filename);
+            output.Append(root.AppClassClassNode.Template.CodegenInfo.SourceInfo.Filename);
             output.Append('"');
             output.AppendLine();
             output.Append("// Version: ");
@@ -839,7 +839,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
         
         private static string GetLinePosAndFile(Template template) {
-            return string.Format(LINE_POSANDFILE, template.SourceInfo.Line, template.SourceInfo.Filename);
+            return string.Format(LINE_POSANDFILE, template.CodegenInfo.SourceInfo.Line, template.CodegenInfo.SourceInfo.Filename);
         }
     }
 }

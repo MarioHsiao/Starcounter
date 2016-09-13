@@ -42,8 +42,8 @@ namespace Starcounter.XSON.PartialClassGenerator {
             var rootClassInfo = metadata.RootClassInfo;
 
             if (rootClassInfo != null) {
-                if (String.IsNullOrEmpty(template.Namespace))
-                    template.Namespace = metadata.RootClassInfo.Namespace;
+                if (String.IsNullOrEmpty(template.CodegenInfo.Namespace))
+                    template.CodegenInfo.Namespace = metadata.RootClassInfo.Namespace;
             }
 
             codegenmodule = new Gen2CodeGenerationModule();

@@ -4,10 +4,9 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
-using Starcounter.Advanced.XSON;
+using Starcounter.Internal;
 using Starcounter.Internal.XSON.Modules;
 using Starcounter.XSON.Interfaces;
 using Starcounter.XSON.Templates.Factory;
@@ -25,15 +24,10 @@ namespace Starcounter.Templates {
         private bool _sealed;
         internal TContainer _parent;
 
+        private CodegenInfo codegenInfo;
+
         private static readonly IReadOnlyList<IReadOnlyTree> _emptyList = new List<IReadOnlyTree>();
-
-        /// <summary>
-        /// Dictionary used to hold values gathered when json is parsed from file and during codegeneration.
-        /// When using templates in applications this dictionary should never be used or instantiated.
-        /// </summary>
-        private Dictionary<string, string> codegenMetadata;
-        internal ISourceInfo SourceInfo;
-
+        
         static Template() {
             Starcounter.Internal.XSON.Modules.Starcounter_XSON.Initialize();
         }
@@ -47,19 +41,12 @@ namespace Starcounter.Templates {
             _dynamic = false;
         }
 
-        internal Dictionary<string, string> CodegenMetadata {
+        internal CodegenInfo CodegenInfo {
             get {
-                if (codegenMetadata == null)
-                    codegenMetadata = new Dictionary<string, string>();
-                return codegenMetadata;
+                if (codegenInfo == null)
+                    codegenInfo = new CodegenInfo();
+                return codegenInfo;
             }
-        }
-
-        internal string GetCodegenMetadata(string key) {
-            string value = null;
-            if (codegenMetadata != null)
-                codegenMetadata.TryGetValue(key, out value);
-            return value;
         }
 
         /// <summary>
@@ -92,11 +79,6 @@ namespace Starcounter.Templates {
             get { return _className; }
             set { _className = value; }
         }
-        /// <summary>
-        /// Gets or sets the namespace.
-        /// </summary>
-        /// <value></value>
-        public string Namespace { get; set; }
 
         /// <summary>
         /// 

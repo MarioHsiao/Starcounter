@@ -69,6 +69,7 @@
     <Compile Include="Interfaces\ITemplateFactory.cs" />
     <Compile Include="JsonByExample\JsonByExampleParser.cs" />
     <Compile Include="JsonByExample\JsonParser.cs" />
+    <Compile Include="Templates\Factory\CodegenInfo.cs" />
     <Compile Include="Templates\Factory\FactoryExceptionHelper.cs" />
     <Compile Include="Templates\Factory\SourceInfo.cs" />
     <Compile Include="JsonDebugHelper.cs" />

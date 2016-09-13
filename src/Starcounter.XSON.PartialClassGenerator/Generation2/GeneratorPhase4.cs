@@ -52,8 +52,8 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 if (mapInfo.IsMapped) {
                     appTemplate = FindTemplate(mapInfo, rootTemplate);
 
-                    if (appTemplate.GetCodegenMetadata(Gen2DomGenerator.InstanceDataTypeName) != null) {
-                        generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.SourceInfo);
+                    if (appTemplate.CodegenInfo.BoundToType != null) {
+                        generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CodegenInfo.SourceInfo);
                     }
 
                     // TODO:
@@ -65,7 +65,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     // for all NClasses?
                     appTemplate.ClassName = mapInfo.ClassName;
                     if (!String.IsNullOrEmpty(mapInfo.Namespace))
-                        appTemplate.Namespace = mapInfo.Namespace;
+                        appTemplate.CodegenInfo.Namespace = mapInfo.Namespace;
 
                     nAppClass = (AstJsonClass)generator.ObtainValueClass(appTemplate);
                     nAppClass.IsPartial = true;
@@ -397,7 +397,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                                 parent = parent.Parent;
                             }
                             propertyName = ((TObject)parent).ClassName + propertyName;
-                            generator.ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.SourceInfo);
+                            generator.ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.CodegenInfo.SourceInfo);
                         }
                         CheckMissingBindingInformation(childTApp);
                     }

@@ -15,7 +15,7 @@ namespace Starcounter.XSON.Serializer {
 		internal AstRoot GenerateDomTree() {
 			ParseNode parseTree = ParseTreeGenerator.BuildParseTree(template);
 
-			string ns = template.Namespace;
+            string ns = null;//template.Namespace;
 			if (String.IsNullOrEmpty(ns)) {
 				ns = "__starcountergenerated__";
 			}

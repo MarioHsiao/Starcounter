@@ -5,10 +5,7 @@
 // ***********************************************************************
 
 using System;
-using System.Collections.Generic;
-using Starcounter;
 using Starcounter.Templates;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Text;
 using Starcounter.XSON.Interfaces;
@@ -108,7 +105,6 @@ namespace Starcounter.XSON.Templates.Factory {
             var propertyName = name;
             if (name.EndsWith("$")) {
                 propertyName = name.Substring(0, name.Length - 1);
-//                ErrorHelper.RaiseInvalidEditableFlagForMetadata(name.Substring(0, name.Length - 1), debugInfo);
             }
 
             var t = appTemplate.Properties.GetTemplateByPropertyName(propertyName);
@@ -119,7 +115,7 @@ namespace Starcounter.XSON.Templates.Factory {
                 // If this dummy template is not replaced later, an exception
                 // will be raised.
                 t = new ReplaceableTemplate() { TemplateName = name };
-                t.SourceInfo = sourceInfo;
+                t.CodegenInfo.SourceInfo = sourceInfo;
                 appTemplate.Properties.Add(t);
             }
             return new MetaTemplate(t, sourceInfo);
@@ -153,7 +149,7 @@ namespace Starcounter.XSON.Templates.Factory {
                 if (newTemplate is TString)
                     ((TString)newTemplate).DefaultValue = value;
 
-                newTemplate.SourceInfo = sourceInfo;
+                newTemplate.CodegenInfo.SourceInfo = sourceInfo;
                 return newTemplate;
             }
         }
@@ -185,7 +181,7 @@ namespace Starcounter.XSON.Templates.Factory {
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
                 if (newTemplate is TLong)
                     ((TLong)newTemplate).DefaultValue = value;
-                newTemplate.SourceInfo = sourceInfo;
+                newTemplate.CodegenInfo.SourceInfo = sourceInfo;
                 return newTemplate;
             } 
         }
@@ -216,7 +212,7 @@ namespace Starcounter.XSON.Templates.Factory {
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
                 if (newTemplate is TDecimal)
                     ((TDecimal)newTemplate).DefaultValue = value;
-                newTemplate.SourceInfo = sourceInfo;
+                newTemplate.CodegenInfo.SourceInfo = sourceInfo;
                 return newTemplate;
             }
         }
@@ -248,7 +244,7 @@ namespace Starcounter.XSON.Templates.Factory {
                 if (newTemplate is TDouble)
                     ((TDouble)newTemplate).DefaultValue = value;
 
-                newTemplate.SourceInfo = sourceInfo;
+                newTemplate.CodegenInfo.SourceInfo = sourceInfo;
                 return newTemplate;
             }
         }
@@ -278,7 +274,7 @@ namespace Starcounter.XSON.Templates.Factory {
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
                 if (newTemplate is TBool)
                     ((TBool)newTemplate).DefaultValue = value;
-                newTemplate.SourceInfo = sourceInfo;
+                newTemplate.CodegenInfo.SourceInfo = sourceInfo;
                 return newTemplate;
             }
         }
@@ -305,7 +301,7 @@ namespace Starcounter.XSON.Templates.Factory {
             } else {
                 newTemplate = new TArray<Json>() { TemplateName = name };
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
-                newTemplate.SourceInfo = sourceInfo;
+                newTemplate.CodegenInfo.SourceInfo = sourceInfo;
                 return newTemplate;
             }
         }
@@ -332,7 +328,7 @@ namespace Starcounter.XSON.Templates.Factory {
                     newTemplate.TemplateName = name;
                     newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, sourceInfo);
                 }
-                newTemplate.SourceInfo = sourceInfo;
+                newTemplate.CodegenInfo.SourceInfo = sourceInfo;
                 return newTemplate;
             }
         }
@@ -412,7 +408,7 @@ namespace Starcounter.XSON.Templates.Factory {
                 return;
 
             if (template is ReplaceableTemplate) {
-                FactoryExceptionHelper.ThrowMetadataButNoPropertyException(template.TemplateName, template.SourceInfo);
+                FactoryExceptionHelper.ThrowMetadataButNoPropertyException(template.TemplateName, template.CodegenInfo.SourceInfo);
             }
 
             container = template as TContainer;

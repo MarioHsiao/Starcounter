@@ -21,9 +21,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
     /// JSON trees.
     /// </remarks>
     public class Gen2DomGenerator {
-        internal const string InstanceDataTypeName = "InstanceDataTypeName";
-        internal const string Reuse = "Reuse";
-
         internal AstRoot Root;
         internal CodeBehindMetadata CodeBehindMetadata;
 
@@ -44,11 +41,11 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
         internal Gen2DomGenerator(Gen2CodeGenerationModule mod, TValue template, Type defaultNewTemplateType, CodeBehindMetadata metadata) {
             defaultObjTemplate = new TObject();//(TValue)defaultNewTemplateType.GetConstructor(new Type[0]).Invoke(null);
-            defaultObjTemplate.Namespace = "Starcounter";
+            defaultObjTemplate.CodegenInfo.Namespace = "Starcounter";
             defaultObjTemplate.ClassName = "Json";
             defaultArrayTemplate = new TArray<Json>();
             defaultArrayTemplate.ElementType = defaultObjTemplate;
-            defaultArrayTemplate.Namespace = "Starcounter";
+            defaultArrayTemplate.CodegenInfo.Namespace = "Starcounter";
             CodeBehindMetadata = metadata;
         }
 
@@ -181,7 +178,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             var arrTemplateClass = new AstTemplateClass(this);
             var arrElementClass = ObtainRootValueClass(elementTemplate);
 
-            arrValueClass.Namespace = defaultArrayTemplate.Namespace;
+            arrValueClass.Namespace = defaultArrayTemplate.CodegenInfo.Namespace;
             arrValueClass.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(defaultArrayTemplate.InstanceType);
             arrValueClass.NTemplateClass = arrTemplateClass;
 
@@ -200,7 +197,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             var elementTemplate = template.ElementType;
             if (elementTemplate == null) {
                 elementTemplate = new TObject();
-                elementTemplate.Namespace = "Starcounter";
+                elementTemplate.CodegenInfo.Namespace = "Starcounter";
                 elementTemplate.ClassName = "Json";
                 template.ElementType = elementTemplate;
             }
@@ -252,7 +249,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     jsonClass.InheritedClass = ObtainValueClass(defaultObjTemplate);
                 }
 
-                jsonClass.Namespace = template.Namespace;
+                jsonClass.Namespace = template.CodegenInfo.Namespace;
                 jsonByExampleClass = new AstOtherClass(this) {
                     Parent = jsonClass,
                     ClassStemIdentifier = "JsonByExample",
@@ -288,7 +285,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             jsonClass = ObtainRootValueClass(template);
             schemaClass.InheritedClass = ObtainTemplateClass(GetPrototype(template));
             schemaClass.NValueClass = jsonClass;
-            schemaClass.Namespace = template.Namespace;
+            schemaClass.Namespace = template.CodegenInfo.Namespace;
             schemaClass.Parent = jsonClass.NJsonByExample;
             schemaClass.ClassStemIdentifier = "Schema";
 
@@ -340,7 +337,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 if (inheritedClass != null)
                     mcn.InheritedClass = inheritedClass.NMetadataClass;
 
-                mcn.Namespace = template.Namespace;
+                mcn.Namespace = template.CodegenInfo.Namespace;
 
                 // TODO! Add back
                 //  mcn.Parent = acn.NJsonByExample;
@@ -418,7 +415,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 if (template.Parent != null)
                     acn.ParentProperty = ObtainValueClass(template.Parent);
 
-                acn.Namespace = template.Namespace;
+                acn.Namespace = template.CodegenInfo.Namespace;
                 var jsonbyexample = new AstOtherClass(this) {
                     Parent = acn,
                     ClassStemIdentifier = "JsonByExample",
@@ -571,7 +568,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     if (inheritedClass != null)
                         mcn.InheritedClass = inheritedClass.NMetadataClass;
 
-                    mcn.Namespace = template.Namespace;
+                    mcn.Namespace = template.CodegenInfo.Namespace;
 
                     // TODO! Add back
                     //  mcn.Parent = acn.NJsonByExample;
@@ -657,7 +654,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     ret.NValueClass = acn;
                     ret.BuiltInType = defaultObjTemplate.GetType();
                 } else {
-                    ret.Namespace = template.Namespace;
+                    ret.Namespace = template.CodegenInfo.Namespace;
                     ret.NValueClass = acn;
                     ret.Parent = acn.NJsonByExample;
                     ret.ClassStemIdentifier = "Schema";

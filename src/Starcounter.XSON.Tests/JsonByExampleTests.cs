@@ -130,8 +130,8 @@ namespace Starcounter.Internal.XSON.Tests {
             json = @"{ ""$"": { ""namespace"": ""my.custom.ns"", ""datatype"": ""my.datatype"" } }";
             template = jbeReader.CreateTemplate(json, "Test", factory);
             Assert.IsInstanceOf<TObject>(template);
-            Assert.AreEqual("my.custom.ns", template.Namespace);
-            Assert.AreEqual("my.datatype", template.GetCodegenMetadata("InstanceDataTypeName"));
+            Assert.AreEqual("my.custom.ns", template.CodegenInfo.Namespace);
+            Assert.AreEqual("my.datatype", template.CodegenInfo.BoundToType);
 
             // Bind
             json = @"{ ""Value1"": ""value"", ""$Value1"": { ""bind"": ""my.path"" } }"; 
@@ -145,7 +145,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsInstanceOf<TObject>(template);
             tobj = (TObject)template;
             Assert.IsInstanceOf<TObject>(tobj.Properties[0]);
-            Assert.AreEqual("my.existing.json", tobj.Properties[0].GetCodegenMetadata("Reuse"));
+            Assert.AreEqual("my.existing.json", tobj.Properties[0].CodegenInfo.ReuseType);
 
             json = @"{ ""$"": ""incorrect"" }"; // old metadata object (that is not object here)
             Assert.Throws<TemplateFactoryException>(() => {

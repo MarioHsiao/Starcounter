@@ -27,8 +27,8 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 if (acn == null)
                     return BindingStrategy.Auto;
 				if (acn.CodebehindClass == null) {
-                    string value;
-                    if (!acn.NTemplateClass.Template.CodegenMetadata.TryGetValue(Gen2DomGenerator.InstanceDataTypeName, out value))
+                    string value = acn.NTemplateClass.Template.CodegenInfo.BoundToType;
+                    if (string.IsNullOrEmpty(value))
 						return BindingStrategy.Auto;
 					return BindingStrategy.Bound;
 				}

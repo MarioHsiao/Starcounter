@@ -128,8 +128,8 @@ namespace Starcounter.XSON.PartialClassGenerator {
             }
 
             if (isUntyped) {
-                if (titem != null && titem.GetCodegenMetadata(Gen2DomGenerator.Reuse) != null)
-                    generator.AssociateTemplateWithReusedArray(tarr, titem.GetCodegenMetadata(Gen2DomGenerator.Reuse));
+                if (titem != null && titem.CodegenInfo.ReuseType != null)
+                    generator.AssociateTemplateWithReusedArray(tarr, titem.CodegenInfo.ReuseType);
                 else {
                     generator.AssociateTemplateWithDefaultArray(tarr);
                 }
@@ -220,7 +220,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             // Parent template is array or object
             TObject tobj = template as TObject;
             if (tobj != null && tobj.Properties.Count == 0) {
-                string reuse = template.GetCodegenMetadata(Gen2DomGenerator.Reuse);
+                string reuse = template.CodegenInfo.ReuseType;
 
                 if (reuse != null) {
                     generator.AssociateTemplateWithReusedJson(tobj, reuse);

@@ -70,11 +70,11 @@ namespace Starcounter.XSON.Templates.Factory {
                     var tobj = template as TObject;
                     if (tobj == null)
                         FactoryExceptionHelper.RaiseInvalidPropertyError(name, sourceInfo);
-                    tobj.CodegenMetadata.Add("Reuse", (string)value);
+                    tobj.CodegenInfo.ReuseType = (string)value;
                 } else if (upperName == "NAMESPACE") {
-                    template.Namespace = (string)value;
+                    template.CodegenInfo.Namespace = (string)value;
                 } else if (upperName == "DATATYPE") {
-                    template.CodegenMetadata.Add("InstanceDataTypeName", (string)value);
+                    template.CodegenInfo.BoundToType = (string)value;
                 }
             }
         }

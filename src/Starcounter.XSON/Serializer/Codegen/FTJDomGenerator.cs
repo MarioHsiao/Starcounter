@@ -12,7 +12,7 @@ namespace Starcounter.XSON.Serializer {
 		}
 
 		internal AstRoot GenerateDomTree() {
-			string ns = template.Namespace;
+            string ns = null;//template.Namespace;
 			if (String.IsNullOrEmpty(ns)) {
 				ns = "__starcountergenerated__";
 			}

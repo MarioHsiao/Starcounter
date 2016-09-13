@@ -53,7 +53,7 @@ namespace Starcounter.XSON.Templates.Factory {
         /// <param name="rt">The rt.</param>
         /// <param name="newTemplate">The new template.</param>
         public void CopyValuesTo(Template template) {
-            MetaTemplate tm = new MetaTemplate(template, SourceInfo);
+            MetaTemplate tm = new MetaTemplate(template, this.CodegenInfo.SourceInfo);
             foreach (KeyValuePair<string, string> value in values) {
                 tm.Set(value.Key, value.Value);
             }

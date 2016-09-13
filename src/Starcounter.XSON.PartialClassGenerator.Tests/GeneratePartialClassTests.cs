@@ -121,8 +121,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             TObject actual = CreateJsonTemplateFromFile(className + ".json");
             Assert.IsInstanceOf(typeof(TObject), actual);
 
-            actual.Namespace = metadata.RootClassInfo.Namespace;
-            Assert.IsNotNullOrEmpty(actual.Namespace);
+            actual.CodegenInfo.Namespace = metadata.RootClassInfo.Namespace;
+            Assert.IsNotNullOrEmpty(actual.CodegenInfo.Namespace);
 
             Gen2CodeGenerationModule codegenmodule = new Gen2CodeGenerationModule();
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TObject), "C#", actual, metadata);
