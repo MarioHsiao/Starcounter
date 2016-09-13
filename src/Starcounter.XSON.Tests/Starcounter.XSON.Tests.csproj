@@ -71,6 +71,7 @@
     <Compile Include="DataObjects\PropertyAccessCounter.cs" />
     <Compile Include="DataObjects\Recursive.cs" />
     <Compile Include="DynamicFunctionTests.cs" />
+    <Compile Include="FakeDbImpl.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="ArrayPatchTests.cs" />
     <Compile Include="EvaluateJsonPatchTests.cs" />
@@ -84,10 +85,6 @@
     <Compile Include="TypedJsonTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Starcounter.Internal.Tests\Starcounter.Internal.Tests.csproj">
-      <Project>{7dc7044d-7e04-47ee-b5e8-0e1f600ce4a4}</Project>
-      <Name>Starcounter.Internal.Tests</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>

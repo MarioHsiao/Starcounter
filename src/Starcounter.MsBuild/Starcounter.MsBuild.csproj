@@ -92,10 +92,6 @@
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ThirdParty\DynamoIoc\DynamoIoc.csproj">
-      <Project>{ea81e2c5-0477-42ab-82f2-b57228af694e}</Project>
-      <Name>DynamoIoc</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.BitsAndBytes\BitsAndBytes.csproj">
       <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>
       <Name>BitsAndBytes</Name>
