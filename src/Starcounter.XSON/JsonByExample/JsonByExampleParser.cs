@@ -6,139 +6,241 @@ using Starcounter.XSON.Templates.Factory;
 
 namespace Starcounter.XSON.JsonByExample {
     /// <summary>
-    /// 
+    /// Class that parses json and converts it to a TypedJSON template structure.
     /// </summary>
     internal class JsonByExampleParser : JsonParser {
-        private ITemplateFactory factory;
-        private string originFilename;
+        private class PropertyInfo {
+            internal bool isMetadata;
+            internal bool isEditable;
+            internal string dotnetName;
+        }
 
-        private Template parent;
+        private static ITemplateFactory factory = new TemplateFactory();
+
         private Stack<Template> parents;
+        private string originFilename;
+        private Template currentParent;
 
-        internal JsonByExampleParser(string json, string originFilename, ITemplateFactory factory)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="originFilename"></param>
+        internal JsonByExampleParser(string json, string originFilename)
             : base(json) {
-            this.factory = factory;
+            this.parents = null;
             this.originFilename = originFilename;
-            this.parents = new Stack<Template>();
         }
 
-        public Template Parse() {
-            this.Walk();
-            return parent;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public Template CreateTemplate() {
+            this.Parse();
+            factory.Verify(currentParent);
+            return currentParent;
         }
 
-        internal override void OnStartObject(string name, string dotnetName, bool isMetadata, bool isEditable) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        protected override void BeginObject(string name) {
             Template template;
-
-            if (isMetadata) {
-                if (string.IsNullOrEmpty(dotnetName)) {
-                    template = factory.GetMetaTemplate(parent, GetSourceInfo());
+            PropertyInfo pi = ProcessName(name);
+            
+            if (pi.isMetadata) {
+                if (string.IsNullOrEmpty(pi.dotnetName)) {
+                    template = factory.GetMetaTemplate(currentParent, GetSourceInfo());
                 } else {
-                    template = factory.GetMetaTemplate(parent, dotnetName, GetSourceInfo());
+                    template = factory.GetMetaTemplate(currentParent, pi.dotnetName, GetSourceInfo());
                 }
             } else {
-                template = factory.AddObject(parent, name, dotnetName, GetSourceInfo());
+                template = factory.AddObject(currentParent, name, pi.dotnetName, GetSourceInfo());
             }
 
-            if (parent != null)
-                parents.Push(parent);
-            parent = template;
+            if (currentParent != null) {
+                if (parents == null)
+                    parents = new Stack<Template>();
+                parents.Push(currentParent);
+            }
+            currentParent = template;
 
-            base.OnStartObject(name, dotnetName, isMetadata, isEditable);
+            base.BeginObject(name);
         }
 
-        internal override void OnEndObject(string name) {
-            if (parents.Count > 0)
-                parent = parents.Pop();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        protected override void EndObject(string name) {
+            if (parents?.Count > 0)
+                currentParent = parents.Pop();
 
-            base.OnEndObject(name);
+            base.EndObject(name);
         }
 
-        internal override void OnStartArray(string name, string dotnetName, bool isMetadata, bool isEditable) {
-            if (isMetadata)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        protected override void BeginArray(string name) {
+            PropertyInfo pi = ProcessName(name);
+
+            if (pi.isMetadata)
                 ThrowWrongMetadataType("array", GetSourceInfo());
 
-            Template array = factory.AddArray(parent, name, dotnetName, GetSourceInfo());
+            Template array = factory.AddArray(currentParent, name, pi.dotnetName, GetSourceInfo());
+            if (array != null)
+                array.Editable = pi.isEditable;
 
-            if (isEditable)
-                array.Editable = true;
+            if (currentParent != null) {
+                if (parents == null)
+                    parents = new Stack<Template>();
+                parents.Push(currentParent);
+            }
+            currentParent = array;
 
-            if (parent != null)
-                parents.Push(parent);
-            parent = array;
-
-            base.OnStartArray(name, dotnetName, isMetadata, isEditable);
+            base.BeginArray(name);
         }
 
-        internal override void OnEndArray(string name) {
-            if (parents.Count > 0)
-                parent = parents.Pop();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        protected override void EndArray(string name) {
+            if (parents?.Count > 0)
+                currentParent = parents.Pop();
 
-            base.OnEndArray(name);
+            base.EndArray(name);
         }
 
-        internal override void OnBoolean(string name, string dotnetName, bool isMetadata, bool isEditable, bool value) {
-            if (isMetadata)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        protected override void Property(string name, bool value) {
+            PropertyInfo pi = ProcessName(name);
+
+            if (pi.isMetadata)
                 ThrowWrongMetadataType("bool", GetSourceInfo());
 
-            Template template = factory.AddBoolean(parent, name, dotnetName, value, GetSourceInfo());
-            if (isEditable)
-                template.Editable = true;
+            Template template = factory.AddBoolean(currentParent, name, pi.dotnetName, value, GetSourceInfo());
+            if (template != null)
+                template.Editable = pi.isEditable;
 
-            if (parent == null)
-                parent = template;
+            if (currentParent == null)
+                currentParent = template;
 
-            base.OnBoolean(name, dotnetName, isMetadata, isEditable, value);
+            base.Property(name, value);
         }
 
-        internal override void OnFloat(string name, string dotnetName, bool isMetadata, bool isEditable, decimal value) {
-            if (isMetadata)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        protected override void Property(string name, decimal value) {
+            PropertyInfo pi = ProcessName(name);
+
+            if (pi.isMetadata)
                 ThrowWrongMetadataType("float", GetSourceInfo());
 
-            Template template = factory.AddDecimal(parent, name, dotnetName, value, GetSourceInfo());
-            if (isEditable)
-                template.Editable = true;
+            Template template = factory.AddDecimal(currentParent, name, pi.dotnetName, value, GetSourceInfo());
+            if (template != null)
+                template.Editable = pi.isEditable;
 
-            if (parent == null)
-                parent = template;
+            if (currentParent == null)
+                currentParent = template;
 
-            base.OnFloat(name, dotnetName, isMetadata, isEditable, value);
+            base.Property(name, value);
         }
 
-        internal override void OnInteger(string name, string dotnetName, bool isMetadata, bool isEditable, long value) {
-            if (isMetadata)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        protected override void Property(string name, long value) {
+            PropertyInfo pi = ProcessName(name);
+
+            if (pi.isMetadata)
                 ThrowWrongMetadataType("int", GetSourceInfo());
 
-            Template template = factory.AddInteger(parent, name, dotnetName, value, GetSourceInfo());
-            if (isEditable)
-                template.Editable = true;
+            Template template = factory.AddInteger(currentParent, name, pi.dotnetName, value, GetSourceInfo());
+            if (template != null)
+                template.Editable = pi.isEditable;
 
-            if (parent == null)
-                parent = template;
+            if (currentParent == null)
+                currentParent = template;
 
-            base.OnInteger(name, dotnetName, isMetadata, isEditable, value);
+            base.Property(name, value);
         }
 
-        internal override void OnString(string name, string dotnetName, bool isMetadata, bool isEditable, string value) {
-            if (isMetadata)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        protected override void Property(string name, string value) {
+            PropertyInfo pi = ProcessName(name);
+
+            if (pi.isMetadata)
                 ThrowWrongMetadataType("string", GetSourceInfo());
 
-            Template template = factory.AddString(parent, name, dotnetName, value, GetSourceInfo());
-            if (isEditable)
-                template.Editable = true;
+            Template template = factory.AddString(currentParent, name, pi.dotnetName, value, GetSourceInfo());
+            if (template != null)
+                template.Editable = pi.isEditable;
 
-            if (parent == null)
-                parent = template;
+            if (currentParent == null)
+                currentParent = template;
 
-            base.OnString(name, dotnetName, isMetadata, isEditable, value);
+            base.Property(name, value);
         }
         
+        /// <summary>
+        /// Returns an instance holding information about where a specific token is processed.
+        /// </summary>
+        /// <returns></returns>
         private ISourceInfo GetSourceInfo() {
             return new SourceInfo() {
                 Filename = originFilename,
                 Line = reader.LineNumber,
                 Column = reader.LinePosition
             };
+        }
+
+        /// <summary>
+        /// Since JsonByExample have some specific syntax for allowing metadata to be specified,
+        /// we check the property-name in case the value should be treated as a metadata-object.
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <returns></returns>
+        private PropertyInfo ProcessName(string propertyName) {
+            var pi = new PropertyInfo();
+
+            if (string.IsNullOrEmpty(propertyName)) {
+                pi.isMetadata = false;
+                pi.isEditable = false;
+                pi.dotnetName = null;
+                return pi;
+            }
+
+            string legalName = "";
+            pi.isMetadata = propertyName.StartsWith("$");
+            pi.isEditable = propertyName.EndsWith("$");
+
+            legalName = propertyName;
+            if (pi.isMetadata)
+                legalName = legalName.Substring(1);
+
+            if (pi.isEditable && legalName.Length > 0)
+                legalName = legalName.Substring(0, propertyName.Length - 1);
+
+            pi.dotnetName = legalName;
+            return pi;
         }
 
         private void ThrowWrongMetadataType(string type, ISourceInfo sourceInfo) {

@@ -401,7 +401,7 @@ namespace Starcounter.XSON.Templates.Factory {
         /// <summary>
         /// 
         /// </summary>
-        public void VerifyTemplate(Template template) {
+        public void Verify(Template template) {
             TContainer container;
 
             if (template == null)
@@ -414,7 +414,7 @@ namespace Starcounter.XSON.Templates.Factory {
             container = template as TContainer;
             if (container != null) {
                 foreach (Template child in container.Children) {
-                    VerifyTemplate(child);
+                    Verify(child);
                 }
             }
         }

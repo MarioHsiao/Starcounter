@@ -13,6 +13,6 @@ namespace Starcounter.XSON.Interfaces {
         /// <param name="markup"></param>
         /// <param name="origin"></param>
         /// <returns></returns>
-        Template CreateTemplate(string markup, string source, ITemplateFactory factory);
+        Template CreateTemplate(string markup, string source);
     }
 }

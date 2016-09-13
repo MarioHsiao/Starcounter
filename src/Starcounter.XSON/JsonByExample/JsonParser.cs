@@ -20,114 +20,75 @@ namespace Starcounter.XSON.JsonByExample {
             return reader;
         }
 
-        internal virtual void OnStartObject(string name, string dotnetName, bool isMetadata, bool isEditable) {
-        }
-
-        internal virtual void OnEndObject(string name) {
-        }
+        protected virtual void BeginObject(string name) {}
+        protected virtual void EndObject(string name) {}
+        protected virtual void BeginArray(string name) {}
+        protected virtual void EndArray(string name) {}
+        protected virtual void Property(string name, bool value) {}
+        protected virtual void Property(string name, decimal value) {}
+        protected virtual void Property(string name, long value) {}
+        protected virtual void Property(string name, string value) {}
         
-        internal virtual void OnStartArray(string name, string dotnetName, bool isMetadata, bool isEditable) {
-        }
-
-        internal virtual void OnEndArray(string name) {
-        }
-
-        internal virtual void OnBoolean(string name, string dotnetName, bool isMetadata, bool isEditable, bool value) {
-        }
-
-        internal virtual void OnFloat(string name, string dotnetName, bool isMetadata, bool isEditable, decimal value) {
-        }
-
-        internal virtual void OnInteger(string name, string dotnetName, bool isMetadata, bool isEditable, long value) {
-        }
-
-        internal virtual void OnString(string name, string dotnetName, bool isMetadata, bool isEditable, string value) {
-        }
-        
-        protected void Walk() {
-            bool isMetadata = false;
-            bool isEditable = false;
+        internal void Parse() {
             string propertyName = null;
-            string dotnetName = null;
             
             while (reader.Read()) {
                 switch (reader.TokenType) {
                     case JsonToken.PropertyName:
                         propertyName = (string)reader.Value;
-                        dotnetName = InspectPropertyName(propertyName, out isMetadata, out isEditable);
                         break;
                     case JsonToken.StartObject:
-                        OnStartObject(propertyName, dotnetName, isMetadata, isEditable);
+                        BeginObject(propertyName);
+                        propertyName = null;
                         break;
                     case JsonToken.EndObject:
-                        OnEndObject(propertyName);
+                        EndObject(propertyName);
                         propertyName = null;
-                        dotnetName = null;
                         break;
                     case JsonToken.StartArray:
-                        OnStartArray(propertyName, dotnetName, isMetadata, isEditable);
+                        BeginArray(propertyName);
+                        propertyName = null;
                         break;
                     case JsonToken.EndArray:
-                        OnEndArray(propertyName);
+                        EndArray(propertyName);
                         propertyName = null;
-                        dotnetName = null;
                         break;
                     case JsonToken.Boolean:
-                        OnBoolean(propertyName, dotnetName, isMetadata, isEditable, (bool)reader.Value);
+                        Property(propertyName, (bool)reader.Value);
+                        propertyName = null;
                         break;
                     case JsonToken.Date:
-                        OnString(propertyName, dotnetName, isMetadata, isEditable, reader.Value?.ToString());
+                        Property(propertyName, reader.Value?.ToString());
+                        propertyName = null;
                         break;
                     case JsonToken.Float:
-                        OnFloat(propertyName, dotnetName, isMetadata, isEditable, (decimal)reader.Value);
+                        Property(propertyName, (decimal)reader.Value);
+                        propertyName = null;
                         break;
                     case JsonToken.Integer:
-                        OnInteger(propertyName, dotnetName, isMetadata, isEditable, (long)reader.Value);
+                        Property(propertyName, (long)reader.Value);
+                        propertyName = null;
                         break;
                     case JsonToken.String:
-                        OnString(propertyName, dotnetName, isMetadata, isEditable, (string)reader.Value);
+                        Property(propertyName, (string)reader.Value);
+                        propertyName = null;
                         break;
                     case JsonToken.Comment:
-                        throw new NotImplementedException();
+                        // We ignore comments. The reader is already in the correct position.
+                        break;
                     case JsonToken.Null:
                         throw new NotSupportedException("Null is currently not supported in Json-by-example");
                     case JsonToken.Bytes:
-                        throw new NotImplementedException();
                     case JsonToken.None:
-                        throw new NotImplementedException();
                     case JsonToken.StartConstructor:
-                        throw new NotImplementedException();
                     case JsonToken.EndConstructor:
-                        throw new NotImplementedException();
                     case JsonToken.Raw:
-                        throw new NotImplementedException();
                     case JsonToken.Undefined:
-                        throw new NotImplementedException();
+                        throw new NotSupportedException();
                 }
             }
         }
-
-        private string InspectPropertyName(string propertyName, out bool isMetadata, out bool isEditable) {
-            if (string.IsNullOrEmpty(propertyName)) {
-                isMetadata = false;
-                isEditable = false;
-                return null;
-            }
-
-            string legalName = "";
-            isMetadata = propertyName.StartsWith("$");
-            isEditable = propertyName.EndsWith("$");
-
-            legalName = propertyName;
-            if (isMetadata)
-                legalName = legalName.Substring(1);
-
-            if (isEditable && legalName.Length > 0)
-                legalName = legalName.Substring(0, propertyName.Length - 1);
-
-            return legalName;
-        }
-
+        
         public void Dispose() {
             this.reader?.Close();
         }

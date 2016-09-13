@@ -9,47 +9,46 @@ namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
     public static class JsonByExampleTests {
         private static JsonByExampleMarkupReader jbeReader = new JsonByExampleMarkupReader();
-        private static ITemplateFactory factory = new TemplateFactory();
-
+        
         [Test]
         public static void TestBasicJsonByExample() {
             string json;
             Template template;
             
             json = "true"; // single bool value.
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TBool>(template);
             Assert.AreEqual(true, ((TBool)template).DefaultValue);
             
             json = "195"; // single integer value
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TLong>(template);
             Assert.AreEqual(195L, ((TLong)template).DefaultValue);
             
             json = "-195"; // single negative integer value
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TLong>(template);
             Assert.AreEqual(-195L, ((TLong)template).DefaultValue);
             
             json = @"""mystring"""; // single string value
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TString>(template);
             Assert.AreEqual("mystring", ((TString)template).DefaultValue);
             
             json = "195.56"; // single decimal value
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TDecimal>(template);
             Assert.AreEqual(195.56m, ((TDecimal)template).DefaultValue);
             
             // TODO:
             // How do we support double?
             json = @"1E4"; // single double value
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             //            Assert.IsInstanceOf<TDouble>(template);
             //            Assert.AreEqual(10000d, ((TDouble)template).DefaultValue);
 
             json = @"{ ""property1"": 123 }"; // object with one integer property.
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TObject>(template);
 
             var tobj = (TObject)template;
@@ -69,9 +68,18 @@ namespace Starcounter.Internal.XSON.Tests {
             sb.AppendLine(@"  ""value3"": /*23,*/ 24,");
             sb.AppendLine("}");
 
+            Template template = null;
             Assert.DoesNotThrow(() => {
-                Template template = jbeReader.CreateTemplate(sb.ToString(), "Test", factory);
+                template = jbeReader.CreateTemplate(sb.ToString(), "Test");
             });
+
+            Assert.IsInstanceOf<TObject>(template);
+            TObject tobj = (TObject)template;
+            Assert.AreEqual(2, tobj.Properties.Count);
+            Assert.AreEqual("value", tobj.Properties[0].PropertyName);
+            Assert.AreEqual(124L, ((TLong)tobj.Properties[0]).DefaultValue);
+            Assert.AreEqual("value3", tobj.Properties[1].PropertyName);
+            Assert.AreEqual(24L, ((TLong)tobj.Properties[1]).DefaultValue);
         }
 
         [Test]
@@ -80,7 +88,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Template template;
 
             json = @"{ ""Value1$"": ""value1"", ""Value2"": 123, ""Value3$"": false }";
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TObject>(template);
 
             var tobj = (TObject)template;
@@ -114,7 +122,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Template template;
 
             json = @"{ ""Value1"": [ ""arr1"", ""arr2"" ] }";
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TObject>(template);
 
             var tobj = (TObject)template;
@@ -143,20 +151,20 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Namespace and Datatype
             json = @"{ ""$"": { ""namespace"": ""my.custom.ns"", ""datatype"": ""my.datatype"" } }";
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TObject>(template);
             Assert.AreEqual("my.custom.ns", template.CodegenInfo.Namespace);
             Assert.AreEqual("my.datatype", template.CodegenInfo.BoundToType);
 
             // Bind
             json = @"{ ""Value1"": ""value"", ""$Value1"": { ""bind"": ""my.path"" } }"; 
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TObject>(template);
             Assert.AreEqual("my.path", ((TValue)((TObject)template).Properties[0]).Bind);
 
             // Reuse
             json = @"{ ""Value1"": { }, ""$Value1"": { ""reuse"": ""my.existing.json"" } }";
-            template = jbeReader.CreateTemplate(json, "Test", factory);
+            template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TObject>(template);
             tobj = (TObject)template;
             Assert.IsInstanceOf<TObject>(tobj.Properties[0]);
@@ -164,42 +172,42 @@ namespace Starcounter.Internal.XSON.Tests {
 
             json = @"{ ""$"": ""incorrect"" }"; // old metadata object (that is not object here)
             Assert.Throws<TemplateFactoryException>(() => {
-                template = jbeReader.CreateTemplate(json, "Test", factory);
+                template = jbeReader.CreateTemplate(json, "Test");
             });
 
             json = @"{ ""Value1"": ""value"", ""$Value1"": ""incorrect"" }"; // old metadata object (that is not object here)
             Assert.Throws<TemplateFactoryException>(() => {
-                template = jbeReader.CreateTemplate(json, "Test", factory);
+                template = jbeReader.CreateTemplate(json, "Test");
             });
 
             json = @"{ ""$"": { ""namespace"": 123 } }"; // Wrong type
             Assert.Throws<TemplateFactoryException>(() => {
-                template = jbeReader.CreateTemplate(json, "Test", factory);
+                template = jbeReader.CreateTemplate(json, "Test");
             });
 
             json = @"{ ""$"": { ""datatype"": 123.34 } }"; // Wrong type
             Assert.Throws<TemplateFactoryException>(() => {
-                template = jbeReader.CreateTemplate(json, "Test", factory);
+                template = jbeReader.CreateTemplate(json, "Test");
             });
 
             json = @"{ ""$"": { ""bind"": true } }"; // Wrong type
             Assert.Throws<TemplateFactoryException>(() => {
-                template = jbeReader.CreateTemplate(json, "Test", factory);
+                template = jbeReader.CreateTemplate(json, "Test");
             });
 
             json = @"{ ""$"": { ""reuse"": [1] } }"; // Wrong type
             Assert.Throws<TemplateFactoryException>(() => {
-                template = jbeReader.CreateTemplate(json, "Test", factory);
+                template = jbeReader.CreateTemplate(json, "Test");
             });
 
             json = @"{ ""$"": { ""reuse"": { } } }"; // Wrong type
             Assert.Throws<TemplateFactoryException>(() => {
-                template = jbeReader.CreateTemplate(json, "Test", factory);
+                template = jbeReader.CreateTemplate(json, "Test");
             });
 
             json = @"{ ""$"": { ""ConvertTo"": 123 } }"; // Unsupported metadata
             Assert.Throws<TemplateFactoryException>(() => {
-                template = jbeReader.CreateTemplate(json, "Test", factory);
+                template = jbeReader.CreateTemplate(json, "Test");
             });
         }
     }

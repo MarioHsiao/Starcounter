@@ -337,9 +337,7 @@ namespace Starcounter.Templates {
             if (!Starcounter_XSON.JsonByExample.MarkupReaders.TryGetValue(formatToLower, out reader))
                 throw new Exception(String.Format("Cannot create XSON template. No markup reader is registred for the format {0}.", format));
             
-            var factory = new TemplateFactory();
-            template = reader.CreateTemplate(markup, origin, factory);
-            factory.VerifyTemplate(template);
+            template = reader.CreateTemplate(markup, origin);
             return template;
         }
     }
