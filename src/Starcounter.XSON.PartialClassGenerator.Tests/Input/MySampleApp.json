@@ -1,65 +1,32 @@
 ﻿{
-   $userid: {Bind:"uid"},
-   
-   $doubleToInt: {Type:"int", Editable:false},
-   $doubleToString: {Editable:false, Type:"string"},
+  $userid: { Bind: "uid" },
 
-   $decimalToDouble: {Type:"double", Bind: null},
-   $decimalToInt: {Type:"int"},
-   $decimalToString: {Type:"string"},
+  userid$: 23,
+  username: "admin",
+  password: "admin",
+  doubleValue: 0x3F7A,
+  decimalValue: 99.90,
+  login: 0,
 
-   $intToDouble: {Type:"double"},
-   $intToDecimal: {Type:"decimal"},
-   $intToString: {Type:"string"},
+  untypedList: [ { } ],
+  untypedList2: [ { } ],
 
-   userid$:		23,
-   username:	"admin", 
-   password:	"admin",
-  
-   doubleValue: 0x3F7A,
-   doubleToInt: 0x3F,
-   doubleToDecimal: 0xFF,
-   doubleToString: 3e5,
+  someObject: { name: "apa" },
+  child: {
+    test: "",
+    test2: ""
+  },
 
-   decimalValue: 99.90,
-   decimalToDouble: 23.70,
-   decimalToInt: 19.90,
-   decimalToString: 199.78,
-   
-   intToDouble: 19,
-   intToDecimal: 27,
-   intToString: 19,
-   
-   boolToString: true,
+  "ActivePage": {
+    "MyTestStr": "",
+    "SubPage1": {
+      "SubPage2": {
+        "SubPage3": {
+          "StringValue": ""
+        }
+      }
+    }
+  },
 
-   login: 0,
-
-   untypedList: [{}],
-   untypedList2: [{}],
-
-   someObject: { name: "apa" },
-
-   $doubleToDecimal: {Type:"decimal", Bind: null},
-
-   child: {
-       test:"",
-       test2:""
-   },
-
-   "ActivePage":
-	{ 
-		"MyTestStr":"",
-		"SubPage1":
-		{
-			"SubPage2":
-			{
-				"SubPage3":
-				{
-					"StringValue":""
-				}
-			}
-		}
-	},
-
-   userLink: "/users/admin"
+  userLink: "/users/admin"
 }

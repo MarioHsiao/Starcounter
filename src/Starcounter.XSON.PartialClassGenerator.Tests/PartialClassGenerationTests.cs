@@ -36,7 +36,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.AreEqual("CustomAction$", child.TemplateName);
             Assert.AreEqual("CustomAction", child.PropertyName);
             Assert.IsTrue(child.Editable);
-            Assert.IsInstanceOf<TTrigger>(child);
+            Assert.IsInstanceOf<TLong>(child);
             Assert.IsNotNull(child.Parent);
 
             child = tj.Properties[5]; // List1
