@@ -234,10 +234,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">
-      <Project>{dd181012-dd9c-410f-ad8e-01d062cac820}</Project>
-      <Name>FasterThanJson</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
@@ -253,10 +249,6 @@
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter\Starcounter.csproj">
-      <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
-      <Name>Starcounter</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
