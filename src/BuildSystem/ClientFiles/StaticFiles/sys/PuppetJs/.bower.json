@@ -17,7 +17,7 @@
     "node_modules"
   ],
   "dependencies": {
-    "fast-json-patch": "Starcounter-Jack/JSON-Patch#~1.0.0",
+    "fast-json-patch": ">=1.1.0",
     "json-patch-queue": "PuppetJs/JSON-Patch-Queue#gh-pages",
     "json-patch-ot-agent": "PuppetJs/JSON-Patch-OT-agent#gh-pages",
     "json-patch-ot": "PuppetJs/JSON-Patch-OT#gh-pages"
@@ -27,14 +27,13 @@
     "puppet-bunny": "PuppetJs/puppet-bunny",
     "dom-bind-notifier": "*"
   },
-  "version": "2.2.0",
-  "_release": "2.2.0",
+  "_release": "1dee38b819",
   "_resolution": {
-    "type": "version",
-    "tag": "2.2.0",
-    "commit": "698de3c3bd43a74e9487e95eee8463172dbad05d"
+    "type": "branch",
+    "branch": "gh-pages",
+    "commit": "1dee38b81986048157bdc4bd55ae4767485af2a3"
   },
-  "_source": "git://github.com/puppetjs/puppetjs.git",
-  "_target": "^2.2.0",
-  "_originalSource": "puppetjs/puppetjs"
+  "_source": "https://github.com/PuppetJs/PuppetJs.git",
+  "_target": "gh-pages",
+  "_originalSource": "PuppetJs"
 }
