@@ -10,10 +10,12 @@ using Starcounter.Legacy;
 using Starcounter.Metadata;
 using Starcounter.Query;
 using Starcounter.SqlProcessor;
+using Starcounter.UnitTesting;
 using StarcounterInternal.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -250,6 +252,14 @@ namespace Starcounter.Hosting {
                     finally {
                         LegacyContext.Exit(application);
                     }
+                }
+
+                // Lets begin always invoking unit tests in this context,
+                // and never after entrypoint.
+                var shouldRunTests = application != null && assembly != null;
+                if (shouldRunTests)
+                {
+                    ExecuteTestDiscovery(TestLoader.TestRoot, application, assembly);
                 }
 
                 // Starting user Main() here.
@@ -534,6 +544,25 @@ namespace Starcounter.Hosting {
             }
 
             OnEntryPointExecuted();
+        }
+
+        TestHost ExecuteTestDiscovery(ITestRoot root, Application application, Assembly assembly)
+        {
+            var testHost = root.IncludeNewHost(application.Name);
+            testHost.IncludeAssembly(assembly);
+
+            var path = assembly.Location;
+            path = Path.GetFileNameWithoutExtension(path);
+            path += ".test.dll";
+            if (File.Exists(path))
+            {
+                testHost.IncludeAssembly(path);
+            }
+
+            // Don't always run it just yet
+            // testHost.Run();
+
+            return testHost;
         }
 
         private void OnProcessingStarted() { Trace("Package started."); }
