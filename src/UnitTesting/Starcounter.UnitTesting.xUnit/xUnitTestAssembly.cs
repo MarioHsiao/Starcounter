@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Starcounter.UnitTesting.xUnit
@@ -20,10 +21,7 @@ namespace Starcounter.UnitTesting.xUnit
         
         public override IEnumerable<IHostedTest> Tests {
             get {
-                // Return all tests discovered by converting each
-                // test case in discoverer to a hosted test.
-                // TODO:
-                throw new NotImplementedException();
+                return discoverer.TestCases.Select((tc) => new xUnitTest(this, tc));
             }
         }
 
