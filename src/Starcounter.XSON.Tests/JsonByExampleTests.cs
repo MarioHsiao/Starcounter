@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Text;
+using NUnit.Framework;
 using Starcounter.Templates;
 using Starcounter.XSON.Interfaces;
 using Starcounter.XSON.JsonByExample;
@@ -57,6 +58,20 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsInstanceOf<TLong>(tobj.Properties[0]);
             Assert.AreEqual("property1", tobj.Properties[0].PropertyName);
             Assert.AreEqual(123, ((TLong)tobj.Properties[0]).DefaultValue);
+        }
+
+        [Test]
+        public static void TestIgnoreAndSkipComments() {
+            var sb = new StringBuilder();
+            sb.AppendLine("{");
+            sb.AppendLine(@"  ""value"": 124, // Some long value! ");
+            sb.AppendLine(@"  // ""value2"": 12.45,");
+            sb.AppendLine(@"  ""value3"": /*23,*/ 24,");
+            sb.AppendLine("}");
+
+            Assert.DoesNotThrow(() => {
+                Template template = jbeReader.CreateTemplate(sb.ToString(), "Test", factory);
+            });
         }
 
         [Test]
