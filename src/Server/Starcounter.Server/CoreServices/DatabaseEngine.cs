@@ -613,6 +613,7 @@ namespace Starcounter.Server {
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.WrapJsonInNamespaces) + "={0}", database.Configuration.Runtime.WrapJsonInNamespaces);
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.EnforceURINamespaces) + "={0}", database.Configuration.Runtime.EnforceURINamespaces);
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.MergeJsonSiblings) + "={0}", database.Configuration.Runtime.MergeJsonSiblings);
+            args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.XFilePathHeader) + "={0}", database.Configuration.Runtime.XFilePathHeader);
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.RequestFiltersEnabled) + "={0}", database.Configuration.Runtime.RequestFiltersEnabled);
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.UriMappingEnabled) + "={0}", database.Configuration.Runtime.UriMappingEnabled);
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.OntologyMappingEnabled) + "={0}", database.Configuration.Runtime.OntologyMappingEnabled);
