@@ -144,11 +144,11 @@ namespace Starcounter.Internal.Web {
 
                 response.Uris.Add(relativeUri);
                 string path = Path.Combine(dir,  fileName) + fileExtension;
-                string fileSignature = path.ToUpper();
-                response.FilePath = fileSignature;
+                response.FilePath = path;
                 response.FileDirectory = dir;
                 response.FileName = fileName + fileExtension;
                 response.FileExists = (statusCode != HttpStatusCode.NotFound);
+
                 if (response.FileExists) {
 
                     // Saving modification date in RFC 1123 format.
@@ -158,6 +158,11 @@ namespace Starcounter.Internal.Web {
                     String ims = req.Headers["If-Modified-Since"];
 
                     response.Headers["Last-Modified"] = mt;
+
+                    // Checking if X-File-Path should be added.
+                    if (StarcounterEnvironment.XFilePathHeader) {
+                        response.Headers["X-File-Path"] = response.FilePath;
+                    }
 
                     // Check if resource is not modified.
                     if (mt.Equals(ims)) {
@@ -169,6 +174,11 @@ namespace Starcounter.Internal.Web {
 
                         response.Headers["Cache-Control"] = "public,max-age=0,must-revalidate";
                         response.Headers["Last-Modified"] = mt;
+
+                        // Checking if X-File-Path should be added.
+                        if (StarcounterEnvironment.XFilePathHeader) {
+                            response.Headers["X-File-Path"] = response.FilePath;
+                        }
 
                         return response;
                     }
@@ -184,7 +194,7 @@ namespace Starcounter.Internal.Web {
                 // all entries since we might have different responses for different URI's pointing to
                 // the same physical file?
                 Response existing;
-                if (cacheOnFilePath_.TryGetValue(fileSignature, out existing)) {
+                if (cacheOnFilePath_.TryGetValue(response.FilePath, out existing)) {
 
                     if (existing.Uris == null)
                         existing.Uris = new List<string>();
@@ -193,7 +203,7 @@ namespace Starcounter.Internal.Web {
 
                 } else {
 
-                    cacheOnFilePath_[fileSignature] = response;
+                    cacheOnFilePath_[response.FilePath] = response;
                     WatchChange(dir, fileName + fileExtension);
                 }
             }
