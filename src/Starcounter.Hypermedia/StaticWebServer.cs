@@ -145,7 +145,9 @@ namespace Starcounter.Internal.Web {
 
                     // Checking if X-File-Path should be added.
                     if (StarcounterEnvironment.XFilePathHeader) {
-                        resp.Headers["X-File-Path"] = resourceResp.FilePath;
+                        if (null != resourceResp.FilePath) {
+                            resp.Headers["X-File-Path"] = resourceResp.FilePath;
+                        }                        
                     }
 
                     return resp;

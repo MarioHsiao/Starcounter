@@ -167,20 +167,22 @@ namespace Starcounter.Internal.Web {
                     // Check if resource is not modified.
                     if (mt.Equals(ims)) {
 
-                        response = new Response() {
+                        Response resp = new Response() {
                             StatusCode = 304,
                             StatusDescription = "Not Modified"
                         };
 
-                        response.Headers["Cache-Control"] = "public,max-age=0,must-revalidate";
-                        response.Headers["Last-Modified"] = mt;
+                        resp.Headers["Cache-Control"] = "public,max-age=0,must-revalidate";
+                        resp.Headers["Last-Modified"] = mt;
 
                         // Checking if X-File-Path should be added.
                         if (StarcounterEnvironment.XFilePathHeader) {
-                            response.Headers["X-File-Path"] = response.FilePath;
+                            if (null != response.FilePath) {
+                                resp.Headers["X-File-Path"] = response.FilePath;
+                            }
                         }
 
-                        return response;
+                        return resp;
                     }
                 }
 
