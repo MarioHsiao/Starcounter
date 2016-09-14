@@ -81,6 +81,8 @@ namespace Starcounter.Internal {
         }
 
         private static void InternalSleep(Int32 millisecondsTimeout) {
+
+            // Disabled internal sleep.
             /*
             var ec = sccorelib.cm3_sleep((IntPtr)0, (UInt32)millisecondsTimeout);
             if (ec == 0) {
@@ -89,11 +91,13 @@ namespace Starcounter.Internal {
             if (ec != Error.SCERRNOTAWORKERTHREAD && ec != Error.SCERRTHREADNOTATTACHED) {
                 throw ErrorCode.ToException(ec);
             }
-
+            */
             // It's a detached thread. Just invoke the original
             // .NET CLR thread sleeping method.
-            */
-            Thread.Sleep(millisecondsTimeout);
+
+            StarcounterEnvironment.RunDetached(() => {
+                Thread.Sleep(millisecondsTimeout);
+            });            
         }
     }
 }

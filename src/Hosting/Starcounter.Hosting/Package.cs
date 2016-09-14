@@ -146,7 +146,11 @@ namespace Starcounter.Hosting {
         /// Waits the until processed.
         /// </summary>
         public uint WaitUntilProcessed() {
-            processedEvent_.WaitOne();
+
+            StarcounterEnvironment.RunDetached(() => {
+                processedEvent_.WaitOne();
+            });
+                       
             return processedResult;
         }
 

@@ -15,6 +15,8 @@ class SchedulingPerfTest {
 
     public static String SimplestSyncTaskOnAnySchedulerFromDotNetThread(Int32 numTasks) {
 
+        Console.WriteLine("Starting SimplestSyncTaskOnAnySchedulerFromDotNetThread");
+
         Int32 numFinishedTasks = 0;
 
         Stopwatch sw = Stopwatch.StartNew();
@@ -39,6 +41,8 @@ class SchedulingPerfTest {
 
     public static Int32 SimplestSyncTaskOnAnyScheduler(Int32 numTasks) {
 
+        Console.WriteLine("Starting SimplestSyncTaskOnAnyScheduler");
+
         Int32 numFinishedTasks = 0;
 
         Stopwatch sw = Stopwatch.StartNew();
@@ -52,7 +56,9 @@ class SchedulingPerfTest {
         }
 
         while (numFinishedTasks != numTasks) {
-            Thread.Sleep(1);
+            StarcounterEnvironment.RunDetached(() => {
+                Thread.Sleep(1);
+            });
         }
 
         sw.Stop();
@@ -64,6 +70,8 @@ class SchedulingPerfTest {
     }
 
     public static Int32 LargeSyncTaskOnAnyScheduler(Int32 numTasks) {
+
+        Console.WriteLine("Starting LargeSyncTaskOnAnyScheduler");
 
         Int32 numFinishedTasks = 0;
 
@@ -99,6 +107,8 @@ class SchedulingPerfTest {
 
     public static Int32 SimplestSyncTaskOnSpecificScheduler(Int32 numTasks, Byte schedId) {
 
+        Console.WriteLine("Starting SimplestSyncTaskOnSpecificScheduler");
+
         Int32 numFinishedTasks = 0;
 
         Stopwatch sw = Stopwatch.StartNew();
@@ -129,6 +139,8 @@ class SchedulingPerfTest {
     }
 
     public static Int32 SmallAsyncTaskOnAnyScheduler(Int32 numTasks) {
+
+        Console.WriteLine("Starting SmallAsyncTaskOnAnyScheduler");
 
         Int32 numFinishedTasks = 0;
 
@@ -161,7 +173,7 @@ class SchedulingPerfTest {
 
     public static Int32 TestRunDetachedPerformance(Int32 numDetaches) {
 
-        Console.WriteLine("Starting run-detached performance tests...");
+        Console.WriteLine("Starting TestRunDetachedPerformance");
 
         Int32 numFinishedTasks = 0;
 
@@ -179,14 +191,14 @@ class SchedulingPerfTest {
         Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
             "NumRunDetached_PerSec", (Int32)(numFinishedTasks / (sw.ElapsedMilliseconds / 1000.0)));
 
-        Console.WriteLine("Finished run-detached performance tests...");
+        Console.WriteLine("Finished run-detached performance tests");
 
         return 0;
     }
 
     public static Int32 EasyhookPerformanceTest(Int32 numRuns) {
 
-        Console.WriteLine("Starting EasyHook performance tests...");
+        Console.WriteLine("Starting EasyhookPerformanceTest");
 
         Int32 numFinishedTasks = 0;
         Mutex m = new Mutex(false);
@@ -204,14 +216,14 @@ class SchedulingPerfTest {
         Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
             "NumEasyHookCalls_PerSec", (Int32)(numFinishedTasks / (sw.ElapsedMilliseconds / 1000.0)));
 
-        Console.WriteLine("Finished EasyHook performance tests...");
+        Console.WriteLine("Finished EasyHook performance tests");
 
         return 0;
     }
 
     public static Int32 CooperativeSchedulingTest(Int32 numLongRunningTasks) {
 
-        Console.WriteLine("Starting cooperative scheduling performance tests...");
+        Console.WriteLine("Starting CooperativeSchedulingTest");
 
         Int32 numFinishedTasks = 0;
         Mutex m = new Mutex(false);
@@ -234,13 +246,13 @@ class SchedulingPerfTest {
 
                     // This causes scheduler to switch.
                     m.WaitOne();
-                    for (Int32 v = 0; v < 10000000 * (taskId + 1); v++) {
+                    for (Int32 v = 0; v < 100000 * (taskId + 1); v++) {
                         fakeCounter++;
                     }
                     m.ReleaseMutex();
 
                     Int64 orig = sharedCounter;
-                    const Int32 numTimes = 10000000;
+                    const Int32 numTimes = 1000000;
                     for (Int32 v = 0; v < numTimes; v++) {
                         sharedCounter++;
                     }
@@ -266,12 +278,14 @@ class SchedulingPerfTest {
         Console.WriteLine("##teamcity[buildStatisticValue key='{0}' value='{1}']",
             "NumLongTasksWithCooperativeScheduling_PerSec", (Int32)(numLongRunningTasks / (sw.ElapsedMilliseconds / 1000.0)));
 
-        Console.WriteLine("Finished cooperative scheduling performance tests...");
+        Console.WriteLine("Finished cooperative scheduling performance tests");
 
         return 0;
     }
 
     public static Int32 LargeAsyncTaskOnAnyScheduler(Int32 numTasks) {
+
+        Console.WriteLine("Starting LargeAsyncTaskOnAnyScheduler");
 
         Int32 numFinishedTasks = 0;
 
@@ -306,6 +320,8 @@ class SchedulingPerfTest {
     }
 
     public static Int32 SmallAsyncTaskOnSpecificScheduler(Int32 numTasks, Byte schedId) {
+
+        Console.WriteLine("Starting SmallAsyncTaskOnSpecificScheduler");
 
         Int32 numFinishedTasks = 0;
 
@@ -344,6 +360,8 @@ class SchedulingPerfTest {
     }
 
     public static Int32 LargeAsyncTaskOnSpecificScheduler(Int32 numTasks, Byte schedId) {
+
+        Console.WriteLine("Starting LargeAsyncTaskOnSpecificScheduler");
 
         Int32 numFinishedTasks = 0;
 
@@ -387,6 +405,8 @@ class SchedulingPerfTest {
 
     public static Int32 SimplestAsyncTaskOnSpecificScheduler(Int32 numTasks, Byte schedId) {
 
+        Console.WriteLine("Starting SimplestAsyncTaskOnSpecificScheduler");
+
         Int32 numFinishedTasks = 0;
 
         Stopwatch sw = Stopwatch.StartNew();
@@ -418,6 +438,8 @@ class SchedulingPerfTest {
 
     public static Int32 SimplestAsyncTaskOnAnyScheduler(Int32 numTasks) {
 
+        Console.WriteLine("Starting SimplestAsyncTaskOnAnyScheduler");
+
         Int32 numFinishedTasks = 0;
 
         Stopwatch sw = Stopwatch.StartNew();
@@ -443,7 +465,7 @@ class SchedulingPerfTest {
 
     public static Int32 Run() {
 
-        Console.WriteLine("Starting scheduling performance tests...");
+        Console.WriteLine("Starting scheduling performance tests");
 
         Db.Transact(() => {
 
@@ -504,7 +526,9 @@ class SchedulingPerfTest {
             detNetThreadResultString = SimplestSyncTaskOnAnySchedulerFromDotNetThread(1000000);
         });
         t.Start();
-        t.Join();
+        StarcounterEnvironment.RunDetached(() => {
+            t.Join();
+        });
 
         Console.WriteLine(detNetThreadResultString);
 

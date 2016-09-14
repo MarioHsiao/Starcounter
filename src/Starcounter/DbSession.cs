@@ -265,7 +265,9 @@ namespace Starcounter {
                 
             }, schedId);
 
-            mreSlim.Wait();
+            StarcounterEnvironment.RunDetached(() => {
+                mreSlim.Wait();
+            });            
         }
 
         /// <summary>

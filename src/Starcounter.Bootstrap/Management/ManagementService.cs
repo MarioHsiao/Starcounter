@@ -100,7 +100,9 @@ namespace Starcounter.Bootstrap.Management {
         public static void RunUntilShutdown() {
             Unavailable = false;
             onlineEvent.Set();
-            shutdownEvent.WaitOne();
+            StarcounterEnvironment.RunDetached(() => {
+                shutdownEvent.WaitOne();
+            });
             onlineEvent.Reset();
             onlineEvent.Close();
             Unavailable = true;
