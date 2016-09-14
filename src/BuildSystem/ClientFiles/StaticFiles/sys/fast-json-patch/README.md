@@ -148,11 +148,10 @@ Applies `patches` array on `obj`.
 If the `validate` parameter is set to `true`, the patch is extensively validated before applying.
 An invalid patch results in throwing an error (see `jsonpatch.validate` for more information about the error object).
 
-If patch was succesfully applied, returns `true`.
-
-If there was a `test` patch in `patches` array, returns the result of the test.
-
-If there was more than one patch in the array, the result of the last patch is returned.
+Returns an array of results - one item for each item in `patches`. The type of each item depends on type of operation applied
+* `test` - boolean result of the test
+* `remove`, `replace` and `move` - original object that has been removed
+* `add` (only when adding to an array) - index at which item has been inserted (useful when using `-` alias)
 
 #### jsonpatch.observe (`obj` Object, `callback` Function (optional)) : `observer` Object
 
@@ -219,14 +218,6 @@ OPERATION_FROM_UNRESOLVABLE   | Cannot perform the operation from a path that do
 OPERATION_PATH_ILLEGAL_ARRAY_INDEX | Expected an unsigned base-10 integer value, making the new referenced value the array element with the zero-based index
 OPERATION_VALUE_OUT_OF_BOUNDS | The specified index MUST NOT be greater than the number of elements in the array
 
-
-## `undefined`s (JSON to JS extension)
-
-As `undefined` is not a valid value for any JSON node, it's also not valid value o JSON Patch operation object value property. Therefore, for valid JSON document, `jsonpatch` will not generate JSON Patches that sets anything to `undefined`.
-
-However, to play nicer with natural JavaScipt objects `jsonpatch` can be applied to an object that contains `undefined`, in such case we will treat it as JS does. `.apply` will handle JSON Patches with `value: undefined` as any other falsy value. `.generate`, `.compare`, `.observe` methods will also produce JSON Patches with `undefined`s, but only for (non valid) JSON documents that contains it.
-
-
 ## `undefined`s (JS to JSON projection)
 
 As `undefined` type does not exist in JSON, it's also not a valid value of JSON Patch operation. Therefore `jsonpatch` will not generate JSON Patches that sets anything to `undefined`.
@@ -236,6 +227,8 @@ Whenever a value is set to `undefined` in JS, JSON-Patch methods `generate` and 
 > If `undefined` (...) is encountered during conversion it is either omitted (when it is found in an object) or censored to `null` (when it is found in an array).
 
 See the [ECMAScript spec](http://www.ecma-international.org/ecma-262/6.0/index.html#sec-json.stringify) for details.
+
+## [Contributing](CONTRIBUTING.md)
 
 ## Changelog
 
