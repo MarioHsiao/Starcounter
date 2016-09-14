@@ -1,6 +1,6 @@
 /*!
  * https://github.com/Starcounter-Jack/JSON-Patch
- * json-patch-duplex.js version: 1.0.0
+ * json-patch-duplex.js version: 1.1.0
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -10,8 +10,6 @@ interface HTMLElement {
   detachEvent : Function;
 }
 
-
-var OriginalError = Error;
 
 module jsonpatch {
   var _objectKeys = function (obj) {
@@ -219,7 +217,7 @@ module jsonpatch {
     }
     var path = _getPathRecursive(root, obj);
     if (path === '') {
-      throw new OriginalError("Object not found in root");
+      throw new Error("Object not found in root");
     }
     return '/' + path;
   }
@@ -323,10 +321,14 @@ module jsonpatch {
         if (window.addEventListener) { //standards
           window.addEventListener('mouseup', fastCheck);
           window.addEventListener('keyup', fastCheck);
+          window.addEventListener('mousedown', fastCheck);
+          window.addEventListener('keydown', fastCheck);
         }
         else { //IE8
           document.documentElement.attachEvent('onmouseup', fastCheck);
           document.documentElement.attachEvent('onkeyup', fastCheck);
+          document.documentElement.attachEvent('onmousedown', fastCheck);
+          document.documentElement.attachEvent('onkeydown', fastCheck);
         }
       }
     }
@@ -342,10 +344,14 @@ module jsonpatch {
             if (window.removeEventListener) {
                 window.removeEventListener('mouseup', fastCheck);
                 window.removeEventListener('keyup', fastCheck);
+                window.removeEventListener('mousedown', fastCheck);
+                window.removeEventListener('keydown', fastCheck);
             }
             else {
                 document.documentElement.detachEvent('onmouseup', fastCheck);
                 document.documentElement.detachEvent('onkeyup', fastCheck);
+                document.documentElement.detachEvent('onmousedown', fastCheck);
+                document.documentElement.detachEvent('onkeydown', fastCheck);
             }
         }
     };
@@ -531,21 +537,19 @@ module jsonpatch {
     return patches;
   }
 
-  export declare class OriginalError {
-    public name:string;
-    public message:string;
-    public stack:string;
-
-    constructor(message?:string);
+  // provide scoped __extends for TypeScript's `extend` keyword so it will not provide global one during compilation
+  function __extends(d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
   }
 
-  export class JsonPatchError extends OriginalError {
-    constructor(public message:string, public name:string, public index?:number, public operation?:any, public tree?:any) {
+  export class JsonPatchError extends Error {
+
+    constructor(public message: string, public name:string, public index?:number, public operation?:any, public tree?:any) {
       super(message);
     }
   }
-
-  export var Error = JsonPatchError;
 
     /**
      * Recursively checks whether an object has any undefined values inside.
@@ -666,5 +670,4 @@ if (typeof exports !== "undefined") {
   exports.validate = jsonpatch.validate;
   exports.validator = jsonpatch.validator;
   exports.JsonPatchError = jsonpatch.JsonPatchError;
-  exports.Error = jsonpatch.Error;
 }

@@ -4,7 +4,8 @@
 
 Make sure that you edit the source files in TypeScript (`*.ts`) files.
 
-You can build TypeScript to JavaScript using the [`TypeScript compiler`](https://www.typescriptlang.org/docs/tutorial.html).
+You can build TypeScript to JavaScript using the [`TypeScript compiler`](https://www.typescriptlang.org/docs/tutorial.html)
+(and run it with npm script: `npm run tsc`).
 
 Make sure that you commit changes to both `ts` and `js` files.
 
@@ -27,7 +28,7 @@ To run *Benchmark.js* performance tests, press "Run Tests" button.
 2. Install dev dependencies (Jasmine Node.js module) by running command `npm install`
 3. Run test `npm run test`
  - Testing **json-patch.js** only: `npm run test-core`
- - Testing **json-patch0duplex.js** only: `npm run test-duplex`
+ - Testing **json-patch-duplex.js** only: `npm run test-duplex`
 
 ## Releasing a new version
 
@@ -47,3 +48,4 @@ To run *Benchmark.js* performance tests, press "Run Tests" button.
 11. Call `npm publish` to push the new version to NPM. [Read more](https://docs.npmjs.com/getting-started/publishing-npm-packages)
 12. Call `npm view fast-json-patch dist-tags` to verify that the new version was published in NPM.
 13. Explain the changes (at least an summary of the commit log) in [GitHub Releases](https://github.com/Starcounter-Jack/JSON-Patch/releases).
+14. Merge `master` branch to `gh-pages` branch to update the static website.
