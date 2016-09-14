@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "PuppetJs": "#gh-pages",
+    "PuppetJs": ">=2.2.1",
     "puppet-client": "PuppetJs/puppet-polymer-client#^3.2.0",
     "imported-template": ">=1.4.3",
     "puppet-redirect": "PuppetJs/puppet-redirect#~0.4.0",

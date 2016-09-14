@@ -27,13 +27,14 @@
     "puppet-bunny": "PuppetJs/puppet-bunny",
     "dom-bind-notifier": "*"
   },
-  "_release": "1dee38b819",
+  "version": "2.2.1",
+  "_release": "2.2.1",
   "_resolution": {
-    "type": "branch",
-    "branch": "gh-pages",
-    "commit": "1dee38b81986048157bdc4bd55ae4767485af2a3"
+    "type": "version",
+    "tag": "2.2.1",
+    "commit": "317e2bbc4fdb77ae356b9c5f618fde81c088266a"
   },
-  "_source": "https://github.com/PuppetJs/PuppetJs.git",
-  "_target": "gh-pages",
-  "_originalSource": "PuppetJs"
+  "_source": "git://github.com/puppetjs/puppetjs.git",
+  "_target": "^2.2.0",
+  "_originalSource": "puppetjs/puppetjs"
 }
