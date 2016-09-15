@@ -8,6 +8,12 @@ namespace Starcounter.UnitTesting.xUnit
     {
         readonly List<ITestCase> tests;
 
+        public bool ContainTests {
+            get {
+                return tests.Count > 0;
+            }
+        }
+
         public TestDiscoverer()
         {
             tests = new List<ITestCase>();
