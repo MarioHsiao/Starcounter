@@ -144,7 +144,7 @@ namespace Starcounter.Internal.Web {
 
                 response.Uris.Add(relativeUri);
                 string path = Path.Combine(dir,  fileName) + fileExtension;
-                response.FilePath = path;
+                response.FilePath = path.ToLower();
                 response.FileDirectory = dir;
                 response.FileName = fileName + fileExtension;
                 response.FileExists = (statusCode != HttpStatusCode.NotFound);
@@ -356,7 +356,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="e"></param>
         void FileIsRenamed(object sender, RenamedEventArgs e) {
 
-            string fileSignature = e.OldFullPath;
+            string fileSignature = e.OldFullPath.ToLower();
             DecacheByFilePath(fileSignature);
         }
 
@@ -367,7 +367,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="e"></param>
         private void FileHasChanged(object sender, FileSystemEventArgs e) {
 
-            string fileSignature = e.FullPath;
+            string fileSignature = e.FullPath.ToLower();
             DecacheByFilePath(fileSignature);
         }
 
