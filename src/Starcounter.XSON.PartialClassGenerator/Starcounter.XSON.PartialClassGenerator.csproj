@@ -114,6 +114,7 @@
     <Compile Include="Generation2\GeneratorPhase4.cs" />
     <Compile Include="Generation2\GeneratorPhase6.cs" />
     <Compile Include="Generation2\GeneratorPhase7.cs" />
+    <Compile Include="Generation2\GeneratorPhase0.cs" />
     <Compile Include="PartialClassGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GeneratorException.cs" />

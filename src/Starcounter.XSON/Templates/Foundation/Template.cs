@@ -288,6 +288,7 @@ namespace Starcounter.Templates {
             toTemplate.Editable = Editable;
             toTemplate.Enabled = Enabled;
             toTemplate.Visible = Visible;
+            toTemplate.codegenInfo = codegenInfo;
         }
 
 #if DEBUG

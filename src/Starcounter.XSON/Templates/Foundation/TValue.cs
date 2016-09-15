@@ -200,7 +200,7 @@ namespace Starcounter.Templates {
 		public override void CopyTo(Template toTemplate) {
 			base.CopyTo(toTemplate);
 			CopyValueDelegates(toTemplate);
-			((TValue)toTemplate).Bind = Bind;
+			((TValue)toTemplate).bind = bind;
 		}
         
         /// <summary>
