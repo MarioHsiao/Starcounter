@@ -7,7 +7,7 @@ namespace Starcounter.UnitTesting.Runtime
 {
     public class TestRunner
     {
-        public static TestResult Run(TestRoot root)
+        public static IEnumerable<TestResult> Run(TestRoot root)
         {
             // Filter on hosts? Filter provided by caller?
             // TODO:
@@ -17,11 +17,13 @@ namespace Starcounter.UnitTesting.Runtime
 
         public static TestResult Run(string database, TestHost host)
         {
-            return Run(database, new[] { host });
+            return Run(database, new[] { host }).First();
         }
 
-        public static TestResult Run(string database, IEnumerable<TestHost> hosts)
+        public static IEnumerable<TestResult> Run(string database, IEnumerable<TestHost> hosts)
         {
+            var results = new List<TestResult>();
+
             var header = ResultHeader.NewStartingNow(database);
 
             var writer = new ResultWriter(header);
@@ -36,7 +38,9 @@ namespace Starcounter.UnitTesting.Runtime
                 var hostWriter = writer.OpenHostWriter(host);
                 
                 host.Run(result, hostWriter.Writer);
+
                 result.Finished = DateTime.Now;
+                results.Add(result);
 
                 writer.CloseHostWriterWithResult(hostWriter,result);
             }
@@ -46,9 +50,7 @@ namespace Starcounter.UnitTesting.Runtime
 
             writer.Close(footer);
 
-            // Array of results
-            // TODO
-            return null;
+            return results;
         }
     }
 }
