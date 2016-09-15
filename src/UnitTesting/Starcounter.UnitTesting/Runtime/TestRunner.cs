@@ -41,9 +41,13 @@ namespace Starcounter.UnitTesting.Runtime
                 writer.CloseHostWriterWithResult(hostWriter,result);
             }
 
-            // Emit footer, flush and produce a result for each host.
-            // TODO:
+            var footer = new ResultFooter();
+            footer.Ended = DateTime.Now;
 
+            writer.Close(footer);
+
+            // Array of results
+            // TODO
             return null;
         }
     }
