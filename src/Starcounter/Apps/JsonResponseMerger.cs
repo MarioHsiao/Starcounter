@@ -83,7 +83,9 @@ namespace Starcounter.Internal {
                     if (responses[i] == null)
                         continue;
 
-                    if (responses[i].AppName == req.HandlerOpts.CallingAppName) {
+                    // Checking if its correct main application or its an external request.
+                    if ((responses[i].AppName == req.HandlerOpts.CallingAppName) ||
+                        (null == req.HandlerOpts.CallingAppName)) {
 
                         mainResponse = responses[i];
                         mainResponseId = i;
