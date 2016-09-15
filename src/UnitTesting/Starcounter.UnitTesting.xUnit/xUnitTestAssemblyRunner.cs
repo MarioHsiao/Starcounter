@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Starcounter.UnitTesting.xUnit
@@ -26,7 +27,7 @@ namespace Starcounter.UnitTesting.xUnit
                 var front = assembly.Front;
                 var tests = assembly.TestCases;
 
-                front.RunTests(tests, this, null);
+                front.RunTests(tests, this, GetExecutionOptions());
             }
             else
             {
@@ -34,6 +35,22 @@ namespace Starcounter.UnitTesting.xUnit
             }
             
             resultWriter.WriteLine("--");
+        }
+
+        ITestFrameworkExecutionOptions GetExecutionOptions()
+        {
+            var configuration = ConfigReader.Load(assembly.AssemblyPath);
+            configuration.ShadowCopy = false;
+            configuration.ParallelizeAssembly = false;
+            configuration.MaxParallelThreads = 1;
+            configuration.AppDomain = AppDomainSupport.Denied;
+            configuration.ParallelizeTestCollections = false;
+            configuration.PreEnumerateTheories = false;
+
+            var options = TestFrameworkOptions.ForExecution(configuration);
+            options.SetSynchronousMessageReporting(true);
+
+            return options;
         }
         
         void React(ITestStarting test)
