@@ -47,16 +47,16 @@ namespace Starcounter.UnitTesting.Runtime
             hostWriter.Close();
         }
 
-        public StreamWriter WriteHostHeaderAndProvideWriter(TestHost host)
+        public void Close(ResultFooter footer)
         {
-            // Write entry to the main test file. Return stream to new file.
-            // We pass that to the host. This could possibly be polished and
-            // improved.
+            WriteFooter(footer);
+            writer.Flush();
+            writer.Close();
+        }
 
-            var resultFile = $"{fileNameBase}-{++hostId}{fileExtension}";
-            writer.WriteLine($"Host:Type={host.GetType().ToString()};File={resultFile}");
-
-            return File.CreateText(resultFile);
+        void WriteHeader(ResultHeader header)
+        {
+            writer.WriteLine($"Root:{Property("Db", header.Database)}{Property("Id", header.UniqueId)}{Property("Time", header.Start.ToResultFormat())}");
         }
 
         void WriteHostResult(HostResultWriter hw, TestResult result)
@@ -70,9 +70,9 @@ namespace Starcounter.UnitTesting.Runtime
             writer.WriteLine($"Host:{Property("Type", hw.Host.GetType().ToString())}{Property("File", hw.ResultFile)}{Property("Result", resultSummary)}");
         }
 
-        void WriteHeader(ResultHeader header)
+        void WriteFooter(ResultFooter footer)
         {
-            writer.WriteLine($"Root:{Property("Db", header.Database)}{Property("Id", header.UniqueId)}{Property("Time", header.Start.ToResultFormat())}");
+            writer.WriteLine($"Footer:{Property("Ended", footer.Ended.ToResultFormat())}");
         }
 
         string Property(string key, string value)
