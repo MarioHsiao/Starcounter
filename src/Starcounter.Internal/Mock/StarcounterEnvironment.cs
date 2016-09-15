@@ -70,6 +70,11 @@ namespace Starcounter.Internal
         public static Boolean MergeJsonSiblings = true;
 
         /// <summary>
+        /// Add X-File-Path header to static files HTTP responses.
+        /// </summary>
+        public static Boolean XFilePathHeader = false;
+
+        /// <summary>
         /// Enables or disables the filters for external requests.
         /// </summary>
         public static Boolean RequestFiltersEnabled = true;
