@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Starcounter.UnitTesting.xUnit
 {
@@ -22,6 +23,18 @@ namespace Starcounter.UnitTesting.xUnit
         public override IEnumerable<IHostedTest> Tests {
             get {
                 return discoverer.TestCases.Select((tc) => new xUnitTest(this, tc));
+            }
+        }
+
+        internal IEnumerable<ITestCase> TestCases {
+            get {
+                return discoverer.TestCases;
+            }
+        }
+
+        internal XunitFrontController Front {
+            get {
+                return front;
             }
         }
 
