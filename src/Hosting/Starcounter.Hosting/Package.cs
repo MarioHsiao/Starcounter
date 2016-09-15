@@ -552,8 +552,9 @@ namespace Starcounter.Hosting {
             testHost.IncludeAssembly(assembly);
 
             var path = assembly.Location;
-            path = Path.GetFileNameWithoutExtension(path);
+            path = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path));
             path += ".test.dll";
+
             if (File.Exists(path))
             {
                 testHost.IncludeAssembly(path);
