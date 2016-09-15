@@ -11,7 +11,7 @@ namespace Starcounter.UnitTesting.xUnit
     {
         TestDiscoverer discoverer;
         XunitFrontController front;
-
+        
         public xUnitTestAssembly(string assemblyPath) : base(assemblyPath)
         {
             discoverer = new TestDiscoverer();
@@ -23,6 +23,12 @@ namespace Starcounter.UnitTesting.xUnit
         public override IEnumerable<IHostedTest> Tests {
             get {
                 return discoverer.TestCases.Select((tc) => new xUnitTest(this, tc));
+            }
+        }
+
+        internal bool ContainTests {
+            get {
+                return discoverer.ContainTests;
             }
         }
 
@@ -58,15 +64,26 @@ namespace Starcounter.UnitTesting.xUnit
                 front.Find(false, discoverer, discoveryOptions);
                 discoverer.Finished.WaitOne();
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
+                discoverer.Reset();
+
                 // Check if it does not find execution path. If so, it's
                 // probably not meant to be tests (e.g. app.exe). Can we
                 // distinguish this from a poor setup (i.e. xunit not copied
                 // to exe-path, etc).
                 // TODO: 
 
-                Console.WriteLine(e.ToString());
+                // Maybe we should log this when diagnostics are there?
+                // Figure out how to make best experience for the user when
+                // invoking tests with --test: what do he/she expect?
+                // TODO?
+                
+                /*
+                 * {"Unknown test framework: could not find xunit.dll (v1) or xunit.execution.*.dll (v2) in C:\\Users\\Per\\Git\\Starcounter\\PNext\\Level1\\bin\\Debug\\scadmin"}
+                 */
+
+                // Console.WriteLine(e.ToString());
             }
         }
     }
