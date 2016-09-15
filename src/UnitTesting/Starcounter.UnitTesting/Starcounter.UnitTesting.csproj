@@ -51,6 +51,7 @@
     <Compile Include="IHostedTest.cs" />
     <Compile Include="ITestRoot.cs" />
     <Compile Include="Runtime\HostResultWriter.cs" />
+    <Compile Include="Runtime\ResultFooter.cs" />
     <Compile Include="Runtime\ResultHeader.cs" />
     <Compile Include="Runtime\ResultWriter.cs" />
     <Compile Include="TestAssembly.cs" />
