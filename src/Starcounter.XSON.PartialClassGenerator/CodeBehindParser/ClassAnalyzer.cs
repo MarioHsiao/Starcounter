@@ -168,15 +168,24 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node) {
-            // By design: Let's not invoke base visitor, since we don't need to analyze 
-            // anything else about it, and we provide a faster execution if we don't.
+            // We continue to visit the static constructor since we need to parse type assignments
+            // for templates to support changing the default templatetype that comes from 
+            // Json-by-example and support some syntax for reuse of existing TypedJSON.
 
+            // DefaultTemplate.MyFloatTemplate.InstanceType = typeof(double);
+            
             var isStatic = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.StaticKeyword);
             if (!isStatic) {
                 throw IllegalCodeBehindException(InvalidCodeBehindError.DefineInstanceConstructor, node);
             }
+
+            base.VisitConstructorDeclaration(node);
         }
 
+        public override void VisitAssignmentExpression(AssignmentExpressionSyntax node) {
+            DiscoverTemplateInstanceTypeAssignment(node);
+        }
+        
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node) {
             // By design: Let's not invoke base visitor, since we don't need to analyze 
             // anything else about it, and we provide a faster execution if we don't.
@@ -291,6 +300,55 @@ namespace Starcounter.XSON.PartialClassGenerator {
         void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, QualifiedNameSyntax name) {
         }
 
+        private void DiscoverTemplateInstanceTypeAssignment(AssignmentExpressionSyntax node) {
+            if (node.Kind() != SyntaxKind.SimpleAssignmentExpression)
+                return;
+
+            var propertySyntax = node.Left as MemberAccessExpressionSyntax;
+            if (propertySyntax == null)
+                return;
+
+            var templateSyntax = propertySyntax.Expression as MemberAccessExpressionSyntax;
+            if (templateSyntax == null)
+                return;
+
+            var propertyName = propertySyntax.Name.Identifier.ValueText;
+            if (propertyName == null || !propertyName.Equals("InstanceType"))
+                return;
+
+            // We only support assigingin using the typeof() syntax, since this is the most 
+            // reasonable way for us to be able to get the name of the type. If the type
+            // is assigned to a variable, the syntaxtree will look different and we will have 
+            // to keep track of variable assignments as well.
+            // Also the syntaxtree looks different for predefined and custom types.
+            var typeSyntax = node.Right as TypeOfExpressionSyntax;
+            if (typeSyntax == null)
+                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, node);
+
+            string instanceTypeName = null;
+            var typeKeywordSyntax = typeSyntax.Type as PredefinedTypeSyntax;
+            if (typeKeywordSyntax != null) {
+                instanceTypeName = typeKeywordSyntax.Keyword.ValueText;
+            } else {
+                var typeIdentifier = typeSyntax.Type as IdentifierNameSyntax;
+                if (typeIdentifier != null) {
+                    instanceTypeName = typeIdentifier.Identifier.ValueText;
+                }
+            }
+
+            if (instanceTypeName == null)
+                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, node);
+
+            // This is an assignment of 'InstanceType' and we have a type. Lets add 
+            // everything to the metadata object so that we can handle the conversion 
+            // when generating code. Unsupported conversions will be handled there.
+            var typeAssignment = new CodeBehindTypeAssignmentInfo() {
+                TypeName = instanceTypeName,
+                TemplatePath = GetTemplateAssigmentPath(templateSyntax)
+            };
+            codeBehindMetadata.InstanceTypeAssignments.Add(typeAssignment);
+        }
+
         bool IsNamedRootObject() {
             if (this.NestingClass != null) {
                 return false;
@@ -306,6 +364,22 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
             var generic = name.Identifier.Text;
             return generic.Equals("IBound") || generic.Equals("Starcounter.IBound");
+        }
+
+        private string GetTemplateAssigmentPath(MemberAccessExpressionSyntax node) {
+            string path = "";
+            
+            var prevExpr = node.Expression as MemberAccessExpressionSyntax;
+            if (prevExpr != null) {
+                path = GetTemplateAssigmentPath(prevExpr) + ".";
+            } else {
+                var identifier = node.Expression as IdentifierNameSyntax;
+                if (identifier == null || !"DefaultTemplate".Equals(identifier.Identifier.ValueText))
+                    throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, node);
+            }
+
+            path += node.Name.Identifier.ValueText;
+            return path;
         }
 
         InvalidCodeBehindException IllegalCodeBehindException(InvalidCodeBehindError error, CSharpSyntaxNode node = null) {

@@ -16,7 +16,8 @@ namespace Starcounter.XSON.PartialClassGenerator {
         InputHandlerBadParameterCount = Error.SCERRJSONINPUTHANDLERBADPARAMETERCOUNT,
         InputHandlerHasTypeParameters = Error.SCERRJSONINPUTHANDLERGENERIC,
         InputHandlerWithRefParameter = Error.SCERRJSONINPUTHANDLERREFPARAM,
-        InputHandlerNotVoidReturnType = Error.SCERRJSONINPUTHANDLERNOTVOID
+        InputHandlerNotVoidReturnType = Error.SCERRJSONINPUTHANDLERNOTVOID,
+        TemplateTypeUnsupportedAssignment = Error.SCERRUNSPECIFIED
     }
 
     public static class InvalidCodeBehindExtensions {
