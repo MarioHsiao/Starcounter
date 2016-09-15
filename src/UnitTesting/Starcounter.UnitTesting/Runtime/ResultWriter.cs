@@ -6,11 +6,13 @@ namespace Starcounter.UnitTesting.Runtime
 {
     internal static class DateTimeResultFormatExtensions
     {
+        const string keyFormat = "yyyyMMddTHHmmssfff";
+
         public static string ToResultFormat(this DateTime cargo)
         {
             // Central spot to format timings. Decide what to use.
             // TODO:
-            return cargo.ToString();
+            return cargo.ToString(keyFormat);
         }
     }
 
@@ -24,7 +26,7 @@ namespace Starcounter.UnitTesting.Runtime
 
         public ResultWriter(ResultHeader header, string path = null)
         {
-            fileNameBase = $"{header.Database}-{header.UniqueId}";
+            fileNameBase = $"{header.Database}-{header.Start.ToResultFormat()}";
 
             var fileName = $"{fileNameBase}{fileExtension}";
             path = path ?? Path.GetTempPath();
