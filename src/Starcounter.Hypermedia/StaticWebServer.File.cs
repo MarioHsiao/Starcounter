@@ -356,7 +356,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="e"></param>
         void FileIsRenamed(object sender, RenamedEventArgs e) {
 
-            string fileSignature = e.OldFullPath.ToUpper();
+            string fileSignature = e.OldFullPath;
             DecacheByFilePath(fileSignature);
         }
 
@@ -367,7 +367,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="e"></param>
         private void FileHasChanged(object sender, FileSystemEventArgs e) {
 
-            string fileSignature = e.FullPath.ToUpper();
+            string fileSignature = e.FullPath;
             DecacheByFilePath(fileSignature);
         }
 
