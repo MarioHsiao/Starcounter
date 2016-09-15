@@ -11,6 +11,7 @@ using Starcounter.Metadata;
 using Starcounter.Query;
 using Starcounter.SqlProcessor;
 using Starcounter.UnitTesting;
+using Starcounter.UnitTesting.Runtime;
 using StarcounterInternal.Hosting;
 using System;
 using System.Collections.Generic;
@@ -259,7 +260,10 @@ namespace Starcounter.Hosting {
                 var shouldRunTests = application != null && assembly != null;
                 if (shouldRunTests)
                 {
-                    ExecuteTestDiscovery(TestLoader.TestRoot, application, assembly);
+                    var root = TestLoader.TestRoot;
+                    var host = ExecuteTestDiscovery(root, application, assembly);
+
+                    var result = TestRunner.Run(StarcounterEnvironment.DatabaseNameLower, host);
                 }
 
                 // Starting user Main() here.
@@ -509,7 +513,7 @@ namespace Starcounter.Hosting {
                     Self.GET("/sc/map");
                 });
             }
-
+            
             var entrypoint = assembly.EntryPoint;
 
             try {
@@ -559,9 +563,6 @@ namespace Starcounter.Hosting {
             {
                 testHost.IncludeAssembly(path);
             }
-
-            // Don't always run it just yet
-            // testHost.Run();
 
             return testHost;
         }
