@@ -49,6 +49,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataLoader.cs" />
+    <Compile Include="doall_stat.json.cs" >
+		<DependentUpon>doall_stat.json</DependentUpon>
+	</Compile>
     <Compile Include="LoadEmulation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
