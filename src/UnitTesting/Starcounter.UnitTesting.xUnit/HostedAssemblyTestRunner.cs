@@ -1,29 +1,94 @@
-﻿
-using Xunit.Runners;
+﻿using System.IO;
+using Xunit.Abstractions;
 
 namespace Starcounter.UnitTesting.xUnit
 {
-    public class HostedAssemblyTestRunner
+    internal class xUnitTestAssemblyRunner : IMessageSink
     {
-        readonly string assemblyPath;
+        readonly xUnitTestAssembly assembly;
+        readonly StreamWriter resultWriter;
+        readonly TestResult result;
 
-        public HostedAssemblyTestRunner(string path)
+        public xUnitTestAssemblyRunner(xUnitTestAssembly a, TestResult r, StreamWriter writer)
         {
-            assemblyPath = path;
+            assembly = a;
+            result = r;
+            resultWriter = writer;
         }
-
+        
         public void Run()
         {
-            var runner = AssemblyRunner.WithoutAppDomain(assemblyPath);
-            runner.Start();
+            var header = $"--{assembly.AssemblyPath}";
+            resultWriter.WriteLine(header);
+
+            if (assembly.ContainTests)
+            {
+                var front = assembly.Front;
+                var tests = assembly.TestCases;
+
+                front.RunTests(tests, this, null);
+            }
+            else
+            {
+                resultWriter.WriteLine("-- No tests defined");
+            }
+            
+            resultWriter.WriteLine("--");
+        }
+        
+        void React(ITestStarting test)
+        {
+            if (test != null)
+            {
+                resultWriter.WriteLine($"Starting-{test.Test.DisplayName}");
+            }
         }
 
-        void WaitForRunnerCompletion(AssemblyRunner runner)
+        void React(ITestFinished test)
         {
-            while (runner.Status != AssemblyRunnerStatus.Idle)
+            if (test != null)
             {
-                System.Threading.Thread.Sleep(200);
+                resultWriter.WriteLine($"Finished-{test.Test.DisplayName}");
             }
+        }
+
+        void React(ITestPassed test)
+        {
+            if (test != null)
+            {
+                result.TestsSucceeded++;
+                resultWriter.WriteLine($"Passed-{test.Test.DisplayName}");
+            }
+        }
+
+        void React(ITestFailed test)
+        {
+            if (test != null)
+            {
+                result.TestsFailed++;
+                resultWriter.WriteLine($"Failed-{test.Test.DisplayName}");
+            }
+        }
+
+        void React(ITestSkipped test)
+        {
+            if (test != null)
+            {
+                result.TestsSkipped++;
+                resultWriter.WriteLine($"Skipped-{test.Test.DisplayName}:{test.Reason}");
+            }
+        }
+
+        bool IMessageSink.OnMessage(IMessageSinkMessage message)
+        {
+            React(message as ITestStarting);
+            React(message as ITestFinished);
+            React(message as ITestPassed);
+            React(message as ITestFailed);
+            React(message as ITestSkipped);
+            
+            // Continue running tests
+            return true;
         }
     }
 }

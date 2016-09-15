@@ -1,6 +1,7 @@
 ﻿
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Starcounter.UnitTesting.xUnit
 {
@@ -13,12 +14,11 @@ namespace Starcounter.UnitTesting.xUnit
 
         protected override void Run(IEnumerable<TestAssembly> assemblies, TestResult result, StreamWriter writer)
         {
-            // Invoke runner on all assemblies and produce results.
-            // TODO:
-
-            result.TestsSucceeded = 1;
-            result.TestsFailed = 1;
-            result.TestsSkipped = 1;
+            foreach (var xUnitTestAssembly in assemblies.Cast<xUnitTestAssembly>())
+            {
+                var runner = new xUnitTestAssemblyRunner(xUnitTestAssembly, result, writer);
+                runner.Run();
+            }
         }
     }
 }
