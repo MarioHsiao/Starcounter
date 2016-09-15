@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeBehindMetaData\CodeBehindMetadata.cs" />
+    <Compile Include="CodeBehindMetaData\CodeBehindTypeAssignmentInfo.cs" />
     <Compile Include="CodeBehindMetaData\InputBindingInfo.cs" />
     <Compile Include="CodeBehindMetaData\CodeBehindClassInfo.cs" />
     <Compile Include="CodeBehindMetaData\CodeBehindPropertyInfo.cs" />

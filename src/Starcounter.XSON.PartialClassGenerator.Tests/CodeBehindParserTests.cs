@@ -336,6 +336,84 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             AssertFieldOrPropertyInfo("seven", "long", true, roslyn.RootClassInfo.FieldOrPropertyList[6]);
         }
 
+        [Test]
+        public static void CodeBehindUnsupportedTemplateInstanceTypeAssignment() {
+            var source = "public partial class Foo: Json {"
+                        + "  static Foo() {"
+                        + "    Type t = typeof(double)"
+                        + "    DefaultTemplate.RemainingTime.InstanceType = t;"
+                        + "  }"
+                        + "}";
+
+            var ex = Assert.Throws<InvalidCodeBehindException>(() => {
+                var roslyn = ParserAnalyzeCode("Foo", source, true);
+            });
+            Assert.AreEqual(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, ex.Error);
+
+            source = "public partial class Foo: Json {"
+                        + "  static Foo() {"
+                        + "    DefaultTemplate.RemainingTime.InstanceType = Helper.MethodForGettingType();"
+                        + "  }"
+                        + "}";
+
+            ex = Assert.Throws<InvalidCodeBehindException>(() => {
+                var roslyn = ParserAnalyzeCode("Foo", source, true);
+            });
+            Assert.AreEqual(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, ex.Error);
+
+            source = "public partial class Foo: Json {"
+                        + "  static Foo() {"
+                        + "    var subPage = DefaultTemplate.Page.SubPage;"
+                        + "    subPage.RemainingTime.InstanceType = typeof(double);"
+                        + "  }"
+                        + "}";
+
+            ex = Assert.Throws<InvalidCodeBehindException>(() => {
+                var roslyn = ParserAnalyzeCode("Foo", source, true);
+            });
+            Assert.AreEqual(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, ex.Error);
+        }
+
+        [Test]
+        public static void CodeBehindDetectTemplateInstanceTypeAssignment() {
+            var source = "public partial class Foo: Json {"
+                        + "  static Foo() {"
+                        + "    DefaultTemplate.ElapsedTime.InstanceType = typeof(double);"
+                        + "    DefaultTemplate.Page.InstanceType = typeof(MyOtherJson);"
+                        + "    DefaultTemplate.Page.ChildOfPage.InstanceType = typeof(Int64);"
+                        + "    DefaultTemplate.Page.SubPage.SuberPage.Value.InstanceType = typeof(decimal);"
+                        + "  }"
+                        + "  [Foo_json.Page2]"
+                        + "  partial class Page2 : Json {"
+                        + "    static Page2() {"
+                        + "      DefaultTemplate.PartialTime.InstanceType = typeof(double);"
+                        + "    }"
+                        + "  }"
+                        + "}";
+            var roslyn = ParserAnalyzeCode("Foo", source, true);
+
+            Assert.IsNotNull(roslyn.RootClassInfo);
+            Assert.AreEqual(2, roslyn.CodeBehindClasses.Count);
+
+            var cbClass = roslyn.RootClassInfo;
+            var typeAssignments = cbClass.InstanceTypeAssignments;
+            Assert.AreEqual(4, typeAssignments.Count);
+            Assert.AreEqual("ElapsedTime", typeAssignments[0].TemplatePath);
+            Assert.AreEqual("double", typeAssignments[0].TypeName);
+            Assert.AreEqual("Page", typeAssignments[1].TemplatePath);
+            Assert.AreEqual("MyOtherJson", typeAssignments[1].TypeName);
+            Assert.AreEqual("Page.ChildOfPage", typeAssignments[2].TemplatePath);
+            Assert.AreEqual("Int64", typeAssignments[2].TypeName);
+            Assert.AreEqual("Page.SubPage.SuberPage.Value", typeAssignments[3].TemplatePath);
+            Assert.AreEqual("decimal", typeAssignments[3].TypeName);
+            
+            cbClass = roslyn.CodeBehindClasses.Find((item) => { return !item.IsRootClass; });
+            typeAssignments = cbClass.InstanceTypeAssignments;
+            Assert.AreEqual(1, typeAssignments.Count);
+            Assert.AreEqual("PartialTime", typeAssignments[0].TemplatePath);
+            Assert.AreEqual("double", typeAssignments[0].TypeName);
+        }
+
         private static void AssertFieldOrPropertyInfo(string name, string typeName, bool isProperty, 
                                                       CodeBehindFieldOrPropertyInfo fop) {
             Assert.AreEqual(name, fop.Name);
