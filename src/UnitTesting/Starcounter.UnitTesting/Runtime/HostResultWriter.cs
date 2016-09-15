@@ -18,6 +18,7 @@ namespace Starcounter.UnitTesting.Runtime
 
         internal void Close()
         {
+            Writer.Flush();
             Writer.Close();
         }
     }
