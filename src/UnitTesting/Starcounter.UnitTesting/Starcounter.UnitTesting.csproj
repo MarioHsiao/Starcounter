@@ -50,7 +50,9 @@
   <ItemGroup>
     <Compile Include="IHostedTest.cs" />
     <Compile Include="ITestRoot.cs" />
+    <Compile Include="Runtime\HostResultWriter.cs" />
     <Compile Include="Runtime\ResultHeader.cs" />
+    <Compile Include="Runtime\ResultWriter.cs" />
     <Compile Include="TestAssembly.cs" />
     <Compile Include="TestHost.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
