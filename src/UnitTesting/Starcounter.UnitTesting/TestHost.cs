@@ -22,22 +22,14 @@ namespace Starcounter.UnitTesting
             InternalIncludeAssemblyByPath(assemblyPath);
         }
 
-        public void Run()
+        public void Run(TestResult result, StreamWriter writer)
         {
-            // When we run, we must allocate a new Result on disk, including
-            // headers, config, etc. Emit that here, and then give the stream
-            // further to implementations.
-            // TODO:
-            // No. This comes from the root. At this level, we are already in
-            // a context.
-
-            //testAssemblyPaths.ForEach((path) =>
-            //{
-            //    RunTestsInAssambly(path);
-            //});
+            Run(testAssemblies.Values, result, writer);
         }
 
         protected abstract TestAssembly CreateTestAssembly(string assemblyPath);
+
+        protected abstract void Run(IEnumerable<TestAssembly> assemblies, TestResult result, StreamWriter writer);
 
         void InternalIncludeAssemblyByPath(string assemblyPath)
         {
