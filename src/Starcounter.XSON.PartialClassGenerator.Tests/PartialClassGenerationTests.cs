@@ -211,5 +211,34 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.AreEqual("A", ((TValue)tobj.Properties[0]).Bind);
             Assert.AreEqual(false, ((TValue)tobj.Properties[0]).Editable);
         }
+
+        [Test]
+        public static void TestInstanceTypeAssignment() {
+            var json = "{"
+                     + @" ""ElapsedTime"": 1.0, "
+                     + @" ""Page"": { ""ChildOfPage"": 1.0 },"
+                     + @" ""Page2"": { ""PartialTime"": 2.0 },"
+                     + @" ""Page3"": { },"
+                     + "}";
+
+            var codebehind = "public partial class Foo : Json {"
+                        + "  static Foo() {"
+                        + "    DefaultTemplate.ElapsedTime.InstanceType = typeof(double);"
+                        + "    DefaultTemplate.Page3.InstanceType = typeof(MyOtherJson);"
+                        + "    DefaultTemplate.Page.ChildOfPage.InstanceType = typeof(Decimal);"
+                        + "  }"
+                        + "  [Foo_json.Page2]"
+                        + "  partial class Page2Json : Json {"
+                        + "    static Page2Json() {"
+                        + "      DefaultTemplate.PartialTime.InstanceType = typeof(double);"
+                        + "    }"
+                        + "  }"
+                        + "}";
+            
+            TValue template = (TValue)Template.CreateFromJson(json);
+            template.CodegenInfo.ClassName = "Foo";
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(template, codebehind, "Foo");
+            string code = codegen.GenerateCode();
+        }
     }
 }
