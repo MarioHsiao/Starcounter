@@ -56,7 +56,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
         public AstRoot GenerateDomTree(TValue at) {
-            var p0 = new GeneratorPhase0(this);
+            var pre = new GeneratorPrePhase(this);
             var p1 = new GeneratorPhase1(this);
             var p2 = new GeneratorPhase2(this);
             var p3 = new GeneratorPhase3(this);
@@ -69,7 +69,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             AstSchemaClass tcn;
             AstMetadataClass mcn;
 
-            p0.RunPhase0(at);
+            pre.RunPrePhase(at);
 
             this.Root = p1.RunPhase1(at, out acn, out tcn, out mcn);
             p2.RunPhase2(acn,tcn,mcn);

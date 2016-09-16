@@ -171,9 +171,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
             // We continue to visit the static constructor since we need to parse type assignments
             // for templates to support changing the default templatetype that comes from 
             // Json-by-example and support some syntax for reuse of existing TypedJSON.
-
-            // DefaultTemplate.MyFloatTemplate.InstanceType = typeof(double);
-            
             var isStatic = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.StaticKeyword);
             if (!isStatic) {
                 throw IllegalCodeBehindException(InvalidCodeBehindError.DefineInstanceConstructor, node);
@@ -300,6 +297,16 @@ namespace Starcounter.XSON.PartialClassGenerator {
         void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, QualifiedNameSyntax name) {
         }
 
+        /// <summary>
+        /// Finds and stores all assignment of property 'InstanceType' 
+        /// </summary>
+        /// <remarks>
+        /// To keep the logic for detecting assignments and getting path and type-information
+        /// simple some restrictions are needed on how the assignement can look.
+        /// 1) The path for the template needs to start with the static field 'DefaultTemplate'
+        /// 2) The type assignment needs to use the 'typeof(...)' operator.
+        /// </remarks>
+        /// <param name="node"></param>
         private void DiscoverTemplateInstanceTypeAssignment(AssignmentExpressionSyntax node) {
             if (node.Kind() != SyntaxKind.SimpleAssignmentExpression)
                 return;
