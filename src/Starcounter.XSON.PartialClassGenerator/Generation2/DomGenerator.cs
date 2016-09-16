@@ -33,7 +33,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
         private TDecimal protoDecimal = new TDecimal();
         private TDouble protoDouble = new TDouble();
         private TBool protoBool = new TBool();
-        private TTrigger protoAction = new TTrigger();
         private TValue defaultObjTemplate = null;
         private TArray<Json> defaultArrayTemplate = null;
 
@@ -131,8 +130,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 return protoDecimal;
             } else if (template is TBool) {
                 return protoBool;
-            } else if (template is TTrigger) {
-                return protoAction;
             } else if (template is TObject) {
                 return defaultObjTemplate;
             } else if (template is TObjArr) {

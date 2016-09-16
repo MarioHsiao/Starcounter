@@ -43,10 +43,8 @@ namespace Starcounter.XSON.PartialClassGenerator {
 		/// </summary>
 		public string BackingFieldName {
 			get {
-				var tv = Template as TValue;
-				if (tv != null && !(tv is TTrigger)) {
+				if (Template is TValue)
 					return "__bf__" + MemberName + "__";
-				}
 				return null;
 			}
 		}

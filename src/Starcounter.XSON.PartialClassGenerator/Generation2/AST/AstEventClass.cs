@@ -69,19 +69,15 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 } else {
                     str += NTemplate.GlobalClassSpecifier;
                 }
-
-                // Triggers have no valuetype, and uses another generic input class.
-                if (!(NMember.Template is TTrigger)) {
-                    str += ", ";
-
-                    if (NMember.Type is AstJsonClass) {
-                        // this is an event for a single primitive value. Need to take template instancetype as generic parameter for the Input.
-                        str += HelperFunctions.GetGlobalClassSpecifier(NMember.Template.InstanceType, true);
-                    } else {
-                        str += NMember.Type.GlobalClassSpecifier;
-                    }
-                }
                 
+                str += ", ";
+
+                if (NMember.Type is AstJsonClass) {
+                    // this is an event for a single primitive value. Need to take template instancetype as generic parameter for the Input.
+                    str += HelperFunctions.GetGlobalClassSpecifier(NMember.Template.InstanceType, true);
+                } else {
+                    str += NMember.Type.GlobalClassSpecifier;
+                }
                 str += ">";
                 return str;
             }

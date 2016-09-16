@@ -40,16 +40,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// </summary>
         /// <value>The name of the input type.</value>
         public String InputTypeName { get; set; }
-
-        /// <summary>
-        /// If true the property is a valueproperty and not an action.
-        /// </summary>
-        public bool HasValue {
-            get {
-                return (!(BindsToProperty.Template is TTrigger));
-            }
-        }
-
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="AstInputBinding" /> class.
         /// </summary>

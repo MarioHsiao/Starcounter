@@ -31,9 +31,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
         {
             get
             {
-                if (NTemplateClass.Template is TTrigger)
-                    return "Action";
-
                 var type = NTemplateClass.Template.InstanceType;
                 if (type == typeof(Int64))
                 {

@@ -45,8 +45,6 @@ namespace Starcounter.XSON {
                         ParseAndProcess((TLong)aat.Property, aat.Json, valuePtr, valueSize);
                     } else if (aat.Property is TString) {
                         ParseAndProcess((TString)aat.Property, aat.Json, valuePtr, valueSize);
-                    } else if (aat.Property is TTrigger) {
-                        ParseAndProcess((TTrigger)aat.Property, aat.Json);
                     } else {
                         throw new JsonPatchException(
                             1,
@@ -135,11 +133,7 @@ namespace Starcounter.XSON {
             }
             property.ProcessInput(parent, value);
         }
-
-        private static void ParseAndProcess(TTrigger property, Json parent) {
-            property.ProcessInput(parent);
-        }
-
+        
         private static string ValueAsString(IntPtr valuePtr, int valueSize) {
             string value;
             int size;

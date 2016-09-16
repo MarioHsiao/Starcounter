@@ -127,9 +127,7 @@
     <Compile Include="Templates\TDecimal.cs" />
     <Compile Include="Templates\TDouble.cs" />
     <Compile Include="Templates\TLong.cs" />
-    <Compile Include="Templates\TOid.cs" />
     <Compile Include="Templates\TString.cs" />
-    <Compile Include="Templates\TTrigger.cs" />
     <Compile Include="Serializer\TypedJsonSerializer.cs" />
     <Compile Include="ValueMetaData\ArrMetadata.cs" />
     <Compile Include="ValueMetaData\BoolMetadata.cs" />
@@ -140,7 +138,6 @@
     <Compile Include="ValueMetaData\LongMetadata.cs" />
     <Compile Include="ValueMetaData\ObjMetadata.cs" />
     <Compile Include="ValueMetaData\StringMetadata.cs" />
-    <Compile Include="ValueMetaData\TriggerMetadata.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">

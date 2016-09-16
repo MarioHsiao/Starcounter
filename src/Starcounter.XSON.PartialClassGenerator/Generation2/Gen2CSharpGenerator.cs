@@ -384,9 +384,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// </summary>
         /// <param name="m">The m.</param>
         private void ProcessJsonProperty(AstProperty m) {
-            if (m.Template is TTrigger)
-                return;
-
             var sb = new StringBuilder();
 
             bool appendMemberName = (m.Template != ((AstJsonClass)m.Parent).Template);
@@ -626,7 +623,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// <param name="inputBinding"></param>
         /// <param name="schemaClass"></param>
         private void ProcessInputbinding(AstInputBinding inputBinding, AstSchemaClass schemaClass) {
-            bool hasValue = inputBinding.HasValue;
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
 
@@ -636,22 +632,14 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 sb.Append(inputBinding.BindsToProperty.Template.PropertyName);       // {0}
             }
             sb.Append(".AddHandler((Json pup, ");
-
-            if (hasValue) {
-                sb.Append("Property");
-                sb.Append('<');
-                sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
-                sb.Append('>');
-            } else {
-                sb.Append("TValue");
-            }
+            sb.Append("Property");
+            sb.Append('<');
+            sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append('>');
             sb.Append(" prop");
-
-            if (hasValue) {
-                sb.Append(", ");
-                sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
-                sb.Append(" value");
-            }
+            sb.Append(", ");
+            sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append(" value");
             sb.Append(") => { return (new ");
             sb.Append(inputBinding.InputTypeName);                       // {2}
             sb.Append("() { App = (");
@@ -659,19 +647,11 @@ namespace Starcounter.XSON.PartialClassGenerator {
             sb.Append(")pup, Template = (");
             sb.Append(inputBinding.BindsToProperty.Type.ClassStemIdentifier);      // {4}
             sb.Append(")prop");
-
-            if (hasValue) {
-                sb.Append(", Value = value");
-            }
-
+            sb.Append(", Value = value");
             sb.Append(" }); }, (Json pup, Starcounter.Input");
-
-            if (hasValue) {
-                sb.Append('<');
-                sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
-                sb.Append('>');
-            }
-
+            sb.Append('<');
+            sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append('>');
             sb.Append(" input) => { ((");
             sb.Append(inputBinding.DeclaringAppClass.ClassStemIdentifier);         // {5}
             sb.Append(")pup");
