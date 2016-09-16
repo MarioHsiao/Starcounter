@@ -17,9 +17,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
         private void ProcessInstanceTypeAssignments(TValue prototype, CodeBehindMetadata metadata) {
             foreach (var classInfo in metadata.CodeBehindClasses) {
                 TValue classRoot = generator.FindTemplate(classInfo, prototype);
-                if (classRoot == null)
-                    throw new Exception("TODO 0");
-
                 foreach (var typeAssignment in classInfo.InstanceTypeAssignments) {
                     ProcessOneTypeAssignment(classRoot, typeAssignment);
                 }
@@ -27,28 +24,33 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         private void ProcessOneTypeAssignment(TValue root, CodeBehindTypeAssignmentInfo typeAssignment) {
-            if (string.IsNullOrEmpty(typeAssignment.TemplatePath)) {
+            string[] parts = typeAssignment.TemplatePath.Split('.');
+            Template theTemplate;
+            TObject currentObject;
+
+            if (!"DefaultTemplate".Equals(parts?[0]))
+                throw new Exception("TODO! First part in typeassignment has to be the static field 'DefaultTemplate'");
+
+            if (parts.Length == 1) {
                 root.CodegenInfo.ReuseType = typeAssignment.TypeName;
             } else {
-                TObject tobj = root as TObject;
-                if (tobj == null)
-                    throw new Exception("Error 1");
-
-                string[] parts = typeAssignment.TemplatePath.Split('.');
+                currentObject = root as TObject;
+                if (currentObject == null)
+                    throw new Exception("TODO! Invalid template.");
                 
-                for (int i = 0; i < parts.Length - 1; i++) {
-                    tobj = tobj.Properties.GetTemplateByPropertyName(parts[i]) as TObject;
-                    if (tobj == null)
-                        throw new Exception("Error 2");
+                for (int i = 1; i < parts.Length - 1; i++) {
+                    currentObject = currentObject.Properties.GetTemplateByPropertyName(parts[i]) as TObject;
+                    if (currentObject == null)
+                        throw new Exception("TODO! Invalid template.");
                 }
 
-                var theTemplate = tobj.Properties.GetTemplateByPropertyName(parts[parts.Length - 1]);
+                theTemplate = currentObject.Properties.GetTemplateByPropertyName(parts[parts.Length - 1]);
                 if (theTemplate == null)
                     throw new Exception("Error 3");
 
-                Template newTemplate = CheckValidTypeConversion(theTemplate, typeAssignment.TypeName);
+                Template newTemplate = CheckValidTypeConversion(theTemplate, typeAssignment);
                 if (newTemplate != null) {
-                    tobj.Properties.Replace(newTemplate);
+                    currentObject.Properties.Replace(newTemplate);
                     newTemplate.BasedOn = null;
                 }
             }
@@ -61,42 +63,55 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// <param name="template"></param>
         /// <param name="typeName"></param>
         /// <returns></returns>
-        private Template CheckValidTypeConversion(Template template, string typeName) {
+        private Template CheckValidTypeConversion(Template template, CodeBehindTypeAssignmentInfo typeAssignment) {
             Template newTemplate = null;
             
             switch (template.TemplateTypeId) {
                 case TemplateTypeEnum.Decimal:
-                    if ("double".Equals(typeName, StringComparison.InvariantCultureIgnoreCase)) {
+                    if (IsDoubleType(typeAssignment.TypeName)) {
                         newTemplate = new TDouble();
                         template.CopyTo(newTemplate);
                         ((TDouble)newTemplate).DefaultValue = Convert.ToDouble(((TDecimal)template).DefaultValue);
-                    } else if ("decimal".Equals(typeName, StringComparison.InvariantCultureIgnoreCase)) {
-                        // Do nothing.
-                    } else {
-                        throw new Exception("Error 5");
+                    } else if (!IsDecimalType(typeAssignment.TypeName)) {
+                        throw new Exception("TODO! Invalid typeconversion. Supported are conversion decimal -> double");
                     }
                     break;
                 case TemplateTypeEnum.Double:
-                    if ("decimal".Equals(typeName, StringComparison.InvariantCultureIgnoreCase)) {
+                    if (IsDecimalType(typeAssignment.TypeName)) {
                         newTemplate = new TDecimal();
                         template.CopyTo(newTemplate);
                         ((TDecimal)newTemplate).DefaultValue = Convert.ToDecimal(((TDouble)template).DefaultValue);
-                    } else if ("decimal".Equals(typeName, StringComparison.InvariantCultureIgnoreCase)) {
-                        // Do nothing.
-                    } else {
-                        throw new Exception("Error 6");
+                    } else if (!IsDoubleType(typeAssignment.TypeName)) {
+                        throw new Exception("TODO! Invalid typeconversion. Supported are conversion double -> decimal");
                     }
                     break;
                 case TemplateTypeEnum.Object:
                     if (((TObject)template).Properties.Count > 0)
-                        throw new Exception("Error 7");
+                        throw new Exception("TODO! Can only use reuse on untyped objects");
 
-                    template.CodegenInfo.ReuseType = typeName;
+                    template.CodegenInfo.ReuseType = typeAssignment.TypeName;
+                    break;
+                case TemplateTypeEnum.Array:
+                    var elementTemplate = ((TObjArr)template).ElementType;
+                    if (elementTemplate != null)
+                        throw new Exception("TODO! Can only use reuse on untyped arrays");
+
+                    template.CodegenInfo.ReuseType = typeAssignment.TypeName;
                     break;
                 default:
-                    throw new Exception("Error 8");
+                    throw new Exception("TODO! Invalid type conversion. Only 'decimal', 'double', 'object' and 'array' supported");
             }
             return newTemplate;
+        }
+
+        private bool IsDoubleType(string typeName) {
+            return (typeName.Equals("double", StringComparison.InvariantCultureIgnoreCase)
+                        || typeName.Equals("System.Double"));
+        }
+
+        private bool IsDecimalType(string typeName) {
+            return (typeName.Equals("decimal", StringComparison.InvariantCultureIgnoreCase)
+                        || typeName.Equals("System.Decimal"));
         }
     }
 }

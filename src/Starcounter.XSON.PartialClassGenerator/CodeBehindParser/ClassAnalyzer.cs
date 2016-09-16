@@ -316,27 +316,16 @@ namespace Starcounter.XSON.PartialClassGenerator {
             if (propertyName == null || !propertyName.Equals("InstanceType"))
                 return;
 
-            // We only support assigingin using the typeof() syntax, since this is the most 
+            // We only support assigning using the typeof() syntax, since this is the most 
             // reasonable way for us to be able to get the name of the type. If the type
             // is assigned to a variable, the syntaxtree will look different and we will have 
             // to keep track of variable assignments as well.
-            // Also the syntaxtree looks different for predefined and custom types.
             var typeSyntax = node.Right as TypeOfExpressionSyntax;
             if (typeSyntax == null)
                 throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, node);
 
-            string instanceTypeName = null;
-            var typeKeywordSyntax = typeSyntax.Type as PredefinedTypeSyntax;
-            if (typeKeywordSyntax != null) {
-                instanceTypeName = typeKeywordSyntax.Keyword.ValueText;
-            } else {
-                var typeIdentifier = typeSyntax.Type as IdentifierNameSyntax;
-                if (typeIdentifier != null) {
-                    instanceTypeName = typeIdentifier.Identifier.ValueText;
-                }
-            }
-
-            if (instanceTypeName == null)
+            string instanceTypeName = typeSyntax.Type.ToString();
+            if (string.IsNullOrEmpty(instanceTypeName))
                 throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, node);
 
             // This is an assignment of 'InstanceType' and we have a type. Lets add 
@@ -344,7 +333,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             // when generating code. Unsupported conversions will be handled there.
             var typeAssignment = new CodeBehindTypeAssignmentInfo() {
                 TypeName = instanceTypeName,
-                TemplatePath = GetTemplateAssigmentPath(templateSyntax)
+                TemplatePath = templateSyntax.ToString(),
             };
             codeBehindMetadata.InstanceTypeAssignments.Add(typeAssignment);
         }
@@ -365,23 +354,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             var generic = name.Identifier.Text;
             return generic.Equals("IBound") || generic.Equals("Starcounter.IBound");
         }
-
-        private string GetTemplateAssigmentPath(MemberAccessExpressionSyntax node) {
-            string path = "";
-            
-            var prevExpr = node.Expression as MemberAccessExpressionSyntax;
-            if (prevExpr != null) {
-                path = GetTemplateAssigmentPath(prevExpr) + ".";
-            } else {
-                var identifier = node.Expression as IdentifierNameSyntax;
-                if (identifier == null || !"DefaultTemplate".Equals(identifier.Identifier.ValueText))
-                    throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, node);
-            }
-
-            path += node.Name.Identifier.ValueText;
-            return path;
-        }
-
+        
         InvalidCodeBehindException IllegalCodeBehindException(InvalidCodeBehindError error, CSharpSyntaxNode node = null) {
             return new InvalidCodeBehindException(error, node);
         }
