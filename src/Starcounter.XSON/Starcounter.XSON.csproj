@@ -74,36 +74,13 @@
     <Compile Include="Templates\Factory\SourceInfo.cs" />
     <Compile Include="JsonDebugHelper.cs" />
     <Compile Include="Templates\Factory\MetaTemplate.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstJSConstructor.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstJsonSerializerClass.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstBase.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstRoot.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstUnsafe.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstCase.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstDeserializeFunction.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstGotoProperty.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstGotoValue.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstSwitch.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstVerifier.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstWhile.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstJsonProperty.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstSerializeFunction.cs" />
-    <Compile Include="Serializer\Codegen\FTJCsharpGenerator.cs" />
-    <Compile Include="Serializer\Codegen\FTJDomGenerator.cs" />
-    <Compile Include="Serializer\Codegen\ParseTree\ParseNode.cs" />
-    <Compile Include="Serializer\Codegen\ParseTree\ParseTreeGenerator.cs" />
-    <Compile Include="Serializer\Codegen\ParseTree\TemplateMetadata.cs" />
-    <Compile Include="Serializer\Codegen\StdCSharpGenerator.cs" />
-    <Compile Include="Serializer\Codegen\StdDomGenerator.cs" />
     <Compile Include="Serializer\JsonSerializerSettings.cs" />
     <Compile Include="Serializer\Json\StandardJsonSerializerBase.cs" />
-    <Compile Include="Serializer\SerializerCompiler.cs" />
     <Compile Include="Class Json\IBound.cs" />
     <Compile Include="Class Json\Json.Object.ChangeLog.cs" />
     <Compile Include="Class Json\Json.Array.cs" />
     <Compile Include="Class Json\Arr.cs" />
     <Compile Include="ReflectionHelper.cs" />
-    <Compile Include="Serializer\FTJ\FasterThanJsonSerializer.cs" />
     <Compile Include="Sessions\JSON-Patch\ChangeLog.cs" />
     <Compile Include="Sessions\JSON-Patch\DefaultPatchHandler.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatchException.cs" />
@@ -186,9 +163,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Serializer\Codegen\AstTree\FromJson\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

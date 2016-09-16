@@ -243,8 +243,6 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestDirtyFlagsWithoutBinding() {
-            XSONModule.UseCodegeneratedSerializer = false;
-
             dynamic j = new Json();
             dynamic nicke = new Json();
             nicke.FirstName = "Nicke";
@@ -295,8 +293,6 @@ namespace Starcounter.Internal.XSON.Tests {
 
       //  [Test]
         public static void TestDirtyFlagsWithBinding() {
-            XSONModule.UseCodegeneratedSerializer = false;
-
             Person nickeDb = new Person();
             Person jockeDb = new Person();
             Person henrikDb = new Person();
@@ -358,8 +354,6 @@ namespace Starcounter.Internal.XSON.Tests {
 
      //   [Test]
         public static void TestJsonPatchSimpleMix() {
-            XSONModule.UseCodegeneratedSerializer = false;
-
             dynamic j = new Json();
             dynamic nicke = new Json();
             nicke.FirstName = "Nicke";

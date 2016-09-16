@@ -9,38 +9,19 @@ namespace Starcounter.Internal.XSON.Modules {
     /// Represents this module
     /// </summary>
     public static class Starcounter_XSON {
-        private static bool useCodeGeneratedSerializer = false;
         private static Dictionary<string, uint> jsonSerializerIndexes = new Dictionary<string, uint>();
         private static List<TypedJsonSerializer> jsonSerializers = new List<TypedJsonSerializer>();
 
         internal static uint StandardJsonSerializerId;
-        internal static uint FTJSerializerId;
-
+        
         /// <summary>
         /// 
         /// </summary>
         public static void Initialize() {
             StandardJsonSerializerId = RegisterJsonSerializer("json", new StandardJsonSerializer());
-//            FTJSerializerId = RegisterJsonSerializer("ftj", new FasterThanJsonSerializer());
             JsonByExample.Initialize();
         }
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static bool UseCodegeneratedSerializer {
-            get { return useCodeGeneratedSerializer; }
-            set { useCodeGeneratedSerializer = value; }
-        }
-
-        /// <summary>
-        /// If set to true the codegeneration for the serializer will not be done in a background
-        /// and execution will wait until the generated serializer is ready to be used. This is 
-        /// used by for example unittests, where you want to test the genererated code specifically.
-        /// </summary>
-        internal static bool DontCreateSerializerInBackground { get; set; }
-
+        
         /// <summary>
         /// 
         /// </summary>
