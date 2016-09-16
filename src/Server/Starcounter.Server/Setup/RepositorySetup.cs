@@ -180,7 +180,15 @@ namespace Starcounter.Server.Setup {
             this.Structure.Create();
             this.ServerConfiguration.Save(this.Structure.ServerConfigurationPath);
 
-            string samplePath = Path.Combine(Path.GetDirectoryName(this.Structure.ServerConfigurationPath), ".sample" + DatabaseConfiguration.FileExtension);
+            String serverDir = Path.GetDirectoryName(this.Structure.ServerConfigurationPath);
+
+            // Copying sample network gateway config to server directory.
+            File.Copy(
+                Path.Combine(StarcounterEnvironment.InstallationDirectory, StarcounterEnvironment.FileNames.GatewayConfigSampleFileName),
+                Path.Combine(serverDir, StarcounterEnvironment.FileNames.GatewayConfigFileName),
+                true);
+
+            string samplePath = Path.Combine(serverDir, ".sample" + DatabaseConfiguration.FileExtension);
             var sample = ServerConfiguration.DefaultDatabaseConfiguration.Clone(samplePath);
             sample.Save();
         }
