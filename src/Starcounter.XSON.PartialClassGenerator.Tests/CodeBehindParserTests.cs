@@ -398,19 +398,19 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var cbClass = roslyn.RootClassInfo;
             var typeAssignments = cbClass.InstanceTypeAssignments;
             Assert.AreEqual(4, typeAssignments.Count);
-            Assert.AreEqual("ElapsedTime", typeAssignments[0].TemplatePath);
+            Assert.AreEqual("DefaultTemplate.ElapsedTime", typeAssignments[0].TemplatePath);
             Assert.AreEqual("double", typeAssignments[0].TypeName);
-            Assert.AreEqual("Page", typeAssignments[1].TemplatePath);
+            Assert.AreEqual("DefaultTemplate.Page", typeAssignments[1].TemplatePath);
             Assert.AreEqual("MyOtherJson", typeAssignments[1].TypeName);
-            Assert.AreEqual("Page.ChildOfPage", typeAssignments[2].TemplatePath);
+            Assert.AreEqual("DefaultTemplate.Page.ChildOfPage", typeAssignments[2].TemplatePath);
             Assert.AreEqual("Int64", typeAssignments[2].TypeName);
-            Assert.AreEqual("Page.SubPage.SuberPage.Value", typeAssignments[3].TemplatePath);
+            Assert.AreEqual("DefaultTemplate.Page.SubPage.SuberPage.Value", typeAssignments[3].TemplatePath);
             Assert.AreEqual("decimal", typeAssignments[3].TypeName);
             
             cbClass = roslyn.CodeBehindClasses.Find((item) => { return !item.IsRootClass; });
             typeAssignments = cbClass.InstanceTypeAssignments;
             Assert.AreEqual(1, typeAssignments.Count);
-            Assert.AreEqual("PartialTime", typeAssignments[0].TemplatePath);
+            Assert.AreEqual("DefaultTemplate.PartialTime", typeAssignments[0].TemplatePath);
             Assert.AreEqual("double", typeAssignments[0].TypeName);
         }
 

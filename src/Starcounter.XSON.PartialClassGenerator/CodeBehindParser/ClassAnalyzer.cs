@@ -334,13 +334,17 @@ namespace Starcounter.XSON.PartialClassGenerator {
             string instanceTypeName = typeSyntax.Type.ToString();
             if (string.IsNullOrEmpty(instanceTypeName))
                 throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, node);
+            
+            var templatePath = templateSyntax.ToString();
+            if (!templatePath.StartsWith("DefaultTemplate."))
+                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, node);
 
             // This is an assignment of 'InstanceType' and we have a type. Lets add 
             // everything to the metadata object so that we can handle the conversion 
             // when generating code. Unsupported conversions will be handled there.
             var typeAssignment = new CodeBehindTypeAssignmentInfo() {
                 TypeName = instanceTypeName,
-                TemplatePath = templateSyntax.ToString(),
+                TemplatePath = templatePath
             };
             codeBehindMetadata.InstanceTypeAssignments.Add(typeAssignment);
         }
