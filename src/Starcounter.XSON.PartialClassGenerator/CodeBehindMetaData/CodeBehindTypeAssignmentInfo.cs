@@ -5,7 +5,7 @@
     public class CodeBehindTypeAssignmentInfo {
         /// <summary>
         /// The full path of the template that assigned the property 'InstanceType'
-        /// in code-behind
+        /// in code-behind (excluding 'InstanceType')
         /// </summary>
         public string TemplatePath;
 

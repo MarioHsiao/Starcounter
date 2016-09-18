@@ -298,13 +298,14 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         /// <summary>
-        /// Finds and stores all assignment of property 'InstanceType' 
+        /// Finds and stores all assignments of property 'InstanceType'. All other assignments 
+        /// are ignored.
         /// </summary>
         /// <remarks>
-        /// To keep the logic for detecting assignments and getting path and type-information
+        /// To keep the logic for detecting assignments and getting path and typeinformation
         /// simple some restrictions are needed on how the assignement can look.
         /// 1) The path for the template needs to start with the static field 'DefaultTemplate'
-        /// 2) The type assignment needs to use the 'typeof(...)' operator.
+        /// 2) The type that is assigned needs to be retrieved using the 'typeof(...)' operator.
         /// </remarks>
         /// <param name="node"></param>
         private void DiscoverTemplateInstanceTypeAssignment(AssignmentExpressionSyntax node) {

@@ -4745,6 +4745,18 @@
         Input handler methods must have void return type.
       </message>
     </code>
+    <code hex="0022" severity="Error" name="ScErrJsonInvalidInstanceTypeAssignment">
+      <message>
+        Assignment of instancetype for a TypedJSON member must follow the pattern:
+        'DefaultTemplate.{memberpath}.InstanceType = typeof({type});'.
+      </message>
+    </code>
+    <code hex="0023" severity="Error" name="ScErrJsonUnsupportedInstanceTypeAssignment">
+      <message> 
+        Unsupported assignment of instancetype. Valid types are 'double' and 'decimal' for
+        members with decimal or double value and any type that is TypedJSON for untyped (empty) objects.
+      </message>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->

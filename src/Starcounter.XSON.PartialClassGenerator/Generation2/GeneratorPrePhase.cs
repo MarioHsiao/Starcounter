@@ -1,4 +1,5 @@
 ﻿using System;
+using Starcounter.Internal;
 using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 
@@ -37,25 +38,41 @@ namespace Starcounter.XSON.PartialClassGenerator {
             Template theTemplate;
             TObject currentObject;
 
-            if (!"DefaultTemplate".Equals(parts?[0]))
-                throw new Exception("TODO! First part in typeassignment has to be the static field 'DefaultTemplate'");
+            if (!"DefaultTemplate".Equals(parts?[0])) {
+                generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
+                                                     "Path does not start with field 'DefaultTemplate'",
+                                                     null,
+                                                     root.CodegenInfo.SourceInfo);
+            }
 
             if (parts.Length == 1) {
                 root.CodegenInfo.ReuseType = typeAssignment.TypeName;
             } else {
                 currentObject = root as TObject;
-                if (currentObject == null)
-                    throw new Exception("TODO! Invalid template.");
-                
+                if (currentObject == null) {
+                    generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
+                                                     "Member '" + root.PropertyName + "' is not an object",
+                                                     null,
+                                                     root.CodegenInfo.SourceInfo);
+                }
+
                 for (int i = 1; i < parts.Length - 1; i++) {
                     currentObject = currentObject.Properties.GetTemplateByPropertyName(parts[i]) as TObject;
-                    if (currentObject == null)
-                        throw new Exception("TODO! Invalid template.");
+                    if (currentObject == null) {
+                        generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
+                                                         "Member '" + parts[i] + "' was not found",
+                                                         null,
+                                                         root.CodegenInfo.SourceInfo);
+                    }
                 }
 
                 theTemplate = currentObject.Properties.GetTemplateByPropertyName(parts[parts.Length - 1]);
-                if (theTemplate == null)
-                    throw new Exception("Error 3");
+                if (theTemplate == null) {
+                    generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
+                                                     "Member '" + parts[parts.Length - 1] + "' was not found",
+                                                     null,
+                                                     root.CodegenInfo.SourceInfo);
+                }
 
                 Template newTemplate = CheckAndProcessTypeConversion(theTemplate, typeAssignment.TypeName);
                 if (newTemplate != null) {
@@ -88,7 +105,10 @@ namespace Starcounter.XSON.PartialClassGenerator {
                         template.CopyTo(newTemplate);
                         ((TDouble)newTemplate).DefaultValue = Convert.ToDouble(((TDecimal)template).DefaultValue);
                     } else if (!IsDecimalType(typeName)) {
-                        throw new Exception("TODO! Invalid typeconversion. Supported are conversion decimal -> double");
+                        generator.ThrowExceptionWithLineInfo(Error.SCERRJSONUNSUPPORTEDINSTANCETYPEASSIGNMENT,
+                                                             null,
+                                                             null,
+                                                             template.CodegenInfo.SourceInfo);
                     }
                     break;
                 case TemplateTypeEnum.Double:
@@ -97,24 +117,40 @@ namespace Starcounter.XSON.PartialClassGenerator {
                         template.CopyTo(newTemplate);
                         ((TDecimal)newTemplate).DefaultValue = Convert.ToDecimal(((TDouble)template).DefaultValue);
                     } else if (!IsDoubleType(typeName)) {
-                        throw new Exception("TODO! Invalid typeconversion. Supported are conversion double -> decimal");
+                        generator.ThrowExceptionWithLineInfo(Error.SCERRJSONUNSUPPORTEDINSTANCETYPEASSIGNMENT,
+                                                             null,
+                                                             null,
+                                                             template.CodegenInfo.SourceInfo);
                     }
                     break;
                 case TemplateTypeEnum.Object:
-                    if (((TObject)template).Properties.Count > 0)
-                        throw new Exception("TODO! Can only use reuse on untyped objects");
-
+                    if (((TObject)template).Properties.Count > 0) {
+                        generator.ThrowExceptionWithLineInfo(Error.SCERRJSONUNSUPPORTEDINSTANCETYPEASSIGNMENT,
+                                                             null,
+                                                             null,
+                                                             template.CodegenInfo.SourceInfo);
+                    }
                     template.CodegenInfo.ReuseType = typeName;
                     break;
-                case TemplateTypeEnum.Array:
-                    var elementTemplate = ((TObjArr)template).ElementType;
-                    if (elementTemplate != null)
-                        throw new Exception("TODO! Can only use reuse on untyped arrays");
 
-                    template.CodegenInfo.ReuseType = typeName;
-                    break;
+                // Currently reusing type on array is not implemented properly, so for now we block 
+                // the possiblity to have an error when trying to set instancetype.
+                //case TemplateTypeEnum.Array:
+                //    var elementTemplate = ((TObjArr)template).ElementType;
+                //    if (elementTemplate != null) {
+                //        generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEREUSE,
+                //                                             null,
+                //                                             null,
+                //                                             template.CodegenInfo.SourceInfo);
+                //    }
+                //    template.CodegenInfo.ReuseType = typeName;
+                //    break;
                 default:
-                    throw new Exception("TODO! Invalid type conversion. Only 'decimal', 'double', 'object' and 'array' supported");
+                    generator.ThrowExceptionWithLineInfo(Error.SCERRJSONUNSUPPORTEDINSTANCETYPEASSIGNMENT,
+                                                             null,
+                                                             null,
+                                                             template.CodegenInfo.SourceInfo);
+                    break;
             }
             return newTemplate;
         }
