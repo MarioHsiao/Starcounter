@@ -1,26 +1,26 @@
 ﻿using System.IO;
 using Xunit;
 using Xunit.Abstractions;
+using Starcounter.UnitTesting.xUnit.ResultFormatters;
 
 namespace Starcounter.UnitTesting.xUnit
 {
     internal class xUnitTestAssemblyRunner : IMessageSink
     {
         readonly xUnitTestAssembly assembly;
-        readonly StreamWriter resultWriter;
         readonly TestResult result;
+        readonly IResultFormatter resultFormatter;
 
-        public xUnitTestAssemblyRunner(xUnitTestAssembly a, TestResult r, StreamWriter writer)
+        public xUnitTestAssemblyRunner(xUnitTestAssembly a, TestResult r, IResultFormatter formatter)
         {
             assembly = a;
             result = r;
-            resultWriter = writer;
+            resultFormatter = formatter;
         }
         
         public void Run()
         {
-            var header = $"--{assembly.AssemblyPath}";
-            resultWriter.WriteLine(header);
+            resultFormatter.BeginAssembly(assembly);
 
             if (assembly.ContainTests)
             {
@@ -29,12 +29,8 @@ namespace Starcounter.UnitTesting.xUnit
 
                 front.RunTests(tests, this, GetExecutionOptions());
             }
-            else
-            {
-                resultWriter.WriteLine("-- No tests defined");
-            }
             
-            resultWriter.WriteLine("--");
+            resultFormatter.EndAssembly(assembly);
         }
 
         ITestFrameworkExecutionOptions GetExecutionOptions()
@@ -53,28 +49,12 @@ namespace Starcounter.UnitTesting.xUnit
             return options;
         }
         
-        void React(ITestStarting test)
-        {
-            if (test != null)
-            {
-                resultWriter.WriteLine($"Starting-{test.Test.DisplayName}");
-            }
-        }
-
-        void React(ITestFinished test)
-        {
-            if (test != null)
-            {
-                resultWriter.WriteLine($"Finished-{test.Test.DisplayName}");
-            }
-        }
-
         void React(ITestPassed test)
         {
             if (test != null)
             {
                 result.TestsSucceeded++;
-                resultWriter.WriteLine($"Passed-{test.Test.DisplayName}");
+                resultFormatter.TestPassed(assembly, test);
             }
         }
 
@@ -83,7 +63,7 @@ namespace Starcounter.UnitTesting.xUnit
             if (test != null)
             {
                 result.TestsFailed++;
-                resultWriter.WriteLine($"Failed-{test.Test.DisplayName}");
+                resultFormatter.TestFailed(assembly, test);
             }
         }
 
@@ -92,14 +72,12 @@ namespace Starcounter.UnitTesting.xUnit
             if (test != null)
             {
                 result.TestsSkipped++;
-                resultWriter.WriteLine($"Skipped-{test.Test.DisplayName}:{test.Reason}");
+                resultFormatter.TestSkipped(assembly, test);
             }
         }
 
         bool IMessageSink.OnMessage(IMessageSinkMessage message)
         {
-            React(message as ITestStarting);
-            React(message as ITestFinished);
             React(message as ITestPassed);
             React(message as ITestFailed);
             React(message as ITestSkipped);

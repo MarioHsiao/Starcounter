@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Starcounter.UnitTesting.xUnit.ResultFormatters;
 
 namespace Starcounter.UnitTesting.xUnit
 {
@@ -14,11 +15,18 @@ namespace Starcounter.UnitTesting.xUnit
 
         protected override void Run(IEnumerable<TestAssembly> assemblies, TestResult result, StreamWriter writer)
         {
-            foreach (var xUnitTestAssembly in assemblies.Cast<xUnitTestAssembly>())
+            var xunitAssemblies = assemblies.Cast<xUnitTestAssembly>().ToArray();
+
+            var formatter = new HtmlResultFormatter(writer);
+            formatter.Open(xunitAssemblies);
+
+            foreach (var xUnitTestAssembly in xunitAssemblies)
             {
-                var runner = new xUnitTestAssemblyRunner(xUnitTestAssembly, result, writer);
+                var runner = new xUnitTestAssemblyRunner(xUnitTestAssembly, result, formatter);
                 runner.Run();
             }
+
+            formatter.Close();
         }
     }
 }
