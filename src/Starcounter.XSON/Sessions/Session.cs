@@ -257,7 +257,7 @@ namespace Starcounter {
         /// <summary>
         /// Schedule a task on specific session.
         /// </summary>
-        /// <param name="sessionId">String representing the session (string is obtained from Session.ToAsciiString()).</param>
+        /// <param name="sessionId">String representing the session (string is obtained from Session.SessionId).</param>
         /// <param name="task">Task to run on session. Note that Session value can still be null (if session was destroyed in the meantime).
         /// Second string parameter is the session ASCII representation (useful in case if Session value is null).</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
@@ -284,7 +284,7 @@ namespace Starcounter {
         /// <summary>
         /// Schedule a task on given sessions.
         /// </summary>
-        /// <param name="sessionId">String representing the session (string is obtained from Session.ToAsciiString()).</param>
+        /// <param name="sessionId">String representing the session (string is obtained from Session.SessionId).</param>
         /// <param name="task">Task to run on session. Note that Session value can still be null (if session was destroyed in the meantime).
         /// Second string parameter is the session ASCII representation (useful in case if Session value is null).</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
