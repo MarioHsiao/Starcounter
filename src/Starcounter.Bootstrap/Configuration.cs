@@ -265,6 +265,11 @@ namespace StarcounterInternal.Bootstrap
                 StarcounterEnvironment.MergeJsonSiblings = Boolean.Parse(s);
             }
 
+            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.XFilePathHeader);
+            if (ProgramArguments.TryGetProperty(propName, out s)) {
+                StarcounterEnvironment.XFilePathHeader = Boolean.Parse(s);
+            }
+
             propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.RequestFiltersEnabled);
             if (ProgramArguments.TryGetProperty(propName, out s)) {
                 StarcounterEnvironment.RequestFiltersEnabledSetting = Boolean.Parse(s);

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "PuppetJs": "^2.2.0",
+    "PuppetJs": ">=2.2.1",
     "puppet-client": "PuppetJs/puppet-polymer-client#^3.2.0",
     "imported-template": ">=1.4.3",
     "puppet-redirect": "PuppetJs/puppet-redirect#~0.4.0",
@@ -14,7 +14,7 @@
     "polymer": ">=1.6.0"
   },
   "resolutions": {
-    "fast-json-patch": "~1.0.0",
+    "fast-json-patch": ">=1.1.0",
     "polymer": ">=1.6.0"
   }
 }
