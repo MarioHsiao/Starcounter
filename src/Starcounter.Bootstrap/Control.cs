@@ -220,7 +220,7 @@ namespace StarcounterInternal.Bootstrap {
                     ConfigureDatabase(configuration);
                     OnDatabaseConfigured();
 
-                    ConnectDatabase(configuration.InstanceID, schedulerCount, hlogs);
+                    ConnectDatabase(configuration.DbUUID, schedulerCount, hlogs);
                     OnDatabaseConnected();
                 }
 
@@ -513,8 +513,8 @@ namespace StarcounterInternal.Bootstrap {
 
         /// <summary>
         /// </summary>
-        private unsafe void ConnectDatabase(uint instanceId, uint schedulerCount, ulong hlogs) {
-            uint e = sccoredb.sccoredb_connect(instanceId, schedulerCount, hlogs);
+        private unsafe void ConnectDatabase(Guid db_uuid, uint schedulerCount, ulong hlogs) {
+            uint e = sccoredb.sccoredb_connect(ref db_uuid, schedulerCount, hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
             // Start thread to process asynchronous messages from data manager. Required to handle

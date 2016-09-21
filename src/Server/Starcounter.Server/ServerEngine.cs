@@ -22,8 +22,6 @@ namespace Starcounter.Server {
     /// Representing the running server, hosted in a server program.
     /// </summary>
     public sealed class ServerEngine {
-        const ulong FirstInstanceID = 1;
-
         /// <summary>
         /// Gets the simple name of the server.
         /// </summary>
@@ -249,31 +247,7 @@ namespace Starcounter.Server {
             return info;
         }
 
-        /// <summary>
-        /// Allocates a new, unique database instance ID based on the
-        /// current set of already configured databases.
-        /// </summary>
-        /// <returns>A unique instance ID that can be assigned to a
-        /// database.</returns>
-        internal ulong AllocateNextDatabaseInstanceID() {
-            // The current implementation is not very efficient, but
-            // but motivated because it is very straightforward and the
-            // penalty comes as part of creating new databases, in which
-            // the "slowness" of this will totally drown anyway.
-            ulong candidate = FirstInstanceID;
-            do {
-                var occupant = Databases.Values.FirstOrDefault(db => db.InstanceID == candidate);
-                if (occupant == null) {
-                    return candidate;
-                }
-            } while (++candidate < byte.MaxValue);
-
-            throw ErrorCode.ToException(Error.SCERRTOOMANYDATABASES);
-        }
-
         void SetupDatabases() {
-            var instanceId = FirstInstanceID;
-
             foreach (var databaseConfigPath in DatabaseConfiguration.GetAllFiles(this.DatabaseDirectory)) {
                 var databaseDirectory = Path.GetDirectoryName(databaseConfigPath);
                 var databaseName = Path.GetFileName(databaseDirectory).ToLowerInvariant();
@@ -283,10 +257,8 @@ namespace Starcounter.Server {
                     // be considered by the server.
                     var config = DatabaseConfiguration.Load(databaseConfigPath);
                     var database = new Database(this, config);
-                    database.InstanceID = instanceId;
 
                     this.Databases.Add(databaseName, database);
-                    instanceId++;
                 }
 
                 // Check for orphaned database files and enque a command to drop

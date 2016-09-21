@@ -23,7 +23,7 @@ IF NOT EXIST %DB_DIR% ( MKDIR %DB_DIR% )
 IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 
 :: Creating image files.
-sccreatedb.exe -ip %DB_DIR% %DB_NAME%
+sccreatedb.exe -ip %DB_DIR% -uuid "def000db-dfdb-dfdb-dfdb-def0db0df0db" %DB_NAME%
 
 :: Weaving the test.
 CALL scweaver.exe --FLAG:disableeditionlibraries "s\%TEST_NAME%\%TEST_NAME%.exe"
@@ -48,7 +48,7 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Starting database memory management process.
-START CMD /C "scdata.exe -instid 1 "{ \"eventloghost\": \"%DB_NAME%\", \"eventlogdir\": \"%DB_OUT_DIR%\", \"databasename\": \"%DB_NAME%\", \"databasedir\": \"%DB_DIR%\" }""
+START CMD /C "scdata.exe "{ \"eventloghost\": \"%DB_NAME%\", \"eventlogdir\": \"%DB_OUT_DIR%\", \"databasename\": \"%DB_NAME%\", \"databasedir\": \"%DB_DIR%\" }""
 
 :: Starting Prolog process.
 START CMD /C "32bitComponents\scsqlparser.exe 8066"
@@ -57,7 +57,7 @@ START CMD /C "32bitComponents\scsqlparser.exe 8066"
 ping -n 3 127.0.0.1 > nul
 
 :: Starting database with some delay.
-sccode.exe 1 %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
+sccode.exe "def000db-dfdb-dfdb-dfdb-def0db0df0db" %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
 
 IF %ERRORLEVEL% NEQ 0 (
 
@@ -65,7 +65,7 @@ IF %ERRORLEVEL% NEQ 0 (
     EXIT /b 1
 )
 
-sccode.exe 1 %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
+sccode.exe "def000db-dfdb-dfdb-dfdb-def0db0df0db" %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
 
 IF %ERRORLEVEL% NEQ 0 (
 
