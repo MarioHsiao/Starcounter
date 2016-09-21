@@ -476,7 +476,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // First test that the autocheck works.
             person.FirstName = "Changed";
-            Change[] changes = json.ChangeLog.Generate(true);
+            Change[] changes;
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
            
             Assert.AreEqual(1, changes.Length);
             Assert.AreEqual(tJson.Properties[0], changes[0].Property);
@@ -536,7 +537,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Assert.AreNotEqual(recursive.Recursives.Count, json.Recursives.Count);
 
-            Change[] changes = json.ChangeLog.Generate(true);
+            Change[] changes;
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
             Assert.AreEqual(0, changes.Length);
             json.ChangeLog.Checkpoint();
 
@@ -716,7 +718,8 @@ namespace Starcounter.Internal.XSON.Tests {
             root.Page = page;
             session.Data = root;
 
-            Change[] changes = root.ChangeLog.Generate(true);
+            Change[] changes;
+            Assert.IsTrue(root.ChangeLog.Generate(true, out changes));
 
             dynamic sibling = new Json();
             
@@ -788,7 +791,8 @@ namespace Starcounter.Internal.XSON.Tests {
             root.Page = page;
             session.Data = root;
 
-            Change[] changes = root.ChangeLog.Generate(true);
+            Change[] changes;
+            Assert.IsTrue(root.ChangeLog.Generate(true, out changes));
             
             dynamic siblingRoot = new Json();
             dynamic sibling = new Json();
