@@ -64,8 +64,10 @@ namespace Starcounter.Internal {
                     Int32 sizeBytes = jsonPatch.Generate(root, true,
                         session.CheckOption(SessionOptions.IncludeNamespaces), out patchResponse);
 
-                    // Sending the patch bytes to the client.
-                    ws.Send(patchResponse, sizeBytes, ws.IsText);
+                    if (sizeBytes >= 0) {
+                        // Sending the patch bytes to the client.
+                        ws.Send(patchResponse, sizeBytes, ws.IsText);
+                    }
                 } else if (patchCount == 0) {
                     // ping, send empty patch back.
                     ws.Send(emptyPatchArr, 2, ws.IsText);

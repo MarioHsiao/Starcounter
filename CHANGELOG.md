@@ -40,6 +40,7 @@
 - Fixed a bug where using an empty jsonobject as response for a mapped uri, did not get properly serialized to client or changes collected correctly when sending patches [#3755](https://github.com/Starcounter/Starcounter/issues/3755)
 - Fixed detecting if a jsonobject is already merged or not when attaching it to a parent [#3771](https://github.com/Starcounter/Starcounter/issues/3771)
 - Fixed a bug in TypedJSON where versionlog of changes in arrays were not properly updated, which in some cases led to a `NullReferenceException` being thrown [#3816](https://github.com/Starcounter/Starcounter/issues/3816)  
+- Fixed a bug where pushing changes on websocket could cause versioning and patches to be messed up [#3844](https://github.com/Starcounter/Starcounter/issues/3844)
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)

@@ -10,11 +10,13 @@ namespace Starcounter.XSON {
         private bool brandNew;
         private Json employer;
         private ViewModelVersion version;
+        private bool isGeneratingChanges;
 
         public ChangeLog(Json employer) {
             this.changes = new List<Change>();
             this.employer = employer;
             this.brandNew = true;
+            this.isGeneratingChanges = false;
         }
 
         public ChangeLog(Json employer, ViewModelVersion version) : this(employer) {
@@ -75,23 +77,32 @@ namespace Starcounter.XSON {
         /// <summary>
         /// Logs all changes since the last JSON-Patch update. This method generates the log
         /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
+        /// If called recursively, the method will return false and not collect any changes.
         /// </summary>
-        public Change[] Generate(bool flushLog) {
-            if (version != null)
-                version.LocalVersion++;
-
-            if (brandNew) {
-                changes.Add(Change.Add(employer));
-            } else {
-                employer.LogValueChangesWithDatabase(this, true);
+        public bool Generate(bool flushLog, out Change[] changeArr) {
+            if (this.isGeneratingChanges) {
+                changeArr = null;
+                return false;
             }
-            
-            var arr = changes.ToArray();
 
-            if (flushLog) {
-                this.Checkpoint();
+            try {
+                this.isGeneratingChanges = true;
+                if (version != null)
+                    version.LocalVersion++;
+                    
+                if (brandNew) {
+                    changes.Add(Change.Add(employer));
+                } else {
+                    employer.LogValueChangesWithDatabase(this, true);
+                }
+
+                changeArr = changes.ToArray();
+                if (flushLog) 
+                    this.Checkpoint();
+                return true;
+            } finally {
+                this.isGeneratingChanges = false;
             }
-            return arr;
         }
         
         /// <summary>
@@ -143,17 +154,17 @@ namespace Starcounter.XSON {
 
         public long LocalVersion {
             get { return localVersion; }
-            set { localVersion = value; }
+            internal set { localVersion = value; }
         }
 
         public long RemoteVersion {
             get { return remoteVersion; }
-            set { remoteVersion = value; }
+            internal set { remoteVersion = value; }
         }
 
         public long RemoteLocalVersion {
             get { return remoteLocalVersion; }
-            set { remoteLocalVersion = value; }
+            internal set { remoteLocalVersion = value; }
         }
 
         internal void EnqueuePatch(byte[] patchArray, int index) {
