@@ -489,14 +489,14 @@ namespace Starcounter.Internal.XSON.Tests {
             json.AutoRefreshBoundProperties = false;
             person.FirstName = "ChangedAgain";
 
-            changes = json.ChangeLog.Generate(true);
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
             Assert.AreEqual(0, changes.Length);
             json.ChangeLog.Checkpoint();
             
 
             // Last, manual refresh
             json.Refresh(tJson.Properties[0]);
-            changes = json.ChangeLog.Generate(true);
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
             
             Assert.AreEqual(1, changes.Length);
             Assert.AreEqual(tJson.Properties[0], changes[0].Property);
@@ -736,7 +736,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsFalse(sibling.HasBeenSent);
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
             
-            changes = root.ChangeLog.Generate(true);
+            Assert.IsTrue(root.ChangeLog.Generate(true, out changes));
 
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0]));
             Assert.IsFalse(sibling.dirty);
@@ -811,14 +811,14 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsFalse(sibling.HasBeenSent);
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
 
-            changes = root.ChangeLog.Generate(true);
+            Assert.IsTrue(root.ChangeLog.Generate(true, out changes));
 
             // Replacing Current on siblingRoot should not lead to that the siblings are updated.
             sibling = new Json();
             sibling.Header = "New sibling";
             siblingRoot.Current = sibling;
 
-            changes = root.ChangeLog.Generate(true);
+            Assert.IsTrue(root.ChangeLog.Generate(true, out changes));
 
             Assert.AreEqual(0, changes.Length);
         }
