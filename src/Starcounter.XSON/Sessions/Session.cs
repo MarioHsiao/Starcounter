@@ -195,8 +195,10 @@ namespace Starcounter {
                 CheckOption(SessionOptions.IncludeNamespaces), 
                 out patch);
 
-            // Sending the patch bytes to the client.
-            ActiveWebSocket.Send(patch, sizeBytes, true);
+            if (sizeBytes >= 0) {
+                // Sending the patch bytes to the client.
+                ActiveWebSocket.Send(patch, sizeBytes, true);
+            }
         }
 
         /// <summary>

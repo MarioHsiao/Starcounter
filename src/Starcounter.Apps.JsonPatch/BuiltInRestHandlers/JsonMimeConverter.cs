@@ -55,10 +55,12 @@ namespace Starcounter.Internal {
                     }
 
                     int size = jsonPatch.Generate(s.PublicViewModel, true, s.CheckOption(SessionOptions.IncludeNamespaces), out ret);
-                    if (ret.Length != size) {
-                        byte[] tmp = new byte[size];
-                        Buffer.BlockCopy(ret, 0, tmp, 0, size);
-                        ret = tmp;
+                    if (size >= 0) {
+                        if (ret.Length != size) {
+                            byte[] tmp = new byte[size];
+                            Buffer.BlockCopy(ret, 0, tmp, 0, size);
+                            ret = tmp;
+                        }
                     }
                     break;
                 default:
