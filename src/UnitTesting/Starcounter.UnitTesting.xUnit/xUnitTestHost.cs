@@ -17,7 +17,8 @@ namespace Starcounter.UnitTesting.xUnit
         {
             var xunitAssemblies = assemblies.Cast<xUnitTestAssembly>().ToArray();
 
-            var formatter = new HtmlResultFormatter(writer);
+            var formatter = CreateResultFormatter(writer);
+
             formatter.Open(xunitAssemblies);
 
             foreach (var xUnitTestAssembly in xunitAssemblies)
@@ -27,6 +28,11 @@ namespace Starcounter.UnitTesting.xUnit
             }
 
             formatter.Close();
+        }
+
+        IResultFormatter CreateResultFormatter(StreamWriter writer)
+        {
+            return new HtmlResultFormatter(writer);
         }
     }
 }
