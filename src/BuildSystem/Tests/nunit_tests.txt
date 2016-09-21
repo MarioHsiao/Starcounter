@@ -3,7 +3,6 @@ HttpParser.Tests.dll
 scweaver.Tests.dll
 Starcounter.Apps.Tests.dll
 Starcounter.Internal.Tests.dll
-Starcounter.OptimalBinTree.Tests.exe
 Starcounter.SqlProcessor.Tests.exe
 Starcounter.Tests.dll
 Starcounter.Web.Tests.dll
