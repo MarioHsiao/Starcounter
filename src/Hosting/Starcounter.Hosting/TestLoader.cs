@@ -1,5 +1,6 @@
-﻿using Starcounter.Internal;
+﻿
 using Starcounter.UnitTesting;
+using Starcounter.UnitTesting.Runtime;
 using Starcounter.UnitTesting.xUnit;
 using System;
 using System.Collections.Generic;
@@ -29,18 +30,45 @@ namespace Starcounter.Hosting
                 return testRoot;
             }
         }
-
-        public static void Setup()
+        
+        public static void Setup(ushort port, string databaseName)
         {
-            SetupTestRoot();
+            SetupTestRoot(databaseName);
+            
+            // Regarding request body:
+            //    Path to test library, OR app name (target)
+            //    DisoverOnly (default: load and run)
+            //
+            // Should it be possible to test all tests previously loaded?
+            // TODO:
+            
+            Handle.POST(port, $"/sc/test/{databaseName}", (Request req) => {
+                var root = testRoot;
+                var testRequest = TestRequest.FromBytes(req.BodyBytes);
+
+                var host = root.IncludeNewHost("sc-testloader");
+                foreach (var a in testRequest.Assemblies)
+                {
+                    host.IncludeAssembly(a);
+                }
+
+                var result = TestRunner.Run(databaseName, host);
+                 
+                return new Response() { StatusCode = 200, BodyBytes = result.ToBytes() };
+            });
+
+            Handle.GET(port, $"/sc/test/{databaseName}/tests", () => {
+                // Return a list of all tests loaded.
+                // TODO:
+                return 404;
+            });
         }
         
-        static void SetupTestRoot()
+        static void SetupTestRoot(string db)
         {
             // In this spot, we can put constraints if testing are to be
             // allowed in the contextual database or not. If not, create a
             // TestRoot that don't support hosts to be specified.
-            var db = StarcounterEnvironment.DatabaseNameLower;
             var testsAreSupported = true;
 
             if (testsAreSupported)

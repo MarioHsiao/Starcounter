@@ -24,11 +24,6 @@ namespace StarcounterInternal.Hosting
     public static class Loader
     {
         static AssemblyResolver assemblyResolver = new AssemblyResolver(new PrivateAssemblyStore());
-
-        static Loader()
-        {
-            TestLoader.Setup();
-        }
         
         internal static LogSource Log = LogSources.CodeHostLoader;
 

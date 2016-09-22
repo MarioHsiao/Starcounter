@@ -176,6 +176,7 @@ namespace StarcounterInternal.Bootstrap {
                         if (!StarcounterEnvironment.IsAdministratorApp) {
                             ConsoleOuputRestHandler.Register(configuration.DefaultUserHttpPort, configuration.DefaultSystemHttpPort);
                             Profiler.SetupHandler(configuration.DefaultSystemHttpPort, Db.Environment.DatabaseNameLower);
+                            TestLoader.Setup(configuration.DefaultSystemHttpPort, Db.Environment.DatabaseNameLower);
                         }
                     });
                 }
