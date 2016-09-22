@@ -5,6 +5,7 @@ using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using Starcounter.Rest.ExtensionMethods;
+using Starcounter.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -63,15 +64,23 @@ namespace staradmin.Commands
         
         TestCommand(UserCommand cmd, string assembly)
         {
+            assembly = Path.GetFullPath(assembly);
             testAssembly = assembly;
         }
 
         public override void Execute()
         {
+            var request = new TestRequest();
+            request.Assemblies = new[] { testAssembly };
+
             var node = Context.ServerReference.CreateNode();
             var uri = $"/sc/test/{Context.Database.ToLowerInvariant()}";
 
-            var response = node.POST(uri, testAssembly, null);
+            var startDb = StartDatabaseCLICommand.Create();
+            startDb.DatabaseName = Context.Database;
+            startDb.Execute();
+
+            var response = node.POST(uri, request.ToBytes(), null);
             response.FailIfNotSuccessOr(503);
             if (response.StatusCode == 503)
             {
@@ -84,9 +93,21 @@ namespace staradmin.Commands
                 return;
             }
 
-            // Process what we got back
-            // TODO:
+            ReportResults(request, TestResult.FromBytes(response.BodyBytes));
+        }
 
+        void ReportResults(TestRequest request, TestResult result)
+        {
+            Console.WriteLine("Assemblies run:");
+            foreach (var a in request.Assemblies)
+            {
+                Console.WriteLine($"{a}");
+            }
+            Console.WriteLine();
+
+            Console.WriteLine("Summary:");
+            Console.WriteLine($"Tests run: {result.TotalTestsRun}, Failures: {result.TestsFailed}, Run time: 0.000s");
+            Console.WriteLine();
         }
     }
 }
