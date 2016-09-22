@@ -47,6 +47,15 @@ namespace Starcounter.UnitTesting
         /// </summary>
         public int TestsSkipped { get; set; }
 
+        /// <summary>
+        /// Gets the number of tests run.
+        /// </summary>
+        public int TotalTestsRun {
+            get {
+                return TestsSucceeded + TestsFailed;
+            }
+        }
+
         public byte[] ToBytes()
         {
             return SimpleSerializer.SerializeToByteArray(this);
