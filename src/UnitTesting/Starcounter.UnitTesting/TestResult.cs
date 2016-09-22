@@ -9,6 +9,7 @@ namespace Starcounter.UnitTesting
     /// possibly expanding over several test assemblies. Correspond
     /// to a single invocation of running a given host.
     /// </summary>
+    [Serializable]
     public class TestResult
     {
         /// <summary>
@@ -45,5 +46,15 @@ namespace Starcounter.UnitTesting
         /// Gets or sets the number of tests that were skipped.
         /// </summary>
         public int TestsSkipped { get; set; }
+
+        public byte[] ToBytes()
+        {
+            return SimpleSerializer.SerializeToByteArray(this);
+        }
+
+        public static TestResult FromBytes(byte[] bytes)
+        {
+            return SimpleSerializer.DeserializeFromByteArray<TestResult>(bytes);
+        }
     }
 }
