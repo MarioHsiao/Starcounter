@@ -29,6 +29,7 @@ extern "C" {
 #endif
 
 #ifdef _WIN32
+#include <windows.h>
 # define MODULE_API __declspec(dllexport)
 #else
 # define MODULE_API
@@ -337,12 +338,23 @@ extern "C" {
 			assert((0 == err_code) && "Can't change current directory to cache directory.");
 		}
 
+		// Replaces string in string.
+		std::string ReplaceString(std::string subject, const std::string& search,
+			const std::string& replace) {
+			size_t pos = 0;
+			while ((pos = subject.find(search, pos)) != std::string::npos) {
+				subject.replace(pos, search.length(), replace);
+				pos += replace.length();
+			}
+			return subject;
+		}
+
 		uint32_t CompileAndLoadObjectFile(
 			const bool print_to_console,
 			const bool do_optimizations,
 			const wchar_t* const path_to_cache_dir,
 			const char* const predefined_hash_str,
-			const char* const input_code_str,
+			const char* const input_code_chars,
 			const char* const function_names_delimited,
 			const bool delete_sources,
 			uint64_t out_func_ptrs[],
@@ -350,10 +362,6 @@ extern "C" {
 
 			clock_t start_time = clock();
 
-			using namespace clang;
-			using namespace llvm;
-
-			std::string code_string = input_code_str;
 			std::vector<std::string> function_names = StringSplit(function_names_delimited, ';');
 			assert((function_names.size() > 0) && "At least one function should be supplied.");
 
@@ -362,83 +370,60 @@ extern "C" {
 				out_func_ptrs[i] = 0;
 			}
 
-			std::string error_str;
-
-			// Create some module to put our function into it.
-			std::unique_ptr<llvm::Module> owner = make_unique<llvm::Module>("test", *llvm_context_);
-
-			llvm::ExecutionEngine* exec_engine = NULL;
-
-			if (do_optimizations) {
-
-				exec_engine = llvm::EngineBuilder(std::move(owner))
-					.setErrorStr(&error_str)
-					.setCodeModel(llvm::CodeModel::Large)
-					.setRelocationModel(llvm::Reloc::Static)
-					.setMCJITMemoryManager(llvm::make_unique<SectionMemoryManager>())
-					.setEngineKind(EngineKind::JIT)
-					.setOptLevel(CodeGenOpt::Aggressive)
-					.create();
-
-			}
-			else {
-
-				exec_engine = llvm::EngineBuilder(std::move(owner))
-					.setErrorStr(&error_str)
-					.setCodeModel(llvm::CodeModel::Large)
-					.setRelocationModel(llvm::Reloc::Static)
-					.setMCJITMemoryManager(llvm::make_unique<SectionMemoryManager>())
-					.setEngineKind(EngineKind::JIT)
-					.setOptLevel(CodeGenOpt::None)
-					.create();
-			}
-
-			assert((NULL != exec_engine) && "Can't create LLVM execution engine.");
-
-			std::stringstream object_file_name_stream;
+			std::string out_file_name_no_ext;
+			std::string input_code_str = input_code_chars;
 
 			// Checking if hash is given.
 			if (NULL == predefined_hash_str) {
 
 				// Calculating hash from input code.
 				std::size_t code_hash = std::hash<std::string>()(input_code_str);
-				object_file_name_stream << code_hash;
+				out_file_name_no_ext = std::to_string(code_hash);
 
 			} else {
 
-				object_file_name_stream << predefined_hash_str;
+				out_file_name_no_ext = predefined_hash_str;
 			}
 
-			wchar_t saved_original_dir[1024];
-			_wgetcwd(saved_original_dir, 1024);
+			// Saving path to current directory.
+			wchar_t saved_current_dir[1024];
+			_wgetcwd(saved_current_dir, 1024);
 
 			// Creating cache directory.
 			CreateDirAndSwitch(path_to_cache_dir);
 
-			// Adding object file extension.
-			object_file_name_stream << ".o";
+#ifdef _WIN32
+			std::string dll_file_name = out_file_name_no_ext + ".dll";
+			std::string linker_name = "lld-link";
+#else
+			std::string dll_file_name = out_file_name_no_ext + ".so";
+			std::string linker_name = "lld-ld";
+#endif
 
-			std::string object_file_name = object_file_name_stream.str();
-
-			std::ifstream f(object_file_name);
-
-			// Checking if object file does not exist.
+			// Checking if generated library exists.
+			std::ifstream f(dll_file_name);
 			if (!f.good()) {
 
-				// Adding cpp file extension.
-				std::string cpp_file_name = object_file_name_stream.str();
-				cpp_file_name += ".cpp";
+#ifdef _WIN32
+				input_code_str = ReplaceString(input_code_str, "extern \"C\"", "extern \"C\" __declspec(dllexport)");
+#endif
+
+				std::string cpp_file_name = out_file_name_no_ext + ".cpp";
 
 				// Saving source file to disk.
 				std::ofstream temp_cpp_file(cpp_file_name);
 				temp_cpp_file << input_code_str;
+
+				// Adding library entry at the end.
+				temp_cpp_file << "\nextern \"C\" int dllentry() { return 1; }\n";
 				temp_cpp_file.close();
 
 				// Creating command line for clang.
 				std::stringstream clang_cmd;
-				clang_cmd << "clang++.exe -O3 -c -march=x86-64 \"" << cpp_file_name << "\" -o \"" << object_file_name << "\"";
+				clang_cmd << "clang++ -O3 -c -march=x86-64 " << cpp_file_name << " -o " << out_file_name_no_ext << ".o";
 
 				// Generating new object file.
+				std::cout << clang_cmd.str() << std::endl;
 				int32_t err_code = system(clang_cmd.str().c_str());
 				assert((0 == err_code) && "clang++ returned an error while compiling generated code.");
 
@@ -447,44 +432,43 @@ extern "C" {
 					err_code = remove(cpp_file_name.c_str());
 					assert((0 == err_code) && "Deleting the source file returned an error.");
 				}
+
+				// Creating command line for lld.
+				std::stringstream lld_cmd;
+				lld_cmd << linker_name << " /dll /entry:dllentry /opt:lldlto=3 " << out_file_name_no_ext << ".o";
+
+				// Generating new object file.
+				std::cout << lld_cmd.str() << std::endl;
+				err_code = system(lld_cmd.str().c_str());
+				assert((0 == err_code) && "lld returned an error while compiling generated code.");
 			}
 
-			// Creating the object file.
-			ErrorOr<object::OwningBinary<object::ObjectFile>> obj_file =
-				object::ObjectFile::createObjectFile(object_file_name.c_str());
-
-			assert((obj_file) && "Can't load given object file.");
-
-			object::OwningBinary<object::ObjectFile> &obj_file_ref = obj_file.get();
-			exec_engine->addObjectFile(std::move(obj_file_ref));
-
-			// Finalizing MCJIT execution engine (does relocation).
-			exec_engine->finalizeObject();
+			
+#ifdef _WIN32
+			// Loading library into memory.
+			HMODULE dll_handle = LoadLibrary(dll_file_name.c_str());
+			assert(dll_handle != NULL);
 
 			// Getting pointer for each function.
 			for (size_t i = 0; i < function_names.size(); i++) {
 
 				// Obtaining the pointer to created function.
-				out_func_ptrs[i] = exec_engine->getFunctionAddress(function_names[i]);
-				assert((0 != out_func_ptrs[i]) && "Can't get function address from JITed code!");
+				out_func_ptrs[i] = (uint64_t) GetProcAddress(dll_handle, function_names[i].c_str());
+				assert((0 != out_func_ptrs[i]) && "Can't get function address from loaded library!");
 			}
 
-			// Adding to the list of execution engines.
-			exec_engines_.push_back(exec_engine);
-
 			// Saving execution engine for later use.
-			*out_exec_engine = exec_engine;
+			*out_exec_engine = dll_handle;
+#endif
 
-			clock_t end_time = clock();
-
-			float seconds_time = (float)(end_time - start_time) / CLOCKS_PER_SEC;
+			float seconds_time = (float)(clock() - start_time) / CLOCKS_PER_SEC;
 
 			if (print_to_console) {
-				std::cout << "Load object took seconds: " << seconds_time << std::endl;
+				std::cout << "Procedure took seconds: " << seconds_time << std::endl;
 			}
 
 			// Changing current directory back to original.
-			_wchdir(saved_original_dir);
+			_wchdir(saved_current_dir);
 
 			return 0;
 		}

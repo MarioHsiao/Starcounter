@@ -111,7 +111,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
             std::ofstream out_cpp_file = std::ofstream(out_cpp_path, std::ios::out | std::ios::binary);
             GW_ASSERT(out_cpp_file.is_open());
 			std::string ss = uri_matching_code_;
-			ss = ReplaceString(ss, "extern \"C\"", "extern \"C\" __declspec(dllexport)");
+			//ss = ReplaceString(ss, "extern \"C\"", "extern \"C\" __declspec(dllexport)");
             out_cpp_file.write(ss.c_str(), ss.length());
             out_cpp_file.close();
 
