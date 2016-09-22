@@ -3,6 +3,7 @@ using Starcounter.CLI;
 using Starcounter.CommandLine;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace staradmin.Commands {
     /// <summary>
@@ -11,19 +12,34 @@ namespace staradmin.Commands {
     /// </summary>
     internal class CommandFactory {
         public static readonly List<IUserCommand> UserCommands = new List<IUserCommand>();
+        
+        static CommandFactory()
+        {
+            DiscoverUserCommands(typeof(CommandFactory).Assembly);
+        }
 
-        static CommandFactory() {
-            UserCommands.Add(new KillCommand.UserCommand());
-            UserCommands.Add(new ShowHelpCommand.UserCommand());
-            UserCommands.Add(new UnloadCommand.UserCommand());
-            UserCommands.Add(new ReloadCommand.UserCommand());
-            UserCommands.Add(new ListCommand.UserCommand());
-            UserCommands.Add(new ConsoleCommand.UserCommand());
-            UserCommands.Add(new NewCommand.UserCommand());
-            UserCommands.Add(new StartCommand.UserCommand());
-            UserCommands.Add(new StopCommand.UserCommand());
-            UserCommands.Add(new DeleteCommand.UserCommand());
-            UserCommands.Add(new TestCommand.UserCommand());
+        static void DiscoverUserCommands(Assembly assembly)
+        {
+            Type[] types;
+
+            try
+            {
+                types = assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                types = ex.Types;
+            }
+
+            foreach (var type in types)
+            {
+                if (!type.IsAbstract && !type.IsInterface && typeof(IUserCommand).IsAssignableFrom(type))
+                {
+                    var ctor = type.GetConstructor(new Type[0]);
+                    var cmd = (IUserCommand)ctor.Invoke(new object[0]);
+                    UserCommands.Add(cmd);
+                }
+            }
         }
 
         /// <summary>
