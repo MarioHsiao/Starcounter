@@ -258,7 +258,7 @@ namespace Starcounter.Hosting {
                 // Lets begin always discover unit tests. Figure out how we
                 // want it to work eventually (--test switch?).
                 // TODO:
-                var shouldDiscoverTests = application != null && assembly != null;
+                var shouldDiscoverTests = application != null && assembly != null && !StarcounterEnvironment.IsAdministratorApp;
                 if (shouldDiscoverTests)
                 {
                     ExecuteTestDiscovery(TestLoader.TestRoot, application, assembly);
