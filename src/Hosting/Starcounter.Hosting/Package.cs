@@ -255,15 +255,13 @@ namespace Starcounter.Hosting {
                     }
                 }
 
-                // Lets begin always invoking unit tests in this context,
-                // and never after entrypoint.
-                var shouldRunTests = application != null && assembly != null;
-                if (shouldRunTests)
+                // Lets begin always discover unit tests. Figure out how we
+                // want it to work eventually (--test switch?).
+                // TODO:
+                var shouldDiscoverTests = application != null && assembly != null;
+                if (shouldDiscoverTests)
                 {
-                    var root = TestLoader.TestRoot;
-                    var host = ExecuteTestDiscovery(root, application, assembly);
-
-                    var result = TestRunner.Run(StarcounterEnvironment.DatabaseNameLower, host);
+                    ExecuteTestDiscovery(TestLoader.TestRoot, application, assembly);
                 }
 
                 // Starting user Main() here.
@@ -552,7 +550,7 @@ namespace Starcounter.Hosting {
 
         TestHost ExecuteTestDiscovery(ITestRoot root, Application application, Assembly assembly)
         {
-            var testHost = root.IncludeNewHost(application.Name);
+            var testHost = root.IncludeNewHost($"{application.Name}-tests");
             testHost.IncludeAssembly(assembly);
 
             var path = assembly.Location;
