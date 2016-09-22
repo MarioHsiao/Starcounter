@@ -38,6 +38,15 @@ namespace Starcounter.UnitTesting
                 throw new FileNotFoundException(nameof(assemblyPath));
             }
 
+            if (testAssemblies.ContainsKey(assemblyPath))
+            {
+                // Figure out how to treat multiple versions of the same assembly
+                // to be given to a certain host.
+                // TODO:
+
+                return;
+            }
+
             var testAssembly = CreateTestAssembly(assemblyPath);
             testAssembly.Host = this;
 
