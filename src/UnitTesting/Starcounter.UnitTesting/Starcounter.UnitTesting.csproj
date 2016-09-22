@@ -54,6 +54,7 @@
     <Compile Include="Runtime\ResultFooter.cs" />
     <Compile Include="Runtime\ResultHeader.cs" />
     <Compile Include="Runtime\ResultWriter.cs" />
+    <Compile Include="SimpleSerializer.cs" />
     <Compile Include="TestAssembly.cs" />
     <Compile Include="TestHost.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
