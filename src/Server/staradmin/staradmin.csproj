@@ -95,6 +95,10 @@
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\UnitTesting\Starcounter.UnitTesting\Starcounter.UnitTesting.csproj">
+      <Project>{9069f445-2b78-4e7c-bde9-9802846d7508}</Project>
+      <Name>Starcounter.UnitTesting</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Utilities\Sc.Tools.Logging\Sc.Tools.Logging.csproj">
       <Project>{d41f6760-fb7d-413b-b07b-3062a9741ef5}</Project>
       <Name>Sc.Tools.Logging</Name>
