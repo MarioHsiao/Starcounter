@@ -51,6 +51,8 @@ namespace Starcounter.UnitTesting
             var hostFactory = factory ?? DefaultTestHostFactory;
 
             host = hostFactory.CreateHost();
+            host.Name = application;
+
             appHosts.Add(application, host);
 
             return host;

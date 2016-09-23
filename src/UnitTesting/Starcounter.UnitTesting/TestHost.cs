@@ -27,6 +27,8 @@ namespace Starcounter.UnitTesting
             Run(testAssemblies.Values, result, writer);
         }
 
+        public string Name { get; set; }
+
         protected abstract TestAssembly CreateTestAssembly(string assemblyPath);
 
         protected abstract void Run(IEnumerable<TestAssembly> assemblies, TestResult result, StreamWriter writer);
