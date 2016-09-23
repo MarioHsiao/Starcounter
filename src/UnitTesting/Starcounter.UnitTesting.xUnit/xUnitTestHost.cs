@@ -16,6 +16,7 @@ namespace Starcounter.UnitTesting.xUnit
         protected override void Run(IEnumerable<TestAssembly> assemblies, TestResult result, StreamWriter writer)
         {
             var xunitAssemblies = assemblies.Cast<xUnitTestAssembly>().ToArray();
+            var names = new List<string>();
 
             var formatter = CreateResultFormatter(writer);
 
@@ -25,7 +26,11 @@ namespace Starcounter.UnitTesting.xUnit
             {
                 var runner = new xUnitTestAssemblyRunner(xUnitTestAssembly, result, formatter);
                 runner.Run();
+
+                names.Add(Path.GetFileName(xUnitTestAssembly.AssemblyPath));
             }
+
+            result.Assemblies = names.ToArray();
 
             formatter.Close();
         }

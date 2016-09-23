@@ -23,6 +23,11 @@ namespace Starcounter.UnitTesting
         public string Application { get; internal set; }
 
         /// <summary>
+        /// Set of assemblies that was run.
+        /// </summary>
+        public string[] Assemblies { get; set; }
+
+        /// <summary>
         /// The time the host was asked to start executing tests.
         /// </summary>
         public DateTime Started { get; internal set; }
