@@ -8,6 +8,9 @@ namespace Starcounter.XSON.PartialClassGenerator {
     /// 
     /// </summary>
     internal class GeneratorPrePhase {
+        private const string MEMBER_NOT_FOUND = "Member '{0}' in path '{1}' was not found";
+        private const string MEMBER_NOT_OBJECT = "Member '{0}' in path '{1}' is not an object";
+        
         private Gen2DomGenerator generator;
 
         internal GeneratorPrePhase(Gen2DomGenerator generator) {
@@ -51,7 +54,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 currentObject = root as TObject;
                 if (currentObject == null) {
                     generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
-                                                     "Member '" + root.PropertyName + "' is not an object",
+                                                     string.Format(MEMBER_NOT_OBJECT, root.PropertyName, typeAssignment.TemplatePath),
                                                      null,
                                                      root.CodegenInfo.SourceInfo);
                 }
@@ -60,7 +63,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     currentObject = currentObject.Properties.GetTemplateByPropertyName(parts[i]) as TObject;
                     if (currentObject == null) {
                         generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
-                                                         "Member '" + parts[i] + "' was not found",
+                                                         string.Format(MEMBER_NOT_OBJECT, parts[i], typeAssignment.TemplatePath),
                                                          null,
                                                          root.CodegenInfo.SourceInfo);
                     }
@@ -69,7 +72,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 theTemplate = currentObject.Properties.GetTemplateByPropertyName(parts[parts.Length - 1]);
                 if (theTemplate == null) {
                     generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
-                                                     "Member '" + parts[parts.Length - 1] + "' was not found",
+                                                    string.Format(MEMBER_NOT_FOUND, parts[parts.Length - 1], typeAssignment.TemplatePath),
                                                      null,
                                                      root.CodegenInfo.SourceInfo);
                 }
