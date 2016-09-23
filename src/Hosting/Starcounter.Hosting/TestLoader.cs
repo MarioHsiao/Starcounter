@@ -4,6 +4,7 @@ using Starcounter.UnitTesting.Runtime;
 using Starcounter.UnitTesting.xUnit;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Starcounter.Hosting
 {
@@ -35,10 +36,6 @@ namespace Starcounter.Hosting
         {
             SetupTestRoot(databaseName);
             
-            // Regarding request body:
-            //    Path to test library, OR app name (target)
-            //    DisoverOnly (default: load and run)
-            //
             // Should it be possible to test all tests previously loaded?
             // TODO:
             
@@ -46,10 +43,15 @@ namespace Starcounter.Hosting
                 var root = testRoot;
                 var testRequest = TestRequest.FromBytes(req.BodyBytes);
 
-                var host = root.IncludeNewHost("sc-testloader");
-                foreach (var a in testRequest.Assemblies)
+                var name = testRequest.Application + "-tests";
+                var host = root.Hosts.FirstOrDefault((candidate) =>
                 {
-                    host.IncludeAssembly(a);
+                    return name.Equals(candidate.Name, StringComparison.InvariantCultureIgnoreCase);
+                });
+
+                if (host == null)
+                {
+                    return 404;
                 }
 
                 var result = TestRunner.Run(databaseName, host);

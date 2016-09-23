@@ -20,7 +20,7 @@ namespace staradmin.Commands
             {
                 Name = "test",
                 ShortText = "Run unit tests in a Starcounter database",
-                Usage = "staradmin test <testassembly>"
+                Usage = "staradmin test <application name>"
             };
 
             public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax)
@@ -52,26 +52,25 @@ namespace staradmin.Commands
                 var rows = new Dictionary<string, string>();
                 table.Title = "Examples:";
                 table.RowSpace = 1;
-                rows.Add("staradmin test tests.dll", "Run tests in `tests.dll`, in the default database");
-                rows.Add("staradmin --d=foo test tests.dll", "Run tests in `tests.dll`, in the `foo` database");
+                rows.Add("staradmin test myapp", "Run all tests discovered in `myapp`, in the default database");
+                rows.Add("staradmin --d=foo test myapp", "Run all tests discovered in `myapp`, in the `foo` database");
                 writer.WriteLine();
                 table.Write(rows);
             }
         }
 
-        readonly string testAssembly;
+        readonly string application;
 
         
-        TestCommand(UserCommand cmd, string assembly)
+        TestCommand(UserCommand cmd, string app)
         {
-            assembly = Path.GetFullPath(assembly);
-            testAssembly = assembly;
+            application = app;
         }
 
         public override void Execute()
         {
             var request = new TestRequest();
-            request.Assemblies = new[] { testAssembly };
+            request.Application = application;
 
             var node = Context.ServerReference.CreateNode();
             var uri = $"/sc/test/{Context.Database.ToLowerInvariant()}";
@@ -95,7 +94,7 @@ namespace staradmin.Commands
         void ReportResults(TestRequest request, TestResult result)
         {
             Console.WriteLine("Assemblies run:");
-            foreach (var a in request.Assemblies)
+            foreach (var a in result.Assemblies)
             {
                 Console.WriteLine($"{a}");
             }

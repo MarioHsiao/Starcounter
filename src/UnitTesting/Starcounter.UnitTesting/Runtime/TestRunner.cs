@@ -32,7 +32,7 @@ namespace Starcounter.UnitTesting.Runtime
             {
                 var result = new TestResult();
                 result.Database = database;
-                result.Application = string.Empty;  // TODO
+                result.Application = host.Name;
                 result.Started = DateTime.Now;
                 
                 var hostWriter = writer.OpenHostWriter(host);

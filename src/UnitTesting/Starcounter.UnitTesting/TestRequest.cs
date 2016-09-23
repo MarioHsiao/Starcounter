@@ -10,7 +10,7 @@ namespace Starcounter.UnitTesting
     [Serializable]
     public class TestRequest
     {
-        public string[] Assemblies { get; set; }
+        public string Application { get; set; }
 
         public byte[] ToBytes()
         {
