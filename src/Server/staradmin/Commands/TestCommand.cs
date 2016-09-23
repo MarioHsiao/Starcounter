@@ -76,10 +76,6 @@ namespace staradmin.Commands
             var node = Context.ServerReference.CreateNode();
             var uri = $"/sc/test/{Context.Database.ToLowerInvariant()}";
 
-            var startDb = StartDatabaseCLICommand.Create();
-            startDb.DatabaseName = Context.Database;
-            startDb.Execute();
-
             var response = node.POST(uri, request.ToBytes(), null);
             response.FailIfNotSuccessOr(503);
             if (response.StatusCode == 503)
