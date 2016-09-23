@@ -135,15 +135,22 @@ namespace Starcounter.Internal.Web {
                 // Checking if caching time is the same.
                 if (mt.Equals(ims)) {
 
-                    resourceResp = new Response() {
+                    Response resp = new Response() {
                         StatusCode = 304,
                         StatusDescription = "Not Modified"
                     };
 
-                    resourceResp.Headers["Cache-Control"] = "public,max-age=0,must-revalidate";
-                    resourceResp.Headers["Last-Modified"] = mt;
+                    resp.Headers["Cache-Control"] = "public,max-age=0,must-revalidate";
+                    resp.Headers["Last-Modified"] = mt;
 
-                    return resourceResp;
+                    // Checking if X-File-Path should be added.
+                    if (StarcounterEnvironment.XFilePathHeader) {
+                        if (null != resourceResp.FilePath) {
+                            resp.Headers["X-File-Path"] = resourceResp.FilePath;
+                        }                        
+                    }
+
+                    return resp;
                 }
             }
 
@@ -194,7 +201,6 @@ namespace Starcounter.Internal.Web {
 
             foreach (Response cachedResp in invalidatedCachedResponses) {
 
-                var path = cachedResp.FilePath;
                 FileSystemEventArgs e = new FileSystemEventArgs(WatcherChangeTypes.Changed, cachedResp.FileDirectory, cachedResp.FileName);
                 FileHasChanged(null, e);
             }

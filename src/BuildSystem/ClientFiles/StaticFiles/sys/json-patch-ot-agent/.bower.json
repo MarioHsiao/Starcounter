@@ -28,11 +28,11 @@
   "dependencies": {
     "json-patch-queue": "PuppetJs/JSON-Patch-queue#gh-pages"
   },
-  "_release": "84fc4e4301",
+  "_release": "d59dcb5d01",
   "_resolution": {
     "type": "branch",
     "branch": "gh-pages",
-    "commit": "84fc4e4301ffea6a06d8dd95f9b8619e1250794b"
+    "commit": "d59dcb5d012268de36707b37894c12ff63622dd2"
   },
   "_source": "git://github.com/PuppetJs/JSON-Patch-OT-agent.git",
   "_target": "gh-pages",

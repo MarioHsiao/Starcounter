@@ -41,6 +41,7 @@
 - Fixed detecting if a jsonobject is already merged or not when attaching it to a parent [#3771](https://github.com/Starcounter/Starcounter/issues/3771)
 - Fixed bug in schemaupgrade, where all records were not included when moving existing records to new table [#3817](https://github.com/Starcounter/Starcounter/issues/3817)
 - Fixed a bug in TypedJSON where versionlog of changes in arrays were not properly updated, which in some cases led to a `NullReferenceException` being thrown [#3816](https://github.com/Starcounter/Starcounter/issues/3816)  
+- Fixed a bug where pushing changes on websocket could cause versioning and patches to be messed up [#3844](https://github.com/Starcounter/Starcounter/issues/3844)
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)
@@ -50,13 +51,15 @@
 - `PartialToStandaloneHtmlProvider` middleware no longer forces Shadow DOM in Polymer [#3562](https://github.com/Starcounter/Starcounter/issues/3562)
 - `PartialToStandaloneHtmlProvider` middleware no longer overwrites default Bootstrap font size [#3665](https://github.com/Starcounter/Starcounter/issues/3665)
 - Upgraded Polymer to 1.6.1 [#3673](https://github.com/Starcounter/Starcounter/issues/3673), [#3797](https://github.com/Starcounter/Starcounter/issues/3797)
-- Upgraded PuppetJs to 2.2.0 [#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
+- Upgraded fast-json-patch to 1.1.0 [PuppetJs#98](https://github.com/PuppetJs/PuppetJs/issues/98). JSON Patch => Puppet observes also `keydown` and `mousedown` events and generate patches in more accurate order.
+- Upgraded PuppetJs to 2.2.1 [PuppetJs#85](https://github.com/PuppetJs/PuppetJs/issues/85). This makes changes made in reaction to server patches (in `onRemoteChange` callback or in Polymer observer callback) properly propagated to server.
 - For request to invalid (non-existent) session, return 404 instead of 400
-- Upgraded starcounter-debug-aid to 2.0.7
-- Upgraded Juicy/juicy-jsoneditor to 1.1.0
-- Upgraded Josdejong/jsoneditor to 5.5.6
-- Upgraded Juicy/imported-template to 1.4.3
-- Upgraded puppetjs/puppet-polymer-client to 3.2.0 which supports reconnection
+- Upgraded starcounter-debug-aid from 2.0.5 to 2.0.7 (https://github.com/starcounter/starcounter-debug-aid/releases)
+- Upgraded Juicy/juicy-jsoneditor from 1.0.5 to 1.1.0 (https://github.com/juicy/juicy-jsoneditor/releases)
+- Upgraded Josdejong/jsoneditor from 4.2.1 to 5.5.6 (https://github.com/josdejong/jsoneditor/releases)
+- Upgraded Juicy/imported-template from 1.4.0 to 1.4.3 (https://github.com/juicy/imported-template/releases)
+- Upgraded puppetjs/puppetjs from 1.3.8 to 2.2.1 (https://github.com/PuppetJs/PuppetJs/releases)
+- Upgraded puppetjs/puppet-polymer-client from 2.0.0 to 3.2.0 (https://github.com/PuppetJs/puppet-polymer-client/releases)
 - Changed how Starcounter VS Extension handles JSON files to allow adding existing files without code-behind so that they are not treated as TypedJSON per default [#3075](https://github.com/Starcounter/Starcounter/issues/3075)
 - Changed invocation order of middleware, to execute in order of registration rather than the other way around. [#3810](https://github.com/Starcounter/Starcounter/issues/3810)
 - Changed behaviour of default patchhandler to treat empty incoming patches as ping/heartbeats and send no patches back to client (i.e. not collecting the latest changes) [PuppetJs/#94](https://github.com/PuppetJs/PuppetJs/issues/94)
@@ -84,7 +87,7 @@
 - Added simpler task scheduling interface using static method `Scheduling.ScheduleTask()`.
 - Added excecptions with information about failed table to upgrade. Related to [#3383](https://github.com/Starcounter/Starcounter/issues/3383) and [#3368](https://github.com/Starcounter/Starcounter/issues/3368).
 - Introduced new IMiddleware class and the new consolidated middleware Application.Use() API's, as described in See [#3296](https://github.com/Starcounter/Starcounter/issues/3296)
-- Extended weaver diagnostics emitted by `scweaver --verbosity=diagnostic according to [#3420](https://github.com/Starcounter/Starcounter/issues/3420)
+- Extended weaver diagnostics emitted by `scweaver --verbosity=diagnostic` according to [#3420](https://github.com/Starcounter/Starcounter/issues/3420)
 - Introduced support to provision HTML (views) from JSON (view models) by means of middleware. See [#3444](https://github.com/Starcounter/Starcounter/issues/3444)
 - Added possibility to register internal codehost handlers with `HandlerOptions.SelfOnly`. See [#3339](https://github.com/Starcounter/Starcounter/issues/3339)
 - Added overloads for `Db.Transact` that allows specifying delegates that take input and output parameters. See [#2822](https://github.com/Starcounter/Starcounter/issues/2822) and documentation on http://starcounter.io/guides/transactions/
