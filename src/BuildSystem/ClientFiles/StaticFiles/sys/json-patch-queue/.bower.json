@@ -29,7 +29,7 @@
     "branch": "gh-pages",
     "commit": "4e279479ca512f7658f1fda42850409fd45a712e"
   },
-  "_source": "git://github.com/PuppetJs/JSON-Patch-queue.git",
+  "_source": "git://github.com/PuppetJs/JSON-Patch-Queue.git",
   "_target": "gh-pages",
-  "_originalSource": "PuppetJs/JSON-Patch-queue"
+  "_originalSource": "PuppetJs/JSON-Patch-Queue"
 }

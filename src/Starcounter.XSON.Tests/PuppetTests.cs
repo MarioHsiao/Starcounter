@@ -162,7 +162,7 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tname, "Hans Brix");
             
             // Resetting dirtyflags.
-            changeArr = json.ChangeLog.Generate(true);
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changeArr));
             
             json.Set(tname, "Apa Papa");
             Assert.IsTrue(json.IsDirty(tname));
@@ -173,7 +173,7 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tarr, new Arr<Json>(json, tarr));
             Assert.IsTrue(json.IsDirty(tarr));
 
-            changeArr = json.ChangeLog.Generate(true);
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changeArr));
             Assert.AreEqual(3, changeArr.Length);
         }
        
@@ -200,7 +200,7 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tname, "Hans Brix");
 
             // Resetting dirtyflags.
-            changeArr = json.ChangeLog.Generate(true);
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changeArr));
             json.ChangeLog.Checkpoint();
             json.ChangeLog.Clear();
 
@@ -213,7 +213,7 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tarr, new Arr<Json>(json, tarr));
             Assert.IsTrue(json.IsDirty(tarr));
 
-            changeArr = json.ChangeLog.Generate(true);
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changeArr));
             Assert.AreEqual(3, changeArr.Length);
         }
 
@@ -348,18 +348,19 @@ namespace Starcounter.Internal.XSON.Tests {
             var session = new Session();
             session.Data = json;
 
-            json.ChangeLog.Generate(true);
+            Change[] changes;
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
 
             // No inputhandler, value will simply be set.
             tName.ProcessInput(json, "ClientValue");
-            Change[] changes = json.ChangeLog.Generate(true);
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
 
             Assert.AreEqual(1, changes.Length);
             Assert.AreEqual(tName, changes[0].Property);
 
             // Have an inputhandler, will call that one first and then set value.
             tName2.ProcessInput(json, "ClientValue");
-            changes = json.ChangeLog.Generate(true);
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
 
             Assert.AreEqual(1, changes.Length);
             Assert.AreEqual(tName2, changes[0].Property);
@@ -475,7 +476,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // First test that the autocheck works.
             person.FirstName = "Changed";
-            Change[] changes = json.ChangeLog.Generate(true);
+            Change[] changes;
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
            
             Assert.AreEqual(1, changes.Length);
             Assert.AreEqual(tJson.Properties[0], changes[0].Property);
@@ -487,14 +489,14 @@ namespace Starcounter.Internal.XSON.Tests {
             json.AutoRefreshBoundProperties = false;
             person.FirstName = "ChangedAgain";
 
-            changes = json.ChangeLog.Generate(true);
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
             Assert.AreEqual(0, changes.Length);
             json.ChangeLog.Checkpoint();
             
 
             // Last, manual refresh
             json.Refresh(tJson.Properties[0]);
-            changes = json.ChangeLog.Generate(true);
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
             
             Assert.AreEqual(1, changes.Length);
             Assert.AreEqual(tJson.Properties[0], changes[0].Property);
@@ -535,7 +537,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Assert.AreNotEqual(recursive.Recursives.Count, json.Recursives.Count);
 
-            Change[] changes = json.ChangeLog.Generate(true);
+            Change[] changes;
+            Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
             Assert.AreEqual(0, changes.Length);
             json.ChangeLog.Checkpoint();
 
@@ -649,13 +652,13 @@ namespace Starcounter.Internal.XSON.Tests {
             Change[] changes;
             
             session.Use(() => {
-                changes = json.ChangeLog.Generate(true);
+                Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
                 
                 // Bound properties: ObjectNo, Name
                 // Unbound properties: Street, Misc
                 // Changes should be ObjectNo, Name
                 json.Data = dataObject1;
-                changes = json.ChangeLog.Generate(true);
+                Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
                 json.ChangeLog.Checkpoint();
                 
                 Assert.AreEqual(2, changes.Length);
@@ -666,7 +669,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 // Unbound properties: Name, Misc
                 // Changes should be ObjectNo, Name, Street
                 json.Data = dataObject2;
-                changes = json.ChangeLog.Generate(true);
+                Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
                 json.ChangeLog.Checkpoint();
 
                 Assert.AreEqual(3, changes.Length);
@@ -681,7 +684,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 // Unbound properties: Street, Misc
                 // Changes should be ObjectNo, Name, Street, 
                 json.Data = dataObject1;
-                changes = json.ChangeLog.Generate(true);
+                Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
                 json.ChangeLog.Checkpoint();
 
                 Assert.AreEqual(3, changes.Length);
@@ -696,7 +699,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 // Unbound properties: ObjectNo, Name, Street, Misc
                 // Changes should be ObjectNo, Name
                 json.Data = null;
-                changes = json.ChangeLog.Generate(true);
+                Assert.IsTrue(json.ChangeLog.Generate(true, out changes));
                 json.ChangeLog.Checkpoint();
 
                 Assert.AreEqual(2, changes.Length);
@@ -715,7 +718,8 @@ namespace Starcounter.Internal.XSON.Tests {
             root.Page = page;
             session.Data = root;
 
-            Change[] changes = root.ChangeLog.Generate(true);
+            Change[] changes;
+            Assert.IsTrue(root.ChangeLog.Generate(true, out changes));
 
             dynamic sibling = new Json();
             
@@ -732,7 +736,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsFalse(sibling.HasBeenSent);
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
             
-            changes = root.ChangeLog.Generate(true);
+            Assert.IsTrue(root.ChangeLog.Generate(true, out changes));
 
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0]));
             Assert.IsFalse(sibling.dirty);
@@ -741,6 +745,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestReplaceSessionDataWithVersioning_3418() {
+            Change[] changes;
             dynamic json = new Json();
             json.Name = "First";
 
@@ -749,8 +754,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
             ChangeLog changeLog = json.ChangeLog;
 
-            changeLog.Generate(true);
-            changeLog.Generate(true);
+            changeLog.Generate(true, out changes);
+            changeLog.Generate(true, out changes);
 
             Assert.AreEqual(2, changeLog.Version.LocalVersion);
 
@@ -762,7 +767,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Assert.AreEqual(2, changeLog.Version.LocalVersion);
 
-            Change[] changes = changeLog.Generate(true);
+            changeLog.Generate(true, out changes);
 
             Assert.AreEqual(3, changeLog.Version.LocalVersion);
             Assert.AreEqual(1, changes.Length);
@@ -786,7 +791,8 @@ namespace Starcounter.Internal.XSON.Tests {
             root.Page = page;
             session.Data = root;
 
-            Change[] changes = root.ChangeLog.Generate(true);
+            Change[] changes;
+            Assert.IsTrue(root.ChangeLog.Generate(true, out changes));
             
             dynamic siblingRoot = new Json();
             dynamic sibling = new Json();
@@ -805,14 +811,14 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsFalse(sibling.HasBeenSent);
             Assert.IsFalse(sibling.IsDirty(((TObject)sibling.Template).Properties[0])); // Will be false since the parent is not sent
 
-            changes = root.ChangeLog.Generate(true);
+            Assert.IsTrue(root.ChangeLog.Generate(true, out changes));
 
             // Replacing Current on siblingRoot should not lead to that the siblings are updated.
             sibling = new Json();
             sibling.Header = "New sibling";
             siblingRoot.Current = sibling;
 
-            changes = root.ChangeLog.Generate(true);
+            Assert.IsTrue(root.ChangeLog.Generate(true, out changes));
 
             Assert.AreEqual(0, changes.Length);
         }

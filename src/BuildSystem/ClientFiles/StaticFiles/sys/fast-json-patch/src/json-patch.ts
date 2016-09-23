@@ -1,11 +1,10 @@
 /*!
  * https://github.com/Starcounter-Jack/JSON-Patch
- * json-patch-duplex.js version: 1.0.0
+ * json-patch-duplex.js version: 1.1.0
  * (c) 2013 Joachim Wester
  * MIT license
  */
 
-var OriginalError = Error;
 
 module jsonpatch {
   var _objectKeys = function (obj) {
@@ -210,7 +209,7 @@ module jsonpatch {
     return true;
   }
 
-  /** 
+  /**
    * Apply a json-patch operation on an object tree
    * Returns an array of results of operations.
    * Each element can either be a boolean (if op == 'test') or
@@ -290,21 +289,18 @@ module jsonpatch {
     return results;
   }
 
-  export declare class OriginalError {
-    public name:string;
-    public message:string;
-    public stack:string;
-
-    constructor(message?:string);
+  // provide scoped __extends for TypeScript's `extend` keyword so it will not provide global one during compilation
+  function __extends(d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
   }
+  export class JsonPatchError extends Error {
 
-  export class JsonPatchError extends OriginalError {
-    constructor(public message:string, public name:string, public index?:number, public operation?:any, public tree?:any) {
+    constructor(public message: string, public name:string, public index?:number, public operation?:any, public tree?:any) {
       super(message);
     }
   }
-
-  export var Error = JsonPatchError;
 
     /**
      * Recursively checks whether an object has any undefined values inside.
@@ -421,5 +417,4 @@ if (typeof exports !== "undefined") {
   exports.validate = jsonpatch.validate;
   exports.validator = jsonpatch.validator;
   exports.JsonPatchError = jsonpatch.JsonPatchError;
-  exports.Error = jsonpatch.Error;
 }

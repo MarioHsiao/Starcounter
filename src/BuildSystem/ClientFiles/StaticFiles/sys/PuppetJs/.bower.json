@@ -17,7 +17,7 @@
     "node_modules"
   ],
   "dependencies": {
-    "fast-json-patch": "Starcounter-Jack/JSON-Patch#~1.0.0",
+    "fast-json-patch": ">=1.1.0",
     "json-patch-queue": "PuppetJs/JSON-Patch-Queue#gh-pages",
     "json-patch-ot-agent": "PuppetJs/JSON-Patch-OT-agent#gh-pages",
     "json-patch-ot": "PuppetJs/JSON-Patch-OT#gh-pages"
@@ -27,12 +27,12 @@
     "puppet-bunny": "PuppetJs/puppet-bunny",
     "dom-bind-notifier": "*"
   },
-  "version": "2.2.0",
-  "_release": "2.2.0",
+  "version": "2.2.1",
+  "_release": "2.2.1",
   "_resolution": {
     "type": "version",
-    "tag": "2.2.0",
-    "commit": "698de3c3bd43a74e9487e95eee8463172dbad05d"
+    "tag": "2.2.1",
+    "commit": "317e2bbc4fdb77ae356b9c5f618fde81c088266a"
   },
   "_source": "git://github.com/puppetjs/puppetjs.git",
   "_target": "^2.2.0",

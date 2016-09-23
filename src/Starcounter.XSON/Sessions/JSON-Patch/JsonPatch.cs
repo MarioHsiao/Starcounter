@@ -64,9 +64,11 @@ namespace Starcounter.XSON {
         public string Generate(Json json, bool flushLog, bool includeNamespace) {
             byte[] patchArr;
             int size = Generate(json, flushLog, includeNamespace, out patchArr);
-            return Encoding.UTF8.GetString(patchArr, 0, size);
+            if (size > 0)
+                return Encoding.UTF8.GetString(patchArr, 0, size);
+            return null;
         }
-
+        
         /// <summary>
         /// Generates a JSON-Patch array for all changes logged in the changelog
         /// </summary>
@@ -110,8 +112,11 @@ namespace Starcounter.XSON {
             Change[] changes;
             bool versioning = (changeLog.Version != null);
             
-            changes = changeLog.Generate(false);
-            
+            if (!changeLog.Generate(false, out changes)) { 
+                patches = null;
+                return -1;
+            }
+
             size = 2; // [ ]
 
             if (versioning) {
@@ -563,7 +568,7 @@ namespace Starcounter.XSON {
                     }
                 }
             }
-            
+
             member = JsonPatchMember.Invalid;
             valuePtr = IntPtr.Zero;
             valueSize = 0;

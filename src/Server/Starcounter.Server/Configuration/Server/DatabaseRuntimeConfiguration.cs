@@ -132,6 +132,7 @@ namespace Starcounter.Advanced.Configuration {
         public Boolean WrapJsonInNamespaces = StarcounterEnvironment.WrapJsonInNamespaces;
         public Boolean EnforceURINamespaces = StarcounterEnvironment.EnforceURINamespaces;
         public Boolean MergeJsonSiblings = StarcounterEnvironment.MergeJsonSiblings;
+        public Boolean XFilePathHeader = StarcounterEnvironment.XFilePathHeader;
         public Boolean UriMappingEnabled = StarcounterEnvironment.UriMappingEnabled;
         public Boolean OntologyMappingEnabled = StarcounterEnvironment.OntologyMappingEnabled;
         public Boolean RequestFiltersEnabled = StarcounterEnvironment.RequestFiltersEnabled;

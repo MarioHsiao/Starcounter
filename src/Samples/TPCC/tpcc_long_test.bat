@@ -1,5 +1,4 @@
 %~dp0\..\..\star.exe @@CreateRepo .srv
-COPY /Y %~dp0\..\..\scnetworkgateway.sample.xml %~dp0\..\..\.srv\personal\scnetworkgateway.xml
 
 if not "%1"=="noclean" (
 	rem kill dirty db instance if exists
