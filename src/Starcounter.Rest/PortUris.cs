@@ -35,6 +35,7 @@ namespace Starcounter.Rest {
             Byte* predefined_hash_str,
             Byte* input_code_str,
             Byte* function_names_delimited,
+            Byte* ext_libraries_names_delimited,
             Boolean delete_sources,
             IntPtr* out_func_ptrs,
             IntPtr** out_exec_module
@@ -120,6 +121,7 @@ namespace Starcounter.Rest {
                         null, // Letting LLVM generate the hash itself.
                         cpp_code_ptr,
                         function_names_bytes_native,
+                        null,
                         true,
                         out_func_ptrs,
                         &exec_module);

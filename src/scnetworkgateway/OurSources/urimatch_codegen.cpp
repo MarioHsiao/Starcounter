@@ -226,6 +226,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
 				NULL, // Letting LLVM generate the hash itself.
 				uri_matching_code_,
 				root_function_name,
+				"",
 				true,
 				out_functions,
 				&exec_module);

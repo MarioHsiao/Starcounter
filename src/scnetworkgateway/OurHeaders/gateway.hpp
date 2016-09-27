@@ -1496,6 +1496,7 @@ typedef uint32_t(*ClangCompileAndLoadObjectFile) (
 	const char* const predefined_hash_str,
 	const char* const input_code_str,
 	const char* const function_names_delimited,
+	const char* const ext_libraries_names_delimited,
 	const bool delete_sources,
 	void* out_func_ptrs[],
 	void** out_exec_engine);
