@@ -4,7 +4,7 @@
 
 - Fixed a bug where pushing changes on websocket could cause versioning and patches to be messed up [#3844](https://github.com/Starcounter/Starcounter/issues/3844)
 
-## [2.2.1.3234] - 2016-09-28
+## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 
 ### Added
 - Better error message when a synonym target an illegal element, [#3677](https://github.com/Starcounter/Starcounter/issues/3677)
