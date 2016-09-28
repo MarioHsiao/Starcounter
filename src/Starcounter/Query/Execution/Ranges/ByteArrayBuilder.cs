@@ -70,13 +70,12 @@ internal sealed class ByteArrayBuilder
     ////////////////////////////////////////////////////////////////
 
     internal unsafe void AppendNonNullValue(
-        Int64 value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Int64 value)
     {
         fixed (Byte *buf = dataBuffer)
         {
             // First byte is non-zero for defined values.
-            *(buf + position) = embedType;
+            *(buf + position) = 1;
 
             // Copying actual data bytes.
             *(Int64 *)(buf + position + 1) = value;
@@ -87,13 +86,12 @@ internal sealed class ByteArrayBuilder
 
     private unsafe static void AppendNonNullValue(
         Int64 value,
-        Byte[] dataArray,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Byte[] dataArray)
     {
         fixed (Byte *buf = dataArray)
         {
             // First byte is non-zero for defined values.
-            *buf = embedType;
+            *buf = 1;
 
             // Copying actual data bytes.
             *(Int64 *) (buf + 1) = value;
@@ -101,8 +99,7 @@ internal sealed class ByteArrayBuilder
     }
 
     internal void Append(
-        Nullable<Int64> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<Int64> value)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -112,18 +109,16 @@ internal sealed class ByteArrayBuilder
             return;
         }
 
-        AppendNonNullValue(value.Value, embedType);
+        AppendNonNullValue(value.Value);
     }
 
     /// <summary>
     /// Precomputes the buffer.
     /// </summary>
     /// <param name="value">The value.</param>
-    /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
     internal static Byte[] PrecomputeBuffer(
-        Nullable<Int64> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<Int64> value)
     {
         if (value == null)
         {
@@ -132,7 +127,7 @@ internal sealed class ByteArrayBuilder
         }
 
         Byte[] dataArray = new Byte[9];
-        AppendNonNullValue(value.Value, dataArray, embedType);
+        AppendNonNullValue(value.Value, dataArray);
         return dataArray;
     }
 
@@ -141,13 +136,12 @@ internal sealed class ByteArrayBuilder
     /////////////////////////////////////////////////////////
 
     internal unsafe void AppendNonNullValue(
-        UInt64 value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        UInt64 value)
     {
         fixed (Byte *buf = dataBuffer)
         {
             // First byte is non-zero for defined values.
-            *(buf + position) = embedType;
+            *(buf + position) = 1;
 
             // Copying actual data bytes.
             *(UInt64 *)(buf + position + 1) = value;
@@ -158,13 +152,12 @@ internal sealed class ByteArrayBuilder
 
     private unsafe static void AppendNonNullValue(
         UInt64 value,
-        Byte[] dataArray,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Byte[] dataArray)
     {
         fixed (Byte *buf = dataArray)
         {
             // First byte is non-zero for defined values.
-            *buf = embedType;
+            *buf = 1;
 
             // Copying actual data bytes.
             *(UInt64 *) (buf + 1) = value;
@@ -172,8 +165,7 @@ internal sealed class ByteArrayBuilder
     }
 
     internal void Append(
-        Nullable<UInt64> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<UInt64> value)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -183,18 +175,16 @@ internal sealed class ByteArrayBuilder
             return;
         }
 
-        AppendNonNullValue(value.Value, embedType);
+        AppendNonNullValue(value.Value);
     }
 
     /// <summary>
     /// Precomputes the buffer.
     /// </summary>
     /// <param name="value">The value.</param>
-    /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
     internal static Byte[] PrecomputeBuffer(
-        Nullable<UInt64> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<UInt64> value)
     {
         if (value == null)
         {
@@ -203,7 +193,7 @@ internal sealed class ByteArrayBuilder
         }
 
         Byte[] dataArray = new Byte[9];
-        AppendNonNullValue(value.Value, dataArray, embedType);
+        AppendNonNullValue(value.Value, dataArray);
         return dataArray;
     }
 
@@ -212,13 +202,12 @@ internal sealed class ByteArrayBuilder
     /////////////////////////////////////////////////////////
 
     internal unsafe void AppendNonNullValue(
-        Double value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Double value)
     {
         fixed (Byte *buf = dataBuffer)
         {
             // First byte is non-zero for defined values.
-            *(buf + position) = embedType;
+            *(buf + position) = 1;
 
             // Copying actual data bytes.
             *(Double *)(buf + position + 1) = value;
@@ -229,13 +218,12 @@ internal sealed class ByteArrayBuilder
 
     private unsafe static void AppendNonNullValue(
         Double value,
-        Byte[] dataArray,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Byte[] dataArray)
     {
         fixed (Byte * buf = dataArray)
         {
             // First byte is non-zero for defined values.
-            *buf = embedType;
+            *buf = 1;
 
             // Copying actual data bytes.
             *(Double *)(buf + 1) = value;
@@ -243,8 +231,7 @@ internal sealed class ByteArrayBuilder
     }
 
     internal void Append(
-        Nullable<Double> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<Double> value)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -254,18 +241,16 @@ internal sealed class ByteArrayBuilder
             return;
         }
 
-        AppendNonNullValue(value.Value, embedType);
+        AppendNonNullValue(value.Value);
     }
 
     /// <summary>
     /// Precomputes the buffer.
     /// </summary>
     /// <param name="value">The value.</param>
-    /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
     internal static Byte[] PrecomputeBuffer(
-        Nullable<Double> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<Double> value)
     {
         if (value == null)
         {
@@ -274,7 +259,7 @@ internal sealed class ByteArrayBuilder
         }
 
         Byte[] dataArray = new Byte[9];
-        AppendNonNullValue(value.Value, dataArray, embedType);
+        AppendNonNullValue(value.Value, dataArray);
         return dataArray;
     }
 
@@ -283,25 +268,22 @@ internal sealed class ByteArrayBuilder
     //////////////////////////////////////////////////////////
 
     internal unsafe void AppendNonNullValue(
-        Decimal value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Decimal value)
     {
         Int64 value2 = X6Decimal.ToEncoded(value);
-        AppendNonNullValue(value2, embedType);
+        AppendNonNullValue(value2);
     }
 
     private unsafe static void AppendNonNullValue(
         Decimal value,
-        Byte[] dataArray,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Byte[] dataArray)
     {
         Int64 value2 = X6Decimal.ToEncoded(value);
-        AppendNonNullValue(value2, dataArray, embedType);
+        AppendNonNullValue(value2, dataArray);
     }
 
     internal void Append(
-        Nullable<Decimal> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<Decimal> value)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -311,18 +293,16 @@ internal sealed class ByteArrayBuilder
             return;
         }
 
-        AppendNonNullValue(value.Value, embedType);
+        AppendNonNullValue(value.Value);
     }
 
     /// <summary>
     /// Precomputes the buffer.
     /// </summary>
     /// <param name="value">The value.</param>
-    /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
     internal static Byte[] PrecomputeBuffer(
-        Nullable<Decimal> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<Decimal> value)
     {
         if (value == null)
         {
@@ -331,7 +311,7 @@ internal sealed class ByteArrayBuilder
         }
 
         Byte[] dataArray = new Byte[17]; // Decimal is 128-bits long.
-        AppendNonNullValue(value.Value, dataArray, embedType);
+        AppendNonNullValue(value.Value, dataArray);
         return dataArray;
     }
 
@@ -340,11 +320,10 @@ internal sealed class ByteArrayBuilder
     /////////////////////////////////////////////////////////
 
     internal void AppendNonNullValue(
-        Binary value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Binary value)
     {
         // First byte is non-zero for defined values.
-        dataBuffer[position] = embedType;
+        dataBuffer[position] = 1;
         position++;
 
         var valueLen = value.GetLength();
@@ -355,11 +334,10 @@ internal sealed class ByteArrayBuilder
 
     private static void AppendNonNullValue(
         Binary value,
-        Byte[] dataArray,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Byte[] dataArray)
     {
         // First byte is non-zero for defined values.
-        dataArray[0] = embedType;
+        dataArray[0] = 1;
 
         var valueLen = value.GetLength();
         var adjustedLen = valueLen + 5;
@@ -367,8 +345,7 @@ internal sealed class ByteArrayBuilder
     }
 
     internal void Append(
-        Nullable<Binary> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<Binary> value)
     {
         if (value == null)
         {
@@ -377,18 +354,16 @@ internal sealed class ByteArrayBuilder
             return;
         }
 
-        AppendNonNullValue(value.Value, embedType);
+        AppendNonNullValue(value.Value);
     }
 
     /// <summary>
     /// Precomputes the buffer.
     /// </summary>
     /// <param name="value">The value.</param>
-    /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
     internal static Byte[] PrecomputeBuffer(
-        Nullable<Binary> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<Binary> value)
     {
         if (value == null)
         {
@@ -398,7 +373,7 @@ internal sealed class ByteArrayBuilder
 
         Int32 totalLengthBytes = value.Value.GetLength() + 5;
         Byte[] dataArray = new Byte[totalLengthBytes + 1];
-        AppendNonNullValue(value.Value, dataArray, embedType);
+        AppendNonNullValue(value.Value, dataArray);
         return dataArray;
     }
 
@@ -407,13 +382,12 @@ internal sealed class ByteArrayBuilder
     //////////////////////////////////////////////////////////
 
     internal unsafe void AppendNonNullValue(
-        Boolean value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Boolean value)
     {
         fixed (Byte* buf = dataBuffer)
         {
             // First byte is non-zero for defined values.
-            *(buf + position) = embedType;
+            *(buf + position) = 1;
             position++;
 
             // Zeroing memory.
@@ -435,13 +409,12 @@ internal sealed class ByteArrayBuilder
 
     private unsafe static void AppendNonNullValue(
         Boolean value,
-        Byte[] dataArray,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Byte[] dataArray)
     {
         fixed (Byte* buf = dataArray)
         {
             // First byte is non-zero for defined values.
-            *buf = embedType;
+            *buf = 1;
 
             // Zeroing memory.
             *(UInt64*) (buf + 1) = 0;
@@ -459,8 +432,7 @@ internal sealed class ByteArrayBuilder
     }
 
     internal void Append(
-        Nullable<Boolean> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<Boolean> value)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -470,18 +442,16 @@ internal sealed class ByteArrayBuilder
             return;
         }
 
-        AppendNonNullValue(value.Value, embedType);
+        AppendNonNullValue(value.Value);
     }
 
     /// <summary>
     /// Precomputes the buffer.
     /// </summary>
     /// <param name="value">The value.</param>
-    /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
     internal static Byte[] PrecomputeBuffer(
-        Nullable<Boolean> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<Boolean> value)
     {
         if (value == null)
         {
@@ -490,7 +460,7 @@ internal sealed class ByteArrayBuilder
         }
 
         Byte[] dataArray = new Byte[9];
-        AppendNonNullValue(value.Value, dataArray, embedType);
+        AppendNonNullValue(value.Value, dataArray);
         return dataArray;
     }
 
@@ -499,8 +469,7 @@ internal sealed class ByteArrayBuilder
     ///////////////////////////////////////////////////////////
 
     internal void Append(
-        Nullable<DateTime> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<DateTime> value)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -511,18 +480,16 @@ internal sealed class ByteArrayBuilder
         }
 
         // Using UInt64 function.
-        AppendNonNullValue(value.Value.Ticks, embedType);
+        AppendNonNullValue(value.Value.Ticks);
     }
 
     /// <summary>
     /// Precomputes the buffer.
     /// </summary>
     /// <param name="value">The value.</param>
-    /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
     internal static Byte[] PrecomputeBuffer(
-        Nullable<DateTime> value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Nullable<DateTime> value)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -533,7 +500,7 @@ internal sealed class ByteArrayBuilder
         Byte[] dataArray = new Byte[9];
 
         // Using UInt64 function.
-        AppendNonNullValue(value.Value.Ticks, dataArray, embedType);
+        AppendNonNullValue(value.Value.Ticks, dataArray);
         return dataArray;
     }
 
@@ -542,8 +509,7 @@ internal sealed class ByteArrayBuilder
     ///////////////////////////////////////////////////////////////////
     
     internal void Append(
-        IObjectView value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        IObjectView value)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -554,7 +520,7 @@ internal sealed class ByteArrayBuilder
         }
 
         // First byte is non-zero for defined values.
-        dataBuffer[position] = embedType;
+        dataBuffer[position] = 1;
         position++;
         
         // Next eight bytes represent the value.
@@ -576,11 +542,9 @@ internal sealed class ByteArrayBuilder
     /// Precomputes the buffer.
     /// </summary>
     /// <param name="value">The value.</param>
-    /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
     internal static Byte[] PrecomputeBuffer(
-        IObjectView value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        IObjectView value)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -591,7 +555,7 @@ internal sealed class ByteArrayBuilder
         Byte[] dataArray = new Byte[9];
 
         // First byte is non-zero for defined values.
-        dataArray[0] = embedType;
+        dataArray[0] = 1;
 
         // Next eight bytes represent the value.
         Byte[] valueArr;
@@ -613,8 +577,7 @@ internal sealed class ByteArrayBuilder
 
     internal unsafe void Append(
         String value,
-        Boolean appendMaxChar,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Boolean appendMaxChar)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -631,7 +594,7 @@ internal sealed class ByteArrayBuilder
         }
 
         // First byte is non-zero for defined values.
-        dataBuffer[position] = embedType;
+        dataBuffer[position] = 1;
         position++;
 
         Int32 outputLen = -1;
@@ -686,12 +649,10 @@ internal sealed class ByteArrayBuilder
     /// </summary>
     /// <param name="value">The value.</param>
     /// <param name="appendMaxChar">The append max char.</param>
-    /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
     internal unsafe static Byte[] PrecomputeBuffer(
         String value,
-        Boolean appendMaxChar,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        Boolean appendMaxChar)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -727,14 +688,13 @@ internal sealed class ByteArrayBuilder
         Marshal.Copy((IntPtr)valuePtr, dataArray, 1, length + 4);
 
         // First byte is non-zero for defined values.
-        dataArray[0] = embedType;
+        dataArray[0] = 1;
 
         return dataArray;
     }
 
     internal unsafe void AppendUnicodeString(
-        String value,
-        Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
+        String value)
     {
         // Checking if value is undefined.
         if (value == null)
@@ -745,7 +705,7 @@ internal sealed class ByteArrayBuilder
         }
 
         // First byte is non-zero for defined values.
-        dataBuffer[position] = embedType;
+        dataBuffer[position] = 1;
         position++;
 
         // Converting string to bytes.

@@ -1007,7 +1007,6 @@ namespace Starcounter.Internal
             UInt32 maxBytes, // [IN] Maximum size in bytes of the result buffer (needed for allocation in Blast).
             UInt32* outLenBytes // [OUT] Length in bytes of the result data.
             );
-#endif
 
         // Types of variable in query.
         /// <summary>
@@ -1050,6 +1049,7 @@ namespace Starcounter.Internal
         /// The QUER y_ VARTYP e_ BOOLEAN
         /// </summary>
         internal const Byte QUERY_VARTYPE_BOOLEAN = 10;
+#endif
     }
 #endif
 }
