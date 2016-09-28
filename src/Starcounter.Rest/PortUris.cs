@@ -15,18 +15,6 @@ namespace Starcounter.Rest {
     public unsafe class ClangFunctions {
 
         [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static UInt32 ClangCompileCodeAndGetFuntions(
-            void** clang_engine,
-            Boolean accumulate_old_modules,
-            Boolean print_to_console,
-            Boolean do_optimizations,
-            Byte* code_str,
-            Byte* function_names_delimited,
-            IntPtr* out_func_ptrs,
-            IntPtr** out_exec_module
-        );
-
-        [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static UInt32 ClangCompileAndLoadObjectFile(
             void** clang_engine,
             Boolean print_to_console,
@@ -101,17 +89,6 @@ namespace Starcounter.Rest {
 
                     // Pointer to execution module that we don't use though.
                     IntPtr* exec_module;
-
-                    // Compiling the given code and getting function pointer back.
-                    /*UInt32 err_code = ClangFunctions.ClangCompileCodeAndGetFuntions(
-                        clang_engine,
-                        false,
-                        false,
-                        MixedCodeConstants.SCLLVM_OPT_FLAG,
-                        cpp_code_ptr,
-                        function_names_bytes_native,
-                        out_func_ptrs,
-                        &exec_module);*/
 
                     UInt32 err_code = ClangFunctions.ClangCompileAndLoadObjectFile(
                         clang_engine,

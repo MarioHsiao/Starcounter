@@ -206,18 +206,6 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
             void* out_functions[1];
             void* exec_module = NULL;
 
-			/*
-            uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
-                clang_engine_addr,
-                false,
-                false,
-				MixedCodeConstants::SCLLVM_OPT_FLAG,
-                uri_matching_code_,
-                root_function_name,
-                out_functions,
-                &exec_module);
-			*/
-
 			uint32_t err_code = g_gateway.clangCompileAndLoadObjectFile_(
 				clang_engine_addr,
 				false,

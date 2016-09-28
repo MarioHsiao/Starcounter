@@ -1478,16 +1478,6 @@ public:
 #endif
 };
 
-typedef uint32_t (*ClangCompileCodeAndGetFuntions) (
-    void** const clang_engine,
-    const bool accumulate_old_modules,
-    const bool print_to_console,
-    const bool do_optimizations,
-    const char* const input_code_str,
-    const char* const function_names_delimited,
-    void* out_func_ptrs[],
-    void** exec_module);
-
 typedef uint32_t(*ClangCompileAndLoadObjectFile) (
 	void** const clang_engine,
 	const bool print_to_console,
@@ -1845,7 +1835,6 @@ public:
 	}
 
     // Pointer to Clang compile and get function pointer.
-    ClangCompileCodeAndGetFuntions clangCompileCodeAndGetFuntions_;
 	ClangCompileAndLoadObjectFile clangCompileAndLoadObjectFile_;
 
     // Destroys existing Clang engine.

@@ -2314,12 +2314,6 @@ uint32_t Gateway::Init()
     GW_ASSERT(clang_init != NULL);
     clang_init();
 
-    clangCompileCodeAndGetFuntions_ = (ClangCompileCodeAndGetFuntions) GetProcAddress(
-        clang_dll,
-        "ClangCompileCodeAndGetFuntions");
-
-    GW_ASSERT(clangCompileCodeAndGetFuntions_ != NULL);
-
 	clangCompileAndLoadObjectFile_ = (ClangCompileAndLoadObjectFile)GetProcAddress(
 		clang_dll,
 		"ClangCompileAndLoadObjectFile");
@@ -2339,24 +2333,7 @@ uint32_t Gateway::Init()
     void* out_functions[2];
     void* exec_module = NULL;
 
-    uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
-        clang_engine_addr, // Pointer to Clang engine.
-        false, // Accumulate Clang modules.
-        false, // Print build output to console.
-		MixedCodeConstants::SCLLVM_OPT_FLAG, // Do code optimizations.
-
-        "extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
-        "extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
-
-        "Func1", // Name of functions which pointers should be returned, delimited by semicolon.
-        out_functions, // Output pointers to functions.
-        &exec_module
-        );
-
-    GW_ASSERT(0 == err_code);
-    GW_ASSERT(NULL != exec_module);
-
-	err_code = g_gateway.clangCompileAndLoadObjectFile_(
+    uint32_t err_code = g_gateway.clangCompileAndLoadObjectFile_(
 		clang_engine_addr, // Pointer to Clang engine.
 		false, // Print build output to console.
 		MixedCodeConstants::SCLLVM_OPT_FLAG, // Do code optimizations.
@@ -2365,7 +2342,7 @@ uint32_t Gateway::Init()
 		"extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
 		"extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
 		"Func1", // Name of functions which pointers should be returned, delimited by semicolon.
-		"",
+		NULL,
 		true,
 		out_functions, // Output pointers to functions.
 		&exec_module
