@@ -5,11 +5,18 @@
 // ***********************************************************************
 
 using System;
+using System.Runtime.InteropServices;
 using Starcounter.Internal;
 
 namespace Starcounter.Query.Execution {
 
     internal sealed class IndexKeyBuilder {
+
+        const byte S_UKN = 0x40;
+
+        const byte S_SEP = 0x80;
+
+        const byte S_EOK = 0xC0;
 
         // Copying one key builder data to another.
         internal void CopyToAnotherByteArray(IndexKeyBuilder anotherByteArray) {
@@ -25,12 +32,12 @@ namespace Starcounter.Query.Execution {
 
         internal IndexKeyBuilder() {
             dataBuffer = new Byte[SqlConnectivityInterface.RECREATION_KEY_MAX_BYTES];
-            position = 4; // Because size of the data stream is in first 4 bytes.
+            position = 0;
         }
 
         // Reseting buffer for further re-usage.
         internal void ResetCached() {
-            position = 4; // Because size of the data stream is in first 4 bytes.
+            position = 0;
         }
 
         // Getting key data stream.
@@ -39,68 +46,61 @@ namespace Starcounter.Query.Execution {
         /// </summary>
         /// <returns>Byte[][].</returns>
         internal unsafe Byte[] GetBufferCached() {
-            // First four bytes represent the total length of the key.
-            fixed (Byte* buf = dataBuffer) {
-                *(Int32*)buf = position;
-            }
+            dataBuffer[position++] = S_EOK;
+            while ((position % 8) != 0) dataBuffer[position++] = 0;
             return dataBuffer;
         }
 
         private void AppendNullValue() {
-            dataBuffer[position] = 0;
-            position++;
+            dataBuffer[position++] = S_UKN | 0x20;
+        }
+
+        private void RaiseNoBufferException() {
+            throw new ArgumentException();
         }
 
         ////////////////////////////////////////////////////////////////
         // Group of functions for appending int64 to the data stream. //
         ////////////////////////////////////////////////////////////////
 
+        [DllImport("sccoredb.dll")]
+        private static extern unsafe void star_ukf_encode_long(long input, byte* output9);
+
         private unsafe void AppendNonNullValue(Int64 value) {
-            fixed (Byte* buf = dataBuffer) {
-                // First byte is non-zero for defined values.
-                *(buf + position) = 1;
-
-                // Copying actual data bytes.
-                *(Int64*)(buf + position + 1) = value;
+            int left = (dataBuffer.Length - position);
+            if (left >= 9) {
+                fixed (byte* data = dataBuffer) { star_ukf_encode_long(value, data + position); }
+                position += 9;
             }
-
-            position += 9;
+            else
+                RaiseNoBufferException();
         }
 
         internal void Append(Nullable<Int64> value) {
-            // Checking if value is undefined.
-            if (value == null) {
-                AppendNullValue();
-                return;
-            }
-
-            AppendNonNullValue(value.Value);
+            if (value != null) AppendNonNullValue(value.Value);
+            else AppendNullValue();
         }
 
         /////////////////////////////////////////////////////////
         // Group of functions for appending uint64 to the key. //
         /////////////////////////////////////////////////////////
 
+        [DllImport("sccoredb.dll")]
+        private static extern unsafe void star_ukf_encode_ulong(ulong input, byte* output9);
+
         private unsafe void AppendNonNullValue(UInt64 value) {
-            fixed (Byte* buf = dataBuffer) {
-                // First byte is non-zero for defined values.
-                *(buf + position) = 1;
-
-                // Copying actual data bytes.
-                *(UInt64*)(buf + position + 1) = value;
+            int left = (dataBuffer.Length - position);
+            if (left >= 9) {
+                fixed (byte* data = dataBuffer) { star_ukf_encode_ulong(value, data + position); }
+                position += 9;
             }
-
-            position += 9;
+            else
+                RaiseNoBufferException();
         }
 
         internal void Append(Nullable<UInt64> value) {
-            // Checking if value is undefined.
-            if (value == null) {
-                AppendNullValue();
-                return;
-            }
-
-            AppendNonNullValue(value.Value);
+            if (value != null) AppendNonNullValue(value.Value);
+            else AppendNullValue();
         }
 
         //////////////////////////////////////////////////////////
@@ -126,15 +126,24 @@ namespace Starcounter.Query.Execution {
         // Group of functions for appending binary to the key. //
         /////////////////////////////////////////////////////////
 
-        private void AppendNonNullValue(Binary value) {
-            // First byte is non-zero for defined values.
-            dataBuffer[position] = 1;
-            position++;
+        [DllImport("sccoredb.dll")]
+        private static extern unsafe int star_ukf_encode_binaryx(
+            byte* input, int in_len, byte* output, int out_len
+            );
 
-            var valueLen = value.GetLength();
-            var adjustedLen = valueLen + 5;
-            Buffer.BlockCopy(value.GetInternalBuffer(), 0, dataBuffer, position, adjustedLen);
-            position += adjustedLen;
+        private unsafe void AppendNonNullValue(Binary value) {
+            var in_len = value.GetLength() + 1;
+            int left = (dataBuffer.Length - position);
+            int used;
+            fixed (byte* output = dataBuffer) {
+                fixed (byte* input = value.GetInternalBuffer()) {
+                    used = star_ukf_encode_binaryx(input + 4, in_len, output + position, left);
+                }
+            }
+            if (used <= left)
+                position += used;
+            else
+                RaiseNoBufferException();
         }
 
         internal void Append(Nullable<Binary> value) {
@@ -151,24 +160,7 @@ namespace Starcounter.Query.Execution {
         //////////////////////////////////////////////////////////
 
         private unsafe void AppendNonNullValue(Boolean value) {
-            fixed (Byte* buf = dataBuffer) {
-                // First byte is non-zero for defined values.
-                *(buf + position) = 1;
-                position++;
-
-                // Zeroing memory.
-                *(UInt64*)(buf + position) = 0;
-
-                // When TRUE first byte is 1.
-                if (value == true) {
-                    *(buf + position) = 1;
-                }
-                else {
-                    *(buf + position) = 0;
-                }
-            }
-
-            position += 8;
+            AppendNonNullValue(value ? 1UL : 0UL);
         }
 
         internal void Append(Nullable<Boolean> value) {
@@ -193,7 +185,7 @@ namespace Starcounter.Query.Execution {
             }
 
             // Using UInt64 function.
-            AppendNonNullValue(value.Value.Ticks);
+            AppendNonNullValue((ulong)value.Value.Ticks);
         }
 
         ///////////////////////////////////////////////////////////////////
@@ -201,92 +193,56 @@ namespace Starcounter.Query.Execution {
         ///////////////////////////////////////////////////////////////////
 
         internal void Append(IObjectView value) {
-            // Checking if value is undefined.
-            if (value == null) {
-                AppendNullValue();
-                return;
-            }
-
-            // First byte is non-zero for defined values.
-            dataBuffer[position] = 1;
-            position++;
-
-            // Next eight bytes represent the value.
-            Byte[] valueArr;
-            if (value is MaxValueObject) {
-                valueArr = BitConverter.GetBytes(UInt64.MaxValue);
-            }
-            else {
-                valueArr = BitConverter.GetBytes(value.Identity);
-            }
-
-            Buffer.BlockCopy(valueArr, 0, dataBuffer, position, 8);
-            position += 8;
+            if (value == null) AppendNullValue();
+            else AppendNonNullValue((value is MaxValueObject) ? ulong.MaxValue : value.Identity);
         }
 
         /////////////////////////////////////////////////////////
         // Group of functions for appending string to the key. //
         /////////////////////////////////////////////////////////
 
+        [DllImport("sccoredb.dll", CharSet = CharSet.Unicode)]
+        private static extern unsafe int star_ukf_encode_string(
+            string input, int tt_conv_flags, byte* output, int out_len
+            );
+
         internal unsafe void Append(String value, Boolean appendMaxChar) {
-            // Checking if value is undefined.
-            if (value == null) {
-                AppendNullValue();
-                return;
+            if (value != null) {
+                int tt_conv_flags = appendMaxChar ? 1 : 0;
+                int left = (dataBuffer.Length - position);
+                int used;
+                fixed (byte* data = dataBuffer) {
+                    used = star_ukf_encode_string(value, tt_conv_flags, data + position, left);
+                }
+
+                if (used <= left)
+                    position += used;
+                else
+                    RaiseNoBufferException();
             }
-
-            UInt32 flags = 0, errorCode = 0;
-            if (appendMaxChar) {
-                flags += 1;  // TODO: Will SC_APPEND_INFINITE_CHAR be represented by value 1?
-            }
-
-            // First byte is non-zero for defined values.
-            dataBuffer[position] = 1;
-            position++;
-
-            Int32 outputLen = -1;
-            fixed (Byte* buf = dataBuffer) {
-                errorCode = sccoredb.star_convert_ucs2_to_turbotext(value, flags, buf + position, (UInt32)(SqlConnectivityInterface.RECREATION_KEY_MAX_BYTES - position));
-                outputLen = *(Int32*)(buf + position); // Calculating output string length.
-            }
-
-            if (errorCode != 0) {
-                throw ErrorCode.ToException(errorCode);
-            }
-
-            // 4 bytes for string length.
-            position += (outputLen + 4);
+            else AppendNullValue();
         }
 
+        [DllImport("sccoredb.dll", CharSet = CharSet.Unicode)]
+        private static extern unsafe int star_ukf_encode_setspec(
+            string input, int tt_conv_flags, byte* output, int out_len
+            );
+
         internal unsafe void Append_Setspec(string value, bool appendInfiniteChar) {
-            // Checking if value is undefined.
-            if (value == null) {
-                dataBuffer[position] = 0;
-                position++;
-                return;
-            }
+            if (value != null) {
+                int tt_conv_flags = appendInfiniteChar ? 1 : 0;
+                int left = (dataBuffer.Length - position);
+                int used;
+                fixed (byte* data = dataBuffer) {
+                    used = star_ukf_encode_setspec(value, tt_conv_flags, data + position, left);
+                }
 
-            uint flags = appendInfiniteChar ? 1U : 0U;
-
-            dataBuffer[position] = 1; // First byte is non-zero for defined values.
-            position++;
-
-            uint r;
-            int outputLen;
-            fixed (byte* buf = dataBuffer) {
-                r = sccoredb.star_convert_ucs2_to_setspectt(
-                    value, flags, buf + position,
-                    (uint)(SqlConnectivityInterface.RECREATION_KEY_MAX_BYTES - position)
-                    );
-                outputLen = *(int*)(buf + position); // Calculating output string length.
+                if (used <= left)
+                    position += used;
+                else
+                    RaiseNoBufferException();
             }
-
-            if (r == 0) {
-                position += (outputLen + 4); // 4 bytes for string length.
-            }
-            else {
-                throw ErrorCode.ToException(r);
-            }
+            else AppendNullValue();
         }
     }
 }
