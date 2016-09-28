@@ -254,14 +254,6 @@ internal sealed class CodeGenFilterPrivate
         return filterKey.GetBufferCached();
     }
 
-    /// <summary>
-    /// Returns filter key length in bytes.
-    /// </summary>
-    public Int32 GetDataStreamLength()
-    {
-        return filterKey.LengthInBytes();
-    }
-
     // Interface to indicate that instruction has been changed.
     public Boolean HasNumTypeChanged
     {

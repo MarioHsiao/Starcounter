@@ -232,11 +232,6 @@ internal interface IVariable : IValueExpression
     // Appends maximum and minimum value to the provided filter key.
     void AppendMaxToKey(ByteArrayBuilder key);
     void AppendMinToKey(ByteArrayBuilder key);
-
-#if false
-    // Initializes variable from byte buffer.
-    unsafe void InitFromBuffer(ref Byte *buffer);
-#endif
 }
 
 /// <summary>

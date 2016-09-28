@@ -237,7 +237,6 @@
     <Compile Include="Query\Execution\Enumerators\NullObject.cs" />
     <Compile Include="Query\Execution\Enumerators\ReferenceLookup.cs" />
     <Compile Include="Query\Execution\Enumerators\Sort.cs" />
-    <Compile Include="Query\Execution\Enumerators\UserSqlEnumerator.cs" />
     <Compile Include="Query\Execution\Interfaces.cs" />
     <Compile Include="Query\Execution\Literals\BinaryLiteral.cs" />
     <Compile Include="Query\Execution\Literals\BooleanLiteral.cs" />

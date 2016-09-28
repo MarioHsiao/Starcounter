@@ -219,31 +219,6 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetBinaryVariableValue();");
     }
 
-#if false
-    /// <summary>
-    /// Initializes variable from byte buffer.
-    /// </summary>
-    public override unsafe void InitFromBuffer(ref Byte* buffer)
-    {
-        if (*buffer == 0)
-        {
-            // Undefined value.
-            value = null;
-            buffer++;
-            return;
-        }
-
-        // Checking variable data type.
-        if (*buffer != SqlConnectivityInterface.QUERY_VARTYPE_BINARY)
-            throw ErrorCode.ToException(Error.SCERRQUERYWRONGPARAMTYPE, "Incorrect query parameter type: " + number);
-
-        // Defined value.
-        buffer++;
-        value = Binary.FromNative(buffer);
-        buffer += value.Value.InternalLength;
-    }
-#endif
-
 #if DEBUG
     public bool AssertEquals(IValueExpression other) {
         BinaryVariable otherNode = other as BinaryVariable;

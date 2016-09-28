@@ -209,15 +209,6 @@ newValue.GetType().ToString());
             throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
         }
 
-#if false
-        /// <summary>
-        /// Initializes variable from byte buffer.
-        /// </summary>
-        public override unsafe void InitFromBuffer(ref Byte* buffer) {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
-        }
-#endif
-
 #if DEBUG
         public bool AssertEquals(IValueExpression other) {
             TypeVariable otherNode = other as TypeVariable;

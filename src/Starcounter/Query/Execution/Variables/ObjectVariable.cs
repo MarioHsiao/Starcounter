@@ -232,37 +232,6 @@ newValue.GetType().ToString());
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetObjectVariableValue();");
     }
 
-#if false
-    /// <summary>
-    /// Initializes variable from byte buffer.
-    /// </summary>
-    public override unsafe void InitFromBuffer(ref Byte* buffer)
-    {
-        if (*buffer == 0)
-        {
-            // Undefined value.
-            value = null;
-            buffer++;
-            return;
-        }
-
-        // Checking variable data type.
-        if (*buffer != SqlConnectivityInterface.QUERY_VARTYPE_OBJECT)
-            throw ErrorCode.ToException(Error.SCERRQUERYWRONGPARAMTYPE, "Incorrect query parameter type: " + number);
-
-        // Defined value (contains object id).
-        UInt64 oid = (*(UInt64*)(buffer + 1));
-
-        // Creating proxy object or max value object.
-        if (oid == UInt64.MaxValue)
-            value = new MaxValueObject();
-        else
-            value = DbHelper.FromID(oid);
-
-        buffer += 9;
-    }
-#endif
-
 #if DEBUG
     private bool AssertEqualsVisited = false;
     public bool AssertEquals(IValueExpression other) {

@@ -217,30 +217,6 @@ internal class BooleanVariable : Variable, IVariable, IBooleanExpression
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetBooleanVariableValue();");
     }
 
-#if false
-    /// <summary>
-    /// Initializes variable from byte buffer.
-    /// </summary>
-    public override unsafe void InitFromBuffer(ref Byte* buffer)
-    {
-        if (*buffer == 0)
-        {
-            // Undefined value.
-            value = null;
-            buffer++;
-            return;
-        }
-
-        // Checking variable data type.
-        if (*buffer != SqlConnectivityInterface.QUERY_VARTYPE_BOOLEAN)
-            throw ErrorCode.ToException(Error.SCERRQUERYWRONGPARAMTYPE, "Incorrect query parameter type: " + number);
-
-        // Defined value.
-        value = (*(Boolean*)(buffer + 1));
-        buffer += 9;
-    }
-#endif
-
 #if DEBUG
     public bool AssertEquals(IValueExpression other) {
         BooleanVariable otherNode = other as BooleanVariable;

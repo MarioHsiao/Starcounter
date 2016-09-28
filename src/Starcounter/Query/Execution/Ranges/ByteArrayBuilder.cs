@@ -15,7 +15,7 @@ namespace Starcounter.Query.Execution
     /// <summary>
     /// Class ByteArrayBuilder
     /// </summary>
-public sealed class ByteArrayBuilder
+internal sealed class ByteArrayBuilder
 {
     Byte[] dataBuffer; // Data array.
     Int32 position; // The current position in the buffer where data should be appended.
@@ -30,18 +30,6 @@ public sealed class ByteArrayBuilder
     internal void ResetCached()
     {
         position = 4; // Because size of the data stream is in first 4 bytes.
-    }
-
-    // Returns length of the buffer in bytes (including length).
-    internal Int32 LengthInBytes()
-    {
-        return position;
-    }
-
-    // Returns true if key contains data.
-    internal Boolean ContainsData()
-    {
-        return (position > 4);
     }
 
     // Copying one key builder data to another.
@@ -67,7 +55,7 @@ public sealed class ByteArrayBuilder
     /// Gets the buffer cached.
     /// </summary>
     /// <returns>Byte[][].</returns>
-    public unsafe Byte[] GetBufferCached()
+    internal unsafe Byte[] GetBufferCached()
     {
         // First four bytes represent the total length of the key.
         fixed (Byte *buf = dataBuffer)
@@ -75,21 +63,6 @@ public sealed class ByteArrayBuilder
             *(Int32 *)buf = position;
         }
         return dataBuffer;
-    }
-
-    /// <summary>
-    /// Returns plain data buffer.
-    /// </summary>
-    public Byte[] DataBuffer
-    {
-        get { return dataBuffer; }
-    }
-
-    // Simply appends null value of any data type.
-    internal void AppendNullValue()
-    {
-        dataBuffer[position] = 0;
-        position++;
     }
 
     ////////////////////////////////////////////////////////////////
@@ -148,7 +121,7 @@ public sealed class ByteArrayBuilder
     /// <param name="value">The value.</param>
     /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
-    public static Byte[] PrecomputeBuffer(
+    internal static Byte[] PrecomputeBuffer(
         Nullable<Int64> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
@@ -219,7 +192,7 @@ public sealed class ByteArrayBuilder
     /// <param name="value">The value.</param>
     /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
-    public static Byte[] PrecomputeBuffer(
+    internal static Byte[] PrecomputeBuffer(
         Nullable<UInt64> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
@@ -290,7 +263,7 @@ public sealed class ByteArrayBuilder
     /// <param name="value">The value.</param>
     /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
-    public static Byte[] PrecomputeBuffer(
+    internal static Byte[] PrecomputeBuffer(
         Nullable<Double> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
@@ -347,7 +320,7 @@ public sealed class ByteArrayBuilder
     /// <param name="value">The value.</param>
     /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
-    public static Byte[] PrecomputeBuffer(
+    internal static Byte[] PrecomputeBuffer(
         Nullable<Decimal> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
@@ -413,7 +386,7 @@ public sealed class ByteArrayBuilder
     /// <param name="value">The value.</param>
     /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
-    public static Byte[] PrecomputeBuffer(
+    internal static Byte[] PrecomputeBuffer(
         Nullable<Binary> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
@@ -506,7 +479,7 @@ public sealed class ByteArrayBuilder
     /// <param name="value">The value.</param>
     /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
-    public static Byte[] PrecomputeBuffer(
+    internal static Byte[] PrecomputeBuffer(
         Nullable<Boolean> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
@@ -547,7 +520,7 @@ public sealed class ByteArrayBuilder
     /// <param name="value">The value.</param>
     /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
-    public static Byte[] PrecomputeBuffer(
+    internal static Byte[] PrecomputeBuffer(
         Nullable<DateTime> value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
@@ -605,7 +578,7 @@ public sealed class ByteArrayBuilder
     /// <param name="value">The value.</param>
     /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
-    public static Byte[] PrecomputeBuffer(
+    internal static Byte[] PrecomputeBuffer(
         IObjectView value,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)
     {
@@ -715,7 +688,7 @@ public sealed class ByteArrayBuilder
     /// <param name="appendMaxChar">The append max char.</param>
     /// <param name="embedType">Type of the embed.</param>
     /// <returns>Byte[][].</returns>
-    public unsafe static Byte[] PrecomputeBuffer(
+    internal unsafe static Byte[] PrecomputeBuffer(
         String value,
         Boolean appendMaxChar,
         Byte embedType = SqlConnectivityInterface.QUERY_VARTYPE_DEFINED)

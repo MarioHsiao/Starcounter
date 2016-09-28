@@ -215,67 +215,6 @@ newValue.GetType().ToString());
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetStringVariableValue();");
     }
 
-#if false
-    /// <summary>
-    /// Initializes variable from byte buffer.
-    /// </summary>
-    public override unsafe void InitFromBuffer(ref Byte* buffer)
-    {
-        if (*buffer == 0)
-        {
-            // Undefined value.
-            value = null;
-            buffer++;
-            return;
-        }
-
-        // Checking variable data type.
-        if (*buffer != SqlConnectivityInterface.QUERY_VARTYPE_STRING)
-            throw ErrorCode.ToException(Error.SCERRQUERYWRONGPARAMTYPE, "Incorrect query parameter type: " + number);
-
-        // Defined value.
-        buffer++;
-
-        Int32 outLenChars = stringBuffer.Length;
-        UInt32 inLenBytes = *(UInt32*) buffer;
-        UInt32 errorCode = 1;
-
-        fixed (Char* pStringBuffer = stringBuffer)
-        {
-            errorCode = sccoredb.SCConvertNativeStringToUTF16(buffer + 4, inLenBytes, pStringBuffer, (UInt32 *)&outLenChars);
-        }
-
-        if (errorCode != 0)
-            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Can't re-create the String variable from Byte buffer.");
-
-        buffer += inLenBytes + 4;
-
-        // Converting to String variable.
-        value = new String(stringBuffer, 0, outLenChars - 1);
-
-        // Using Unicode string conversion instead.
-        /*
-        if (*buffer == 0)
-        {
-            // Undefined value.
-            value = null;
-            buffer++;
-            return;
-        }
-
-        // Defined value.
-        buffer++;
-        Int32 lenBytes = *(Int32*)buffer;
-
-        // Copying byte data.
-        Marshal.Copy(new IntPtr(buffer + 4), stringByteBuffer, 0, lenBytes);
-        value = Encoding.Unicode.GetString(stringByteBuffer, 0, lenBytes);
-
-        buffer += lenBytes + 4;
-        */
-    }
-#endif
-
 #if DEBUG
     public bool AssertEquals(IValueExpression other) {
         StringVariable otherNode = other as StringVariable;

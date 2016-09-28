@@ -160,25 +160,6 @@ internal class VariableArray
         variableArray[index] = variable;
     }
 
-#if false
-    /// <summary>
-    /// Initializes all query variables from given buffer.
-    /// </summary>
-    /// <param name="queryParamsBufOrig">The query params buf orig.</param>
-    internal unsafe void InitFromBuffer(Byte *queryParamsBufOrig)
-    {
-        // Skipping first four bytes for the total length.
-        queryParamsBufOrig += 4;
-
-        // Running initialization for each variable.
-        foreach (IVariable queryVar in variableArray)
-        {
-            // Each variable type knows how to chop its own piece of data.
-            queryVar.InitFromBuffer(ref queryParamsBufOrig);
-        }
-    }
-#endif
-
     /// <summary>
     /// Retrieves variable from certain position in the array.
     /// </summary>

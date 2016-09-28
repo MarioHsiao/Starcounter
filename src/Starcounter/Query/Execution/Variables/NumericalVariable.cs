@@ -892,67 +892,6 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetNumericalVariableValue();");
     }
 
-#if false
-    /// <summary>
-    /// Initializes variable from byte buffer.
-    /// </summary>
-    public override unsafe void InitFromBuffer(ref Byte* buffer)
-    {
-        Byte numericalType = *buffer;
-
-        if (numericalType == 0)
-        {
-            // Undefined value.
-            intValue = null;
-            uintValue = null;
-            dblValue = null;
-            decValue = null;
-
-            buffer++;
-            return;
-        }
-        else
-        {
-            // Defined value.
-            switch (numericalType)
-            {
-                case SqlConnectivityInterface.QUERY_VARTYPE_INT:
-                {
-                    SetValue((*(Int64*)(buffer + 1)));
-                    buffer += 9;
-                    return;
-                }
-
-                case SqlConnectivityInterface.QUERY_VARTYPE_UINT:
-                {
-                    SetValue((*(UInt64*)(buffer + 1)));
-                    buffer += 9;
-                    return;
-                }
-
-                case SqlConnectivityInterface.QUERY_VARTYPE_DOUBLE:
-                {
-                    SetValue((*(Double*)(buffer + 1)));
-                    buffer += 9;
-                    return;
-                }
-
-                case SqlConnectivityInterface.QUERY_VARTYPE_DECIMAL:
-                {
-                    SetValue((*(Decimal*)(buffer + 1)));
-                    buffer += 17; // Decimal is 128-bits long.
-                    return;
-                }
-
-                default:
-                {
-                    throw ErrorCode.ToException(Error.SCERRQUERYWRONGPARAMTYPE, "Incorrect query variable type: " + number);
-                }
-            }
-        }
-    }
-#endif
-
 #if DEBUG
     private bool AssertEqualsVisited = false;
     public bool AssertEquals(IValueExpression other) {
