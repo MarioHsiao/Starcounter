@@ -59,22 +59,6 @@ namespace Starcounter.Query.Execution
         }
 
         /// <summary>
-        /// Appends maximum value to the provided filter key.
-        /// </summary>
-        /// <param name="key">Reference to the filter key to which data should be appended.</param>
-        public override void AppendMaxToKey(ByteArrayBuilder key) {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Append is not available for Type");
-        }
-
-        /// <summary>
-        /// Appends minimum value to the provided filter key.
-        /// </summary>
-        /// <param name="key">Reference to the filter key to which data should be appended.</param>
-        public override void AppendMinToKey(ByteArrayBuilder key) {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Append is not available for Type");
-        }
-
-        /// <summary>
         /// Sets value to variable in execution enumerator.
         /// </summary>
         public void ProlongValue(IExecutionEnumerator destEnum) {

@@ -73,24 +73,6 @@ internal class BinaryVariable : Variable, IVariable, IBinaryExpression
     }
 
     /// <summary>
-    /// Appends maximum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMaxToKey(ByteArrayBuilder key)
-    {
-        key.Append(BinaryRangeValue.INFINITE);
-    }
-
-    /// <summary>
-    /// Appends minimum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMinToKey(ByteArrayBuilder key)
-    {
-        key.Append(BinaryRangeValue.MIN_VALUE);
-    }
-
-    /// <summary>
     /// Sets value to variable in execution enumerator.
     /// </summary>
     public void ProlongValue(IExecutionEnumerator destEnum)

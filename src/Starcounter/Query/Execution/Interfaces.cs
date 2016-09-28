@@ -228,10 +228,6 @@ internal interface IVariable : IValueExpression
 
     // Sets value to variable in another enumerator.
     void ProlongValue(IExecutionEnumerator destEnum);
-
-    // Appends maximum and minimum value to the provided filter key.
-    void AppendMaxToKey(ByteArrayBuilder key);
-    void AppendMinToKey(ByteArrayBuilder key);
 }
 
 /// <summary>

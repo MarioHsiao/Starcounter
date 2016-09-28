@@ -79,24 +79,6 @@ internal class BooleanVariable : Variable, IVariable, IBooleanExpression
     }
 
     /// <summary>
-    /// Appends maximum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMaxToKey(ByteArrayBuilder key)
-    {
-        key.Append(BooleanRangeValue.MAX_VALUE);
-    }
-
-    /// <summary>
-    /// Appends minimum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMinToKey(ByteArrayBuilder key)
-    {
-        key.Append(BooleanRangeValue.MIN_VALUE);
-    }
-
-    /// <summary>
     /// Sets value to variable in execution enumerator.
     /// </summary>
     public void ProlongValue(IExecutionEnumerator destEnum)

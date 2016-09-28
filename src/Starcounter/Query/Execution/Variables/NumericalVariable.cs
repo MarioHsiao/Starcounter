@@ -613,44 +613,6 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
         }
     }
 
-    /// <summary>
-    /// Appends maximum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMaxToKey(ByteArrayBuilder key)
-    {
-        switch (dbTypeCode)
-        {
-            case DbTypeCode.Int64:
-                key.Append(IntegerRangeValue.MAX_VALUE);
-                break;
-            case DbTypeCode.UInt64:
-                key.Append(UIntegerRangeValue.MAX_VALUE);
-                break;
-            default:
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "The following data type can not be indexed: " + dbTypeCode);
-        }
-    }
-
-    /// <summary>
-    /// Appends minimum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMinToKey(ByteArrayBuilder key)
-    {
-        switch (dbTypeCode)
-        {
-            case DbTypeCode.Int64:
-                key.Append(IntegerRangeValue.MIN_VALUE);
-                break;
-            case DbTypeCode.UInt64:
-                key.Append(UIntegerRangeValue.MIN_VALUE);
-                break;
-            default:
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "The following data type can not be indexed: " + dbTypeCode);
-        }
-    }
-
     // Attaches the private filter for later callbacks when type is changed.
     public void AttachPrivateFilter(CodeGenFilterPrivate privFilterRef,
                                     Int32 numVarIndex)

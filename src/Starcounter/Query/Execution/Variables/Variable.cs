@@ -200,24 +200,6 @@ internal abstract class Variable : CodeGenFilterNode
         nodeTypeList.Add(ConditionNodeType.Variable);
     }
 
-    /// <summary>
-    /// Appends maximum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public virtual void AppendMaxToKey(ByteArrayBuilder key)
-    {
-        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "This data type can not be indexed.");
-    }
-
-    /// <summary>
-    /// Appends minimum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public virtual void AppendMinToKey(ByteArrayBuilder key)
-    {
-        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "This data type can not be indexed.");
-    }
-
 #if DEBUG
     internal bool AssertEquals(Variable other) {
         Debug.Assert(other != null);

@@ -79,24 +79,6 @@ internal class DateTimeVariable : Variable, IVariable, IDateTimeExpression
     }
 
     /// <summary>
-    /// Appends maximum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMaxToKey(ByteArrayBuilder key)
-    {
-        key.Append(DateTimeRangeValue.MAX_VALUE);
-    }
-
-    /// <summary>
-    /// Appends minimum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMinToKey(ByteArrayBuilder key)
-    {
-        key.Append(DateTimeRangeValue.MIN_VALUE);
-    }
-
-    /// <summary>
     /// Sets value to variable in execution enumerator.
     /// </summary>
     public void ProlongValue(IExecutionEnumerator destEnum)
