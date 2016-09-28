@@ -105,8 +105,8 @@ internal class IntegerDynamicRange : DynamicRange, IDynamicRange
     // Creating fill range.
     public void CreateFillRange(
         SortOrder sortOrder,
-        ByteArrayBuilder firstKey,
-        ByteArrayBuilder secondKey,
+        IndexKeyBuilder firstKey,
+        IndexKeyBuilder secondKey,
         ComparisonOperator lastFirstOperator,
         ComparisonOperator lastSecondOperator)
     {
@@ -131,9 +131,9 @@ internal class IntegerDynamicRange : DynamicRange, IDynamicRange
     // Appends to a key builder + returns boolean indicating the equality range.
     public Boolean Evaluate(
         Row contextObj,
-        SortOrder sortOrder, 
-        ByteArrayBuilder firstKey,
-        ByteArrayBuilder secondKey,
+        SortOrder sortOrder,
+        IndexKeyBuilder firstKey,
+        IndexKeyBuilder secondKey,
         ref ComparisonOperator firstOp,
         ref ComparisonOperator secondOp)
     {

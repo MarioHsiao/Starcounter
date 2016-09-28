@@ -29,7 +29,7 @@ internal class UIntegerLiteral : Literal, ILiteral, IUIntegerPathItem
         this.value = value;
         
         // Pre-computing byte array for this literal.
-        byteData = ByteArrayBuilder.PrecomputeBuffer(value);
+        byteData = FilterKeyBuilder.PrecomputeBuffer(value);
     }
 
     /// <summary>

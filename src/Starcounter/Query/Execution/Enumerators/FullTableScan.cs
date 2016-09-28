@@ -39,7 +39,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     UInt64 filterHandle = 0; // Contains latest filter handle in use.
 
     // First and second key defining the full range.
-    ByteArrayBuilder firstKeyBuilder = null,
+    IndexKeyBuilder firstKeyBuilder = null,
            secondKeyBuilder = null;
 
     Byte[] firstKeyBuffer = null,
@@ -135,8 +135,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         var typeBinding = (TypeBinding)rowTypeBinding.GetTypeBinding(extentNumber);
         string setspec = SqlProcessor.SqlProcessor.GetSetSpecifier(typeBinding.TableId);
 
-        firstKeyBuilder = new ByteArrayBuilder();
-        secondKeyBuilder = new ByteArrayBuilder();
+        firstKeyBuilder = new IndexKeyBuilder();
+        secondKeyBuilder = new IndexKeyBuilder();
 
         firstKeyBuilder.Append_Setspec(setspec, false);
         secondKeyBuilder.Append_Setspec(setspec, true);

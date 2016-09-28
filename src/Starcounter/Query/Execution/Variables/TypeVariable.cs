@@ -54,7 +54,7 @@ namespace Starcounter.Query.Execution
         /// </summary>
         /// <param name="key">Reference to the filter key to which data should be appended.</param>
         /// <param name="obj">Row for which evaluation should be performed.</param>
-        public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj) {
+        public override void AppendToByteArray(FilterKeyBuilder key, IObjectView obj) {
             throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Append is not available for Type");
         }
 

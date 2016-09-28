@@ -76,7 +76,7 @@ internal class StringVariable : Variable, IVariable, IStringExpression
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
     /// <param name="obj">Row for which evaluation should be performed.</param>
-    public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
+    public override void AppendToByteArray(FilterKeyBuilder key, IObjectView obj)
     {
         // Appending the current value, not MAXIMUM.
         key.Append(value, false);
