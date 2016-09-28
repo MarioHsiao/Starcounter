@@ -120,16 +120,6 @@ internal class ObjectGenericMethod : IObjectPathItem, IMethod
     }
 
     /// <summary>
-    /// Appends data of this leaf to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Row for which evaluation should be performed.</param>
-    public void AppendToKey(ByteArrayBuilder key, IObjectView obj)
-    {
-        key.Append(EvaluateToObject(obj));
-    }
-
-    /// <summary>
     /// Calculates the return value of this method when evaluated on an input object.
     /// </summary>
     /// <param name="obj">The object on which to evaluate this method.</param>
