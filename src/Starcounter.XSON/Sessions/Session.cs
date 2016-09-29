@@ -503,26 +503,12 @@ namespace Starcounter {
                 throw ErrorCode.ToException(Error.SCERRANOTHERSESSIONACTIVE);
             }
 
-            int count = 0;
-            int noRetries = 3;
-            while (true) {
-                if (!waitObj.WaitOne(60 * 1000)) {
-                    if (count++ < noRetries) {
-                        log.LogWarning("Exclusive access to the session with id {0} could "
-                                       +"not be obtained within the allotted time. Trying again ({1}/{2}).",
-                                       this.SessionId,
-                                       count,
-                                       noRetries);
-                        continue;
-                    }
-                    throw ErrorCode.ToException(Error.SCERRACQUIRESESSIONTIMEOUT, "Id: " + this.SessionId);
-                }
-                break;
+            if (waitObj.WaitOne(5* 60 * 1000)) { // timeout 5 minutes
+                _isInUse = true;
+                Session._current = this;
+                return true;
             }
-            
-            _isInUse = true;
-            Session._current = this;
-            return true;
+            throw ErrorCode.ToException(Error.SCERRACQUIRESESSIONTIMEOUT, "Id: " + this.SessionId);
         }
 
         /// <summary>
