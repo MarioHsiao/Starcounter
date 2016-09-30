@@ -81,24 +81,26 @@ namespace Starcounter {
                 var notEnumeratedResult = (IEnumerable)this.data;
                 var elementType = template.ElementType;
 
-                foreach (var entity in notEnumeratedResult) {
-                    if (entity is Json) {
-                        ((IList)this).Add(entity);
-                    } else {
-                        if (elementType == null) {
-                            // no type specified on the array. Create one for this item depending on type
-                            itemTemplate = DynamicFunctions.GetTemplateFromType(entity.GetType(), true);
-                            newApp = (Json)itemTemplate.CreateInstance(this);
+                if (notEnumeratedResult != null) {
+                    foreach (var entity in notEnumeratedResult) {
+                        if (entity is Json) {
+                            ((IList)this).Add(entity);
                         } else {
-                            newApp = (Json)elementType.CreateInstance(this);
-                        }
+                            if (elementType == null) {
+                                // no type specified on the array. Create one for this item depending on type
+                                itemTemplate = DynamicFunctions.GetTemplateFromType(entity.GetType(), true);
+                                newApp = (Json)itemTemplate.CreateInstance(this);
+                            } else {
+                                newApp = (Json)elementType.CreateInstance(this);
+                            }
 
-                        // Setting only the reference to the data first to allow bindings 
-                        // and other stuff be handled then setting the property data after 
-                        // the new item have been added to have the callback to usercode.
-                        newApp.data = entity;
-                        ((IList)this).Add(newApp);
-                        newApp.Data = entity;
+                            // Setting only the reference to the data first to allow bindings 
+                            // and other stuff be handled then setting the property data after 
+                            // the new item have been added to have the callback to usercode.
+                            newApp.data = entity;
+                            ((IList)this).Add(newApp);
+                            newApp.Data = entity;
+                        }
                     }
                 }
                 this.pendingEnumeration = false;
