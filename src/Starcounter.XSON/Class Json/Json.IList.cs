@@ -353,8 +353,8 @@ namespace Starcounter {
                 stateFlags.Clear();
             }
 
-            InternalClear();
-            Parent.CallHasChanged((TContainer)Template);
+            InternalClear();    
+            Parent?.CallHasChanged((TContainer)Template);
         }
 
         /// <summary>
