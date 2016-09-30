@@ -103,7 +103,7 @@ namespace Starcounter {
                 }
                 this.pendingEnumeration = false;
             }
-            parent.CallHasChanged(template);
+            parent?.CallHasChanged(template);
         }
 
         internal void UpdateCachedIndex() {
