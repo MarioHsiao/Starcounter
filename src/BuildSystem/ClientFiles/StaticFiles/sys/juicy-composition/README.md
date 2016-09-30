@@ -117,20 +117,20 @@ You can also add name-space to your slot names, if for example you concatenate t
 
 ```html
 <juicy-composition>
-  <juicy-composition-scope name="fruits"></juicy-composition-scope>
+  <meta itemprop="juicy-composition-scope" content="fruits"></meta>
     <div slot="fruits-provider-slot-name">apple</div>
     <div>plum</div>
-  <juicy-composition-scope name="veggies"></juicy-composition-scope>
+  <meta itemprop="juicy-composition-scope" content="veggies"></meta>
     <div>carrot</div>
 </juicy-composition>
 ```
 Will make slot names look like this
 ```html
 <juicy-composition>
-    <juicy-composition-scope name="fruits"></juicy-composition-scope>
+    <meta itemprop="juicy-composition-scope" content="fruits"></meta>
     <div slot="fruits-provider-slot-name">apple</div>
     <div slot="fruits/1">plum</div>
-    <juicy-composition-scope name="veggies"></juicy-composition-scope>
+    <meta itemprop="juicy-composition-scope" content="veggies"></meta>
     <div slot="veggies/0">carrot</div>
 </juicy-composition>
 ```

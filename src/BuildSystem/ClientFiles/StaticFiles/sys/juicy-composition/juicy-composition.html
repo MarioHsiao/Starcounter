@@ -1,4 +1,4 @@
-<!-- juicy-composition @version: 0.0.5 @license: MIT -->
+<!-- juicy-composition @version: 0.0.6 @license: MIT -->
 <script>
 (function() {
     // Creates an object based in the HTML Element prototype
@@ -186,8 +186,8 @@
         for (var nodeNo = 0, len = nodesList.length; nodeNo < len; nodeNo++) {
             child = nodesList[nodeNo];
             // id scoping magic
-            if (child.tagName === "JUICY-COMPOSITION-SCOPE" || child.tagName === "JUICY-TILE-GROUP") {
-                scopePrefix = child.getAttribute("name") || "";
+            if (child.tagName === "META" && child.getAttribute('itemprop') === "juicy-composition-scope") {
+                scopePrefix = child.getAttribute("content") || "";
                 scopePrefix += "/";
                 child._juicyScopePrefix = scopePrefix;
                 child._juicyScopedIndex = -1;
