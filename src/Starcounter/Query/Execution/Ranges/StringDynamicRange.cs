@@ -105,8 +105,8 @@ internal class StringDynamicRange : DynamicRange, IDynamicRange
     // Creating fill range.
     public void CreateFillRange(
         SortOrder sortOrder,
-        ByteArrayBuilder firstKey,
-        ByteArrayBuilder secondKey,
+        IndexKeyBuilder firstKey,
+        IndexKeyBuilder secondKey,
         ComparisonOperator lastFirstOperator,
         ComparisonOperator lastSecondOperator)
     {
@@ -132,8 +132,8 @@ internal class StringDynamicRange : DynamicRange, IDynamicRange
     public Boolean Evaluate(
         Row contextObj,
         SortOrder sortOrder,
-        ByteArrayBuilder firstKey,
-        ByteArrayBuilder secondKey,
+        IndexKeyBuilder firstKey,
+        IndexKeyBuilder secondKey,
         ref ComparisonOperator firstOp,
         ref ComparisonOperator secondOp)
     {

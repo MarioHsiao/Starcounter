@@ -31,7 +31,7 @@ internal class StringLiteral : Literal, ILiteral, IStringPathItem
         isPreEvaluatedPattern = false;
         
         // Pre-computing byte array for this literal.
-        byteData = ByteArrayBuilder.PrecomputeBuffer(value, false);
+        byteData = FilterKeyBuilder.PrecomputeBuffer(value, false);
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ internal class StringLiteral : Literal, ILiteral, IStringPathItem
         this.isPreEvaluatedPattern = isPreEvaluatedPattern;
         
         // Pre-computing byte array for this literal.
-        byteData = ByteArrayBuilder.PrecomputeBuffer(value, false);
+        byteData = FilterKeyBuilder.PrecomputeBuffer(value, false);
     }
 
     /// <summary>

@@ -36,7 +36,7 @@ internal class NumericalLiteral : Literal, ILiteral, INumericalExpression
         dbTypeCode = DbTypeCode.Int64;
         
         // Pre-computing byte array for this literal.
-        byteData = ByteArrayBuilder.PrecomputeBuffer(value);
+        byteData = FilterKeyBuilder.PrecomputeBuffer(value);
     }
 
     internal NumericalLiteral(Nullable<UInt64> value)
@@ -45,7 +45,7 @@ internal class NumericalLiteral : Literal, ILiteral, INumericalExpression
         dbTypeCode = DbTypeCode.UInt64;
 
         // Pre-computing byte array for this literal.
-        byteData = ByteArrayBuilder.PrecomputeBuffer(value);
+        byteData = FilterKeyBuilder.PrecomputeBuffer(value);
     }
 
     internal NumericalLiteral(Nullable<Decimal> value)
@@ -54,7 +54,7 @@ internal class NumericalLiteral : Literal, ILiteral, INumericalExpression
         dbTypeCode = DbTypeCode.Decimal;
 
         // Pre-computing byte array for this literal.
-        byteData = ByteArrayBuilder.PrecomputeBuffer(value);
+        byteData = FilterKeyBuilder.PrecomputeBuffer(value);
     }
 
     internal NumericalLiteral(Nullable<Double> value)
@@ -63,7 +63,7 @@ internal class NumericalLiteral : Literal, ILiteral, INumericalExpression
         dbTypeCode = DbTypeCode.Double;
 
         // Pre-computing byte array for this literal.
-        byteData = ByteArrayBuilder.PrecomputeBuffer(value);
+        byteData = FilterKeyBuilder.PrecomputeBuffer(value);
     }
 
     /// <summary>

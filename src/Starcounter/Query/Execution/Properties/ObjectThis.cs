@@ -264,7 +264,7 @@ internal class ObjectThis : CodeGenFilterNode, IObjectExpression, IProperty
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
     /// <param name="obj">Row for which evaluation should be performed.</param>
-    public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
+    public override void AppendToByteArray(FilterKeyBuilder key, IObjectView obj)
     {
         // Checking if its an object from some previous extent
         // and if yes calculate its data (otherwise do nothing).

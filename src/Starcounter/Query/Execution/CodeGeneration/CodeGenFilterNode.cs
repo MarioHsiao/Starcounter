@@ -114,7 +114,7 @@ namespace Starcounter.Query.Execution
         // Appends data of this leaf (if its a leaf) to the provided byte array.
         // Second parameter is a context object (or null if there is no).
         // By default does nothing.
-        public virtual void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
+        public virtual void AppendToByteArray(FilterKeyBuilder key, IObjectView obj)
         {
             throw new NotImplementedException("AppendToByteArray is not implemented for CodeGenFilterNode");
         }

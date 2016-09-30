@@ -36,7 +36,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
         typeBinding = value.TypeBinding;
         
         // Pre-computing byte array for this literal.
-        byteData = ByteArrayBuilder.PrecomputeBuffer(value);
+        byteData = FilterKeyBuilder.PrecomputeBuffer(value);
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
         }
         
         // Pre-computing byte array for this literal.
-        byteData = ByteArrayBuilder.PrecomputeBuffer(value);
+        byteData = FilterKeyBuilder.PrecomputeBuffer(value);
     }
 
     /// <summary>
@@ -75,7 +75,7 @@ internal class ObjectLiteral : Literal, ILiteral, IObjectPathItem
         typeBinding = typeBind;
         
         // Pre-computing byte array for this literal.
-        byteData = ByteArrayBuilder.PrecomputeBuffer(value);
+        byteData = FilterKeyBuilder.PrecomputeBuffer(value);
     }
 
     public string Name

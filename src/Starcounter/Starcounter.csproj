@@ -301,7 +301,8 @@
     <Compile Include="Query\Execution\Ranges\BooleanDynamicRange.cs" />
     <Compile Include="Query\Execution\Ranges\BooleanRangePoint.cs" />
     <Compile Include="Query\Execution\Ranges\BooleanRangeValue.cs" />
-    <Compile Include="Query\Execution\Ranges\ByteArrayBuilder.cs" />
+    <Compile Include="Query\Execution\Ranges\FilterKeyBuilder.cs" />
+    <Compile Include="Query\Execution\Ranges\IndexKeyBuilder.cs" />
     <Compile Include="Query\Execution\Ranges\DateTimeDynamicRange.cs" />
     <Compile Include="Query\Execution\Ranges\DateTimeRangePoint.cs" />
     <Compile Include="Query\Execution\Ranges\DateTimeRangeValue.cs" />

@@ -74,7 +74,7 @@ internal abstract class Literal : CodeGenFilterNode
     
     // Since literal's data is statically defined and doesn't change over time
     // we can pre-compute data buffer and append it to the key builder directly.
-    public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
+    public override void AppendToByteArray(FilterKeyBuilder key, IObjectView obj)
     {
         if (byteData == null)
         {
