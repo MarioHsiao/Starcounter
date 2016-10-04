@@ -1,6 +1,7 @@
 ﻿using System;
 using Starcounter.Internal;
 using Starcounter.Templates;
+using Starcounter.XSON.Interfaces;
 using Starcounter.XSON.Metadata;
 
 namespace Starcounter.XSON.PartialClassGenerator {
@@ -8,9 +9,9 @@ namespace Starcounter.XSON.PartialClassGenerator {
     /// 
     /// </summary>
     internal class GeneratorPrePhase {
-        private const string MEMBER_NOT_FOUND = "Member '{0}' in path '{1}' was not found";
-        private const string MEMBER_NOT_OBJECT = "Member '{0}' in path '{1}' is not an object";
-        
+        private const string MEMBER_NOT_FOUND = "Member '{0}' in path '{1}' was not found.";
+        private const string MEMBER_NOT_OBJ_OR_ARR = "Member '{0}' in path '{1}' is not an object or array.";
+
         private Gen2DomGenerator generator;
 
         internal GeneratorPrePhase(Gen2DomGenerator generator) {
@@ -39,7 +40,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
         private void ProcessOneTypeAssignment(TValue root, CodeBehindTypeAssignmentInfo typeAssignment) {
             string[] parts = typeAssignment.TemplatePath.Split('.');
             Template theTemplate;
-            TObject currentObject;
+            Template currentTemplate;
 
             if (!"DefaultTemplate".Equals(parts?[0])) {
                 generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
@@ -51,40 +52,66 @@ namespace Starcounter.XSON.PartialClassGenerator {
             if (parts.Length == 1) {
                 root.CodegenInfo.ReuseType = typeAssignment.TypeName;
             } else {
-                currentObject = root as TObject;
-                if (currentObject == null) {
-                    generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
-                                                     string.Format(MEMBER_NOT_OBJECT, root.PropertyName, typeAssignment.TemplatePath),
-                                                     null,
-                                                     root.CodegenInfo.SourceInfo);
-                }
+                VerifyIsObjectOrArray(root.PropertyName, root, typeAssignment, root.CodegenInfo.SourceInfo);
 
+                currentTemplate = root;
                 for (int i = 1; i < parts.Length - 1; i++) {
-                    currentObject = currentObject.Properties.GetTemplateByPropertyName(parts[i]) as TObject;
-                    if (currentObject == null) {
-                        generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
-                                                         string.Format(MEMBER_NOT_OBJECT, parts[i], typeAssignment.TemplatePath),
-                                                         null,
-                                                         root.CodegenInfo.SourceInfo);
-                    }
+                    currentTemplate = GetChild(currentTemplate, parts[i], root.CodegenInfo.SourceInfo);
+                    VerifyIsObjectOrArray(parts[i], currentTemplate, typeAssignment, root.CodegenInfo.SourceInfo);
                 }
-
-                theTemplate = currentObject.Properties.GetTemplateByPropertyName(parts[parts.Length - 1]);
+                
+                theTemplate = GetChild(currentTemplate, parts[parts.Length - 1], root.CodegenInfo.SourceInfo);
                 if (theTemplate == null) {
-                    generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
-                                                    string.Format(MEMBER_NOT_FOUND, parts[parts.Length - 1], typeAssignment.TemplatePath),
-                                                     null,
-                                                     root.CodegenInfo.SourceInfo);
+                    generator.ThrowExceptionWithLineInfo(
+                        Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
+                        string.Format(MEMBER_NOT_FOUND, parts[parts.Length - 1], typeAssignment.TemplatePath),
+                        null,
+                        root.CodegenInfo.SourceInfo
+                    );
                 }
 
                 Template newTemplate = CheckAndProcessTypeConversion(theTemplate, typeAssignment.TypeName);
                 if (newTemplate != null) {
-                    currentObject.Properties.Replace(newTemplate);
+                    ((TObject)currentTemplate).Properties.Replace(newTemplate);
                     newTemplate.BasedOn = null;
                 }
             }
         }
 
+        private Template GetChild(Template objOrArr, string name, ISourceInfo sourceInfo) {
+            if (objOrArr.TemplateTypeId == TemplateTypeEnum.Object) {
+               return ((TObject)objOrArr).Properties.GetTemplateByPropertyName(name);
+            } else {
+                if (!"ElementType".Equals(name)) {
+                    generator.ThrowExceptionWithLineInfo(
+                           Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
+                           string.Format("TODO: Message"),
+                           null,
+                           sourceInfo
+                    );
+                }
+                return ((TObjArr)objOrArr).ElementType;
+            }
+        }
+        
+        private void VerifyIsObjectOrArray(string name, 
+                                           Template toVerify, 
+                                           CodeBehindTypeAssignmentInfo typeAssignment, 
+                                           ISourceInfo sourceInfo) {
+            if (toVerify == null) {
+                generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
+                                                     string.Format(MEMBER_NOT_FOUND, name, typeAssignment.TemplatePath),
+                                                     null,
+                                                     sourceInfo);
+            } else if (!(toVerify is TContainer)) {
+                generator.ThrowExceptionWithLineInfo(
+                    Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
+                    string.Format(MEMBER_NOT_OBJ_OR_ARR, name, typeAssignment.TemplatePath),
+                    null,
+                    sourceInfo);
+            }
+        }
+        
         /// <summary>
         /// Checks that a conversion is possible between the type specified and the type of the 
         /// template and process the actual conversion. 
