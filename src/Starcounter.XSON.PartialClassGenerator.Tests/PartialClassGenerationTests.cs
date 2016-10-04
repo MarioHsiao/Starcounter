@@ -240,5 +240,25 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(template, codebehind, "Foo");
             string code = codegen.GenerateCode();
         }
+
+        [Test]
+        public static void TestInstanceTypeForArrayAssignment() {
+            var json = "{"
+                     + @" ""Items"": [],"
+                     + @" ""Items2"": [ { } ],"
+                     + "}";
+
+            var codebehind = "public partial class Foo : Json {"
+                        + "  static Foo() {"
+                        + "    DefaultTemplate.Items.ElementType.InstanceType = typeof(ReusedItemJson);"
+                        + "    DefaultTemplate.Items2.ElementType.InstanceType = typeof(ReusedItemJson2);"
+                        + "  }"
+                        + "}";
+
+            TValue template = (TValue)Template.CreateFromJson(json);
+            template.CodegenInfo.ClassName = "Foo";
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(template, codebehind, "Foo");
+            string code = codegen.GenerateCode();
+        }
     }
 }
