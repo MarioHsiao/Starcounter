@@ -638,7 +638,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 data.Recursives[1].Name = "Karl Urban";
                 data.Recursives.RemoveAt(0);
 
-                changes = changeLog.Generate(true);
+                changeLog.Generate(true, out changes);
 
                 Assert.AreEqual(2, changes.Length);
                 Assert.AreEqual(Change.REMOVE, changes[0].ChangeType);

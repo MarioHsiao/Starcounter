@@ -85,7 +85,7 @@ namespace Starcounter {
             string value = HttpUtility.UrlEncode(this.Value);
 
             if (this.Expires.HasValue) {
-                expires = "; expires=" + this.Expires.Value.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+                expires = "; expires=" + this.Expires.Value.ToUniversalTime().ToString("r");
             }
 
             return string.Format("{0}{1}; path={2}", value, expires, path);

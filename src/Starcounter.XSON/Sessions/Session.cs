@@ -195,8 +195,10 @@ namespace Starcounter {
                 CheckOption(SessionOptions.IncludeNamespaces), 
                 out patch);
 
-            // Sending the patch bytes to the client.
-            ActiveWebSocket.Send(patch, sizeBytes, true);
+            if (sizeBytes >= 0) {
+                // Sending the patch bytes to the client.
+                ActiveWebSocket.Send(patch, sizeBytes, true);
+            }
         }
 
         /// <summary>
@@ -257,7 +259,7 @@ namespace Starcounter {
         /// <summary>
         /// Schedule a task on specific session.
         /// </summary>
-        /// <param name="sessionId">String representing the session (string is obtained from Session.ToAsciiString()).</param>
+        /// <param name="sessionId">String representing the session (string is obtained from Session.SessionId).</param>
         /// <param name="task">Task to run on session. Note that Session value can still be null (if session was destroyed in the meantime).
         /// Second string parameter is the session ASCII representation (useful in case if Session value is null).</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
@@ -284,7 +286,7 @@ namespace Starcounter {
         /// <summary>
         /// Schedule a task on given sessions.
         /// </summary>
-        /// <param name="sessionId">String representing the session (string is obtained from Session.ToAsciiString()).</param>
+        /// <param name="sessionId">String representing the session (string is obtained from Session.SessionId).</param>
         /// <param name="task">Task to run on session. Note that Session value can still be null (if session was destroyed in the meantime).
         /// Second string parameter is the session ASCII representation (useful in case if Session value is null).</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
@@ -501,26 +503,12 @@ namespace Starcounter {
                 throw ErrorCode.ToException(Error.SCERRANOTHERSESSIONACTIVE);
             }
 
-            int count = 0;
-            int noRetries = 3;
-            while (true) {
-                if (!waitObj.WaitOne(60 * 1000)) {
-                    if (count++ < noRetries) {
-                        log.LogWarning("Exclusive access to the session with id {0} could "
-                                       +"not be obtained within the allotted time. Trying again ({1}/{2}).",
-                                       this.SessionId,
-                                       count,
-                                       noRetries);
-                        continue;
-                    }
-                    throw ErrorCode.ToException(Error.SCERRACQUIRESESSIONTIMEOUT, "Id: " + this.SessionId);
-                }
-                break;
+            if (waitObj.WaitOne(5* 60 * 1000)) { // timeout 5 minutes
+                _isInUse = true;
+                Session._current = this;
+                return true;
             }
-            
-            _isInUse = true;
-            Session._current = this;
-            return true;
+            throw ErrorCode.ToException(Error.SCERRACQUIRESESSIONTIMEOUT, "Id: " + this.SessionId);
         }
 
         /// <summary>

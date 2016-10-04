@@ -415,6 +415,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestBoundToCodeBehindWithData() {
+            Change[] dummy;
+
             // Unittest for reproducing issue #2542
             // The second call to session.GenerateChangeLog will call the bound property
             // before the Data-property is set, resulting in Data being null when it should
@@ -425,8 +427,8 @@ namespace Starcounter.Internal.XSON.Tests {
             simple.Data = new TestData() { Name = "Apapapa" };
             simple.Session = session;
 
-            simple.ChangeLog.Generate(true);
-            simple.ChangeLog.Generate(true);
+            simple.ChangeLog.Generate(true, out dummy);
+            simple.ChangeLog.Generate(true, out dummy);
         }
 
         [Test]

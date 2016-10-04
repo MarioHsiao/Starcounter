@@ -354,7 +354,6 @@ namespace Starcounter {
             }
 
             InternalClear();
-
             Parent?.CallHasChanged((TContainer)Template);
         }
 
