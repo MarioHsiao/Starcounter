@@ -373,7 +373,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             });
             Assert.AreEqual(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, ex.Error);
         }
-
+        
         [Test]
         public static void CodeBehindDetectTemplateInstanceTypeAssignment() {
             var source = "public partial class Foo: Json {"
@@ -382,6 +382,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                         + "    DefaultTemplate.Page.InstanceType = typeof(MyOtherJson);"
                         + "    DefaultTemplate.Page.ChildOfPage.InstanceType = typeof(Int64);"
                         + "    DefaultTemplate.Page.SubPage.SuberPage.Value.InstanceType = typeof(decimal);"
+                        + "    DefaultTemplate.Items.ElementType.InstanceType = typeof(ReusedItemJson);"
                         + "  }"
                         + "  [Foo_json.Page2]"
                         + "  partial class Page2 : Json {"
@@ -397,7 +398,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             var cbClass = roslyn.RootClassInfo;
             var typeAssignments = cbClass.InstanceTypeAssignments;
-            Assert.AreEqual(4, typeAssignments.Count);
+            Assert.AreEqual(5, typeAssignments.Count);
             Assert.AreEqual("DefaultTemplate.ElapsedTime", typeAssignments[0].TemplatePath);
             Assert.AreEqual("double", typeAssignments[0].TypeName);
             Assert.AreEqual("DefaultTemplate.Page", typeAssignments[1].TemplatePath);
@@ -406,7 +407,9 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.AreEqual("Int64", typeAssignments[2].TypeName);
             Assert.AreEqual("DefaultTemplate.Page.SubPage.SuberPage.Value", typeAssignments[3].TemplatePath);
             Assert.AreEqual("decimal", typeAssignments[3].TypeName);
-            
+            Assert.AreEqual("DefaultTemplate.Items.ElementType", typeAssignments[4].TemplatePath);
+            Assert.AreEqual("ReusedItemJson", typeAssignments[4].TypeName);
+
             cbClass = roslyn.CodeBehindClasses.Find((item) => { return !item.IsRootClass; });
             typeAssignments = cbClass.InstanceTypeAssignments;
             Assert.AreEqual(1, typeAssignments.Count);

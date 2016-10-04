@@ -39,13 +39,13 @@ namespace Starcounter.Internal.XSON.Tests {
             template = jbeReader.CreateTemplate(json, "Test");
             Assert.IsInstanceOf<TDecimal>(template);
             Assert.AreEqual(195.56m, ((TDecimal)template).DefaultValue);
-            
-            // TODO:
-            // How do we support double?
-            json = @"1E4"; // single double value
+
+            // Double is not supported directly from Json-by-example, 
+            // we need a codebehind file for that.
+            json = @"1E4"; // 
             template = jbeReader.CreateTemplate(json, "Test");
-            //            Assert.IsInstanceOf<TDouble>(template);
-            //            Assert.AreEqual(10000d, ((TDouble)template).DefaultValue);
+            Assert.IsInstanceOf<TDecimal>(template);
+            Assert.AreEqual(10000m, ((TDecimal)template).DefaultValue);
 
             json = @"{ ""property1"": 123 }"; // object with one integer property.
             template = jbeReader.CreateTemplate(json, "Test");
