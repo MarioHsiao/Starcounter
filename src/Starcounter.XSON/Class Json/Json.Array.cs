@@ -124,7 +124,7 @@ namespace Starcounter {
             }
         }
 
-        internal int TransformIndex(ViewModelVersion vPartialViewModel<T>ersion, long fromVersion, int orgIndex) {
+        internal int TransformIndex(ViewModelVersion version, long fromVersion, int orgIndex) {
             int transformedIndex;
             long currentVersion;
             
