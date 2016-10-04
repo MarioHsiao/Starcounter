@@ -110,9 +110,16 @@ namespace Starcounter.XSON.JsonByExample {
         /// </summary>
         /// <param name="name"></param>
         protected override void EndArray(string name) {
+            var arr = currentParent as TObjArr;
+            if (arr != null && arr.ElementType == null) {
+                // Creating a default empty object. Will be treated as an 
+                // untyped array anyway so all values will be allowed.
+                arr.ElementType = new TObject();
+            }
+            
             if (parents?.Count > 0)
                 currentParent = parents.Pop();
-
+            
             base.EndArray(name);
         }
 
