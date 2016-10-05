@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scllvm_tests_native", "scll
 		{D99C4EDA-A70C-4ED1-9A39-96877F31182E} = {D99C4EDA-A70C-4ED1-9A39-96877F31182E}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scllvm_tests_managed", "scllvm_tests_managed\scllvm_tests_managed.csproj", "{634F7BFA-00A7-4209-AD27-9E1A4020F131}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,10 @@ Global
 		{EFB60F99-0B65-4E87-A9AF-5CE597D2DF0D}.Debug|x64.Build.0 = Debug|x64
 		{EFB60F99-0B65-4E87-A9AF-5CE597D2DF0D}.Release|x64.ActiveCfg = Release|x64
 		{EFB60F99-0B65-4E87-A9AF-5CE597D2DF0D}.Release|x64.Build.0 = Release|x64
+		{634F7BFA-00A7-4209-AD27-9E1A4020F131}.Debug|x64.ActiveCfg = Debug|x64
+		{634F7BFA-00A7-4209-AD27-9E1A4020F131}.Debug|x64.Build.0 = Debug|x64
+		{634F7BFA-00A7-4209-AD27-9E1A4020F131}.Release|x64.ActiveCfg = Release|x64
+		{634F7BFA-00A7-4209-AD27-9E1A4020F131}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
