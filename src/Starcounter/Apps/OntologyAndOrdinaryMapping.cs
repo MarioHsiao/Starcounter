@@ -869,7 +869,7 @@ namespace Starcounter {
                 alreadyCalledHandlers.Add(x.HandlerId);
             }*/
         }
-        
+
         /// <summary>
         /// Map classes in different class hierarchies.
         /// </summary>
@@ -1003,9 +1003,10 @@ namespace Starcounter {
                     String[] a = appNamePlusPartialUrl.Split(new char[] { '=' });
                     if (String.IsNullOrEmpty(a[1]))
                         continue;
-                    
+
                     Response resp = Self.GET(HttpUtility.UrlDecode(a[1]));
                     sb.Append("<imported-template-scope scope=\"" + a[0] + "\">");
+                    sb.Append("<template><meta itemprop=\"juicy-composition-scope\" content=\"" + a[0] + "\"/></template>");
                     sb.Append(resp.Body);
                     sb.Append("</imported-template-scope>");
                 }

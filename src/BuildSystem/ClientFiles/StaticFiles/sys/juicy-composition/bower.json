@@ -1,6 +1,6 @@
 {
   "name": "juicy-composition",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Custom Element that adds given Document Fragment to Shadow DOM",
   "license": "MIT",
   "main": "juicy-composition.html",
