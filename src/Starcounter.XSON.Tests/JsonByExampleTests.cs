@@ -144,7 +144,7 @@ namespace Starcounter.Internal.XSON.Tests {
             // Supported metadata properties are (case doesn't matter):
             // namespace : string
             // datatype : string 
-            // bind : string
+            // bind : string (null allowed)
             // reuse : string
 
             // Test covers that all are set correctly, and incorrect metadata is detected.
@@ -170,6 +170,14 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsInstanceOf<TObject>(tobj.Properties[0]);
             Assert.AreEqual("my.existing.json", tobj.Properties[0].CodegenInfo.ReuseType);
 
+            json = @"{ ""Value1"": 1, ""$Value1"": { ""bind"": null } }";
+            template = jbeReader.CreateTemplate(json, "Test");
+            Assert.IsInstanceOf<TObject>(template);
+            tobj = (TObject)template;
+            Assert.IsInstanceOf<TLong>(tobj.Properties[0]);
+            Assert.AreEqual(BindingStrategy.Unbound, ((TValue)tobj.Properties[0]).BindingStrategy);
+            Assert.AreEqual(null, ((TValue)tobj.Properties[0]).Bind);
+            
             json = @"{ ""$"": ""incorrect"" }"; // old metadata object (that is not object here)
             Assert.Throws<TemplateFactoryException>(() => {
                 template = jbeReader.CreateTemplate(json, "Test");
