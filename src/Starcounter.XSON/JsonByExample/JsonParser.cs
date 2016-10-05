@@ -28,6 +28,7 @@ namespace Starcounter.XSON.JsonByExample {
         protected virtual void Property(string name, decimal value) {}
         protected virtual void Property(string name, long value) {}
         protected virtual void Property(string name, string value) {}
+        protected virtual void Null(string name) {}
         
         internal void Parse() {
             string propertyName = null;
@@ -77,7 +78,9 @@ namespace Starcounter.XSON.JsonByExample {
                         // We ignore comments. The reader is already in the correct position.
                         break;
                     case JsonToken.Null:
-                        throw new NotSupportedException("Null is currently not supported in Json-by-example");
+                        Null(propertyName);
+                        propertyName = null;
+                        break;
                     case JsonToken.Bytes:
                     case JsonToken.None:
                     case JsonToken.StartConstructor:

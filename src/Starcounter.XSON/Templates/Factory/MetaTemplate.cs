@@ -54,7 +54,7 @@ namespace Starcounter.XSON.Templates.Factory {
             if (!allowedProperties.Contains(upperName))
                 FactoryExceptionHelper.ThrowInvalidMetadataProperty(name, sourceInfo);
 
-            if (!(value is string))
+            if (value != null && !(value is string))
                 FactoryExceptionHelper.RaiseWrongValueForPropertyError(name, "string", value.GetType().Name, sourceInfo);
             
             rt = template as ReplaceableTemplate;

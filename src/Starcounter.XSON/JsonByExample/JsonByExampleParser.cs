@@ -206,7 +206,22 @@ namespace Starcounter.XSON.JsonByExample {
 
             base.Property(name, value);
         }
-        
+
+        protected override void Null(string name) {
+            PropertyInfo pi = ProcessName(name);
+
+            // Currently we only allow setting the 'Bind' property to null inside Json-by-example. 
+            // All other cases will lead to an exception.
+            if ("bind".Equals(name, StringComparison.InvariantCultureIgnoreCase)
+                && currentParent is MetaTemplate) {
+                factory.AddString(currentParent, name, pi.dotnetName, null, GetSourceInfo());
+                base.Null(name);
+                return;
+            }
+
+            throw new NotSupportedException("Null is currently not supported in Json-by-example");
+        }
+
         /// <summary>
         /// Returns an instance holding information about where a specific token is processed.
         /// </summary>
