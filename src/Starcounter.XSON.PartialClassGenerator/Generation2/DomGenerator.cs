@@ -148,6 +148,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
         internal void AssociateTemplateWithReusedJson(TObject template, string instanceTypeName) {
             CodeBehindClassInfo cci = new CodeBehindClassInfo(null);
             cci.BaseClassName = instanceTypeName;
+            cci.UseGlobalSpecifier = false;
             var jsonClass = ObtainInheritedValueClass(cci, template);
 
             valueClasses[template] = jsonClass;
@@ -207,7 +208,8 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
             if (jsonItemClass.CodebehindClass == null)
                 jsonItemClass.CodebehindClass = new CodeBehindClassInfo(null);
-            jsonItemClass.CodebehindClass.ClassName = instanceTypeName;  
+            jsonItemClass.CodebehindClass.ClassName = instanceTypeName;
+            jsonItemClass.CodebehindClass.UseGlobalSpecifier = false;
 
             var valueClass = ObtainValueClass(template);
             valueClass.Generic = new AstClass[] { jsonItemClass };
