@@ -177,7 +177,15 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsInstanceOf<TLong>(tobj.Properties[0]);
             Assert.AreEqual(BindingStrategy.Unbound, ((TValue)tobj.Properties[0]).BindingStrategy);
             Assert.AreEqual(null, ((TValue)tobj.Properties[0]).Bind);
-            
+
+            json = @"{ ""$Value1"": { ""bind"": null }, ""Value1"": 1 }";
+            template = jbeReader.CreateTemplate(json, "Test");
+            Assert.IsInstanceOf<TObject>(template);
+            tobj = (TObject)template;
+            Assert.IsInstanceOf<TLong>(tobj.Properties[0]);
+            Assert.AreEqual(BindingStrategy.Unbound, ((TValue)tobj.Properties[0]).BindingStrategy);
+            Assert.AreEqual(null, ((TValue)tobj.Properties[0]).Bind);
+
             json = @"{ ""$"": ""incorrect"" }"; // old metadata object (that is not object here)
             Assert.Throws<TemplateFactoryException>(() => {
                 template = jbeReader.CreateTemplate(json, "Test");
