@@ -4753,8 +4753,7 @@
     </code>
     <code hex="0023" severity="Error" name="ScErrJsonUnsupportedInstanceTypeAssignment">
       <message> 
-        Unsupported assignment of instancetype. Valid types are 'double' and 'decimal' for
-        members with decimal or double value and any type that is TypedJSON for untyped (empty) objects.
+        Unsupported assignment of instancetype. 
       </message>
     </code>
   </facility>

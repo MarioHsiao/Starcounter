@@ -6,6 +6,7 @@ using Starcounter.Templates;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using SXP = Starcounter.XSON.PartialClassGenerator;
+using Starcounter.XSON.Interfaces;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     [TestFixture]
@@ -259,6 +260,41 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             template.CodegenInfo.ClassName = "Foo";
             var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(template, codebehind, "Foo");
             string code = codegen.GenerateCode();
+        }
+
+        [Test]
+        public static void TestInvalidInstanceTypeAssignments() {
+            TestAndAssertCodegenException("1.1", "long"); // Decimal to long
+
+            TestAndAssertCodegenException("1.1", "MyCustomType"); // Decimal to other type
+            
+            TestAndAssertCodegenException("1", "MyCustomType"); // Long to other type than double or decimal
+
+            TestAndAssertCodegenException(@"{ ""A"": 1 }", "MyCustomType"); // Not an empty object.
+
+            TestAndAssertCodegenException(@"[ ]", "MyCustomType"); // Instancetype on array.
+
+            TestAndAssertCodegenException(@"[ { } ]", "MyCustomType"); // Instancetype on array.
+
+            TestAndAssertCodegenException(@"[ { ""A"": 1 } ]", "MyCustomType", true); // Not an empty object inside array.
+        }
+
+        private static void TestAndAssertCodegenException(string jsonValue, string typeName, bool addElementType = false) {
+            uint errorCode;
+
+            var json = @"{{ ""Value"": {0} }}";
+            var codebehind = "public partial class Foo : Json {{ static Foo() {{ DefaultTemplate.Value.{0}InstanceType = typeof({1}) }} }} }}";
+            var className = "Foo";
+
+            var template = (TValue)Template.CreateFromJson(string.Format(json, jsonValue));
+            template.CodegenInfo.ClassName = className;
+            var ex = Assert.Throws<SXP.GeneratorException>(() => {
+                var elementType = addElementType ? "ElementType." : "";
+                var formattedCB = string.Format(codebehind, elementType, typeName);
+                var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(template, formattedCB, className);
+            });
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out errorCode));
+            Assert.AreEqual(Error.SCERRJSONUNSUPPORTEDINSTANCETYPEASSIGNMENT, errorCode);
         }
     }
 }
