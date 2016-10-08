@@ -36,7 +36,7 @@ To produce
 
 ### [`<imported-template>` Demo/Example](https://github.com/Juicy/imported-template#demoexamples)
 
-### [Test/Use cases](http://starcounter.github.io/starcounter-include/tests)
+### [Test/Use cases](http://starcounter.github.io/starcounter-include/test)
 
 ## Related custom elements
 
@@ -131,8 +131,8 @@ Name                                    | Detail                 | Description
 
 ## Test suite
 
- - local browser `./tests/index.html`
- - [online](http://starcounter.github.io/starcounter-include/tests)
+ - local browser `./test/index.html`
+ - [online](http://starcounter.github.io/starcounter-include/test)
 
 ## [Contributing and Development](CONTRIBUTING.md)
 
