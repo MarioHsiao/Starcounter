@@ -1,22 +1,28 @@
 ﻿
 using Starcounter;
+using Starcounter.Bootstrap;
 using Starcounter.Internal;
 using StarcounterInternal.Bootstrap;
-using System;
-using System.IO;
 
-namespace sccode {
+namespace sccode
+{
     class Program {
         static void Main(string[] args) {
-            var log = LogSources.Hosting;
-
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
 
+            var log = LogSources.Hosting;
             Diagnostics.WriteTimeStamp(log.Source, "Started sccode Main()");
 
-            //Trace.Listeners.Add(new ConsoleTraceListener());
-            Control.ApplicationLogSource = log;
-            Control.Main(args);
+            // Coming up:
+            // Auto-exec must support an assembly, not necceisarly a path to
+            // a file, and also to have it hosted, but not run it's entrypoint.
+            // Rationale: self-hosted apps have their entrypoint already cared
+            // for.
+            // TODO:
+
+            var control = Control.CreateAndInitialize(log);
+            
+            control.RunUntilExit(() => { return new CommandLineConfiguration(args); });
         }
     }
 }

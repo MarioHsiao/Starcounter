@@ -1,33 +1,18 @@
-﻿// ***********************************************************************
-// <copyright file="Configuration.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using Starcounter;
+﻿
 using Starcounter.CommandLine;
 using Starcounter.Internal;
+using StarcounterInternal.Bootstrap;
 using System;
 using System.Diagnostics;
-using System.IO;
 
-namespace StarcounterInternal.Bootstrap
+namespace Starcounter.Bootstrap
 {
     /// <summary>
-    /// Basic host configuration.
+    /// Host configuration based on a (syntantically correct and parsed)
+    /// command-line.
     /// </summary>
-    public class Configuration
+    public sealed class CommandLineConfiguration : IHostConfiguration
     {
-        /// <summary>
-        /// Loads the specified program arguments.
-        /// </summary>
-        /// <param name="programArguments">The program arguments.</param>
-        /// <returns>Configuration.</returns>
-        public static Configuration Load(ApplicationArguments programArguments)
-        {
-            return new Configuration(programArguments);
-        }
-
         /// <summary>
         /// Gets or sets the program arguments.
         /// </summary>
@@ -41,12 +26,25 @@ namespace StarcounterInternal.Bootstrap
         public uint SchedulerCount { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Configuration" /> class.
+        /// Initializes a new instance of the <see cref="CommandLineConfiguration" /> class.
+        /// </summary>
+        /// <param name="args">Arguments to parse</param>
+        public CommandLineConfiguration(string[] args) : this(ParseToArguments(args))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CommandLineConfiguration" /> class.
         /// </summary>
         /// <param name="programArguments">The program arguments.</param>
-        private Configuration(ApplicationArguments programArguments)
+        public CommandLineConfiguration(ApplicationArguments programArguments)
         {
             ProgramArguments = programArguments;
+
+            if (programArguments.ContainsFlag("attachdebugger"))
+            {
+                Debugger.Launch();
+            }
 
             string prop;
             if (ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.SchedulerCount, out prop))
@@ -239,55 +237,6 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
-        /// Applies all application related flags.
-        /// </summary>
-        public void ApplyAppsFlags() {
-            String propName;
-            String s;
-
-            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.LoadEditionLibraries);
-            if (ProgramArguments.TryGetProperty(propName, out s)) {
-                StarcounterEnvironment.LoadEditionLibraries = Boolean.Parse(s);
-            }
-
-            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.WrapJsonInNamespaces);
-            if (ProgramArguments.TryGetProperty(propName, out s)) {
-                StarcounterEnvironment.WrapJsonInNamespaces = Boolean.Parse(s);
-            }
-
-            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.EnforceURINamespaces);
-            if (ProgramArguments.TryGetProperty(propName, out s)) {
-                StarcounterEnvironment.EnforceURINamespaces = Boolean.Parse(s);
-            }
-
-            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.MergeJsonSiblings);
-            if (ProgramArguments.TryGetProperty(propName, out s)) {
-                StarcounterEnvironment.MergeJsonSiblings = Boolean.Parse(s);
-            }
-
-            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.XFilePathHeader);
-            if (ProgramArguments.TryGetProperty(propName, out s)) {
-                StarcounterEnvironment.XFilePathHeader = Boolean.Parse(s);
-            }
-
-            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.RequestFiltersEnabled);
-            if (ProgramArguments.TryGetProperty(propName, out s)) {
-                StarcounterEnvironment.RequestFiltersEnabledSetting = Boolean.Parse(s);
-            }
-
-            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.UriMappingEnabled);
-            if (ProgramArguments.TryGetProperty(propName, out s)) {
-                StarcounterEnvironment.UriMappingEnabled = Boolean.Parse(s);
-            }
-
-            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.OntologyMappingEnabled);
-            if (ProgramArguments.TryGetProperty(propName, out s)) {
-                StarcounterEnvironment.OntologyMappingEnabled = Boolean.Parse(s);
-            }
-
-        }
-
-        /// <summary>
         /// Gets the chunks number.
         /// </summary>
         /// <value>The chunks number.</value>
@@ -391,5 +340,35 @@ namespace StarcounterInternal.Bootstrap
                 return this.ProgramArguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.NoNetworkGateway);
             }
         }
+
+        public string AutoStartUserArguments {
+            get {
+                String userArgs = null;
+                var defined = ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, out userArgs);
+                return defined ? userArgs : null;
+            }
+        }
+
+        public string AutoStartWorkingDirectory {
+            get {
+                String workingDir = null;
+                var defined = ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.WorkingDir, out workingDir);
+                return defined ? workingDir : null;
+            }
+        }
+
+        public bool EnableTraceLogging {
+            get {
+                return ProgramArguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging);
+            }
+        }
+
+        static ApplicationArguments ParseToArguments(string[] args)
+        {
+            ApplicationArguments arguments;
+            ProgramCommandLine.TryGetProgramArguments(args, out arguments);
+            return arguments;
+        }
+
     }
 }
