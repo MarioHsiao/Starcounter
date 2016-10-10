@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Starcounter.Ioc;
+﻿using Starcounter.Ioc;
+using System;
 
-namespace Starcounter.Hosting {
+namespace Starcounter.Hosting
+{
     /// <summary>
     /// The default code host.
     /// </summary>
@@ -29,6 +26,13 @@ namespace Starcounter.Hosting {
             get {
                 return ServiceContainer;
             }
+        }
+
+        void ICodeHost.Run(Action entrypoint)
+        {
+            // Proper error message
+            // TODO:
+            throw new NotSupportedException("You can not explicitly run the shared code host");
         }
     }
 }
