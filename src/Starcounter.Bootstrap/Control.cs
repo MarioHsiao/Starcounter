@@ -1,12 +1,5 @@
-﻿// ***********************************************************************
-// <copyright file="Control.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using Starcounter;
+﻿
 using Starcounter.Advanced;
-using Starcounter.Bootstrap;
 using Starcounter.Bootstrap.Management;
 using Starcounter.Hosting;
 using Starcounter.Internal;
@@ -17,15 +10,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace StarcounterInternal.Bootstrap
+namespace Starcounter.Bootstrap
 {
-
-    // Rename to RuntimeHost. TODO:
-
     /// <summary>
-    /// Class Control
+    /// Represent the runtime host and govern its bootstrapping.
     /// </summary>
-    public class Control
+    public class RuntimeHost
     {
         /// <summary>
         /// The log source established at the time of creation of the
@@ -68,16 +58,16 @@ namespace StarcounterInternal.Bootstrap
             Int32 err_string_len
             );
 
-        private Control(LogSource logSource)
+        private RuntimeHost(LogSource logSource)
         {
             log = logSource;
             ticksElapsedBetweenProcessStartAndMain_ = (DateTime.Now - Process.GetCurrentProcess().StartTime).Ticks;
             stopwatch_ = Stopwatch.StartNew();
         }
 
-        public static Control CreateAndInitialize(LogSource log)
+        public static RuntimeHost CreateAndInitialize(LogSource log)
         {
-            var c = new Control(log);
+            var c = new RuntimeHost(log);
             c.OnProcessInitialized();
 
             StarcounterInternal.Hosting.ExceptionManager.Init();

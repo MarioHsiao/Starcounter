@@ -2,7 +2,6 @@
 using Starcounter;
 using Starcounter.Bootstrap;
 using Starcounter.Internal;
-using StarcounterInternal.Bootstrap;
 
 namespace sccode
 {
@@ -20,7 +19,7 @@ namespace sccode
             // for.
             // TODO:
 
-            var control = Control.CreateAndInitialize(log);
+            var control = RuntimeHost.CreateAndInitialize(log);
             
             control.RunUntilExit(() => { return new CommandLineConfiguration(args); });
         }

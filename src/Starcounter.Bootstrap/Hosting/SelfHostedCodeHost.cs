@@ -1,7 +1,6 @@
 ﻿
 using Starcounter.Bootstrap;
 using Starcounter.Ioc;
-using StarcounterInternal.Bootstrap;
 using System;
 
 namespace Starcounter.Hosting
@@ -23,7 +22,7 @@ namespace Starcounter.Hosting
 
         public void Run(Action entrypoint)
         {
-            var control = Control.CreateAndInitialize(LogSources.Hosting);
+            var control = RuntimeHost.CreateAndInitialize(LogSources.Hosting);
             control.RunUntilExit(() => { return configuration; }, entrypoint);
         }
     }
