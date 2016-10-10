@@ -69,6 +69,7 @@
     <Compile Include="CommandLineConfiguration.cs" />
     <Compile Include="RuntimeHost.cs" />
     <Compile Include="HostConfiguration.cs" />
+    <Compile Include="Hosting\AppHostBuilder.cs" />
     <Compile Include="Hosting\SelfHostedCodeHost.cs" />
     <Compile Include="IHostConfiguration.cs" />
     <Compile Include="Management\CodeHostAPI.cs" />
