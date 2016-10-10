@@ -67,7 +67,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CommandLineConfiguration.cs" />
-    <Compile Include="Control.cs" />
+    <Compile Include="RuntimeHost.cs" />
     <Compile Include="HostConfiguration.cs" />
     <Compile Include="Hosting\SelfHostedCodeHost.cs" />
     <Compile Include="IHostConfiguration.cs" />
