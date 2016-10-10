@@ -4,6 +4,8 @@ namespace Starcounter.Bootstrap
     public interface IHostConfiguration
     {
         string AutoStartExePath { get; }
+        string AutoStartUserArguments { get; }
+        string AutoStartWorkingDirectory { get; }
         uint ChunksNumber { get; }
         uint DefaultSessionTimeoutMinutes { get; }
         ushort DefaultSystemHttpPort { get; }
