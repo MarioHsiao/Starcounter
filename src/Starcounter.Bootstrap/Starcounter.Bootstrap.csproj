@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="Configuration.cs" />
     <Compile Include="Control.cs" />
+    <Compile Include="IHostConfiguration.cs" />
     <Compile Include="Management\CodeHostAPI.cs" />
     <Compile Include="Management\CodeHostHandler.cs" />
     <Compile Include="Management\ExecutablesHandler.cs" />
