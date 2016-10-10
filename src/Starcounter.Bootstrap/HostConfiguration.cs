@@ -19,6 +19,8 @@ namespace Starcounter.Bootstrap
 
         public ushort DefaultUserHttpPort { get; set; }
 
+        public bool EnableTraceLogging { get; set; }
+
         public byte GatewayNumberOfWorkers { get; set; }
 
         public uint InstanceID { get; set; }

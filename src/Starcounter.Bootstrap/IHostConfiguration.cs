@@ -10,6 +10,7 @@ namespace Starcounter.Bootstrap
         uint DefaultSessionTimeoutMinutes { get; }
         ushort DefaultSystemHttpPort { get; }
         ushort DefaultUserHttpPort { get; }
+        bool EnableTraceLogging { get; }
         byte GatewayNumberOfWorkers { get; }
         uint InstanceID { get; }
         string Name { get; }
