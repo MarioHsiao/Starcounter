@@ -179,6 +179,11 @@ namespace Starcounter.Advanced.Configuration {
             get;
             set;
         }
+
+        public int GetSchedulerCountOrDefault()
+        {
+            return SchedulerCount.HasValue ? SchedulerCount.Value : (int)Environment.ProcessorCount;
+        }
     }
 
     /// <summary>
