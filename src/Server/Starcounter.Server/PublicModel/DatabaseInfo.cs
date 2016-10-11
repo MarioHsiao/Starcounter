@@ -82,7 +82,16 @@ namespace Starcounter.Server.PublicModel {
         /// down (including the host and the database).
         /// </summary>
         public readonly EngineInfo Engine;
-        
+
+        /// <summary>
+        /// Gets the instance ID assigned to the represented
+        /// database.
+        /// </summary>
+        public ulong InstanceID {
+            get;
+            internal set;
+        }
+
         /// <summary>
         /// Initializes a <see cref="DatabaseInfo"/>.
         /// </summary>
