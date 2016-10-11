@@ -25,9 +25,15 @@ namespace Starcounter.Administrator.API.Handlers {
             var process = Process.GetCurrentProcess();
 
             server.Uri = admin.Uris.Server.ToAbsoluteUri();
-            server.Configuration.FilePath = serverInfo.ServerConfigurationPath;
             server.StartTime = process.StartTime.ToString("s", System.Globalization.CultureInfo.InvariantCulture);
 
+            server.Configuration.SystemHttpPort = serverInfo.Configuration.SystemHttpPort;
+            server.Configuration.FilePath = serverInfo.ServerConfigurationPath;
+            server.Configuration.DatabaseDirectory = serverInfo.Configuration.DatabaseDirectory;
+            server.Configuration.TempDirectory = serverInfo.Configuration.TempDirectory;
+            server.Logs.Uri = string.Empty;
+            server.Logs.LogDirectory = serverInfo.Configuration.LogDirectory;
+            
             var context = string.Empty;
             if (Environment.UserInteractive) {
                 try {
