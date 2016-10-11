@@ -1,14 +1,9 @@
 ﻿using Starcounter.Administrator.API.Utilities;
-using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.Rest.Representations.JSON;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Starcounter.Administrator.API.Handlers {
+namespace Starcounter.Administrator.API.Handlers
+{
 
     internal static partial class DatabaseHandler {
         /// <summary>
@@ -24,7 +19,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var applicationDatabase = server.GetDatabaseByName(name);
             if (applicationDatabase == null)
                 return 404;
-
+            
             var body = ToJSONDatabase(applicationDatabase).ToJson();
             return RESTUtility.JSON.CreateResponse(body);
         }
@@ -52,6 +47,7 @@ namespace Starcounter.Administrator.API.Handlers {
 
             var db = new Database();
             db.Name = applicationDatabase.Name;
+            db.InstanceID = (int)applicationDatabase.InstanceID;
             db.Configuration.Uri = admin.Uris.DatabaseConfiguration.ToAbsoluteUri(applicationDatabase.Name);
             db.Engine.Uri = admin.Uris.Engine.ToAbsoluteUri(applicationDatabase.Name);
 
@@ -59,6 +55,10 @@ namespace Starcounter.Administrator.API.Handlers {
                 db.Configuration.DefaultUserHttpPort = applicationDatabase.Configuration.Runtime.DefaultUserHttpPort;
                 db.Configuration.DataDirectory = applicationDatabase.Configuration.Runtime.ImageDirectory;
                 db.Configuration.TempDirectory = applicationDatabase.Configuration.Runtime.TempDirectory;
+                db.Configuration.ChunksNumber = applicationDatabase.Configuration.Runtime.ChunksNumber;
+                db.Configuration.SchedulerCount = applicationDatabase.Configuration.Runtime.GetSchedulerCountOrDefault();
+                db.Configuration.SQLProcessPort = applicationDatabase.Configuration.Runtime.SQLProcessPort;
+                db.Configuration.DefaultSessionTimeoutMinutes = applicationDatabase.Configuration.Runtime.DefaultSessionTimeoutMinutes;
             }
 
             return db;

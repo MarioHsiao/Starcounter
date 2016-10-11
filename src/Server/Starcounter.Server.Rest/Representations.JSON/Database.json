@@ -2,6 +2,7 @@
 
   "Uri": "", // "http://example.com/api/databases/foo",
   "Name": "", // "Foo",
+  "InstanceID":  0,
 
   "Configuration": {
     "Uri": "", // "http://example.com/api/databases/foo/configuration",
@@ -9,7 +10,11 @@
     "TempDirectory": "",
     "DefaultUserHttpPort": 0,
     "FirstObjectID": 0,
-    "LastObjectID": 0
+    "LastObjectID": 0,
+    "SchedulerCount": 0,
+    "ChunksNumber": 0,
+    "DefaultSessionTimeoutMinutes": 0,
+    "SQLProcessPort": 0
   },
 
   "Engine": {
