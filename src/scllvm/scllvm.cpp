@@ -496,9 +496,12 @@ extern "C" {
 	MODULE_API void ScLLVMInit() {
 
         g_mutex = new llvm::sys::MutexImpl();
+		g_mutex->acquire();
 
 		llvm::InitializeNativeTarget();
 		llvm::InitializeNativeTargetAsmPrinter();
+
+		g_mutex->release();
 	}
 
 	MODULE_API void ScLLVMDeleteModule(CodegenEngine* const clang_engine, void** scllvm_module) {
