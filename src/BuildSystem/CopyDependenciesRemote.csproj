@@ -43,6 +43,7 @@
 	  <RemoteCecilBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\Cecil\Release\*" />
       <RemoteCRT64BitBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\CRT\x64\$(Configuration)\*" />
       <RemoteCRT32BitBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\CRT\Win32\$(Configuration)\*" />
+      <RemoteMixedRootExecutables Include="$(BinariesFTP)\SCDev\ThirdParty\*.exe" />
     </ItemGroup>
 
     <!-- Remote files from FTP. -->
@@ -53,7 +54,7 @@
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCecilBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCRT64BitBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCRT32BitBinaries)" DestinationFolder="$(OutputPath)\32BitComponents" />
-    <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="$(BinariesFTP)\SCDev\ThirdParty\clang-binaries\clang-3.9.0.exe" DestinationFiles="$(OutputPath)\clang++.exe" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteMixedRootExecutables)" DestinationFolder="$(OutputPath)" />
 
   </Target>
   

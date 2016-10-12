@@ -3,7 +3,6 @@ using Starcounter.Internal.Uri;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -12,93 +11,81 @@ namespace Starcounter.Rest {
     /// <summary>
     /// All related to Clang.
     /// </summary>
-    public class ScLLVMFunctions {
+    public unsafe class ClangFunctions {
 
         [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static UInt32 ScLLVMProduceModule(
-            [MarshalAs(UnmanagedType.LPWStr)]String path_to_cache_dir,
-            String predefined_hash_str,
-            String code_to_build,
-            String function_names_delimited,
-            String ext_libraries_names_delimited,
-            Boolean delete_sources,
-            String predefined_clang_params,
-            StringBuilder out_hash_65bytes,
-            out float out_time_seconds,
-            IntPtr[] out_func_ptrs,
-            out IntPtr out_exec_module,
-            out IntPtr out_codegen_engine
+        public extern static UInt32 ClangCompileCodeAndGetFuntions(
+            void** clang_engine,
+            Boolean accumulate_old_modules,
+            Boolean print_to_console,
+            Boolean do_optimizations,
+            Byte* code_str,
+            Byte* function_names_delimited,
+            IntPtr* out_func_ptrs,
+            IntPtr** out_exec_module
         );
 
         [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static void ScLLVMInit();
+        public extern static void ClangInit();
 
         [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static void ScLLVMDestroy(IntPtr codegen_engine);
-
-        [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static bool ScLLVMIsModuleCached(
-            [MarshalAs(UnmanagedType.LPWStr)]String path_to_cache_dir,
-            String predefined_hash_str);
-
-        [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static bool ScLLVMDeleteCachedModule(
-            [MarshalAs(UnmanagedType.LPWStr)]String path_to_cache_dir,
-            String predefined_hash_str);
-
-        [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static UInt32 ScLLVMCalculateHash(
-            String code_to_build,
-            StringBuilder out_hash_65bytes
-        );
+        public extern static void ClangDestroy(void* clang_engine);
 
         /// <summary>
         /// Generates Clang functions.
         /// </summary>
         public static UInt32 GenerateClangFunctions(
-            String code_to_build,
+            void** clang_engine,
+            String cpp_code,
             String[] function_names,
-            IntPtr[] out_functions,
-            out IntPtr clang_engine) {
+            IntPtr[] out_functions) {
+
+            Byte[] cpp_code_bytes = Encoding.ASCII.GetBytes(cpp_code);
+
+            fixed (Byte* code_bytes_native = cpp_code_bytes) {
+
+                return GenerateClangFunctions(clang_engine, code_bytes_native, function_names, out_functions);
+            }
+        }
+
+        /// <summary>
+        /// Generates Clang functions.
+        /// </summary>
+        public static UInt32 GenerateClangFunctions(
+            void** clang_engine,
+            Byte* cpp_code_ptr,
+            String[] function_names,
+            IntPtr[] out_functions) {
 
             String function_names_delimited = function_names[0];
             for (Int32 i = 1; i < function_names.Length; i++) {
                 function_names_delimited += ";" + function_names[i];
             }
 
-            String dbName = StarcounterEnvironment.DatabaseNameLower;
+            Byte[] function_names_bytes = Encoding.ASCII.GetBytes(function_names_delimited);
 
-            // Checking for the case of unit tests.
-            if (null == dbName) {
-                dbName = "nodbname";
-            }
+            fixed (Byte* function_names_bytes_native = function_names_bytes) {
 
-            String pathToTempDir = Path.Combine(
-                    Path.GetTempPath(),
-                    "starcounter",
-                    dbName,
-                    "self");
+                fixed (IntPtr* out_func_ptrs = out_functions) {
 
-            // Pointer to execution module that we don't use though.
-            IntPtr out_exec_module;
-            float time_took_sec;
+                    // Pointer to execution module that we don't use though.
+                    IntPtr* exec_module;
 
-            UInt32 err_code = ScLLVMFunctions.ScLLVMProduceModule(
-                pathToTempDir,
-                null,
-                code_to_build,
-                function_names_delimited,
-                null,
-                true,
-                null,
-                null,
-                out time_took_sec,
-                out_functions,
-                out out_exec_module,
-                out clang_engine);
+                    // Compiling the given code and getting function pointer back.
+                    UInt32 err_code = ClangFunctions.ClangCompileCodeAndGetFuntions(
+                        clang_engine,
+                        false,
+                        false,
+                        MixedCodeConstants.SCLLVM_OPT_FLAG,
+                        cpp_code_ptr,
+                        function_names_bytes_native,
+                        out_func_ptrs,
+                        &exec_module);
 
-            if (0 != err_code) {
-                return err_code;
+                    if (0 != err_code) {
+                        return err_code;
+                    }
+                }
             }
 
             return 0;
@@ -145,7 +132,7 @@ namespace Starcounter.Rest {
         /// <summary>
         /// Pointer to create Clang engine.
         /// </summary>
-        IntPtr clang_engine_ = IntPtr.Zero;
+        void* clang_engine_ = null;
 
         /// <summary>
         /// Delegate to generated match URI function.
@@ -157,7 +144,7 @@ namespace Starcounter.Rest {
         /// </summary>
         public static void GlobalInit()
         {
-            ScLLVMFunctions.ScLLVMInit();
+            ClangFunctions.ClangInit();
         }
 
         /// <summary>
@@ -165,7 +152,7 @@ namespace Starcounter.Rest {
         /// </summary>
         public void Destroy()
         {
-            ScLLVMFunctions.ScLLVMDestroy(clang_engine_);
+            ClangFunctions.ClangDestroy(clang_engine_);
         }
 
         /// <summary>
@@ -208,9 +195,6 @@ namespace Starcounter.Rest {
                     // Name of the root function.
                     String root_function_name = "MatchUriForPort" + port;
 
-                    // Generated code to build in LLVM.
-                    String code_to_build;
-
                     fixed (Byte* gen_code_string_container_native = gen_code_string_container_)
                     {
                         fixed (MixedCodeConstants.RegisteredUriManaged* reg_uri_infos_array = registered_uri_infos_array)
@@ -228,21 +212,22 @@ namespace Starcounter.Rest {
                             if (err_code != 0) {
                                 throw ErrorCode.ToException(err_code, "Internal URI matcher code generation error: " + err_code);
                             }
-
-                            // Creating managed string from generated code.
-                            code_to_build = Marshal.PtrToStringAnsi(new IntPtr(gen_code_string_container_native), (Int32)num_code_bytes);
                         }
 
                         IntPtr[] out_functions = new IntPtr[1];
 
-                        UInt32 errCode = ScLLVMFunctions.GenerateClangFunctions(
-                            code_to_build,
-                            new String[] { root_function_name },
-                            out_functions,
-                            out clang_engine_);
+                        fixed (void** clang_engine = &clang_engine_)
+                        {
 
-                        if (0 != errCode) {
-                            throw new ArgumentException("GenerateClangFunctions returned error during URI matcher code generation: " + errCode);
+                            UInt32 errCode = ClangFunctions.GenerateClangFunctions(
+                                clang_engine,
+                                gen_code_string_container_native,
+                                new String[] { root_function_name },
+                                out_functions);
+
+                            if (0 != errCode) {
+                                throw new ArgumentException("GenerateClangFunctions returned error during URI matcher code generation: " + errCode);
+                            }
                         }
 
                         // Ensuring that generated function is not null.

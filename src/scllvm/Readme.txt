@@ -25,13 +25,12 @@ or through commands:
 
 
 * Use latest Ubuntu (in my case 16 LTS)
-* Unzip llvm sources to some dir [llvm], in this case "~/Documents/llvm-3.9.0.src"
+* Unzip llvm sources to some dir [llvm], in this case "~/Documents/llvm-3.8.0.src"
 * Unzip clang sources to [llvm]\tools\clang\
 * Not necessary but in case: "sudo apt-get build-dep llvm"
 * sudo apt-get install cmake
-* Create a `build` directory inside "~/Documents/llvm-3.9.0.src"
-* Inside `build` dir: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release  -DLLVM_TARGETS_TO_BUILD="X86" "~/Documents/llvm-3.9.0.src"
-* Go to this `build` directory and call `make`
+* Create a `build` directory outside "~/Documents/llvm-3.8.0.src"
+* Inside `build` dir: cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release  -DLLVM_TARGETS_TO_BUILD="X86" "~/Documents/llvm-3.7.0.src"
 * To get info from LLVM to insert in CMakeLists.txt:
               llvm-config --cxxflags
               llvm-config --ldflags

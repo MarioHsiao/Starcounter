@@ -405,13 +405,6 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
     // Deleting old log file first.
     DeleteFile(setting_log_file_path_.c_str());
 
-	// Getting user temp directory.
-	wchar_t temp_dir_path[1024];
-	uint32_t num_chars = GetTempPath(1024, temp_dir_path);
-	GW_ASSERT(num_chars > 0);
-	user_temp_sc_dir_ = temp_dir_path;
-	user_temp_sc_dir_ += L"\\starcounter\\gateway";
-
     return 0;
 }
 
@@ -564,9 +557,9 @@ void UriMatcherCacheEntry::Destroy() {
         GW_ASSERT(TRUE == success);
     }
 
-    if (NULL != codegen_engine_) {
-		ScLLVMDestroy(codegen_engine_);
-        codegen_engine_ = NULL;
+    if (NULL != clang_engine_) {
+        g_gateway.clangDestroyFunc_(clang_engine_);
+        clang_engine_ = NULL;
     }
     
     num_uris_ = 0;
@@ -2305,40 +2298,56 @@ uint32_t Gateway::Init()
     codegen_uri_matcher_ = GwNewConstructor(CodegenUriMatcher);
     codegen_uri_matcher_->Init();
 
-	// Initializing LLVM.
-	ScLLVMInit();
-		
+    // Loading Clang for URI matching.
+    HMODULE clang_dll = LoadLibrary(L"scllvm.dll");
+    GW_ASSERT(clang_dll != NULL);
+
+    typedef void (*ClangInit)();
+    ClangInit clang_init = (ClangInit) GetProcAddress(clang_dll, "ClangInit");
+    GW_ASSERT(clang_init != NULL);
+    clang_init();
+
+    clangCompileCodeAndGetFuntions_ = (ClangCompileCodeAndGetFuntions) GetProcAddress(
+        clang_dll,
+        "ClangCompileCodeAndGetFuntions");
+
+    GW_ASSERT(clangCompileCodeAndGetFuntions_ != NULL);
+
+    clangDestroyFunc_ = (ClangDestroy) GetProcAddress(
+        clang_dll,
+        "ClangDestroy");
+
+    GW_ASSERT(clangDestroyFunc_ != NULL);
+
     // Running a test compilation.
-    void* codegen_engine = NULL;
+    void* clang_engine = NULL;
+    void** clang_engine_addr = &clang_engine;
 
-    void* out_functions[1];
-    void* out_exec_module = NULL;
-	float time_took_sec = 0;
+    void* out_functions[2];
+    void* exec_module = NULL;
 
-    uint32_t err_code = ScLLVMProduceModule(
-		g_gateway.user_temp_sc_dir_.c_str(), // Path to cache directory.
-		NULL, // No predefined hash string.
-		"extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
-		"extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
-		"Func1", // Name of functions which pointers should be returned, delimited by semicolon.
-		nullptr, // ext_libraries_names_delimited
-		true, // delete_sources
-		nullptr, // predefined_clang_params
-		nullptr, // Generated hash.
-		&time_took_sec, // out_time_seconds
-		out_functions, // Output pointers to functions.
-		&out_exec_module, // out_exec_engine
-		&codegen_engine // Pointer to codegen engine.
-	);
+    uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
+        clang_engine_addr, // Pointer to Clang engine.
+        false, // Accumulate Clang modules.
+        false, // Print build output to console.
+		MixedCodeConstants::SCLLVM_OPT_FLAG, // Do code optimizations.
 
-	GW_ASSERT(0 == err_code);
-	GW_ASSERT(NULL != out_exec_module);
+        "extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
+        "extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
+
+        "Func1", // Name of functions which pointers should be returned, delimited by semicolon.
+        out_functions, // Output pointers to functions.
+        &exec_module
+        );
+
+    GW_ASSERT(0 == err_code);
+    GW_ASSERT(NULL != exec_module);
 
     // Calling test function.
     typedef int (*example_func_type) ();
     GW_ASSERT(124 == (example_func_type(out_functions[0]))());
 
-    ScLLVMDestroy(codegen_engine);
+    g_gateway.clangDestroyFunc_(clang_engine);
 
 #ifdef USE_OLD_IPC_MONITOR
 
@@ -3740,7 +3749,7 @@ uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* po
         UriMatchCodegenCompilerType::COMPILER_CLANG,
         dll_name.str(),
         root_function_name,
-        new_entry->GetCodegenEngineAddress(),
+        new_entry->GetClangEngineAddress(),
         &match_uri_func,
         &gen_dll_handle);
 
