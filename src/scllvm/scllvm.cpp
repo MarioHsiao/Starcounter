@@ -424,14 +424,14 @@ extern "C" {
 				temp_cpp_file << code_string;
 				temp_cpp_file.close();
 
-				// Creating command line for clang. 
+				// Creating command line for clang.
 				std::stringstream clang_cmd_stream;
 
 				// Checking if we have custom clang parameters from the user.
 				if ((NULL != predefined_clang_params) && ('\0' != predefined_clang_params)) {
-					clang_cmd_stream << "clang++.exe -mcmodel=large " << predefined_clang_params << " " << cpp_file_name << " -o " << obj_file_name << " 2>&1";
+					clang_cmd_stream << "clang++.exe -mcmodel=large " << predefined_clang_params << " " << cpp_file_name << " -o " << obj_file_name;
 				} else {
-					clang_cmd_stream << "clang++.exe -O3 -c -mcmodel=large " << cpp_file_name << " -o " << obj_file_name << " 2>&1";
+					clang_cmd_stream << "clang++.exe -O3 -c -mcmodel=large " << cpp_file_name << " -o " << obj_file_name;
 				}
 
 				// Generating new object file.
