@@ -92,6 +92,10 @@
       <Project>{b427c63b-c13f-47cc-b101-29ced68a68b8}</Project>
       <Name>Starcounter.Hosting</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Server\Starcounter.Server.Rest\Starcounter.Server.Rest.csproj">
+      <Project>{60aae92e-e384-45ff-96f3-3d6b38462e3c}</Project>
+      <Name>Starcounter.Server.Rest</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Apps.JsonPatch\Starcounter.App.Server.csproj">
       <Project>{828ecac2-9748-4e7f-bdc0-6d154c90b9c3}</Project>
       <Name>Starcounter.App.Server</Name>
