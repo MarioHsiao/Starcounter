@@ -14,9 +14,9 @@ namespace scadminserver
             var log = new LogSource("Starcounter.AdminServer");
             Diagnostics.WriteTimeStamp(log.Source, "Started scadminserver Main()");
 
-            var control = RuntimeHost.CreateAndInitialize(log);
+            var host = RuntimeHost.CreateAndAssignToProcess<AdminServerRuntimeHost>(log);
 
-            control.RunUntilExit(() => {
+            host.RunUntilExit(() => {
                 return new CommandLineConfiguration(args);
             });
 

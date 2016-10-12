@@ -19,10 +19,10 @@ namespace sccode
             // Rationale: self-hosted apps have their entrypoint already cared
             // for.
             // TODO:
-
-            var control = RuntimeHost.CreateAndInitialize(log);
             
-            control.RunUntilExit(() => { return new CommandLineConfiguration(args); });
+            var host = RuntimeHost.CreateAndAssignToProcess<AppSharedRuntimeHost>(log);
+
+            host.RunUntilExit(() => { return new CommandLineConfiguration(args); });
         }
     }
 }

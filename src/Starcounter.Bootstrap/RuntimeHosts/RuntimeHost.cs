@@ -15,13 +15,13 @@ namespace Starcounter.Bootstrap.RuntimeHosts
     /// <summary>
     /// Represent the runtime host and govern its bootstrapping.
     /// </summary>
-    public class RuntimeHost
+    public abstract class RuntimeHost
     {
         /// <summary>
         /// The log source established at the time of creation of the
         /// Control instance;
         /// </summary>
-        readonly LogSource log;
+        LogSource log;
         
         /// <summary>
         /// Loaded configuration info.
@@ -58,26 +58,19 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             Int32 err_string_len
             );
 
-        private RuntimeHost(LogSource logSource)
+        protected RuntimeHost()
         {
-            log = logSource;
             ticksElapsedBetweenProcessStartAndMain_ = (DateTime.Now - Process.GetCurrentProcess().StartTime).Ticks;
             stopwatch_ = Stopwatch.StartNew();
         }
 
-        public static RuntimeHost CreateAndInitialize(LogSource log)
-        {
-            var c = new RuntimeHost(log);
-            c.OnProcessInitialized();
-
-            StarcounterInternal.Hosting.ExceptionManager.Init();
-
-            DatabaseExceptionFactory.InstallInCurrentAppDomain();
-            c.OnExceptionFactoryInstalled();
-
-            return c;
+        public static T CreateAndAssignToProcess<T>(LogSource logSource) where T : RuntimeHost, new() {
+            var host = new T();
+            host.log = logSource;
+            host.Initialize();
+            return host;
         }
-
+        
         public void RunUntilExit(Func<IHostConfiguration> configProvider, Action shutdownAuthority = null)
         {
             try
@@ -102,6 +95,16 @@ namespace Starcounter.Bootstrap.RuntimeHosts
 
                 if (!StarcounterInternal.Hosting.ExceptionManager.HandleUnhandledException(ex)) throw;
             }
+        }
+
+        void Initialize()
+        {
+            OnProcessInitialized();
+
+            StarcounterInternal.Hosting.ExceptionManager.Init();
+
+            DatabaseExceptionFactory.InstallInCurrentAppDomain();
+            OnExceptionFactoryInstalled();
         }
         
         internal unsafe bool SetupFromConfiguration(IHostConfiguration config)

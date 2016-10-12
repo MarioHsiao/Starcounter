@@ -67,6 +67,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CommandLineConfiguration.cs" />
+    <Compile Include="RuntimeHosts\AppSharedRuntimeHost.cs" />
     <Compile Include="RuntimeHosts\RuntimeHost.cs" />
     <Compile Include="HostConfiguration.cs" />
     <Compile Include="Hosting\AppHostBuilder.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Management\Representations.JSON\Executable.json.cs">
       <DependentUpon>Executable.json</DependentUpon>
     </Compile>
+    <Compile Include="RuntimeHosts\SelfHostingRuntimeHost.cs" />
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="Management\Representations.JSON\Executable.json">
