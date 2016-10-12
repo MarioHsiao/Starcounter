@@ -1,3 +1,5 @@
+# This is a comment!
+
 FasterThanJson.Tests.exe
 HttpParser.Tests.dll
 scweaver.Tests.dll
@@ -10,3 +12,4 @@ Starcounter.XSON.HtmlReader.Tests.dll
 Starcounter.XSON.JsonByExample.Tests.dll
 Starcounter.XSON.PartialClassGenerator.Tests.dll
 Starcounter.XSON.Tests.dll
+scllvm_tests_managed.exe

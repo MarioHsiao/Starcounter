@@ -73,3 +73,5 @@ src/Starcounter/Query/prologbeans/*
 
 #editor config
 .idea
+
+src/scllvm_tests/packages/
