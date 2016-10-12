@@ -420,6 +420,7 @@ extern "C" {
 
 				// Saving source file to disk. 
 				std::ofstream temp_cpp_file(cpp_file_name);
+				temp_cpp_file << "#undef _MSC_VER\n";
 				temp_cpp_file << code_string;
 				temp_cpp_file.close();
 
