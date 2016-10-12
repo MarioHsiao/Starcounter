@@ -36,11 +36,15 @@ namespace Starcounter.Advanced.XSON {
                 json.Siblings = siblings;
             }
 
-            if (main.Siblings != null) {
-                main.Siblings.Remove(main);
-            }
+            var oldSiblings = main.Siblings;
             
             siblings.Add(main);
+            siblings.CompareAndInvalidate(oldSiblings);
+
+            if (oldSiblings != null) {
+                oldSiblings.Remove(main);
+            }
+
             main.wrapInAppName = true;
             main.Siblings = siblings;
         }
