@@ -95,7 +95,12 @@ namespace Starcounter.Templates {
 
 		internal override void SetDefaultValue(Json parent, bool markAsReplaced = false) {
 			UnboundSetter(parent, new Arr<Json>(parent, this));
-		}
+
+            if (markAsReplaced && parent != null && parent.HasBeenSent) {
+                parent.MarkAsDirty(TemplateIndex);
+                parent.CallHasChanged(this);
+            }
+        }
 
 		internal override void InvalidateBoundGetterAndSetter() {
 			BoundGetter = null;
