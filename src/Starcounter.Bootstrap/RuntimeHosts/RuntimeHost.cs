@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace Starcounter.Bootstrap
+namespace Starcounter.Bootstrap.RuntimeHosts
 {
     /// <summary>
     /// Represent the runtime host and govern its bootstrapping.
@@ -96,6 +96,10 @@ namespace Starcounter.Bootstrap
             }
             catch (Exception ex)
             {
+                // We can't accept the termination of the process in a self-hosting
+                // environment. Exceptions need to be propagated to the caller.
+                // TODO:
+
                 if (!StarcounterInternal.Hosting.ExceptionManager.HandleUnhandledException(ex)) throw;
             }
         }

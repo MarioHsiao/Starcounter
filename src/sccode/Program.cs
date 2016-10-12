@@ -1,6 +1,7 @@
 ﻿
 using Starcounter;
 using Starcounter.Bootstrap;
+using Starcounter.Bootstrap.RuntimeHosts;
 using Starcounter.Internal;
 
 namespace sccode
