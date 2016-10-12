@@ -100,9 +100,7 @@ namespace Starcounter.Internal {
             StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;
             StarcounterEnvironment.Default.SystemHttpPort = defaultSystemHttpPort;
             StarcounterEnvironment.Default.SessionTimeoutMinutes = sessionTimeoutMinutes;
-
-            StarcounterEnvironment.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
-
+            
             // Allow reading of JSON-by-example files at runtime
             // Starcounter_XSON_JsonByExample.Initialize();
 

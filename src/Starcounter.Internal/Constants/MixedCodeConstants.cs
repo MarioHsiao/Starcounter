@@ -269,11 +269,6 @@ namespace Starcounter.Internal
         public const String DefaultPersonalServerNameUpper = "PERSONAL";
 
         /// <summary>
-        /// Name of Administrator application.
-        /// </summary>
-        public const String AdministratorAppName = "Administrator";
-
-        /// <summary>
         /// Gateway internal system port setting name.
         /// </summary>
         public const String GatewayInternalSystemPortSettingName = "InternalSystemPort";
