@@ -71,30 +71,19 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             return host;
         }
         
-        public void Run(Func<IHostConfiguration> configProvider, Action shutdownAuthority = null)
+        public virtual void Run(Func<IHostConfiguration> configProvider, Action shutdownAuthority = null)
         {
-            try
-            {
-                var config = configProvider();
-                OnConfigurationLoaded();
+            var config = configProvider();
+            OnConfigurationLoaded();
 
-                SetupFromConfiguration(config);
-                Start();
+            SetupFromConfiguration(config);
+            Start();
 
-                Action managedShutdown = () => { ManagementService.RunUntilShutdown(); };
-                Run(shutdownAuthority ?? managedShutdown);
+            Action managedShutdown = () => { ManagementService.RunUntilShutdown(); };
+            Run(shutdownAuthority ?? managedShutdown);
 
-                Stop();
-                Cleanup();
-            }
-            catch (Exception ex)
-            {
-                // We can't accept the termination of the process in a self-hosting
-                // environment. Exceptions need to be propagated to the caller.
-                // TODO:
-
-                if (!StarcounterInternal.Hosting.ExceptionManager.HandleUnhandledException(ex)) throw;
-            }
+            Stop();
+            Cleanup();
         }
 
         void Initialize()

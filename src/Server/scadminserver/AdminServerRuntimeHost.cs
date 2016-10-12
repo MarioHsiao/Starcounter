@@ -3,7 +3,7 @@ using Starcounter.Bootstrap.RuntimeHosts;
 
 namespace scadminserver
 {
-    public class AdminServerRuntimeHost : RuntimeHost
+    public class AdminServerRuntimeHost : AppSharedRuntimeHost
     {
     }
 }
