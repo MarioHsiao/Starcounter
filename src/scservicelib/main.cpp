@@ -385,14 +385,14 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 		wcslen(str_template) +
 		wcslen(srv_name_upr) +
         wcslen(gateway_cfg_path) +
-		wcslen(server_logs_dir) +
+		wcslen(server_temp_dir) +
 		1;
 
 	str_size_bytes = str_num_chars * sizeof(wchar_t);
 	gateway_cmd = (wchar_t *)malloc(str_size_bytes);
 	if (!gateway_cmd) goto err_nomem;
 
-	swprintf(gateway_cmd, str_num_chars, str_template, srv_name_upr, gateway_cfg_path, server_logs_dir);
+	swprintf(gateway_cmd, str_num_chars, str_template, srv_name_upr, gateway_cfg_path, server_temp_dir);
 
 #ifdef START_PROLOG
 

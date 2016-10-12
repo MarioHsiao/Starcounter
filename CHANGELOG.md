@@ -8,6 +8,9 @@
 - Fixed a bug where changing and reusing partials didn't properly generate patches for client [#3465](https://github.com/Starcounter/Starcounter/issues/3465) 
 - Fixed a bug where bound arrays were not properly marked as dirty when setting dataobject to null [#3879](https://github.com/Starcounter/Starcounter/issues/3879)
 
+### Improved
+- Improved subsequent startup time for the server/applications. Initial startup is still taking approximately the same time.
+
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 
 ### Added
