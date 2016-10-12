@@ -16,7 +16,7 @@ namespace scadminserver
 
             var host = RuntimeHost.CreateAndAssignToProcess<AdminServerRuntimeHost>(log);
 
-            host.RunUntilExit(() => {
+            host.Run(() => {
                 return new CommandLineConfiguration(args);
             });
 

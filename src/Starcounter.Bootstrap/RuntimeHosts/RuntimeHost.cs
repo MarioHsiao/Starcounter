@@ -71,7 +71,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             return host;
         }
         
-        public void RunUntilExit(Func<IHostConfiguration> configProvider, Action shutdownAuthority = null)
+        public void Run(Func<IHostConfiguration> configProvider, Action shutdownAuthority = null)
         {
             try
             {

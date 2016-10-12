@@ -48,7 +48,7 @@ namespace Starcounter.Hosting
             // Console redirects? Probably not.
             // TODO:
 
-            runtimeHost.RunUntilExit(() => { return configuration; }, entrypoint);
+            runtimeHost.Run(() => { return configuration; }, entrypoint);
         }
     }
 }

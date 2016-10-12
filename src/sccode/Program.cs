@@ -22,7 +22,7 @@ namespace sccode
             
             var host = RuntimeHost.CreateAndAssignToProcess<AppSharedRuntimeHost>(log);
 
-            host.RunUntilExit(() => { return new CommandLineConfiguration(args); });
+            host.Run(() => { return new CommandLineConfiguration(args); });
         }
     }
 }
