@@ -107,7 +107,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             OnExceptionFactoryInstalled();
         }
         
-        internal unsafe bool SetupFromConfiguration(IHostConfiguration config)
+        internal unsafe void SetupFromConfiguration(IHostConfiguration config)
         {
             configuration = config;
             
@@ -222,9 +222,6 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             }
 
             StarcounterBase.TransactionManager = new TransactionManager();
-
-            // No return value: exception on failure.
-            return true;
         }
 
         /// <summary>
