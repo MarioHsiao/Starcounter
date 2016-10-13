@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using Starcounter.Internal.XSON;
 
 namespace Starcounter.XSON {
     public class SiblingList : IEnumerable<Json> {
@@ -72,8 +74,10 @@ namespace Starcounter.XSON {
             });
             if (index != -1) {
                 list.RemoveAt(index);
-                sibling.wrapInAppName = false;
-                sibling.Siblings = null;
+                if (sibling.Siblings == this) {
+                    sibling.wrapInAppName = false;
+                    sibling.Siblings = null;
+                }
             }
         }
 
@@ -116,7 +120,37 @@ namespace Starcounter.XSON {
         IEnumerator IEnumerable.GetEnumerator() {
             return new JsonEnumerator(this.list);
         }
+
+        public void CompareAndInvalidate(SiblingList previousSiblings) {
+            Sibling newSibling;
+            Json prevSibling;
+
+            // We allow only one sibling per app so we do the following checks: 
+            // 1) If a sibling exist for a specific app in both new and old
+            //      a) If the items are the same, mark as sent (only changed values are sent)
+            //      b) If the items are not the same, mark as not sent to send whole new sibling.
+            // 2) If old contains app that is not in new, send a remove (or empty object maybe if 
+            //    remove is not supported.
+            // 3) All items in new that does not exist in old will already be marked as not sent.
+
+            if (previousSiblings == null)
+                return;
+            
+            for (int i = 0; i < previousSiblings.Count; i++) {
+                prevSibling = previousSiblings[i];
+                
+                newSibling = this.list.Find((item) => {
+                    return (item.Json?.appName == prevSibling?.appName);
+                });
+
+                if (newSibling != null) {
+                    newSibling.HasBeenSent = (newSibling.Json == prevSibling);
+                } else {
+                    // TODO:
+                    // An json for the app does no longer exist. Remove from client.
+                    
+                }
+            }
+        }
     }
-
-
 }

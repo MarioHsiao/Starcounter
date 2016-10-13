@@ -1110,19 +1110,19 @@ class UriMatcherCacheEntry {
     int32_t num_uris_;
 
     // Established Clang engine.
-    void* clang_engine_;
+    void* codegen_engine_;
 
 public:
 
-    void** GetClangEngineAddress() {
-        return &clang_engine_;
+    void** GetCodegenEngineAddress() {
+        return &codegen_engine_;
     }
 
     UriMatcherCacheEntry() {
         num_uris_ = 0;
         gen_dll_handle_ = NULL;
         gen_uri_matcher_func_ = NULL;
-        clang_engine_ = NULL;
+        codegen_engine_ = NULL;
     }
 
     int32_t get_num_uris() {
@@ -1478,17 +1478,34 @@ public:
 #endif
 };
 
-typedef uint32_t (*ClangCompileCodeAndGetFuntions) (
-    void** const clang_engine,
-    const bool accumulate_old_modules,
-    const bool print_to_console,
-    const bool do_optimizations,
-    const char* const input_code_str,
-    const char* const function_names_delimited,
-    void* out_func_ptrs[],
-    void** exec_module);
+extern "C" uint32_t ScLLVMProduceModule(
+	const wchar_t* const path_to_cache_dir,
+	const char* const predefined_hash_str,
+	const char* const code_to_build,
+	const char* const function_names_delimited,
+	const char* const ext_libraries_names_delimited,
+	const bool delete_sources,
+	const char* const predefined_clang_params,
+	char* const out_hash_65bytes,
+	float* out_time_seconds,
+	void* out_func_ptrs[],
+	void** out_exec_module,
+	void** const out_codegen_engine);
 
-typedef void (*ClangDestroy) (void* clang_engine);
+extern "C" void ScLLVMInit();
+
+extern "C" bool ScLLVMIsModuleCached(
+	const wchar_t* const path_to_cache_dir,
+	const char* const predefined_hash_str);
+
+extern "C" void ScLLVMDeleteModule(
+	void* const clang_engine, void** exec_module);
+
+extern "C" bool ScLLVMDeleteCachedModule(
+	const wchar_t* const path_to_cache_dir,
+	const char* const predefined_hash_str);
+
+extern "C" void ScLLVMDestroy(void* clang_engine);
 
 // Tries to set a SIO_LOOPBACK_FAST_PATH on a given TCP socket.
 void SetLoopbackFastPathOnTcpSocket(SOCKET sock);
@@ -1524,6 +1541,7 @@ class Gateway
     std::wstring setting_gateway_output_dir_;
     std::wstring setting_log_file_path_;
     std::wstring setting_sc_bin_dir_;
+	std::wstring user_temp_sc_dir_;
 
     // Gateway config file name.
     std::wstring setting_config_file_path_;
@@ -1830,12 +1848,6 @@ public:
 		return active_databases_updates_event_;
 	}
 
-    // Pointer to Clang compile and get function pointer.
-    ClangCompileCodeAndGetFuntions clangCompileCodeAndGetFuntions_;
-
-    // Destroys existing Clang engine.
-    ClangDestroy clangDestroyFunc_;
-
     // Generate the code using managed generator.
     uint32_t GenerateUriMatcher(ServerPort* sp, RegisteredUris* port_uris);
 
@@ -2013,6 +2025,12 @@ public:
     {
         return setting_sc_bin_dir_;
     }
+
+	// Getting temporary Starcounter directory.
+	const std::wstring& get_user_temp_sc_dir()
+	{
+		return user_temp_sc_dir_;
+	}
 
     // Starcounter server type upper case.
     const std::string& setting_sc_server_type_upper()
