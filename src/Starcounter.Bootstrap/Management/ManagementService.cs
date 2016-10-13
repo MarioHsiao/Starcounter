@@ -4,8 +4,9 @@ using System;
 using System.Threading;
 
 namespace Starcounter.Bootstrap.Management {
+    
     /// <summary>
-    /// Governs the interface the code host process expose over HTTP
+    /// Governs the interface the shared app code host process expose over HTTP
     /// to allow code host level management.
     /// </summary>
     /// <remarks>
@@ -13,21 +14,22 @@ namespace Starcounter.Bootstrap.Management {
     /// part of providing a way to run executables and start and stop
     /// engines and code host processes.
     /// </remarks>
-    static internal class ManagementService {
+    internal class ManagementService : ILifetimeService {
         const string onlineBaseName = "SCCODE_EXE_";
-        static ManualResetEvent shutdownEvent;
-        static EventWaitHandle onlineEvent;
+        ManualResetEvent shutdownEvent;
+        EventWaitHandle onlineEvent;
+        IHostConfiguration configuration;
 
         /// <summary>
         /// Gets the host identity, used to expose management services
         /// over HTTP.
         /// </summary>
-        public static string HostIdentity { get; private set; }
+        public string HostIdentity { get; private set; }
 
         /// <summary>
         /// Gets the port used to expose management services over HTTP.
         /// </summary>
-        public static ushort Port { get; private set; }
+        public ushort Port { get; private set; }
 
         /// <summary>
         /// Governs the availability of the management service.
@@ -39,25 +41,34 @@ namespace Starcounter.Bootstrap.Management {
         /// and after it has been shut down (and before the process exits
         /// while handlers are still registered).
         /// </remarks>
-        public static bool Unavailable { get; private set; }
+        public bool Unavailable { get; private set; }
 
         /// <summary>
         /// Gets a value that indicates if the current service is running
         /// in the administrator host.
         /// </summary>
-        public static bool IsAdministrator { get; private set; }
+        public bool IsAdministrator { get; private set; }
 
-        /// <summary>
-        /// Initializes the management service in the starting code host
-        /// process.
-        /// </summary>
-        /// <param name="hostIdentity">The identity of the host. Used when
-        /// constructing and registering management URIs.</param>
-        public static void Init(string hostIdentity) {
-            HostIdentity = hostIdentity;
+        public void Configure(IHostConfiguration config)
+        {
+            configuration = config;
+            HostIdentity = config.Name;
             Unavailable = true;
             shutdownEvent = new ManualResetEvent(false);
-            onlineEvent = new EventWaitHandle(false, EventResetMode.ManualReset, string.Concat(onlineBaseName, hostIdentity.ToUpperInvariant()));
+            onlineEvent = new EventWaitHandle(false, EventResetMode.ManualReset, string.Concat(onlineBaseName, HostIdentity.ToUpperInvariant()));
+        }
+
+        public void Start(IntPtr schedulerContext)
+        {
+            unsafe
+            {
+                Setup(configuration.DefaultSystemHttpPort, schedulerContext.ToPointer(), !configuration.NoNetworkGateway);
+            }
+        }
+
+        public void Run()
+        {
+            RunUntilShutdown();
         }
 
         /// <summary>
@@ -67,7 +78,11 @@ namespace Starcounter.Bootstrap.Management {
         /// <param name="handleScheduler">Handle to the scheduler to use when
         /// management services need to schedule work to be done.</param>
         /// <param name="setupAPI">Indicates if the API should be set up.</param>
-        public static unsafe void Setup(ushort port, void* handleScheduler, bool setupAPI = true) {
+        unsafe void Setup(ushort port, void* handleScheduler, bool setupAPI = true) {
+
+            // TODO: This should be responsibility of custom implementation
+            // It should be made configurable if hosting services should be
+            // supported or not.
             IsAdministrator = StarcounterEnvironment.IsAdministratorApp;
             Port = port;
             
@@ -76,10 +91,10 @@ namespace Starcounter.Bootstrap.Management {
             }
             
             if (setupAPI) {
-                CodeHostAPI.Setup(HostIdentity);
+                CodeHostAPI.Setup(this);
                 Scheduling.ScheduleTask(() => {
-                    CodeHostHandler.Setup();
-                    ExecutablesHandler.Setup(handleScheduler);
+                    CodeHostHandler.Setup(this);
+                    ExecutablesHandler.Setup(this, handleScheduler);
                 }, true);
             }
         }
@@ -87,7 +102,7 @@ namespace Starcounter.Bootstrap.Management {
         /// <summary>
         /// Instructs the service to shut down.
         /// </summary>
-        public static void Shutdown() {
+        public void Shutdown() {
             shutdownEvent.Set();
         }
 
@@ -97,7 +112,7 @@ namespace Starcounter.Bootstrap.Management {
         /// should shut down (semantically eqivivalent to stopping the code
         /// host).
         /// </summary>
-        public static void RunUntilShutdown() {
+        void RunUntilShutdown() {
             Unavailable = false;
             onlineEvent.Set();
             shutdownEvent.WaitOne();

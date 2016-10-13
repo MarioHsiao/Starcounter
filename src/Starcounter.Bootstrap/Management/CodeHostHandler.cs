@@ -1,17 +1,16 @@
 ﻿
 using Codeplex.Data;
-using Starcounter.Advanced;
-using Starcounter.Internal.Web;
 using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Text;
-namespace Starcounter.Bootstrap.Management {
+
+namespace Starcounter.Bootstrap.Management
+{
     /// <summary>
     /// Implements the code host functionality behind the code host "Host"
     /// management resource.
     /// </summary>
     internal static class CodeHostHandler {
+        static ManagementService managementService;
 
         /// <summary>
         /// Provides a set of utility methods for working with JSON representations
@@ -97,26 +96,28 @@ namespace Starcounter.Bootstrap.Management {
         /// <summary>
         /// Performs setup of the <see cref="CodeHostHandler"/>.
         /// </summary>
-        internal static void Setup() {
+        internal static void Setup(ManagementService manager) {
+            managementService = manager;
+
             var uri = CodeHostAPI.Uris.Host;
-            var port = ManagementService.Port;
+            var port = manager.Port;
 
             Handle.GET(port, uri, CodeHostHandler.OnGET);
             Handle.DELETE(port, uri, CodeHostHandler.OnDELETE);
         }
 
         static Response OnGET() {
-            if (ManagementService.Unavailable) {
+            if (managementService.Unavailable) {
                 return 503;
             }
             return 204;
         }
 
         static Response OnDELETE() {
-            if (ManagementService.Unavailable) {
+            if (managementService.Unavailable) {
                 return 503;
             }
-            ManagementService.Shutdown();
+            managementService.Shutdown();
             return 204;
         }
     }

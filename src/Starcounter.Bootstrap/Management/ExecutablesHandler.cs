@@ -11,16 +11,20 @@ namespace Starcounter.Bootstrap.Management {
     /// management resource.
     /// </summary>
     internal static class ExecutablesHandler {
+        static ManagementService managementService;
         static unsafe void* schedulerHandle;
 
         /// <summary>
         /// Performs setup of the <see cref="ExecutablesHandler"/>.
         /// </summary>
+        /// <param name="manager"></param>
         /// <param name="handleScheduler">Handle to the scheduler to use when
         /// management services need to schedule work to be done.</param>
-        public static unsafe void Setup(void* handleScheduler) {
+        public static unsafe void Setup(ManagementService manager, void* handleScheduler) {
+            managementService = manager;
+
             var uri = CodeHostAPI.Uris.Executables;
-            var port = ManagementService.Port;
+            var port = manager.Port;
             schedulerHandle = handleScheduler;
 
             Handle.POST<Request>(port, uri, ExecutablesHandler.OnPOST);
@@ -28,7 +32,7 @@ namespace Starcounter.Bootstrap.Management {
 
         static unsafe Response OnPOST(Request request) {
 
-            if (ManagementService.Unavailable) {
+            if (managementService.Unavailable) {
                 return 503;
             }
 

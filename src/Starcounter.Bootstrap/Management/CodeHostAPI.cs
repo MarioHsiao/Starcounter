@@ -5,6 +5,8 @@ namespace Starcounter.Bootstrap.Management {
     /// providing its URIs.
     /// </summary>
     public static class CodeHostAPI {
+        static ManagementService managementService;
+
         /// <summary>
         /// Provides the set of code host URIs offered by the
         /// current instance.
@@ -14,16 +16,17 @@ namespace Starcounter.Bootstrap.Management {
         /// <summary>
         /// Performs setup of the <see cref="CodeHostAPI"/>.
         /// </summary>
-        /// <param name="hostIdentity"></param>
-        internal static void Setup(string hostIdentity) {
-            Uris = new ResourceUris(hostIdentity);
+        /// <param name="manager"></param>
+        internal static void Setup(ManagementService manager) {
+            managementService = manager;
+            Uris = new ResourceUris(manager.HostIdentity);
         }
 
         /// <summary>
         /// Initiates shutdown of the current code host.
         /// </summary>
         public static void Shutdown() {
-            ManagementService.Shutdown();
+            managementService.Shutdown();
         }
 
         public static ResourceUris CreateServiceURIs(string hostIdentity) {

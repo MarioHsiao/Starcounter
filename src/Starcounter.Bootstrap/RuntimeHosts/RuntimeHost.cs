@@ -17,11 +17,8 @@ namespace Starcounter.Bootstrap.RuntimeHosts
     /// </summary>
     public abstract class RuntimeHost
     {
-        /// <summary>
-        /// The log source established at the time of creation of the
-        /// Control instance;
-        /// </summary>
         LogSource log;
+        ILifetimeService lifetimeService;
         
         /// <summary>
         /// Loaded configuration info.
@@ -70,17 +67,20 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             host.Initialize();
             return host;
         }
+
+        protected abstract ILifetimeService CreateLifetimeService();
         
-        public virtual void Run(Func<IHostConfiguration> configProvider, Action shutdownAuthority = null)
+        public virtual void Run(Func<IHostConfiguration> configProvider)
         {
             var config = configProvider();
             OnConfigurationLoaded();
 
+            lifetimeService = CreateLifetimeService();
+
             SetupFromConfiguration(config);
             Start();
-
-            Action managedShutdown = () => { ManagementService.RunUntilShutdown(); };
-            Run(shutdownAuthority ?? managedShutdown);
+            
+            Run();
 
             Stop();
             Cleanup();
@@ -124,8 +124,8 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             }
             OnLoggingConfigured();
 
-            ManagementService.Init(configuration.Name);
-
+            lifetimeService.Configure(configuration);
+            
             // Initializing the BMX manager if network gateway is used.
             if (!configuration.NoNetworkGateway)
             {
@@ -239,7 +239,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
 
                 OnAppDomainConfigured();
 
-                ManagementService.Setup(configuration.DefaultSystemHttpPort, hsched_, !configuration.NoNetworkGateway);
+                lifetimeService.Start(new IntPtr(hsched_));
                 OnServerCommandHandlersRegistered();
 
                 if (withdb_) {
@@ -276,7 +276,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
         /// <summary>
         /// Runs this instance.
         /// </summary>
-        internal unsafe void Run(Action entrypoint = null) {
+        internal unsafe void Run() {
             try {
 
                 // Executing auto-start task if any.
@@ -317,14 +317,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
 
                 // Receive until we are told to shutdown.
 
-                if (entrypoint != null)
-                {
-                    entrypoint();
-                }
-                else
-                {
-                    ManagementService.RunUntilShutdown();
-                }
+                lifetimeService.Run();
 
             }
             finally { OnEndRun(); }

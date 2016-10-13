@@ -24,6 +24,7 @@ namespace Starcounter.Hosting
         public void Run(Action entrypoint)
         {
             var runtimeHost = RuntimeHost.CreateAndAssignToProcess<SelfHostingRuntimeHost>(LogSources.Hosting);
+            runtimeHost.Entrypoint = entrypoint;
 
             // The prerequisite to use this: backend services running with a
             // running scdata, but with no host.
@@ -48,7 +49,7 @@ namespace Starcounter.Hosting
             // Console redirects? Probably not.
             // TODO:
 
-            runtimeHost.Run(() => { return configuration; }, entrypoint);
+            runtimeHost.Run(() => { return configuration; });
         }
     }
 }
