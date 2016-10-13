@@ -205,6 +205,13 @@ namespace Starcounter.XSON.PartialClassGenerator {
                                                              null,
                                                              template.CodegenInfo.SourceInfo);
                     }
+
+                    if (!string.IsNullOrEmpty(template.CodegenInfo.ReuseType)) {
+                        generator.ThrowExceptionWithLineInfo(Error.SCERRJSONDUPLICATEREUSE,
+                                                             "Member: '" + template.TemplateName + "'",
+                                                             null,
+                                                             template.CodegenInfo.SourceInfo);
+                    }
                     template.CodegenInfo.ReuseType = typeName;
                     break;
                 default:

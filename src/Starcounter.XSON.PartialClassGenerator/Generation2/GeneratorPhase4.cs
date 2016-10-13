@@ -53,7 +53,10 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     appTemplate = generator.FindTemplate(mapInfo, rootTemplate);
 
                     if (appTemplate.CodegenInfo.BoundToType != null) {
-                        generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CodegenInfo.SourceInfo);
+                        generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON,
+                                                             "", 
+                                                             null, 
+                                                             appTemplate.CodegenInfo.SourceInfo);
                     }
 
                     // TODO:
@@ -64,8 +67,16 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     // Do we need to create a new TApp and replace the existing one
                     // for all NClasses?
                     appTemplate.CodegenInfo.ClassName = mapInfo.ClassName;
-                    if (!String.IsNullOrEmpty(mapInfo.Namespace))
+                    if (!String.IsNullOrEmpty(mapInfo.Namespace)) {
+                        if (!string.IsNullOrEmpty(appTemplate.CodegenInfo.Namespace)) {
+                            // Namespace already set in Json-by-example. 
+                            generator.ThrowExceptionWithLineInfo(Error.SCERRJSONDUPLICATENAMESPACE, 
+                                                                 "", 
+                                                                 null, 
+                                                                 appTemplate.CodegenInfo.SourceInfo);
+                        }
                         appTemplate.CodegenInfo.Namespace = mapInfo.Namespace;
+                    }
 
                     nAppClass = (AstJsonClass)generator.ObtainValueClass(appTemplate);
                     nAppClass.IsPartial = true;

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Starcounter.Templates;
 using Starcounter.XSON.Compiler.Mono;
 using Starcounter.XSON.Interfaces;
@@ -40,11 +39,6 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
             metadata = CodeBehindParser.Analyze(template.CodegenInfo.ClassName, codebehind, codeBehindFilePathNote);
             var rootClassInfo = metadata.RootClassInfo;
-
-            if (rootClassInfo != null) {
-                if (String.IsNullOrEmpty(template.CodegenInfo.Namespace))
-                    template.CodegenInfo.Namespace = metadata.RootClassInfo.Namespace;
-            }
 
             codegenmodule = new Gen2CodeGenerationModule();
             codegen = codegenmodule.CreateGenerator(template.GetType(), "C#", template, metadata);
