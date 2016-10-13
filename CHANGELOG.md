@@ -7,6 +7,7 @@
 - Fixed a bug where setting dataobject on an array lead to a `NullReferenceException` [#3856](https://github.com/Starcounter/Starcounter/issues/3856)
 - Fixed a bug where changing and reusing partials didn't properly generate patches for client [#3465](https://github.com/Starcounter/Starcounter/issues/3465) 
 - Fixed a bug where bound arrays were not properly marked as dirty when setting dataobject to null [#3879](https://github.com/Starcounter/Starcounter/issues/3879)
+- Fixed a bug where database may hang deleting a record. As the root cause of the problem is in the wrong data stored in the database image, it's necessary to do unload/reload during upgrade to fix the image. [#3875]
 
 ### Improved
 - Improved subsequent startup time for the server/applications. Initial startup is still taking approximately the same time.
