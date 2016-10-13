@@ -433,16 +433,19 @@ namespace Starcounter.InstallerWPF {
                     }
                     else {
 
-                        CheckforEmptyFolder:
-                        int checks = 6;
+                        // Checking if directory is still under cleanup from the previous installer.
+                        for (Int32 checks = 0; checks < 10; checks++) {
+
+                            // Checking if there are any files in the target installation directory.
+                            if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath))) {
+                                Thread.Sleep(1000);
+                            } else {
+                                break;
+                            }
+                        }
+
                         // Checking if there are any files in the target installation directory.
                         if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(installationPath))) {
-
-                            Thread.Sleep(1000);
-                            checks--;
-                            if (checks > 0) {
-                                goto CheckforEmptyFolder;
-                            }
 
                             // Setting normal attributes for all files and folders in installation directory.
                             Utilities.SetNormalDirectoryAttributes(new DirectoryInfo(installationPath));
