@@ -84,6 +84,17 @@ namespace Starcounter.XSON.Metadata {
         public List<CodeBehindFieldOrPropertyInfo> FieldOrPropertyList = new List<CodeBehindFieldOrPropertyInfo>();
 
         /// <summary>
+        /// Contains information about assignments to property Template.InstanceType
+        /// </summary>
+        /// <remarks>
+        /// An assignment doesn't necessarily belong to a template defined in this class, since it's allowed 
+        /// to add assignment to a child-property in the parent (most likely case is that all assignments 
+        /// are made in the root class).
+        /// However the templatepath in each item starts from the current class.
+        /// </remarks>
+        public List<CodeBehindTypeAssignmentInfo> InstanceTypeAssignments = new List<CodeBehindTypeAssignmentInfo>();
+        
+        /// <summary>
         /// 
         /// </summary>
         public CodeBehindClassInfo(string raw) {

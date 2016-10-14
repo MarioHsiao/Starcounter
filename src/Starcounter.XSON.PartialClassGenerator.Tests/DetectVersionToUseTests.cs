@@ -2,6 +2,7 @@
 using System.IO;
 using NUnit.Framework;
 using Starcounter.Templates;
+using SXP = Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     [TestFixture]
@@ -9,7 +10,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         internal static TObject ReadTemplate(string path) {
             var str = File.ReadAllText(path);
             var tj = (TObject)TObject.CreateFromJson(str);
-            tj.ClassName = Path.GetFileNameWithoutExtension(path);
+            tj.CodegenInfo.ClassName = Path.GetFileNameWithoutExtension(path);
             return tj;
         }
 
@@ -41,7 +42,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         private static void _GenerateCsDOM(string version,string root) {
             var tj = ReadTemplate("Input\\ParentChild.json");
             var cb = File.ReadAllText("Input\\ParentChild.json.cs."+version);
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             var dom = codegen.GenerateAST();
 
             //            var str = TreeHelper.GenerateTreeString(dom, (IReadOnlyTree node) => node.ToString() ); 

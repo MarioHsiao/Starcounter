@@ -1,18 +1,8 @@
-﻿// ***********************************************************************
-// <copyright file="NRoot.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using Starcounter.Templates;
-namespace Starcounter.Internal.MsBuild.Codegen {
-
-
+﻿namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
-    /// The single AST root
+    /// 
     /// </summary>
     public class AstRoot : AstBase {
-
         /// <summary>
         /// 
         /// </summary>

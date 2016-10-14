@@ -1,8 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using NUnit.Framework;
-using Starcounter.Internal.MsBuild.Codegen;
 using Starcounter.Templates;
+using Starcounter.XSON.PartialClassGenerator;
+using SXP = Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     [TestFixture]
@@ -10,7 +10,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         internal static TObject ReadTemplate(string path) {
             var str = File.ReadAllText(path);
             var tj = (TObject)TObject.CreateFromJson(str);
-            tj.ClassName = Path.GetFileNameWithoutExtension(path);
+            tj.CodegenInfo.ClassName = Path.GetFileNameWithoutExtension(path);
             return tj;
         }
 
@@ -24,7 +24,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void UntouchedNesting() {
             var tj = ReadTemplate("Input\\ParentChild.json");
             var cb = File.ReadAllText("Input\\ParentChild.json.cs.v5");
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             var dom = codegen.GenerateAST();
 
             //var dump = TreeHelper.GenerateTreeString(dom, (IReadOnlyTree node) => {
@@ -50,7 +50,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void FlattenedClassForNestedJson() {
             var tj = ReadTemplate("Input\\ParentChild.json");
             var cb = File.ReadAllText("Input\\ParentChild.json.cs.v3");
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             var dom = codegen.GenerateAST();
 
             var dump = TreeHelper.GenerateTreeString(dom, (IReadOnlyTree node) => {

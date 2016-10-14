@@ -4,9 +4,9 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Templates.Interfaces;
 using System;
-namespace Starcounter.Internal {
+
+namespace Starcounter.XSON.Interfaces {
     /// <summary>
     /// Interface ITemplateCodeGeneratorModule
     /// </summary>

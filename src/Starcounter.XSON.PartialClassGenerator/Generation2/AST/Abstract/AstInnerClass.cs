@@ -1,16 +1,4 @@
-﻿// ***********************************************************************
-// <copyright file="NTemplateClass.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using Starcounter.Templates;
-using System;
-using System.Collections.Generic;
-
-
-namespace Starcounter.Internal.MsBuild.Codegen {
-
+﻿namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// There are two types of Json inner classes that are used
     /// by the code generator. One is the base or derived
@@ -18,9 +6,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// or dervied meta data bases (AstMetadataClass)
     /// </summary>
     public abstract class AstInnerClass : AstClass {
-
-
-
         /// <summary>
         /// Constructor
         /// </summary>
@@ -42,25 +27,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
             set { _NValueClass = value; }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
+        
         public AstProperty NValueProperty;
 
-
-//        public override string Namespace {
-//            get {
-//                return NValueClass.Namespace;
-//            }
-//        }
-
         public bool IsCodegenerated = false;
-
-//        /// <summary>
-//        /// Gets the name of the class.
-//        /// </summary>
-//        /// <value>The name of the class.</value>
-
     }
 }

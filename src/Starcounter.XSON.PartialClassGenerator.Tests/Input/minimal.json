@@ -3,6 +3,6 @@
     "ServerCode":10002,
 	"Helplink":"https://github.com/Starcounter/Starcounter/wiki/10002",
 	"LogEntry":"http://example.com/api/logs/123",
-    "CustomAction$": null,
+    "CustomAction$": 0,
     "List1": [{}]
 }

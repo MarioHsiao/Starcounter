@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Starcounter.Internal.MsBuild.Codegen {    
+namespace Starcounter.XSON.PartialClassGenerator {    
     /// <summary>
     /// Moves the nested classes below the properties for easier reading of of generator code
     /// (although the generated code should not be used by the developer).

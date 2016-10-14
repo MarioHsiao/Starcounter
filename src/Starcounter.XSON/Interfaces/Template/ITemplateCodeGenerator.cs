@@ -5,7 +5,8 @@
 // ***********************************************************************
 
 using Starcounter.Internal;
-namespace Starcounter.Templates.Interfaces {
+
+namespace Starcounter.XSON.Interfaces {
     /// <summary>
     /// Interface ITemplateCodeGenerator
     /// </summary>
