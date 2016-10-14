@@ -67,8 +67,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CommandLineConfiguration.cs" />
+    <Compile Include="Hosting\ApplicationDirectory.cs" />
+    <Compile Include="Hosting\AssemblyResolver.cs" />
+    <Compile Include="Hosting\CodeHostError.cs" />
     <Compile Include="Hosting\HostConfigurationFromServerConfiguration.cs" />
     <Compile Include="Hosting\IExceptionManager.cs" />
+    <Compile Include="Hosting\IPrivateAssemblyStore.cs" />
+    <Compile Include="Hosting\Package.cs" />
+    <Compile Include="Hosting\PrivateAssemblyStore.cs" />
+    <Compile Include="Hosting\PrivateBinaryFile.cs" />
+    <Compile Include="Hosting\StarcounterPackage.cs" />
+    <Compile Include="Hosting\TaskSchedulerImpl.cs" />
     <Compile Include="ILifetimeService.cs" />
     <Compile Include="RuntimeHosts\AppSharedRuntimeHost.cs" />
     <Compile Include="RuntimeHosts\RuntimeHost.cs" />
@@ -86,6 +95,11 @@
       <DependentUpon>Executable.json</DependentUpon>
     </Compile>
     <Compile Include="RuntimeHosts\SelfHostingRuntimeHost.cs" />
+    <Compile Include="StarcounterInternal.Hosting\ExceptionManager.cs" />
+    <Compile Include="StarcounterInternal.Hosting\Loader.cs" />
+    <Compile Include="StarcounterInternal.Hosting\orange.cs" />
+    <Compile Include="StarcounterInternal.Hosting\Processor.cs" />
+    <Compile Include="StarcounterInternal.Hosting\sccoreapp.cs" />
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="Management\Representations.JSON\Executable.json">
