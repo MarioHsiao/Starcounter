@@ -17,6 +17,9 @@ namespace Starcounter.Bootstrap.RuntimeHosts
     /// </summary>
     public abstract class RuntimeHost
     {
+        static RuntimeHost singleton;
+        static object singletonLock = new object();
+
         LogSource log;
         ILifetimeService lifetimeService;
         
@@ -55,6 +58,12 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             Int32 err_string_len
             );
 
+        public static RuntimeHost Current {
+            get {
+                return singleton;
+            }
+        }
+
         protected RuntimeHost()
         {
             ticksElapsedBetweenProcessStartAndMain_ = (DateTime.Now - Process.GetCurrentProcess().StartTime).Ticks;
@@ -65,6 +74,17 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             var host = new T();
             host.log = logSource;
             host.Initialize();
+
+            lock (singletonLock)
+            {
+                if (singleton != null)
+                {
+                    throw new InvalidOperationException("A runtime host is already configured");
+                }
+
+                singleton = host;
+            }
+
             return host;
         }
 
