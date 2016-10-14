@@ -79,6 +79,7 @@
     <Compile Include="Hosting\PrivateBinaryFile.cs" />
     <Compile Include="Hosting\StarcounterPackage.cs" />
     <Compile Include="Hosting\TaskSchedulerImpl.cs" />
+    <Compile Include="IAppStart.cs" />
     <Compile Include="ILifetimeService.cs" />
     <Compile Include="RuntimeHosts\AppSharedRuntimeHost.cs" />
     <Compile Include="RuntimeHosts\RuntimeHost.cs" />
