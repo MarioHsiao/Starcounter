@@ -99,7 +99,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
         protected abstract ILifetimeService CreateLifetimeService();
         protected abstract IExceptionManager CreateExceptionManager();
         
-        public virtual void Run(Func<IHostConfiguration> configProvider)
+        public virtual void Run(Func<IHostConfiguration> configProvider, Func<IAppStart> appStartProvider = null)
         {
             var config = configProvider();
             OnConfigurationLoaded();
@@ -109,7 +109,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             SetupFromConfiguration(config);
             Start();
             
-            Run();
+            Run(appStartProvider);
 
             Stop();
             Cleanup();
@@ -281,67 +281,33 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             }
             finally { OnEndStart(); }
         }
-
-        /// <summary>
-        /// Simple parser for user arguments.
-        /// </summary>
-        String[] ParseUserArguments(String userArgs) {
-            char[] parmChars = userArgs.ToCharArray();
-            bool inQuote = false;
-
-            for (int i = 0; i < parmChars.Length; i++) {
-                if (parmChars[i] == '"') {
-                    parmChars[i] = '\n';
-                    inQuote = !inQuote;
-                }
-
-                if (!inQuote && parmChars[i] == ' ')
-                    parmChars[i] = '\n';
-            }
-
-            return (new string(parmChars)).Split(new Char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        }
-
+        
         /// <summary>
         /// Runs this instance.
         /// </summary>
-        internal unsafe void Run() {
+        unsafe void Run(Func<IAppStart> appStartProvider = null) {
             try {
 
-                // Executing auto-start task if any.
-                if (configuration.AutoStartExePath != null) {
-                    // Trying to get user arguments if any.
-                    String[] userArgsArray = null;
-                    var userArgs = configuration.AutoStartUserArguments;
-                    if (userArgs != null) {
-                        // Parsing user arguments.
-                        String[] parsedUserArgs = ParseUserArguments(userArgs);
-
-                        // Checking if any parameters determined.
-                        if (parsedUserArgs.Length > 0)
-                            userArgsArray = parsedUserArgs;
-                    }
-
-                    // Trying to get explicit working directory.
-                    var workingDir = configuration.AutoStartWorkingDirectory;
-
+                var appStart = appStartProvider?.Invoke();
+                if (appStart != null)
+                {
+                    // TODO:
                     OnArgumentsParsed();
 
                     var app = new ApplicationBase(
-                        Path.GetFileName(configuration.AutoStartExePath),
-                        configuration.AutoStartExePath,
-                        configuration.AutoStartExePath,
-                        workingDir,
-                        userArgsArray
+                        Path.GetFileName(appStart.AssemblyPath),
+                        appStart.AssemblyPath,
+                        appStart.AssemblyPath,
+                        appStart.WorkingDirectory,
+                        appStart.EntrypointArguments
                     );
-                    app.HostedFilePath = configuration.AutoStartExePath;
-                    
-                    // Loading the given application.
-                    Loader.ExecuteApplication(hsched_, app, EntrypointOptions.RunSynchronous, stopwatch_);
+                    app.HostedFilePath = appStart.AssemblyPath;
+
+                    Loader.ExecuteApplication(hsched_, app, appStart.EntrypointOptions, stopwatch_);
 
                     OnAutoStartModuleExecuted();
                 }
-
+                
                 OnCodeHostBootCompleted();
 
                 // Receive until we are told to shutdown.
