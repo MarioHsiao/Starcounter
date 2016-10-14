@@ -5,12 +5,6 @@ namespace Starcounter.Bootstrap
 {
     public sealed class HostConfiguration : IHostConfiguration
     {
-        public string AutoStartExePath { get; set; }
-
-        public string AutoStartUserArguments { get; set; }
-
-        public string AutoStartWorkingDirectory { get; set; }
-
         public uint ChunksNumber { get; set; }
 
         public uint DefaultSessionTimeoutMinutes { get; set; }
