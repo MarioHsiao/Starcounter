@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Hosting;
 using System;
 
 namespace Starcounter.Bootstrap.RuntimeHosts
@@ -28,6 +29,14 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             }
         }
 
+        class ExceptionManagerImpl : IExceptionManager
+        {
+            public bool HandleUnhandledException(Exception ex)
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// TODO: Rename
         /// </summary>
@@ -36,6 +45,11 @@ namespace Starcounter.Bootstrap.RuntimeHosts
         protected override ILifetimeService CreateLifetimeService()
         {
             return new LifetimeService(this);
+        }
+
+        protected override IExceptionManager CreateExceptionManager()
+        {
+            return new ExceptionManagerImpl();
         }
     }
 }

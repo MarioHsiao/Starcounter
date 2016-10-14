@@ -22,6 +22,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
 
         LogSource log;
         ILifetimeService lifetimeService;
+        IExceptionManager exceptionManager;
         
         /// <summary>
         /// Loaded configuration info.
@@ -64,6 +65,12 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             }
         }
 
+        public IExceptionManager ExceptionManager {
+            get {
+                return exceptionManager;
+            }
+        }
+
         protected RuntimeHost()
         {
             ticksElapsedBetweenProcessStartAndMain_ = (DateTime.Now - Process.GetCurrentProcess().StartTime).Ticks;
@@ -89,6 +96,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
         }
 
         protected abstract ILifetimeService CreateLifetimeService();
+        protected abstract IExceptionManager CreateExceptionManager();
         
         public virtual void Run(Func<IHostConfiguration> configProvider)
         {
@@ -110,10 +118,10 @@ namespace Starcounter.Bootstrap.RuntimeHosts
         {
             OnProcessInitialized();
 
-            StarcounterInternal.Hosting.ExceptionManager.Init();
-
             DatabaseExceptionFactory.InstallInCurrentAppDomain();
             OnExceptionFactoryInstalled();
+
+            exceptionManager = CreateExceptionManager();
         }
         
         internal unsafe void SetupFromConfiguration(IHostConfiguration config)
