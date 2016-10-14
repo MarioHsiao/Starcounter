@@ -3,7 +3,9 @@ using Starcounter.CommandLine;
 using Starcounter.Internal;
 using StarcounterInternal.Bootstrap;
 using System;
+using System.IO;
 using System.Diagnostics;
+using Starcounter.Bootstrap.Hosting;
 
 namespace Starcounter.Bootstrap
 {
@@ -13,6 +15,56 @@ namespace Starcounter.Bootstrap
     /// </summary>
     public sealed class CommandLineConfiguration : IHostConfiguration
     {
+        #region Provider of IAppStart if auto exec path is given
+        class AutoExecStart : IAppStart
+        {
+            readonly string autoStartPath;
+            readonly ApplicationArguments appArgs;
+
+            private AutoExecStart(ApplicationArguments args, string path)
+            {
+                appArgs = args;
+                autoStartPath = path;
+            }
+
+            public static IAppStart CreateIfAutoStartIsDefined(ApplicationArguments args)
+            {
+                string path;
+                var defined = args.TryGetProperty(StarcounterConstants.BootstrapOptionNames.AutoStartExePath, out path);
+                return defined ? new AutoExecStart(args, path) : null;
+            }
+
+            string IAppStart.AssemblyPath {
+                get {
+                    return autoStartPath;
+                }
+            }
+
+            string IAppStart.WorkingDirectory {
+                get {
+                    string workingDir = null;
+                    var defined = appArgs.TryGetProperty(StarcounterConstants.BootstrapOptionNames.WorkingDir, out workingDir);
+                    return defined ? workingDir : Path.GetDirectoryName(autoStartPath);
+                }
+            }
+
+            string[] IAppStart.EntrypointArguments {
+                get {
+                    string userArgs = null;
+                    var defined = appArgs.TryGetProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, out userArgs);
+                    return defined ? ParseAutoStartingAppUserArguments(userArgs) : null;
+                }
+            }
+
+            EntrypointOptions IAppStart.EntrypointOptions {
+                get {
+                    return EntrypointOptions.RunSynchronous;
+                }
+            }
+        }
+
+        #endregion
+
         /// <summary>
         /// Gets or sets the program arguments.
         /// </summary>
@@ -67,6 +119,16 @@ namespace Starcounter.Bootstrap
             if (SchedulerCount >= 32) {
                 SchedulerCount = 31;
             }
+        }
+
+        /// <summary>
+        /// Return an <c>IAppStart</c> based on command-line values if specified,
+        /// or null otherwise.
+        /// </summary>
+        /// <returns><c>IAppStart</c> or <c>null</c></returns>
+        public IAppStart GetAutoExecStart()
+        {
+            return AutoExecStart.CreateIfAutoStartIsDefined(ProgramArguments);
         }
 
         /// <summary>
@@ -156,23 +218,6 @@ namespace Starcounter.Bootstrap
                     prop = @"C:/Test/Temp";
 
                 return prop;
-            }
-        }
-
-        /// <summary>
-        /// Gets the auto start exe path.
-        /// </summary>
-        /// <value>The auto start exe path.</value>
-        public string AutoStartExePath
-        {
-            get
-            {
-                string autoStartExePath;
-
-                if (!this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.AutoStartExePath, out autoStartExePath))
-                    autoStartExePath = null;
-
-                return autoStartExePath;
             }
         }
 
@@ -340,29 +385,36 @@ namespace Starcounter.Bootstrap
                 return this.ProgramArguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.NoNetworkGateway);
             }
         }
-
-        public string AutoStartUserArguments {
-            get {
-                String userArgs = null;
-                var defined = ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.UserArguments, out userArgs);
-                return defined ? userArgs : null;
-            }
-        }
-
-        public string AutoStartWorkingDirectory {
-            get {
-                String workingDir = null;
-                var defined = ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.WorkingDir, out workingDir);
-                return defined ? workingDir : null;
-            }
-        }
-
+        
         public bool EnableTraceLogging {
             get {
                 return ProgramArguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging);
             }
         }
+        
+        /// <summary>
+        /// Simple parser for user arguments.
+        /// </summary>
+        static string[] ParseAutoStartingAppUserArguments(string userArgs)
+        {
+            var parmChars = userArgs.ToCharArray();
+            var inQuote = false;
 
+            for (int i = 0; i < parmChars.Length; i++)
+            {
+                if (parmChars[i] == '"')
+                {
+                    parmChars[i] = '\n';
+                    inQuote = !inQuote;
+                }
+
+                if (!inQuote && parmChars[i] == ' ')
+                    parmChars[i] = '\n';
+            }
+
+            return (new string(parmChars)).Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+        
         static ApplicationArguments ParseToArguments(string[] args)
         {
             ApplicationArguments arguments;
