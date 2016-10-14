@@ -6,6 +6,7 @@
 
 using Starcounter;
 using Starcounter.Binding;
+using Starcounter.Bootstrap.Hosting;
 using Starcounter.Hosting;
 using Starcounter.Internal;
 using Starcounter.Logging;
@@ -101,7 +102,7 @@ namespace StarcounterInternal.Hosting {
         public static unsafe void ExecuteApplication(
             void* hsched,
             ApplicationBase appBase,
-            bool execEntryPointSynchronously = false,
+            EntrypointOptions entrypointOptions,
             Stopwatch stopwatch = null) {
 
             stopwatch_ = stopwatch ?? Stopwatch.StartNew();
@@ -119,7 +120,7 @@ namespace StarcounterInternal.Hosting {
                 stopwatch_,
                 application,
                 appDir,
-                execEntryPointSynchronously
+                entrypointOptions
             );
 
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);

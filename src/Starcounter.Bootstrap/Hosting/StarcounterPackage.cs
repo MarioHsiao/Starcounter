@@ -10,7 +10,7 @@ namespace Starcounter.Hosting {
     /// The package provided by Starcounter, containing types that are to be
     /// loaded and maintained in every host.
     /// </summary>
-    public class StarcounterPackage : Package {
+    internal class StarcounterPackage : Package {
         private StarcounterPackage(TypeDef[] types, Stopwatch watch) : base(types, watch) {}
 
         /// <summary>

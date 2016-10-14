@@ -1,10 +1,6 @@
-﻿// ***********************************************************************
-// <copyright file="Package.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿
 using Starcounter.Binding;
+using Starcounter.Bootstrap.Hosting;
 using Starcounter.Internal;
 using Starcounter.Legacy;
 using Starcounter.Metadata;
@@ -18,12 +14,12 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace Starcounter.Hosting {
-
+namespace Starcounter.Hosting
+{
     /// <summary>
     /// Class Package
     /// </summary>
-    public class Package {
+    internal class Package {
         /// <summary>
         /// Initializes internal HTTP handlers.
         /// </summary>
@@ -76,7 +72,7 @@ namespace Starcounter.Hosting {
 
         private readonly Stopwatch stopwatch_;
 
-        private readonly bool execEntryPointSynchronously_;
+        private EntrypointOptions entrypointOptions;
 
         /// <summary>
         /// The processed event_
@@ -100,23 +96,26 @@ namespace Starcounter.Hosting {
             appDirectory_ = null;
         }
 
-		/// <summary>
+        /// <summary>
         /// Initializes a new instance of the <see cref="Package" /> class.
         /// </summary>
         /// <param name="typeDefs">Set of type definitions to consider.</param>
         /// <param name="stopwatch">A watch used to time package loading.</param>
         /// <param name="application">The application that is being launched.</param>
         /// <param name="appDir">The materialized application directory.</param>
-        /// <param name="execEntryPointSynchronously">
-        /// If true the event for processing complete will be set after the entrypoint returns, 
-        /// if set to false the event will be set before the entrypoint executes.
-        /// </param>
+        /// <param name="entryOptions">How and if to execute an entrypoint</param>
         internal Package(
-            TypeDef[] typeDefs, Stopwatch stopwatch, Application application, ApplicationDirectory appDir, bool execEntryPointSynchronously) 
+            TypeDef[] typeDefs, 
+            Stopwatch stopwatch, 
+            Application application, 
+            ApplicationDirectory appDir, 
+            EntrypointOptions entryOptions) 
             : this(typeDefs, stopwatch) {
+
             application_ = application;
             appDirectory_ = appDir;
-            execEntryPointSynchronously_ = execEntryPointSynchronously;
+
+            entrypointOptions = entryOptions;
         }
 
         /// <summary>
@@ -161,7 +160,11 @@ namespace Starcounter.Hosting {
             //Debugger.Launch();
 
             Assembly assembly = null;
-            if (application != null) {
+            if (application == null) {
+                entrypointOptions = EntrypointOptions.DontRun;
+            }
+            else
+            {
                 assembly = LoadMainAssembly(application, applicationDir);
             }
 
@@ -241,20 +244,25 @@ namespace Starcounter.Hosting {
                     OnInternalHandlersRegistered();
                 }
 
-                // The host must always be executed in this context, even if the
-                // application start synchronously.
-                if (application != null) {
-                    try {
+                if (entrypointOptions != EntrypointOptions.DontRun)
+                {
+                    // The host must always be executed in this context, even if the
+                    // application start synchronously.
+                    try
+                    {
                         ExecuteHost(application, assembly);
                     }
-                    finally {
+                    finally
+                    {
                         LegacyContext.Exit(application);
                     }
-                }
 
-                // Starting user Main() here.
-                if (application != null && execEntryPointSynchronously_)
-                    ExecuteEntryPoint(application, assembly);
+                    // Starting user Main() here.
+                    if (entrypointOptions == EntrypointOptions.RunSynchronous)
+                    {
+                        ExecuteEntryPoint(application, assembly);
+                    }
+                }
 
             } catch (Exception e) {
                 uint code = 0;
@@ -272,8 +280,10 @@ namespace Starcounter.Hosting {
                 processedEvent_.Set();
             }
 
-            if (application != null && !execEntryPointSynchronously_)
+            if (entrypointOptions == EntrypointOptions.RunAsynchronous)
+            {
                 ExecuteEntryPoint(application, assembly);
+            }
         }
 
         Assembly LoadMainAssembly(Application application, ApplicationDirectory appDir) {

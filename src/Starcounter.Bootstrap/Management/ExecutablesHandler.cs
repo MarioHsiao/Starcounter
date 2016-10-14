@@ -4,6 +4,7 @@ using Starcounter.Bootstrap.Management.Representations.JSON;
 using StarcounterInternal.Hosting;
 using System;
 using Starcounter.Hosting;
+using Starcounter.Bootstrap.Hosting;
 
 namespace Starcounter.Bootstrap.Management {
     /// <summary>
@@ -56,8 +57,13 @@ namespace Starcounter.Bootstrap.Management {
                 app.ResourceDirectories.Add(resdir.StringValue);
             }
 
-            try {
-                Loader.ExecuteApplication(schedulerHandle, app, !exe.RunEntrypointAsynchronous);
+            var mainOptions = exe.RunEntrypointAsynchronous
+                    ? EntrypointOptions.RunAsynchronous
+                    : EntrypointOptions.RunSynchronous;
+
+            try
+            {                
+                Loader.ExecuteApplication(schedulerHandle, app, mainOptions);
             } catch (Exception e) {
                 if (!ExceptionManager.HandleUnhandledException(e)) throw;
             }

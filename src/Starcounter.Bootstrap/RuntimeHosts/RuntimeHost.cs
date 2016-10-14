@@ -1,5 +1,6 @@
 ﻿
 using Starcounter.Advanced;
+using Starcounter.Bootstrap.Hosting;
 using Starcounter.Bootstrap.Management;
 using Starcounter.Hosting;
 using Starcounter.Internal;
@@ -336,7 +337,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
                     app.HostedFilePath = configuration.AutoStartExePath;
                     
                     // Loading the given application.
-                    Loader.ExecuteApplication(hsched_, app, true, stopwatch_);
+                    Loader.ExecuteApplication(hsched_, app, EntrypointOptions.RunSynchronous, stopwatch_);
 
                     OnAutoStartModuleExecuted();
                 }
