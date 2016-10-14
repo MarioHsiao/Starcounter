@@ -2,6 +2,7 @@
 using Starcounter.Bootstrap;
 using System;
 using System.IO;
+using System.Reflection;
 
 namespace Starcounter.Hosting
 {
@@ -31,6 +32,7 @@ namespace Starcounter.Hosting
     public class AppHostBuilder
     {
         Func<IHostConfiguration> configProvider;
+        Func<IAppStart> appStartProvider;
 
         public AppHostBuilder UseDatabase(string name)
         {
@@ -49,15 +51,22 @@ namespace Starcounter.Hosting
             throw new NotImplementedException();
         }
 
-        protected virtual IHostConfiguration CreateConfiguration()
+        public AppHostBuilder UseApplication(Assembly application)
         {
-            return configProvider();
+            var start = AppStart.FromAssembly(application);
+            appStartProvider = () => { return start; };
+            return this;
         }
-
+        
         public ICodeHost Build()
         {
             var config = CreateConfiguration();
-            return new SelfHostedCodeHost(config); 
+            return new SelfHostedCodeHost(config, appStartProvider?.Invoke());
+        }
+
+        IHostConfiguration CreateConfiguration()
+        {
+            return configProvider();
         }
     }
 }
