@@ -70,6 +70,7 @@
     <Compile Include="Hosting\ApplicationDirectory.cs" />
     <Compile Include="Hosting\AssemblyResolver.cs" />
     <Compile Include="Hosting\CodeHostError.cs" />
+    <Compile Include="Hosting\EntrypointOptions.cs" />
     <Compile Include="Hosting\HostConfigurationFromServerConfiguration.cs" />
     <Compile Include="Hosting\IExceptionManager.cs" />
     <Compile Include="Hosting\IPrivateAssemblyStore.cs" />
