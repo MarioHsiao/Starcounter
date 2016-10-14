@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="CommandLineConfiguration.cs" />
     <Compile Include="Hosting\HostConfigurationFromServerConfiguration.cs" />
+    <Compile Include="Hosting\IExceptionManager.cs" />
     <Compile Include="ILifetimeService.cs" />
     <Compile Include="RuntimeHosts\AppSharedRuntimeHost.cs" />
     <Compile Include="RuntimeHosts\RuntimeHost.cs" />
