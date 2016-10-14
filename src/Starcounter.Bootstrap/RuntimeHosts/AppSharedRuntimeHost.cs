@@ -98,11 +98,11 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             }
         }
 
-        public override void Run(Func<IHostConfiguration> configProvider)
+        public override void Run(Func<IHostConfiguration> configProvider, Func<IAppStart> autoStartProvdier = null)
         {
             try
             {
-                base.Run(configProvider);
+                base.Run(configProvider, autoStartProvdier);
             }
             catch (Exception ex)
             {

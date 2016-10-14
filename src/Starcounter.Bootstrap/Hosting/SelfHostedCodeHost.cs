@@ -9,10 +9,12 @@ namespace Starcounter.Hosting
     internal class SelfHostedCodeHost : ICodeHost
     {
         readonly IHostConfiguration configuration;
+        readonly IAppStart appStart;
 
-        public SelfHostedCodeHost(IHostConfiguration config)
+        public SelfHostedCodeHost(IHostConfiguration config, IAppStart appToStart)
         {
             configuration = config;
+            appStart = appToStart;
         }
 
         public IServices Services {
@@ -48,8 +50,8 @@ namespace Starcounter.Hosting
             // that management API's are not exposed (I think). Possibly more.
             // Console redirects? Probably not.
             // TODO:
-
-            runtimeHost.Run(() => { return configuration; });
+            
+            runtimeHost.Run(() => { return configuration; }, () => { return appStart; } );
         }
     }
 }
