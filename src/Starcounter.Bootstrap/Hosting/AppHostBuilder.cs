@@ -51,22 +51,75 @@ namespace Starcounter.Hosting
             throw new NotImplementedException();
         }
 
-        public AppHostBuilder UseApplication(Assembly application)
+        /// <summary>
+        /// Specifies the application to bootstrap into the host, given its assembly.
+        /// </summary>
+        /// <param name="application">Assembly that contains the application.</param>
+        /// <param name="entrypointOptions">How the host should consider the entrypoint of
+        /// the application.</param>
+        /// <returns>An <c>AppHostBuilder</c> including the specified change and that can
+        /// be configured further</returns>
+        public AppHostBuilder UseApplication(Assembly application, EntrypointOptions entrypointOptions)
         {
             var start = AppStart.FromAssembly(application);
+            start.EntrypointOptions = entrypointOptions;
             appStartProvider = () => { return start; };
             return this;
+        }
+
+        /// <summary>
+        /// Specifies the application to bootstrap into the host, given a path to the assembly.
+        /// </summary>
+        /// <param name="assemblyPath">Path to the application assembly.</param>
+        /// <param name="entrypointOptions">How the host should consider the entrypoint of
+        /// the application.</param>
+        /// <returns>An <c>AppHostBuilder</c> including the specified change and that can
+        /// be configured further</returns>
+        public AppHostBuilder UseApplication(string assemblyPath, EntrypointOptions entrypointOptions)
+        {
+            var start = AppStart.FromExecutable(assemblyPath);
+            appStartProvider = () => { return start; };
+            return this;
+        }
+
+        /// <summary>
+        /// Specifies that the entrypoint assembly of the currently running application
+        /// should be used as the application to host.
+        /// </summary>
+        /// <remarks>
+        /// This is a shorthand version of <c>UseApplication(Assembly.GetEntryAssembly(),
+        /// EntrypointOptions.DontRun).</c>
+        /// </remarks>
+        /// <returns>An <c>AppHostBuilder</c> including the specified change and that can
+        /// be configured further</returns>
+        public AppHostBuilder UseCurrentApplication()
+        {
+            return UseApplication(Assembly.GetEntryAssembly(), EntrypointOptions.DontRun);
         }
         
         public ICodeHost Build()
         {
-            var config = CreateConfiguration();
-            return new SelfHostedCodeHost(config, appStartProvider?.Invoke());
+            return new SelfHostedCodeHost(CreateHostConfiguration(), CreateAppStart());
         }
 
-        IHostConfiguration CreateConfiguration()
+        IHostConfiguration CreateHostConfiguration()
         {
-            return configProvider();
+            var config = configProvider?.Invoke();
+            if (config == null)
+            {
+                throw new InvalidOperationException("Unable to build host without a specified database. See .UseDatabase() on how to specify one.");
+            }
+            return config;
+        }
+
+        IAppStart CreateAppStart()
+        {
+            var appstart = appStartProvider?.Invoke();
+            if (appstart == null)
+            {
+                throw new InvalidOperationException("Unable to build host without a specified application. See .UseApplication() on how to specify one.");
+            }
+            return appstart;
         }
     }
 }
