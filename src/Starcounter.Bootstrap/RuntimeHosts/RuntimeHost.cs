@@ -1,7 +1,5 @@
 ﻿
 using Starcounter.Advanced;
-using Starcounter.Bootstrap.Hosting;
-using Starcounter.Bootstrap.Management;
 using Starcounter.Hosting;
 using Starcounter.Internal;
 using Starcounter.Logging;

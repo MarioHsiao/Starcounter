@@ -1,4 +1,4 @@
-﻿namespace Starcounter.Bootstrap.Hosting
+﻿namespace Starcounter.Hosting
 {
     /// <summary>
     /// Define how the runtime host should execute an entrypoint

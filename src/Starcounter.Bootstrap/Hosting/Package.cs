@@ -1,6 +1,5 @@
 ﻿
 using Starcounter.Binding;
-using Starcounter.Bootstrap.Hosting;
 using Starcounter.Internal;
 using Starcounter.Legacy;
 using Starcounter.Metadata;

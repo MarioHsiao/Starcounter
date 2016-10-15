@@ -1,5 +1,5 @@
 ﻿
-using Starcounter.Bootstrap.Hosting;
+using Starcounter.Hosting;
 
 namespace Starcounter.Bootstrap
 {

@@ -1,12 +1,10 @@
-﻿
-using Starcounter.Advanced;
-using Starcounter.Bootstrap.Management.Representations.JSON;
+﻿using Starcounter.Bootstrap.Management.Representations.JSON;
+using Starcounter.Hosting;
 using StarcounterInternal.Hosting;
 using System;
-using Starcounter.Hosting;
-using Starcounter.Bootstrap.Hosting;
 
-namespace Starcounter.Bootstrap.Management {
+namespace Starcounter.Bootstrap.Management
+{
     /// <summary>
     /// Implements the code host functionality behind the code host "Executables"
     /// management resource.

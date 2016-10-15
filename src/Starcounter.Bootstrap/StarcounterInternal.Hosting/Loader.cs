@@ -1,16 +1,8 @@
-﻿// ***********************************************************************
-// <copyright file="Loader.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿
 using Starcounter;
-using Starcounter.Binding;
-using Starcounter.Bootstrap.Hosting;
 using Starcounter.Hosting;
 using Starcounter.Internal;
 using Starcounter.Logging;
-using Starcounter.Metadata;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -18,7 +10,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace StarcounterInternal.Hosting {
+namespace StarcounterInternal.Hosting
+{
     /// <summary>
     /// Class Loader
     /// </summary>

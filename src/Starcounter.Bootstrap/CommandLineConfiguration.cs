@@ -1,11 +1,11 @@
 ﻿
 using Starcounter.CommandLine;
+using Starcounter.Hosting;
 using Starcounter.Internal;
 using StarcounterInternal.Bootstrap;
 using System;
-using System.IO;
 using System.Diagnostics;
-using Starcounter.Bootstrap.Hosting;
+using System.IO;
 
 namespace Starcounter.Bootstrap
 {

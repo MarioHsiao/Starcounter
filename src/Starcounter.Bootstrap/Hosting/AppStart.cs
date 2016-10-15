@@ -1,6 +1,5 @@
 ﻿
 using Starcounter.Bootstrap;
-using Starcounter.Bootstrap.Hosting;
 using System;
 using System.IO;
 using System.Reflection;
