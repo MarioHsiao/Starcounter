@@ -327,7 +327,7 @@ namespace Starcounter.VisualStudio.Projects {
                         Error.SCERRWEAVERFAILEDLOADFILE,
                         errorDetail.Text,
                         msg.Header,
-                        "Consider excluding this file by adding a \"weaver.ignore\" file to your project."
+                        "Consider excluding this file by adding a \"weaver.ignore\" file to your project, and make sure it's copied to your output directory."
                         );
                     return false;
                 } else {
