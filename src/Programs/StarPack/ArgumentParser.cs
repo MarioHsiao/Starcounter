@@ -106,6 +106,28 @@ namespace StarPack {
                     continue;
                 }
 
+                // Project configuration
+                if (arg.ToLower().StartsWith("-c=") || arg.ToLower().StartsWith("--config=")) {
+
+                    if (packOptions.Projectconfiguration != null) {
+                        throw new InvalidOperationException("Project configuration parameter already set");
+                    }
+
+                    packOptions.Projectconfiguration = GetValue(arg);
+                    if (string.IsNullOrEmpty(packOptions.Projectconfiguration)) {
+                        throw new InvalidOperationException("Project configuration parameter value");
+                    }
+
+                    continue;
+                }
+
+                // Build project
+                if (arg.ToLower().StartsWith("-b") || arg.ToLower().StartsWith("--build")) {
+
+                    packOptions.Build = true;
+                    continue;
+                }
+
                 throw new InvalidOperationException(string.Format("Unknown command option ({0})", arg));
             }
 
@@ -184,12 +206,14 @@ namespace StarPack {
             Console.WriteLine("   -p, --pack           Pack");
             Console.WriteLine("   -i, --install        Install (Experimental)");
             Console.WriteLine();
-            Console.WriteLine(" Install Options (--pack):");
+            Console.WriteLine(" Pack Options (--pack):");
             Console.WriteLine("   -o=, --output=       Archive file");
+            Console.WriteLine("   -c=, --config=       Project configuration ('release', 'debug')");
             Console.WriteLine("   -r=, --resource=     Resource folder");
             Console.WriteLine("   -e=, --executable=   Executable");
+            Console.WriteLine("   -b, --build          Build project");
             Console.WriteLine();
-            Console.WriteLine(" Pack Options (--install):");
+            Console.WriteLine(" Install Options (--install):");
             Console.WriteLine("   -s=, --server        Server, ip[:port]");
             Console.WriteLine("   -d=, --database      Database name");
             Console.WriteLine();
@@ -219,6 +243,8 @@ namespace StarPack {
         public string Output;           // Fullpath to output file (.zip)
         public string ResourceFolder;   // Full path to Resource folder
         public string Executable;       // Full path to Executable
+        public string Projectconfiguration; // Visual studio project configuration
+        public bool Build;              // Build Visual studio project 
     }
     public class InstallOptions {
         public string File;         // Fullapath to archive

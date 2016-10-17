@@ -7,34 +7,41 @@ namespace StarPack {
 
         public static void Execute(PackOptions options) {
 
-            Archive archive = Archive.Create(options.File, options.Executable, options.ResourceFolder);
+            Archive archive = Archive.Create(options.File, options.Build, options.Projectconfiguration, options.Executable, options.ResourceFolder);
 
             options.Output = UpdateOutputPath(options.Output, archive);
 
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine();
+            Console.WriteLine("Creating archive:");
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine("\r\n Creating archive with:");
-            Console.WriteLine("   Executable: {0}", archive.Executable);
+            Console.WriteLine(" Executable: {0}", archive.Executable);
             if (archive.ResourceFolder == null) {
-                Program.PrintError("   Resource folder: *Warning* unset resource folder");
+                Program.PrintError(" Resource folder: *Warning* unset resource folder");
                 Console.ForegroundColor = ConsoleColor.DarkGray;
             }
             else {
-                Console.WriteLine("   Resource folder: {0}", archive.ResourceFolder);
+                Console.WriteLine(" Resource folder: {0}", archive.ResourceFolder);
             }
-            Console.WriteLine("   Icon: {0}", archive.Icon ?? "N/A");
+            Console.WriteLine(" Icon: {0}", archive.Icon ?? "N/A");
             Console.WriteLine();
 
-            Console.WriteLine("  Manifest:");
-            Console.WriteLine("   ID: {0}", archive.Config.ID ?? "N/A");
-            Console.WriteLine("   Channel: {0}", archive.Config.Channel ?? "N/A");
-            Console.WriteLine("   Version: {0}", archive.Config.Version ?? "N/A");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("Manifest:");
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine(" ID: {0}", archive.Config.ID ?? "N/A");
+            Console.WriteLine(" Channel: {0}", archive.Config.Channel ?? "N/A");
+            Console.WriteLine(" Version: {0}", archive.Config.Version ?? "N/A");
             Console.WriteLine();
-
 
             archive.Save(options.Output, true);
 
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.WriteLine(" Package -> {0}", options.Output);
+
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("succeeded -> {0}", options.Output);
+            Console.WriteLine();
+            Console.WriteLine("Package succeeded.");
             Console.ResetColor();
         }
 
