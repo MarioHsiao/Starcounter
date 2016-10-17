@@ -1,22 +1,19 @@
-﻿// ***********************************************************************
-// <copyright file="ServerEngine.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿
 using Starcounter.Advanced.Configuration;
 using Starcounter.Internal;
 using Starcounter.Logging;
 using Starcounter.Server.Commands;
 using Starcounter.Server.Commands.InternalCommands;
 using Starcounter.Server.PublicModel;
+using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Principal;
 
-namespace Starcounter.Server {
+namespace Starcounter.Server
+{
 
     /// <summary>
     /// Representing the running server, hosted in a server program.
@@ -204,6 +201,8 @@ namespace Starcounter.Server {
             this.GatewayService.Setup();
 
             SetupDatabases();
+            AutoStartDatabases();
+
             this.CurrentPublicModel = new PublicModelProvider(this);
             this.HostLog = ServerHost.Log;
         }
@@ -295,6 +294,29 @@ namespace Starcounter.Server {
                 var files = DeletedDatabaseFile.GetAllFromDirectory(databaseDirectory);
                 if (files.Length > 0) {
                     Dispatcher.Enqueue(new DropDeletedDatabaseFilesCommand(this, databaseName));
+                }
+            }
+        }
+
+        void AutoStartDatabases()
+        {
+            AutoStartDatabases(new[] { "default" });
+        }
+
+        void AutoStartDatabases(string[] autoStartDatabases)
+        {
+            foreach (var name in autoStartDatabases)
+            {
+                Database db;
+                var found = Databases.TryGetValue(name, out db);
+                if (found)
+                {
+                    var start = new StartDatabaseCommand(this, db.Name)
+                    {
+                        NoHost = true
+                    };
+
+                    Dispatcher.Enqueue(start);
                 }
             }
         }
