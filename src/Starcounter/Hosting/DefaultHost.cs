@@ -4,7 +4,7 @@ using System;
 namespace Starcounter.Hosting
 {
     /// <summary>
-    /// The default code host.
+    /// The default code host (i.e the shared app code host).
     /// </summary>
     internal sealed class DefaultHost : ICodeHost {
         public static DefaultHost Current { get; private set; }
@@ -28,11 +28,9 @@ namespace Starcounter.Hosting
             }
         }
 
-        void ICodeHost.Run(Action entrypoint)
+        void ICodeHost.Run(Action applicationMainLoop)
         {
-            // Proper error message
-            // TODO:
-            throw new NotSupportedException("You can not explicitly run the shared code host");
+            throw ErrorCode.ToException(Error.SCERRCANTRUNSHAREDAPPHOST);
         }
     }
 }
