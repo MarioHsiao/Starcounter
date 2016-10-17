@@ -81,6 +81,7 @@
     <Compile Include="Commands\Processors\DropDeletedDatabaseFilesCommandProcessor.cs" />
     <Compile Include="Commands\Processors\InvokableCommandProcessor.cs" />
     <Compile Include="Commands\Processors\CreateDatabaseCommandProcessor.cs" />
+    <Compile Include="Commands\Processors\RegisterHostCommandProcessor.cs" />
     <Compile Include="Commands\Processors\StartExecutableCommandProcessor.Meta.cs" />
     <Compile Include="Commands\Processors\StartDatabaseCommandProcessor.cs" />
     <Compile Include="Commands\Processors\StartDatabaseCommandProcessor.Meta.cs" />
