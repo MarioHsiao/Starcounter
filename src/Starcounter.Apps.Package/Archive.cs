@@ -1,7 +1,10 @@
 ﻿using Microsoft.Build.Evaluation;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Logging;
 using Starcounter.Apps.Package.Config;
 using Starcounter.Internal;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -64,7 +67,7 @@ namespace Starcounter.Apps.Package {
         /// <param name="file">Visual studio project file.</param>
         /// <returns>Archive</returns>
         public static Archive Create(string file) {
-            return Create(file, null, null);
+            return Create(file, false, null, null, null);
         }
 
         /// <summary>
@@ -74,7 +77,7 @@ namespace Starcounter.Apps.Package {
         /// <param name="executable">Path to Executable</param>
         /// <param name="resourceFolder">Path to Resource folder</param>
         /// <returns>Archive</returns>
-        public static Archive Create(string file = null, string executable = null, string resourceFolder = null) {
+        public static Archive Create(string file, bool build, string projectConfiguration = null, string executable = null, string resourceFolder = null) {
 
             if (string.IsNullOrEmpty(file)) {
 
@@ -95,9 +98,32 @@ namespace Starcounter.Apps.Package {
                 throw new InputErrorException(string.Format("Visual Studio project file not found ({0})", file));
             }
 
-            Project project = ProjectCollection.GlobalProjectCollection.LoadProject(file);
+            System.Collections.Generic.IDictionary<String, String> globalProps = null;
+            if (!string.IsNullOrEmpty(projectConfiguration)) {
+                globalProps = new System.Collections.Generic.Dictionary<string, string>();
+                globalProps.Add("Configuration", projectConfiguration);
+            }
+            Project project = ProjectCollection.GlobalProjectCollection.LoadProject(file, globalProps, null);
+
+            //            ProjectCollection.GlobalProjectCollection.SetGlobalProperty("Configuration", "Release");
+            //            globalProps.Add("Configuration", "Release");
+            //globalProps.Add("Configuration", "Debug");
+            //Project project = ProjectCollection.GlobalProjectCollection.LoadProject(file);
+            //project.SetProperty("Configuration", "Release");
+            //project.ReevaluateIfNecessary();
+            //var outputPath = project.GetPropertyValue("OutputPath");
+            //project.SetProperty("Configuration", "Debug");
+            //project.ReevaluateIfNecessary();
+            //var outputPat2h = project.GetPropertyValue("OutputPath");
+            //            Project project = ProjectCollection.GlobalProjectCollection.LoadProject(file);
+
+            // Build
+            if (build && !project.Build(new ConsoleLogger())) {
+                throw new InputErrorException("Build error.");
+            }
+
             Archive archive = new Archive();
-            archive.ProjectFile = project.FullPath; ;
+            archive.ProjectFile = project.FullPath;
             archive.ResourceFolder = archive.GetResourceFolder(resourceFolder, project);
             archive.Executable = archive.GetExecutable(executable, project);
             archive.BinaryFolder = Path.GetDirectoryName(archive.Executable);
