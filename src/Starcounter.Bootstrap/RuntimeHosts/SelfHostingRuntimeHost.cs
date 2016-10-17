@@ -25,7 +25,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
 
             void ILifetimeService.Run()
             {
-                host.Entrypoint();
+                host.ApplicationMainLoop();
             }
         }
 
@@ -38,9 +38,14 @@ namespace Starcounter.Bootstrap.RuntimeHosts
         }
 
         /// <summary>
-        /// TODO: Rename
+        /// Callback invoked by the self-hosting host when ready for service.
         /// </summary>
-        internal Action Entrypoint { get; set; }
+        /// <remarks>
+        /// The self-hosting host will invoke this callback and block the
+        /// bootstrapping thread on it. When the application main loop return,
+        /// the host will shut down and dispose.
+        /// </remarks>
+        internal Action ApplicationMainLoop { get; set; }
 
         protected override ILifetimeService CreateLifetimeService()
         {

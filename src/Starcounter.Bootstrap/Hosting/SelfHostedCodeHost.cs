@@ -22,11 +22,11 @@ namespace Starcounter.Hosting
                 throw new NotImplementedException();
             }
         }
-
-        public void Run(Action entrypoint)
+        
+        public void Run(Action applicationMainLoop)
         {
             var runtimeHost = RuntimeHost.CreateAndAssignToProcess<SelfHostingRuntimeHost>(LogSources.Hosting);
-            runtimeHost.Entrypoint = entrypoint;
+            runtimeHost.ApplicationMainLoop = applicationMainLoop;
 
             // The prerequisite to use this: backend services running with a
             // running scdata, but with no host.
