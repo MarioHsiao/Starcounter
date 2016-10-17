@@ -1,20 +1,10 @@
-﻿// ***********************************************************************
-// <copyright file="StartDatabaseCommandProcessor.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using Starcounter.Bootstrap.Management;
+﻿
 using Starcounter.Logging;
-using Starcounter.Rest.ExtensionMethods;
 using Starcounter.Server.PublicModel.Commands;
-using System;
 using System.Diagnostics;
-using System.Net.Sockets;
-using System.Threading;
 
-namespace Starcounter.Server.Commands.Processors {
-
+namespace Starcounter.Server.Commands.Processors
+{
     [CommandProcessor(typeof(StartDatabaseCommand))]
     internal sealed partial class StartDatabaseCommandProcessor : CommandProcessor {
         static LogSource log = ServerLogSources.Default;
@@ -72,11 +62,19 @@ namespace Starcounter.Server.Commands.Processors {
             });
 
             WithinTask(Task.AwaitCodeHostOnline, (task) => {
+                if (command.NoHost)
+                {
+                    // Cancel this task
+                    return false;
+                }
+
                 try {
                     Engine.DatabaseEngine.WaitUntilCodeHostOnline(codeHostProcess, database);
                 } finally {
                     Engine.CurrentPublicModel.UpdateDatabase(database);
                 }
+
+                return true;
             });
         }
     }
