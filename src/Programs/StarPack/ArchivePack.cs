@@ -24,6 +24,13 @@ namespace StarPack {
             Console.WriteLine("   Icon: {0}", archive.Icon ?? "N/A");
             Console.WriteLine();
 
+            Console.WriteLine("  Manifest:");
+            Console.WriteLine("   ID: {0}", archive.Config.ID ?? "N/A");
+            Console.WriteLine("   Channel: {0}", archive.Config.Channel ?? "N/A");
+            Console.WriteLine("   Version: {0}", archive.Config.Version ?? "N/A");
+            Console.WriteLine();
+
+
             archive.Save(options.Output, true);
 
             Console.ForegroundColor = ConsoleColor.Green;

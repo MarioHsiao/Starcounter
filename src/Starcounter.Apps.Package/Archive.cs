@@ -410,7 +410,6 @@ namespace Starcounter.Apps.Package {
             buildDate = File.GetLastWriteTimeUtc(file);
             System.Reflection.Assembly assembly = Assembly.LoadFile(file);
 
-            string ns = assembly.EntryPoint.DeclaringType.Namespace;
 
             object[] attributes = assembly.GetCustomAttributes(typeof(AssemblyMetadataAttribute), false);
 
@@ -428,6 +427,7 @@ namespace Starcounter.Apps.Package {
             }
 
             if (id == null) {
+                string ns = assembly.EntryPoint.DeclaringType.Namespace ?? Environment.MachineName;
                 id = ns + "." + assembly.GetName().Name;
             }
 
