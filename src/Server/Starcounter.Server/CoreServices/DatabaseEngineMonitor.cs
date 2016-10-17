@@ -51,24 +51,22 @@ namespace Starcounter.Server {
         /// <param name="database">The database the given engine process represent.</param>
         /// <param name="engineProc">The process to begin monitoring.</param>
         internal void BeginMonitoring(Database database, Process engineProc) {
-            
-            if (engineProc.ProcessName.Equals(StarcounterConstants.ProgramNames.ScCode, StringComparison.InvariantCultureIgnoreCase)) {
-                log.Debug("Begin monitoring code host process {0}, PID {1}, running database {2}",
-                    engineProc.ProcessName,
-                    engineProc.Id,
-                    database.Name);
+            log.Debug("Begin monitoring database hosting process {0}, PID {1}, running database {2}",
+                engineProc.ProcessName,
+                engineProc.Id,
+                database.Name);
 
-                var hostMonitor = new CodeHostProcessMonitor(this) {
-                    DatabaseName = database.Name,
-                    PID = engineProc.Id,
-                    StartTime = engineProc.StartTime
-                };
-                hostMonitors.Add(hostMonitor);
-                currentHosts[database.Name] = hostMonitor;
+            var hostMonitor = new CodeHostProcessMonitor(this)
+            {
+                DatabaseName = database.Name,
+                PID = engineProc.Id,
+                StartTime = engineProc.StartTime
+            };
+            hostMonitors.Add(hostMonitor);
+            currentHosts[database.Name] = hostMonitor;
 
-                engineProc.EnableRaisingEvents = true;
-                engineProc.Exited += hostMonitor.CodeHostExited;
-            }
+            engineProc.EnableRaisingEvents = true;
+            engineProc.Exited += hostMonitor.CodeHostExited;
         }
 
         internal void EndMonitoring(Database database) {

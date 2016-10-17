@@ -506,8 +506,18 @@ namespace Starcounter.Server {
                 throw ErrorCode.ToException(Error.SCERRENGINEPROCFAILEDSTART, e, postfix);
             }
 
-            this.Monitor.BeginMonitoring(database, p);
+            BeginMonitoringEngineProcess(database, p);
             return p;
+        }
+
+        void BeginMonitoringEngineProcess(Database database, Process process)
+        {
+            // Right now, we monitor the code host process only.
+
+            if (process.ProcessName.Equals(StarcounterConstants.ProgramNames.ScCode, StringComparison.InvariantCultureIgnoreCase))
+            {
+                this.Monitor.BeginMonitoring(database, process);
+            }
         }
 
         void WaitForDatabaseProcessToExit(string processControlEventName) {
