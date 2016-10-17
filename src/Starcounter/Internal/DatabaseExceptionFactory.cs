@@ -75,6 +75,9 @@ namespace Starcounter.Internal {
                     case Error.SCERRBACKINGDBINDEXTYPENOTFOUND:
                         exception = new BackingException(errorCode, message, innerException);
                         break;
+                    case Error.SCERRCANTRUNSHAREDAPPHOST:
+                        exception = new NotSupportedException(message, innerException);
+                        break;
                     default:
                         exception = new DbException(errorCode, message, innerException);
                         break;
