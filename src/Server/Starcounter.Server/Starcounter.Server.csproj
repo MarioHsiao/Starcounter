@@ -107,6 +107,7 @@
     <Compile Include="ImageFile.cs" />
     <Compile Include="KernelAPI.cs" />
     <Compile Include="KnownClientContexts.cs" />
+    <Compile Include="PublicModel\Commands\RegisterHostCommand.cs" />
     <Compile Include="Service\ServerService.cs" />
     <Compile Include="Setup\ServerServiceSetup.cs">
       <SubType>Code</SubType>
