@@ -59,8 +59,11 @@ namespace Starcounter.Server.Commands.Processors {
             started = codeHostProcess != null;
 
             WithinTask(Task.StartCodeHostProcess, (task) => {
-                if (codeHostProcess != null)
+                if (started || command.NoHost)
+                {
+                    // Cancel this task
                     return false;
+                }
 
                 ProgressTask(task, 1);
                 started = Engine.DatabaseEngine.StartCodeHostProcess(

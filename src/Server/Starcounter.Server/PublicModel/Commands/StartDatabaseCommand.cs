@@ -34,6 +34,14 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
+        /// Gets or sets a value indicating if the code host should be started.
+        /// </summary>
+        public bool NoHost {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating if the code host that are to be started
         /// should connect to the database or not.
         /// </summary>
