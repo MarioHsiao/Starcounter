@@ -3353,6 +3353,13 @@
         The database name must follow this [a-z,A-Z,0-9] naming scheme.
       </remarks>
     </code>
+    <code hex="0131" severity="Error" name="ScErrCantRunSharedAppHost">
+      <message>Illegal attempt to run the shared app code host.</message>
+      <remarks>
+        The shared app code host is managed by Starcounter and can not be explicitly
+        executed by user code.
+      </remarks>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
