@@ -305,12 +305,8 @@ namespace Starcounter.Bootstrap.RuntimeHosts
 
                     OnAutoStartModuleExecuted();
                 }
-                
-                OnCodeHostBootCompleted();
 
-                // Receive until we are told to shutdown.
-
-                lifetimeService.Run();
+                RunLifetimeService(lifetimeService);
 
             }
             finally { OnEndRun(); }
@@ -548,6 +544,12 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             var t = new System.Threading.Thread(ProcessCallbackMessagesThread);
             t.IsBackground = true;
             t.Start(hlogs);
+        }
+
+        protected virtual void RunLifetimeService(ILifetimeService lifetimeService)
+        {
+            OnCodeHostBootCompleted();
+            lifetimeService.Run();
         }
 
         private long ticksElapsedBetweenProcessStartAndMain_;
