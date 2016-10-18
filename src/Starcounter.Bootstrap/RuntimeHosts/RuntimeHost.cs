@@ -26,7 +26,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
         /// <summary>
         /// Loaded configuration info.
         /// </summary>
-        private IHostConfiguration configuration;
+        protected IHostConfiguration configuration;
 
         /// <summary>
         /// The withdb_
