@@ -100,6 +100,8 @@ namespace Starcounter.Server {
                     currentHosts.Remove(monitor.DatabaseName);
                 }
             }
+
+            log.Debug($"Removing code host monitor with PID {monitor.PID}, on database {monitor.DatabaseName}");
             hostMonitors.Remove(monitor);
         }
 
