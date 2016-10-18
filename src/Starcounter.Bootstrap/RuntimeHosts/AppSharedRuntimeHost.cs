@@ -98,6 +98,11 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             }
         }
 
+        public AppSharedRuntimeHost() : base()
+        {
+            RedirectConsoleOutput = true;
+        }
+
         public override void Run(Func<IHostConfiguration> configProvider, Func<IAppStart> autoStartProvdier = null)
         {
             try

@@ -6,8 +6,9 @@ namespace scadminserver
 {
     public class AdminServerRuntimeHost : AppSharedRuntimeHost
     {
-        public AdminServerRuntimeHost()
+        public AdminServerRuntimeHost() : base()
         {
+            RedirectConsoleOutput = false;
             StarcounterEnvironment.IsAdministratorApp = true;
         }
     }
