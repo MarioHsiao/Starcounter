@@ -1,17 +1,10 @@
-﻿// ***********************************************************************
-// <copyright file="ITemplateCodeGeneratorModule.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using System;
+﻿using System;
 
 namespace Starcounter.XSON.Interfaces {
     /// <summary>
     /// Interface ITemplateCodeGeneratorModule
     /// </summary>
     public interface ITemplateCodeGeneratorModule {
-
         /// <summary>
         /// 
         /// </summary>

@@ -1,11 +1,4 @@
-﻿// ***********************************************************************
-// <copyright file="IDebugInfo.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-namespace Starcounter.XSON.Interfaces {
-
+﻿namespace Starcounter.XSON.Interfaces {
     /// <summary>
     /// 
     /// </summary>
@@ -26,8 +19,7 @@ namespace Starcounter.XSON.Interfaces {
         /// Gets the column number.
         /// </summary>
         /// <value>The col no.</value>
-        int Column { get;  }
-        
+        int Column { get;  }        
     }
 }
 

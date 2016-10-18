@@ -1,9 +1,4 @@
-﻿// ***********************************************************************
-// <copyright file="ITemplateCodeGenerator.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿using System.Collections.Generic;
 using Starcounter.Internal;
 
 namespace Starcounter.XSON.Interfaces {
@@ -28,5 +23,10 @@ namespace Starcounter.XSON.Interfaces {
         /// </summary>
         /// <returns></returns>
         string DumpAstTree();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        IEnumerable<ITemplateCodeGeneratorWarning> Warnings { get; }
     }
 }
