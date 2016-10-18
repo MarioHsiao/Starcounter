@@ -37,7 +37,12 @@ namespace Starcounter.XSON.JsonByExample {
         /// </summary>
         /// <returns></returns>
         public Template CreateTemplate() {
-            this.Parse();
+            try {
+                this.Parse();
+            } catch (Exception ex) {
+                throw new TemplateFactoryException("JsonByExample parsing failed: " + ex.Message, GetSourceInfo());
+            }
+
             factory.Verify(currentParent);
             return currentParent;
         }
