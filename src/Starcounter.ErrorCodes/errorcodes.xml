@@ -4370,6 +4370,11 @@
         can coexist on a given server have been reached.
       </message>
     </code>
+    <code hex="002A" severity="Error" name="ScErrHostProcessNotRunning">
+      <message>
+        The specified code host process is not running.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
