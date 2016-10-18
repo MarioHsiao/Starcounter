@@ -65,6 +65,8 @@ namespace Starcounter.Administrator.API.Handlers {
         /// </param>
         public static void Setup(AdminAPI adminAPI, bool disable405registrations = false) {
             API = adminAPI;
+            Disable405Registrations = true;
+
             var uri = adminAPI.Uris.Root;
             Handle.GET(uri, () => { return 403; });
             Register405OnAllUnsupported(uri, new string[] { "GET" });
