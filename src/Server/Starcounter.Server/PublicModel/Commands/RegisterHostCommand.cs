@@ -40,6 +40,7 @@ namespace Starcounter.Server.PublicModel.Commands
                 throw new ArgumentNullException(nameof(databaseName));
             }
 
+            DatabaseName = databaseName;
             ProcessId = processId;
             HostedApplicationName = applicationName;
         }
