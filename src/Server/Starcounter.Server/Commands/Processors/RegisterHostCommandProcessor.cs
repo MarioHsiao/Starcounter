@@ -1,5 +1,6 @@
 ﻿
 using Starcounter.Server.PublicModel.Commands;
+using System.Diagnostics;
 
 namespace Starcounter.Server.Commands
 {
@@ -16,8 +17,19 @@ namespace Starcounter.Server.Commands
 
         void Execute(RegisterHostCommand command)
         {
-            // Register the specified host.
-            // TODO:
+            Database database;
+            if (!this.Engine.Databases.TryGetValue(command.DatabaseName, out database))
+            {
+                throw ErrorCode.ToException(Error.SCERRDATABASENOTFOUND, $"Database: '{command.DatabaseName}'.");
+            }
+
+            var hostProcess = Process.GetProcessById(command.ProcessId);
+            if (hostProcess == null)
+            {
+                throw ErrorCode.ToException(Error.SCERRHOSTPROCESSNOTRUNNING, $"PID={command.ProcessId}, Database: '{command.DatabaseName}'.");
+            }
+
+            Engine.DatabaseEngine.Monitor.BeginMonitoring(database, hostProcess);
         }
     }
 }
