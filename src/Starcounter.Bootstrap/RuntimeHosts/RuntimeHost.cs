@@ -70,6 +70,8 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             }
         }
 
+        public bool RedirectConsoleOutput { get; protected set; }
+
         protected RuntimeHost()
         {
             ticksElapsedBetweenProcessStartAndMain_ = (DateTime.Now - Process.GetCurrentProcess().StartTime).Ticks;
@@ -172,10 +174,13 @@ namespace Starcounter.Bootstrap.RuntimeHosts
                         configuration.DefaultUserHttpPort,
                         configuration.DefaultSystemHttpPort);
 
-                    // Register console output handlers (Except for the Administrator)
-                    if (!StarcounterEnvironment.IsAdministratorApp)
+                    if (RedirectConsoleOutput)
                     {
                         ConsoleOuputRestHandler.Register(configuration.DefaultUserHttpPort, configuration.DefaultSystemHttpPort);
+                    }
+
+                    if (!StarcounterEnvironment.IsAdministratorApp)
+                    {
                         Profiler.SetupHandler(configuration.DefaultSystemHttpPort, Db.Environment.DatabaseNameLower);
                     }
                 });
