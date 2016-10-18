@@ -32,54 +32,47 @@ namespace Starcounter.XSON.JsonByExample {
         
         internal void Parse() {
             string propertyName = null;
-            
+            bool resetPropertyName;
             while (reader.Read()) {
+                resetPropertyName = true;
                 switch (reader.TokenType) {
                     case JsonToken.PropertyName:
                         propertyName = (string)reader.Value;
+                        resetPropertyName = false;
                         break;
                     case JsonToken.StartObject:
                         BeginObject(propertyName);
-                        propertyName = null;
                         break;
                     case JsonToken.EndObject:
                         EndObject(propertyName);
-                        propertyName = null;
                         break;
                     case JsonToken.StartArray:
                         BeginArray(propertyName);
-                        propertyName = null;
                         break;
                     case JsonToken.EndArray:
                         EndArray(propertyName);
-                        propertyName = null;
                         break;
                     case JsonToken.Boolean:
                         Property(propertyName, (bool)reader.Value);
-                        propertyName = null;
                         break;
                     case JsonToken.Date:
                         Property(propertyName, reader.Value?.ToString());
-                        propertyName = null;
                         break;
                     case JsonToken.Float:
                         Property(propertyName, (decimal)reader.Value);
-                        propertyName = null;
                         break;
                     case JsonToken.Integer:
                         Property(propertyName, (long)reader.Value);
-                        propertyName = null;
                         break;
                     case JsonToken.String:
                         Property(propertyName, (string)reader.Value);
-                        propertyName = null;
                         break;
                     case JsonToken.Comment:
                         // We ignore comments. The reader is already in the correct position.
+                        resetPropertyName = false;
                         break;
                     case JsonToken.Null:
                         Null(propertyName);
-                        propertyName = null;
                         break;
                     case JsonToken.Bytes:
                     case JsonToken.None:
@@ -89,6 +82,9 @@ namespace Starcounter.XSON.JsonByExample {
                     case JsonToken.Undefined:
                         throw new NotSupportedException();
                 }
+
+                if (resetPropertyName)
+                    propertyName = null;
             }
         }
         
