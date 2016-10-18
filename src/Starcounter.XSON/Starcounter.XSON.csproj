@@ -66,6 +66,7 @@
     <Compile Include="Class Json\Json.State.cs" />
     <Compile Include="Class Json\JsonExtension.cs" />
     <Compile Include="Class Json\SiblingList.cs" />
+    <Compile Include="Interfaces\ITemplateCodeGeneratorWarning.cs" />
     <Compile Include="Interfaces\ITemplateFactory.cs" />
     <Compile Include="JsonByExample\JsonByExampleParser.cs" />
     <Compile Include="JsonByExample\JsonParser.cs" />
@@ -104,8 +105,8 @@
     <Compile Include="Binding\DataBindingHelper.cs" />
     <Compile Include="DynamicJson.cs" />
     <Compile Include="Interfaces\ISourceInfo.cs" />
-    <Compile Include="Interfaces\Template\ITemplateCodeGenerator.cs" />
-    <Compile Include="Interfaces\Template\ITemplateCodeGeneratorModule.cs" />
+    <Compile Include="Interfaces\ITemplateCodeGenerator.cs" />
+    <Compile Include="Interfaces\ITemplateCodeGeneratorModule.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="Class Json\Json.Object.Dynamic.cs" />
     <Compile Include="Class Json\Json.Object.GetSetValue.cs" />

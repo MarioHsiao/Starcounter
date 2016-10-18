@@ -19,4 +19,18 @@ namespace Starcounter.XSON.PartialClassGenerator {
             get; private set;
         }
     }
+
+    public class GeneratorWarning : ITemplateCodeGeneratorWarning {
+        private GeneratorWarning() {
+        }
+
+        public GeneratorWarning(string warning, ISourceInfo sourceInfo) {
+            Warning = warning;
+            SourceInfo = sourceInfo;
+        }
+        
+        public ISourceInfo SourceInfo { get; private set; }
+
+        public string Warning { get; private set; }
+    }
 }

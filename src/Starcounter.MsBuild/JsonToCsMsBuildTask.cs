@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Starcounter.XSON.Interfaces;
 using Starcounter.XSON.Templates.Factory;
 using SXP = Starcounter.XSON.PartialClassGenerator;
 
@@ -28,6 +29,7 @@ namespace Starcounter.Internal.MsBuild {
             string jsonFilename;
             string codeBehindFilename;
             string generatedCodeStr;
+            ITemplateCodeGenerator codeGen;
 
             for (int i = 0; i < InputFiles.Length; i++) {
                 jsonFilename = InputFiles[i].ItemSpec;
@@ -35,7 +37,13 @@ namespace Starcounter.Internal.MsBuild {
 
                 try {
                     msbuildLog.LogMessage("Creating " + OutputFiles[i].ItemSpec);
-                    generatedCodeStr = SXP.PartialClassGenerator.GenerateTypedJsonCode(jsonFilename, codeBehindFilename).GenerateCode();
+
+                    codeGen = SXP.PartialClassGenerator.GenerateTypedJsonCode(jsonFilename, codeBehindFilename);
+                    generatedCodeStr = codeGen.GenerateCode();
+
+                    foreach (ITemplateCodeGeneratorWarning warning in codeGen.Warnings) {
+                        var si = warning.SourceInfo;
+                        msbuildLog.LogWarning("json", null, null, si.Filename, si.Line, si.Column, 0, 0, warning.Warning);                    }
 
                     string dir = Path.GetDirectoryName(OutputFiles[i].ItemSpec);
                     if (!Directory.Exists(dir)) {

@@ -23,6 +23,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
     public class Gen2DomGenerator {
         internal AstRoot Root;
         internal CodeBehindMetadata CodeBehindMetadata;
+        internal List<ITemplateCodeGeneratorWarning> Warnings = new List<ITemplateCodeGeneratorWarning>();
 
         private Dictionary<Template, AstInstanceClass> valueClasses = new Dictionary<Template, AstInstanceClass>();
         private Dictionary<Template, AstTemplateClass> templateClasses = new Dictionary<Template, AstTemplateClass>();
@@ -71,7 +72,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             pre.RunPrePhase(at);
 
             this.Root = p1.RunPhase1(at, out acn, out tcn, out mcn);
-            p2.RunPhase2(acn,tcn,mcn);
+            p2.RunPhase2(acn, tcn, mcn);
             p3.RunPhase3(acn);
             p4.RunPhase4(acn);
             p5.RunPhase5(acn, tcn, mcn);
@@ -192,7 +193,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             return arrValueClass;
         }
 
-        internal void AssociateTemplateWithReusedArray(TObjArr template, string instanceTypeName) {            
+        internal void AssociateTemplateWithReusedArray(TObjArr template, string instanceTypeName) {
             AstJsonClass jsonItemClass;
 
             var elementTemplate = template.ElementType;
@@ -291,7 +292,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             schemaClass.Parent = jsonClass.NJsonByExample;
             schemaClass.ClassStemIdentifier = "Schema";
 
-            if (template is TObjArr){
+            if (template is TObjArr) {
                 Template elementTemplate = ((TObjArr)template).ElementType;
                 if (elementTemplate != null) {
                     var tobj = elementTemplate as TObject;
@@ -299,7 +300,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                         schemaClass.InheritedClass.Generic = new AstClass[] { jsonClass.InheritedClass.Generic[0] };
                 }
             }
-            
+
             return schemaClass;
         }
 
@@ -382,7 +383,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 var mcn = new AstJsonMetadataClass(this) {
                     Generic = gen
                 };
-                
+
                 metaClasses.Add(template, mcn);
                 mcn.NValueClass = ObtainValueClass(template);
                 return mcn;
@@ -445,10 +446,10 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
                 var newJson = ObtainRootValueClass(elementTemplate);
 
-                
+
                 if (!isUntyped && (template.Parent != null))
                     newJson.Parent = ObtainValueClass(template.Parent);
-            
+
                 acn.Namespace = template.InstanceType.Namespace;
                 acn.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(template.InstanceType);
                 acn.Generic = new AstClass[] { newJson };
@@ -554,15 +555,15 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     parent = ObtainValueClass(defaultObjTemplate);
 
                 if (template is TObject) {
-                    AstClass[] gen = new AstClass[] { 
-                                            ObtainTemplateClass(template), 
-                                            parent 
+                    AstClass[] gen = new AstClass[] {
+                                            ObtainTemplateClass(template),
+                                            parent
                                      };
 
                     var mcn = new AstJsonMetadataClass(this) {
                         Generic = gen
                     };
-                    
+
                     var acn = (AstJsonClass)ObtainValueClass(template);
                     mcn.NValueClass = acn;
 
@@ -755,9 +756,9 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// <param name="messagePostFix"></param>
         /// <param name="innerException"></param>
         /// <param name="sourceInfo"></param>
-        internal void ThrowExceptionWithLineInfo(uint errorCode, 
-                                                 string messagePostFix, 
-                                                 Exception innerException, 
+        internal void ThrowExceptionWithLineInfo(uint errorCode,
+                                                 string messagePostFix,
+                                                 Exception innerException,
                                                  ISourceInfo sourceInfo) {
             throw ErrorCode.ToException(
                     errorCode,
@@ -766,6 +767,14 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     (msg, e) => {
                         return new GeneratorException(msg, sourceInfo);
                     });
+        }
+
+        internal void AddWarning(uint errorCode, ISourceInfo sourceInfo) {
+            AddWarning(ErrorCode.ToMessage(errorCode), sourceInfo);
+        }
+
+        internal void AddWarning(string warning, ISourceInfo sourceInfo) {
+            this.Warnings.Add(new GeneratorWarning(warning, sourceInfo));
         }
 
         private Template CheckAndGetDefaultOrArrayElementTemplate(Template elementTemplate) {

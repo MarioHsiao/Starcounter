@@ -70,6 +70,12 @@ namespace Starcounter.XSON.PartialClassGenerator {
             this.indentation = 4;
         }
 
+        public IEnumerable<ITemplateCodeGeneratorWarning> Warnings {
+            get {
+                return this.generator.Warnings;
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>

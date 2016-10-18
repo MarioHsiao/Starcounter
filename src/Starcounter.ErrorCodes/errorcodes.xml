@@ -4759,13 +4759,13 @@
     <code hex="0024" severity="Error" name="ScErrJsonDuplicateReuse">
       <message>
         Reuse of a TypedJSON object is specified both in the json file and code-behind. 
-        Please remove the entry from the json file.
+        The value from code-behind will be used.
       </message>
     </code>
     <code hex="0025" severity="Error" name="ScErrJsonDuplicateNamespace">
       <message>
         Namespace is specified both in the json file and code-behind.
-        Please remove the entry from the json file.
+        The value from code-behind will be used.
       </message>
     </code>
   </facility>
