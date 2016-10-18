@@ -200,12 +200,32 @@ namespace Starcounter {
                     if (decVal == null)
                         return nullStr;
                     return ((Decimal)decVal).ToString(CultureInfo.InvariantCulture);
-                case DbTypeCode.Single: 
+                case DbTypeCode.Single:
+                    {
+                        float? fltVal = values.GetSingle(index);
+                        if (fltVal == null)
+
+                            return nullStr;
+                        float val = fltVal.Value;
+                        string str = val.ToString("R", CultureInfo.InvariantCulture);
+
+                        if (float.IsInfinity(val) || float.IsNaN(val))
+                            str = "'" + str + "'";
+                        return str;
+                    }
                 case DbTypeCode.Double:
-                    Double? doubVal = values.GetDouble(index);
-                    if (doubVal == null)
-                        return nullStr;
-                    return ((Double)doubVal).ToString(CultureInfo.InvariantCulture);
+                    {
+                        Double? doubVal = values.GetDouble(index);
+                        if (doubVal == null)
+                            return nullStr;
+
+                        double val = doubVal.Value;
+                        string str = val.ToString("G17", CultureInfo.InvariantCulture);
+
+                        if (double.IsInfinity(val) || double.IsNaN(val))
+                            str = "'" + str + "'";
+                        return str;
+                    }
                 case DbTypeCode.SByte: 
                 case DbTypeCode.Int16: 
                 case DbTypeCode.Int32: 

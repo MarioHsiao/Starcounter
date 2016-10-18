@@ -15,6 +15,8 @@ namespace QueryProcessingTest {
                     int nrLoaded = Starcounter.Db.Reload(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
                     HelpMethods.LogEvent("Finish loading query processing database. Loaded " +
                         nrLoaded + " objects.");
+
+                    UnloadReloadTest.Check();
                 }
                 else
                     HelpMethods.LogEvent("No reload.");
@@ -42,6 +44,7 @@ namespace QueryProcessingTest {
                 else
                     HelpMethods.LogEvent("Benchmark of query cache is skipped");
                 HelpMethods.LogEvent("Start unloading query processing database.");
+                UnloadReloadTest.Populate();
                 int nrUnloaded = Starcounter.Db.Unload(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
                 HelpMethods.LogEvent("Finish unloading query processing database. Unloaded " + 
                     nrUnloaded + " objects.");
