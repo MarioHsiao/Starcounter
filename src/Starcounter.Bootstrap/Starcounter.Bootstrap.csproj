@@ -97,6 +97,9 @@
     <Compile Include="Management\Representations.JSON\Executable.json.cs">
       <DependentUpon>Executable.json</DependentUpon>
     </Compile>
+	<Compile Include="Management\Representations.JSON\CodeHost.json.cs">
+      <DependentUpon>CodeHost.json</DependentUpon>
+    </Compile>
     <Compile Include="RuntimeHosts\SelfHostingRuntimeHost.cs" />
     <Compile Include="StarcounterInternal.Hosting\ExceptionManager.cs" />
     <Compile Include="StarcounterInternal.Hosting\Loader.cs" />
@@ -106,6 +109,9 @@
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="Management\Representations.JSON\Executable.json">
+      <Generator>MSBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Management\Representations.JSON\CodeHost.json">
       <Generator>MSBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
