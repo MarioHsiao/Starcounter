@@ -150,10 +150,14 @@ namespace Starcounter.Administrator.API.Handlers {
             Handle.DELETE<string, Request>(uriTemplate, OnDELETE);
             RootHandler.Register405OnAllUnsupported(uriTemplate, new string[] { "GET", "DELETE" });
 
-            // Handlers for referenced primary processes
+            // Handlers for referenced primary processes: code host
+            // /api/engines/{databasename}/host
             Handle.GET<string, Request>(uriTemplateHostProcess, OnHostGET);
             Handle.DELETE<string, Request>(uriTemplateHostProcess, OnHostDELETE);
-            RootHandler.Register405OnAllUnsupported(uriTemplateHostProcess, new string[] { "GET", "DELETE" });
+            Handle.PUT<string, Request>(uriTemplateHostProcess, OnHostPUT);
+            RootHandler.Register405OnAllUnsupported(uriTemplateHostProcess, new string[] { "GET", "DELETE", "PUT" });
+
+            // Handlers for referenced primary processes: database backend
             Handle.GET<string, Request>(uriTemplateDbProcess, OnDatabaseProcessGET);
             RootHandler.Register405OnAllUnsupported(uriTemplateDbProcess, new string[] { "GET" });
         }
