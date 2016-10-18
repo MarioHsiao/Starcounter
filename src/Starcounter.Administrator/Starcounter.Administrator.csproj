@@ -71,6 +71,7 @@
     <Compile Include="API\Handlers\EngineHandler.GET.cs" />
     <Compile Include="API\Handlers\EngineHandler.HostProc.DELETE.cs" />
     <Compile Include="API\Handlers\EngineHandler.HostProc.GET.cs" />
+    <Compile Include="API\Handlers\EngineHandler.HostProc.PUT.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.cs" />
     <Compile Include="API\Handlers\ExecutableHandler.DELETE.cs" />
     <Compile Include="API\Handlers\ExecutableCollectionHandler.POST.cs" />
