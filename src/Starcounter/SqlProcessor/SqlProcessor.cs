@@ -90,6 +90,9 @@ namespace Starcounter.SqlProcessor {
                 name, base_table_name, column_definitions, out layout_id));
         }
 
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static extern uint star_update_reference_columns_types(ulong context_handle);
+
         [StructLayout(LayoutKind.Sequential)]
         internal unsafe struct STAR_INDEXED_COLUMN {
             public char* column_name;
