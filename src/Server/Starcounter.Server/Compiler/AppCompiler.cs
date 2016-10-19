@@ -10,9 +10,8 @@ namespace Starcounter.Server.Compiler
     /// Compiler that allows programmatic compilation of Starcounter
     /// apps.
     /// </summary>
-    public sealed class AppCompiler {
-        readonly string tempPath;
-
+    public sealed class AppCompiler
+    {
         /// <summary>
         /// Gets or sets the name to use for the compiled application.
         /// </summary>
@@ -39,40 +38,36 @@ namespace Starcounter.Server.Compiler
         /// <summary>
         /// Initialize a new <see cref="AppCompiler"/> instance.
         /// </summary>
-        public AppCompiler(string applicationName) {
+        public AppCompiler(string applicationName)
+        {
             if (string.IsNullOrEmpty(applicationName))
             {
                 throw new ArgumentNullException(nameof(applicationName));
             }
 
             Name = applicationName;
-
-            var guid = Guid.NewGuid().ToString();
-            var tp = Path.GetTempPath();
-            tempPath = Path.Combine(tp, guid);
-            if (Directory.Exists(tempPath)) {
-                Directory.Delete(tempPath, true);
-            }
         }
 
         /// <summary>
         /// Compiles the included source code into an application.
         /// </summary>
-        public AppCompilerResult Compile() {
-            if (SourceCode.Count == 0 && SourceFiles.Count == 0) {
+        public AppCompilerResult Compile()
+        {
+            if (SourceCode.Count == 0 && SourceFiles.Count == 0)
+            {
                 throw new AppCompilerException(AppCompilerError.NoSourceSpecified);
             }
 
             var provider = CSharpCodeProvider.CreateProvider("CSharp");
-            var parameters = new CompilerParameters() {
+            var parameters = new CompilerParameters()
+            {
                 GenerateExecutable = true,
                 GenerateInMemory = false,
                 IncludeDebugInformation = true
             };
 
-            Directory.CreateDirectory(tempPath);
-
-            var result = new AppCompilerResult(Name, tempPath);
+            var targetPath = TargetPath ?? CreateTempDirectory();
+            var result = new AppCompilerResult(Name, targetPath);
 
             parameters.TempFiles = new TempFileCollection(result.OutputDirectory, false);
             parameters.TempFiles.AddFile(result.ApplicationPath, true);
@@ -94,6 +89,19 @@ namespace Starcounter.Server.Compiler
             }
 
             return result;
+        }
+
+        string CreateTempDirectory()
+        {
+            var guid = Guid.NewGuid().ToString();
+            var tp = Path.GetTempPath();
+            var tempPath = Path.Combine(tp, guid);
+            if (Directory.Exists(tempPath))
+            {
+                Directory.Delete(tempPath, true);
+            }
+            Directory.CreateDirectory(tempPath);
+            return tempPath;
         }
 
         void RaiseCompilationError(CompilerResults result)
