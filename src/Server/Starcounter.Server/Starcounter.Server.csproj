@@ -92,6 +92,8 @@
     <Compile Include="Commands\CommandTask.cs" />
     <Compile Include="Commands\Processors\StopExecutableCommandProcessor.cs" />
     <Compile Include="Commands\Processors\StopExecutableCommandProcessor.Meta.cs" />
+    <Compile Include="Compiler\AppCompiler.cs" />
+    <Compile Include="Compiler\AppCompilerException.cs" />
     <Compile Include="Configuration\Server\DatabaseStorageConfiguration.cs" />
     <Compile Include="CoreServices\CodeHostProcessMonitor.cs" />
     <Compile Include="CoreServices\DatabaseEngineMonitor.cs" />
