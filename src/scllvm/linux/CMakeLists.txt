@@ -3,10 +3,10 @@ cmake_minimum_required (VERSION 2.8)
 project(scllvm)
 
 # Path to unzipped LLVM sources.
-set(LLVMClangSrcDir ~/Documents/llvm-3.8.0.src)
+set(LLVMClangSrcDir ~/Documents/llvm-3.9.0.src)
 
 # Path to LLVM output directory.
-set(LLVMClangOutDir ${LLVMClangSrcDir}/../build)
+set(LLVMClangOutDir ${LLVMClangSrcDir}/build)
 
 # To get needed cxx flags, call "./llvm-config --cxxflags" from "LLVMClangOutDir/bin"
 # Here we have release LLVM, that gave us the following release options.
