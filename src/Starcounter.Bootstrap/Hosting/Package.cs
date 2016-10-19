@@ -371,6 +371,7 @@ namespace Starcounter.Hosting
                         tableDef, tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
                         );
                 }
+                SqlProcessor.SqlProcessor.star_update_reference_columns_types(ThreadData.ContextHandle);
                 OnTypesCheckedAndUpdated();
 
                 Db.Scope(() => {

@@ -651,6 +651,7 @@ namespace Starcounter.InstallerWPF {
         // This thread in turn links to the MS bug thread.
         static String[] StaticInstallerDependencies =
         {
+            "scllvm.dll",
             "Starcounter.InstallerNativeHelper.dll",
             "Starcounter.REST.dll",
             "scerrres.dll",
