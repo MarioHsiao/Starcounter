@@ -16,7 +16,7 @@ namespace Starcounter.Server.Compiler
         /// <summary>
         /// Gets or sets the name to use for the compiled application.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; private set; }
 
         /// <summary>
         /// Gets or sets the target assembly path. If specified before
@@ -39,7 +39,14 @@ namespace Starcounter.Server.Compiler
         /// <summary>
         /// Initialize a new <see cref="AppCompiler"/> instance.
         /// </summary>
-        public AppCompiler() {
+        public AppCompiler(string applicationName) {
+            if (string.IsNullOrEmpty(applicationName))
+            {
+                throw new ArgumentNullException(nameof(applicationName));
+            }
+
+            Name = applicationName;
+
             var guid = Guid.NewGuid().ToString();
             var tp = Path.GetTempPath();
             tempPath = Path.Combine(tp, guid);
@@ -51,7 +58,7 @@ namespace Starcounter.Server.Compiler
         /// <summary>
         /// Compiles the included source code into an application.
         /// </summary>
-        public void Compile() {
+        public AppCompilerResult Compile() {
             if (SourceCode.Count == 0 && SourceFiles.Count == 0) {
                 throw new AppCompilerException(AppCompilerError.NoSourceSpecified);
             }
@@ -65,27 +72,46 @@ namespace Starcounter.Server.Compiler
 
             Directory.CreateDirectory(tempPath);
 
-            parameters.TempFiles = new TempFileCollection(tempPath, false);
+            var result = new AppCompilerResult(Name, tempPath);
 
-            // var temporaryDiskExePath = Path.GetFileNameWithoutExtension(sourceCode);
-            var temporaryDiskExePath = "Foo";
-            temporaryDiskExePath += ".exe";
-            temporaryDiskExePath = Path.Combine(parameters.TempFiles.TempDir, temporaryDiskExePath);
-            try {
-                temporaryDiskExePath = Path.GetFullPath(temporaryDiskExePath);
+            parameters.TempFiles = new TempFileCollection(result.OutputDirectory, false);
+            parameters.TempFiles.AddFile(result.ApplicationPath, true);
+            parameters.TempFiles.AddFile(result.SymbolFilePath, true);
+
+            parameters.OutputAssembly = result.ApplicationPath;
+
+            var compilerResult = provider.CompileAssemblyFromFile(parameters, SourceCode.ToArray());
+            try
+            {
+                if (compilerResult.Errors.Count > 0)
+                {
+                    RaiseCompilationError(compilerResult);
+                }
             }
-            catch (PathTooLongException) {
-                // We should provide a nice error here already, saying that either
-                // the user can use another temp directory (shorter path), or have
-                // a shorter file name.
-                // TODO:
-                throw;
+            finally
+            {
+                SafeDeleteTempFiles(compilerResult);
             }
 
-            parameters.TempFiles.AddFile(temporaryDiskExePath, true);
-            parameters.TempFiles.AddFile(Path.ChangeExtension(temporaryDiskExePath, ".pdb"), true);
+            return result;
+        }
 
-            parameters.OutputAssembly = temporaryDiskExePath;
+        void RaiseCompilationError(CompilerResults result)
+        {
+            // Handle compilation errors
+            // TODO:
+        }
+
+        void SafeDeleteTempFiles(CompilerResults result)
+        {
+            if (result.TempFiles != null)
+            {
+                try
+                {
+                    result.TempFiles.Delete();
+                }
+                catch { }
+            }
         }
     }
 }

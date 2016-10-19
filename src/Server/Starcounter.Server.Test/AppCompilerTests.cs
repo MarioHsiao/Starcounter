@@ -8,7 +8,7 @@ namespace Starcounter.Server.Test
 
         [Test]
         public void CompileNoSource() {
-            var c = new AppCompiler();
+            var c = new AppCompiler("app");
             var e = Assert.Throws<AppCompilerException>(() => c.Compile());
             Assert.True(e.Error == AppCompilerError.NoSourceSpecified);
         }
