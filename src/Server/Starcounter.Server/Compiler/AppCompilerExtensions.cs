@@ -102,7 +102,7 @@ namespace Starcounter.Server.Compiler
         {
             foreach (var assembly in assemblies)
             {
-                compiler.AddReferenceFromDirectory(directory, assembly);
+                compiler.AddReferenceFromDirectory(directory, Path.GetFileName(assembly));
             }
         }
 
@@ -143,7 +143,7 @@ namespace Starcounter.Server.Compiler
             var ignoreCase = StringComparison.InvariantCultureIgnoreCase;
             var extension = Path.GetExtension(assemblyName);
 
-            if (string.IsNullOrEmpty(extension) || !extension.Equals(".dll", ignoreCase) || !extension.Equals(".exe", ignoreCase))
+            if (string.IsNullOrEmpty(extension) || (!extension.Equals(".dll", ignoreCase) && !extension.Equals(".exe", ignoreCase)))
             {
                 assemblyName += ".dll";
             }
