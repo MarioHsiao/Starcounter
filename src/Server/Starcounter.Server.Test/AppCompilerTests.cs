@@ -70,6 +70,27 @@ namespace Starcounter.Server.Test
         }
 
         [Test]
+        public void CompileMinimalAppWithStarcounterAssemblyInfo()
+        {
+            var c = new AppCompiler("app")
+                .WithDefaultReferences()
+                .WithSourceCodeFile(TestInputFile("EmptyProgramWithEmptyMain.cs"))
+                .WithStarcounterAssemblyInfo();
+
+            var result = c.Compile();
+            try
+            {
+                Assert.IsNotNull(result);
+                Assert.IsNotNullOrEmpty(result.ApplicationPath);
+                Assert.True(File.Exists(result.ApplicationPath));
+            }
+            finally
+            {
+                DeleteCompilerResult(result);
+            }
+        }
+
+        [Test]
         public void AssureCompilerPreserveSpecifiedTargetPath()
         {
             // When we give the compiler an explicit target path, where
