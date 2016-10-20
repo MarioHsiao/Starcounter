@@ -72,12 +72,12 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
-        /// Gets the instance ID.
+        /// Gets the database UUID.
         /// </summary>
-        /// <value>The instance ID.</value>
-        public uint InstanceID {
+        /// <value>The database UUID.</value>
+        public Guid DbUUID {
             get {
-                return uint.Parse(this.ProgramArguments.CommandParameters[0]);
+                return Guid.Parse(this.ProgramArguments.CommandParameters[0]);
             }
         }
 

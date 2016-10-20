@@ -538,11 +538,7 @@ namespace Starcounter.Server {
             var arguments = new StringBuilder();
 
             // The syntax
-            // scdata.exe [-instid <installationId>] <json>
-
-            arguments.Append("-instid ");
-            arguments.Append(database.InstanceID.ToString());
-            arguments.Append(' ');
+            // scdata.exe <json>
 
             arguments.Append("\"{");
 
@@ -594,7 +590,7 @@ namespace Starcounter.Server {
                 args.Add("--attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             }
 
-            args.Add(database.InstanceID.ToString() + " ");
+            args.Add(database.db_uuid.ToString() + " ");
             args.Add(database.Name.ToUpper());
             
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + "=\"{0}\"", database.Configuration.Runtime.ImageDirectory);
@@ -656,16 +652,14 @@ namespace Starcounter.Server {
 
         string GetDatabaseControlEventName(Database database) {
             string processControlEventName = string.Concat(
-                ScDataEvents.SC_S2MM_CONTROL_EVENT_NAME_BASE, database.InstanceID
+                ScDataEvents.SC_S2MM_CONTROL_EVENT_NAME_BASE, database.db_uuid.ToString()
                 );
             return processControlEventName;
         }
 
         string GetDatabaseIpcPipeName(Database database) {
             const string pipeKeyPrefix = "STAR_P_";
-            const int ipcKeyBase = 0x53000000;
-            int pipeKey = ipcKeyBase + ((int)database.InstanceID << 16);
-            string pipeName = string.Format("\\\\.\\pipe\\{0}{1:X}", pipeKeyPrefix, pipeKey);
+            string pipeName = string.Format("\\\\.\\pipe\\{0}{1}", pipeKeyPrefix, database.db_uuid);
             return pipeName;
         }
 

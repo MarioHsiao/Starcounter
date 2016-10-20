@@ -28,5 +28,5 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: start servers
 START scipcmonitor.exe PERSONAL .db.output
-START scdata.exe -instid 1 "{ \"eventloghost\": \"SQLTEST\", \"eventlogdir\": \".db.output\", \"databasename\": \"SqlTest\", \"databasedir\": \".db" }"
+START scdata.exe "{ \"eventloghost\": \"SQLTEST\", \"eventlogdir\": \".db.output\", \"databasename\": \"SqlTest\", \"databasedir\": \".db" }"
 START 32bitComponents\scsqlparser.exe 8066
