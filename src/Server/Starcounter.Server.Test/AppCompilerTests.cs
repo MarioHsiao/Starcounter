@@ -47,6 +47,29 @@ namespace Starcounter.Server.Test
             {
                 DeleteCompilerResult(result);
             }
+
+            // Do same thing, this time using a file on disk.
+            
+            c = new AppCompiler("app")
+                .WithDefaultReferences()
+                .WithSourceCodeFile(TestInputFile("EmptyProgramWithEmptyMain.cs"));
+
+            result = c.Compile();
+            try
+            {
+                Assert.IsNotNull(result);
+                Assert.IsNotNullOrEmpty(result.ApplicationPath);
+                Assert.True(File.Exists(result.ApplicationPath));
+            }
+            finally
+            {
+                DeleteCompilerResult(result);
+            }
+        }
+
+        string TestInputFile(string name)
+        {
+            return $@"TestInputs\Starcounter.Server.Test\{name}";
         }
 
         void DeleteCompilerResult(AppCompilerResult result)
