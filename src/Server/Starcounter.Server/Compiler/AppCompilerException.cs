@@ -17,7 +17,7 @@ namespace Starcounter.Server.Compiler {
         /// </summary>
         ErrorsCompiling
     }
-
+    
     /// <summary>
     /// Exception specific to <see cref="AppCompiler"/> errors.
     /// </summary>
@@ -25,27 +25,28 @@ namespace Starcounter.Server.Compiler {
         readonly CompilerResults results;
 
         /// <summary>
-        /// Gets or sets the specific error.
+        /// Gets the specific error.
         /// </summary>
         public readonly AppCompilerError Error;
 
-        public IDictionary<string, string> CompilerErrors {
+        /// <summary>
+        /// Gets errors from the underlying compiler, or an empty enumerator
+        /// if there are none.
+        /// </summary>
+        public IEnumerable<IAppCompilerSourceError> CompilerErrors {
             get {
-                if (results == null)
+                var errors = new List<IAppCompilerSourceError>();
+                if (results != null && results.Errors.HasErrors)
                 {
-                    return new Dictionary<string, string>();
+                    foreach (CompilerError error in results.Errors)
+                    {
+                        errors.Add(new CodeDomAppCompilerError(error));
+                    }
                 }
-
-                var d = new Dictionary<string, string>(results.Errors.Count);
-                for (int i = 0; i < results.Errors.Count; i++)
-                {
-                    var error = results.Errors[i];
-                    d.Add(error.ErrorNumber, error.ErrorText);
-                }
-                return d;
+                return errors;
             }
         }
-
+        
         /// <summary>
         /// Initialize a new exception from an error.
         /// </summary>
