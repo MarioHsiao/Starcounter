@@ -117,7 +117,7 @@ namespace Starcounter.Server.Compiler
 
         static void AddGACReference(this AppCompiler compiler, string assemblyName)
         {
-            compiler.AddReference(assemblyName);
+            compiler.AddReference(WithDefaultReferenceExtension(assemblyName));
         }
 
         static void AddReference(this AppCompiler compiler, string verifiedReference)
