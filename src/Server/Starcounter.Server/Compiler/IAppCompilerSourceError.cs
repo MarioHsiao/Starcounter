@@ -22,6 +22,11 @@
         string File { get; }
 
         /// <summary>
+        /// Gets the file line the error stem from, if applicable.
+        /// </summary>
+        int Line { get; }
+
+        /// <summary>
         /// Gets the file column the error stem from, if applicable.
         /// </summary>
         int Column { get; }

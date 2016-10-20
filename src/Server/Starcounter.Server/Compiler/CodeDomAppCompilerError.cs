@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.CodeDom.Compiler;
 
 namespace Starcounter.Server.Compiler
@@ -37,6 +38,12 @@ namespace Starcounter.Server.Compiler
         string IAppCompilerSourceError.Id {
             get {
                 return inner.ErrorNumber;
+            }
+        }
+
+        int IAppCompilerSourceError.Line {
+            get {
+                return inner.Line;
             }
         }
     }
