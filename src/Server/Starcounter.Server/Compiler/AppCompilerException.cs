@@ -46,6 +46,16 @@ namespace Starcounter.Server.Compiler {
                 return errors;
             }
         }
+
+        /// <summary>
+        /// Gets a value indicating if the current exception carries any
+        /// compiler errors.
+        /// </summary>
+        public bool HasCompilerErrors {
+            get {
+                return results != null && results.Errors.HasErrors;
+            }
+        }
         
         /// <summary>
         /// Initialize a new exception from an error.
