@@ -41,7 +41,7 @@ namespace Starcounter.CLI
                     WriteCompilerErrorsToConsole(e.CompilerErrors);
                 }
 
-                throw;
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, e, $"Unable to compile {name}.cs to an app: compilation failed");
             }
         }
 
