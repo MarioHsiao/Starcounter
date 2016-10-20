@@ -90,6 +90,8 @@ namespace Starcounter.Server.Compiler
                 }
             }
 
+            MetadataReferences.ForEach((reference) => parameters.ReferencedAssemblies.Add(reference));
+
             var provider = CSharpCodeProvider.CreateProvider("CSharp");
             var compilerResult = provider.CompileAssemblyFromFile(parameters, sources.ToArray());
             try
