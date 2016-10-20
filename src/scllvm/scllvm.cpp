@@ -3,7 +3,7 @@
 
 #include "llvm/ExecutionEngine/MCJIT.h"
 #include "llvm/Support/TargetSelect.h"
-#include "llvm/support/DynamicLibrary.h"
+#include "llvm/Support/DynamicLibrary.h"
 
 #include <sstream>
 #include <cstdio>
@@ -11,7 +11,6 @@
 #include <iomanip>
 #include <time.h>
 #include <fstream>
-#include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdexcept>
@@ -23,9 +22,12 @@ extern "C" {
 #endif
 
 #ifdef _WIN32
+#include <direct.h>
 #include <windows.h>
 # define MODULE_API __declspec(dllexport)
 #else
+#include <unistd.h>
+#include <sys/stat.h>
 # define MODULE_API
 #endif
 
@@ -169,14 +171,14 @@ extern "C" {
 
 		static std::string ProduceHash(std::string input)
 		{
-			const uint32_t kSizeOfTheDigest = 32;
+			const int32_t kSizeOfTheDigest = 32;
 
 			uint8_t hash_32bytes[kSizeOfTheDigest];
 			memset(hash_32bytes, 0, kSizeOfTheDigest);
 
 			SimpleSha256 ctx = SimpleSha256();
 			ctx.InitializeSha256();
-			ctx.UpdateSha256((unsigned char*)input.c_str(), input.length());
+			ctx.UpdateSha256((const uint8_t*)input.c_str(), input.length());
 			ctx.FinalizeSha256(hash_32bytes);
 
 			std::stringstream out_hash_str;
@@ -251,6 +253,7 @@ extern "C" {
 		}
 
 		// Creating directory recursively and making it current. 
+#ifdef _WIN32
 		static void CreateDirAndSwitch(const wchar_t* dir) {
 
 			// Immediately trying to switch to dir.
@@ -294,6 +297,54 @@ extern "C" {
 			err_code = _wchdir(dir);
 			assert((0 == err_code) && "Can't change current directory to cache directory.");
 		}
+#else
+		static void CreateDirAndSwitch(const char* dir) {
+
+			// Immediately trying to switch to dir.
+			int err_code = chdir(dir);
+			if (0 == err_code) {
+				return;
+			}
+
+			char tmp[1024];
+
+			// Copying into temporary string.
+			strcpy(tmp, dir);
+			size_t len = strlen(tmp);
+
+			// Checking for the last slash.
+			if ((tmp[len - 1] == '/') ||
+				(tmp[len - 1] == '\\')) {
+
+				tmp[len - 1] = 0;
+			}
+
+			// Starting from the first character.
+			for (char *p = tmp + 1; *p; p++) {
+
+				// Checking if its a slash.
+				if ((*p == '/') || (*p == '\\')) {
+
+					*p = 0;
+
+					// Making the directory.
+					// TODO: Fix correct mode permissions.
+					mkdir(tmp, 0777);
+
+					*p = '/';
+				}
+			}
+
+			// Creating final directory.
+			// TODO: Fix correct mode permissions.
+			mkdir(tmp, 0777);
+
+			// Changing current directory to dir.
+			err_code = chdir(dir);
+			assert((0 == err_code) && "Can't change current directory to cache directory.");
+		}
+
+#endif
 
 		// Replaces string in string.
 		std::string ReplaceString(std::string subject, const std::string& search,
@@ -332,7 +383,11 @@ extern "C" {
 
 
 		uint32_t ProduceModuleAndReturnPointers(
+#ifdef _WIN32
 			const wchar_t* const path_to_cache_dir,
+#else
+			const char* const path_to_cache_dir,
+#endif
 			const char* const predefined_hash_str,
 			const char* const code_to_build,
 			const char* const function_names_delimited,
@@ -384,7 +439,7 @@ extern "C" {
 			std::string file_name_no_ext;
 
 			// Checking if hash is given. 
-			if (NULL == predefined_hash_str) {
+			if (nullptr == predefined_hash_str) {
 
 				// Calculating hash from input code. 
 				std::string hash_str = SimpleSha256::ProduceHash(code_string);
@@ -403,8 +458,14 @@ extern "C" {
 
 			int32_t err_code;
 
+#ifdef _WIN32
 			wchar_t saved_original_dir[1024];
 			_wgetcwd(saved_original_dir, 1024);
+#else
+			char saved_original_dir[1024];
+			char* cur_dir = getcwd(saved_original_dir, 1024);
+			assert((nullptr != cur_dir) && "getcwd returned NULL by some reason.");
+#endif
 
 			// Creating directory and switching. 
 			CreateDirAndSwitch(path_to_cache_dir);
@@ -428,10 +489,15 @@ extern "C" {
 				std::stringstream clang_cmd_stream;
 
 				// Checking if we have custom clang parameters from the user.
+#ifdef _WIN32
+				clang_cmd_stream << "clang++ ";
+#else
+				clang_cmd_stream << "clang++ ";
+#endif
 				if ((NULL != predefined_clang_params) && ('\0' != predefined_clang_params)) {
-					clang_cmd_stream << "clang++.exe -mcmodel=large " << predefined_clang_params << " " << cpp_file_name << " -o " << obj_file_name << " 2>&1";
+					clang_cmd_stream << "-mcmodel=large " << predefined_clang_params << " " << cpp_file_name << " -o " << obj_file_name << " 2>&1";
 				} else {
-					clang_cmd_stream << "clang++.exe -O3 -c -mcmodel=large " << cpp_file_name << " -o " << obj_file_name << " 2>&1";
+					clang_cmd_stream << "-O3 -c -mcmodel=large " << cpp_file_name << " -o " << obj_file_name << " 2>&1";
 				}
 
 				// Generating new object file.
@@ -485,14 +551,19 @@ extern "C" {
 				*out_time_seconds = time_took;
 
 			// Changing current directory back to original. 
+#ifdef _WIN32
 			_wchdir(saved_original_dir);
+#else
+			err_code = chdir(saved_original_dir);
+			assert((0 == err_code) && "chdir returned a non-zero exit code.");
+#endif
 
 			return 0;
 		}
 	};
 
-    // Global mutex.
-    llvm::sys::MutexImpl* g_mutex;
+        // Global mutex.
+        llvm::sys::MutexImpl* g_mutex;
 
 	MODULE_API void ScLLVMInit() {
 
@@ -534,7 +605,11 @@ extern "C" {
 	}
 
 	MODULE_API uint32_t ScLLVMProduceModule(
+#ifdef _WIN32
 		const wchar_t* const path_to_cache_dir,
+#else
+		const char* const path_to_cache_dir,
+#endif
 		const char* const predefined_hash_str,
 		const char* const code_to_build,
 		const char* const function_names_delimited,
@@ -572,6 +647,7 @@ extern "C" {
 		return err_code;
 	}
 
+#ifdef _WIN32
 	MODULE_API bool ScLLVMIsModuleCached(
 		const wchar_t* const path_to_cache_dir,
 		const char* const predefined_hash_str) {
@@ -636,6 +712,69 @@ extern "C" {
 		// todo
 		return false;
 	}
+#else 
+	MODULE_API bool ScLLVMIsModuleCached(
+		const char* const path_to_cache_dir,
+		const char* const predefined_hash_str) {
+
+		assert(nullptr != g_mutex);
+		g_mutex->acquire();
+
+		// Converting hash name to wide char.
+		std::string hash_string(predefined_hash_str);
+		std::string obj_file_path = path_to_cache_dir;
+		obj_file_path += "/";
+		obj_file_path += hash_string;
+		std::ifstream f(obj_file_path);
+
+		g_mutex->release();
+
+		if (f.good())
+			return true;
+
+		return false;
+	}
+
+	MODULE_API bool ScLLVMDeleteCachedModule(
+		const char* const path_to_cache_dir,
+		const char* const predefined_hash_str) {
+
+		// Deleting if module is actually cached.
+		if (!ScLLVMIsModuleCached(path_to_cache_dir, predefined_hash_str)) {
+			return false;
+		}
+
+		assert(nullptr != g_mutex);
+		g_mutex->acquire();
+
+		// Converting hash name to wide char.
+		std::string hash_string(predefined_hash_str);
+		
+		std::string obj_file_path = path_to_cache_dir;
+		obj_file_path += "/";
+		obj_file_path += hash_string;
+
+		// Deleting file.
+		int err = remove(obj_file_path.c_str());
+
+		g_mutex->release();
+
+		return 0 == err;
+	}
+
+	MODULE_API bool ScLLVMDeleteAllCachedModulesInDir(
+		const char* const path_to_cache_dir) {
+		// todo
+		return false;
+	}
+
+	MODULE_API bool ScLLVMDeleteCachedModulesInDirOlderThan(
+		const char* const path_to_cache_dir,
+		const int32_t older_than_days) {
+		// todo
+		return false;
+	}
+#endif
 
 	MODULE_API void ScLLVMDestroy(CodegenEngine* codegen_engine) {
 
@@ -647,6 +786,48 @@ extern "C" {
 		delete codegen_engine;
 
 		g_mutex->release();
+	}
+
+	// Just a basic test.
+	int32_t main() {
+		ScLLVMInit();
+		CodegenEngine* out_codegen_engine = nullptr;
+
+		char out_hash_65bytes[65];
+		float out_time_seconds;
+		uint64_t out_func_ptrs[1] = { 0 };
+		void* out_exec_module = nullptr;
+
+		int32_t err_code = ScLLVMProduceModule(
+#ifdef _WIN32
+			L"starcÖunter",
+#else
+			"starcÖunter",
+#endif
+			nullptr,
+			"extern \"C\" int gen_function(int p) { return p + 555; }",
+			"gen_function",
+			nullptr,
+			false,
+			nullptr,
+			out_hash_65bytes,
+			&out_time_seconds,
+			out_func_ptrs,
+			&out_exec_module,
+			&out_codegen_engine);
+
+		assert(0 == err_code);
+
+		typedef int(*function_type) (int);
+		function_type gen_func = (function_type)(out_func_ptrs[0]);
+
+		int32_t res = gen_func(3);
+
+		assert(558 == res);
+
+		std::cout << "Test succeeded. Result: " << res << std::endl;
+
+		return 0;
 	}
 
 #ifdef __cplusplus
