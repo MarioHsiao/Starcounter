@@ -3,6 +3,7 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Starcounter.Server.Compiler
 {
@@ -63,27 +64,37 @@ namespace Starcounter.Server.Compiler
                 throw new AppCompilerException(AppCompilerError.NoSourceSpecified);
             }
 
-            var provider = CSharpCodeProvider.CreateProvider("CSharp");
+            var targetPath = TargetPath ?? CreateTempDirectory();
+            var result = new AppCompilerResult(Name, targetPath);
+
             var parameters = new CompilerParameters()
             {
                 GenerateExecutable = true,
                 GenerateInMemory = false,
-                IncludeDebugInformation = true
+                IncludeDebugInformation = true,
+                OutputAssembly = result.ApplicationPath
             };
-
-            var targetPath = TargetPath ?? CreateTempDirectory();
-            var result = new AppCompilerResult(Name, targetPath);
 
             parameters.TempFiles = new TempFileCollection(result.OutputDirectory, false);
             parameters.TempFiles.AddFile(result.ApplicationPath, true);
             parameters.TempFiles.AddFile(result.SymbolFilePath, true);
 
-            parameters.OutputAssembly = result.ApplicationPath;
+            var sources = new List<string>(SourceFiles);
+            if (SourceCode.Count > 0)
+            {
+                var tempSources = CreateSourceFilesFromSources(targetPath, SourceCode);
+                foreach (var source in tempSources)
+                {
+                    parameters.TempFiles.AddFile(source, false);
+                    sources.Add(source);
+                }
+            }
 
-            var compilerResult = provider.CompileAssemblyFromFile(parameters, SourceCode.ToArray());
+            var provider = CSharpCodeProvider.CreateProvider("CSharp");
+            var compilerResult = provider.CompileAssemblyFromFile(parameters, sources.ToArray());
             try
             {
-                if (compilerResult.Errors.Count > 0)
+                if (compilerResult.Errors.HasErrors)
                 {
                     RaiseCompilationError(compilerResult);
                 }
@@ -109,10 +120,37 @@ namespace Starcounter.Server.Compiler
             return tempPath;
         }
 
+        IEnumerable<string> CreateSourceFilesFromSources(string directory, IEnumerable<string> sources)
+        {
+            var result = new List<string>(sources.Count());
+            var baseName = Guid.NewGuid().ToString();
+            int counter = 0;
+
+            foreach (var source in sources)
+            {
+                var written = false;
+                do
+                {
+                    var name = $"{baseName}.{counter}.cs";
+                    var fullName = Path.Combine(directory, name);
+                    counter++;
+
+                    if (!File.Exists(fullName))
+                    {
+                        File.WriteAllText(fullName, source);
+                        result.Add(fullName);
+                        written = true;
+                    }
+                }
+                while (!written);
+            }
+
+            return result;
+        }
+
         void RaiseCompilationError(CompilerResults result)
         {
-            // Handle compilation errors
-            // TODO:
+            throw new AppCompilerException(result);
         }
 
         void SafeDeleteTempFiles(CompilerResults result)
