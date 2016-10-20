@@ -47,6 +47,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Mono.CSharp.3.0.6\Lib\net40\Mono.CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
@@ -62,38 +66,22 @@
     <Compile Include="Class Json\Json.State.cs" />
     <Compile Include="Class Json\JsonExtension.cs" />
     <Compile Include="Class Json\SiblingList.cs" />
+    <Compile Include="Interfaces\ITemplateCodeGeneratorWarning.cs" />
+    <Compile Include="Interfaces\ITemplateFactory.cs" />
+    <Compile Include="JsonByExample\JsonByExampleParser.cs" />
+    <Compile Include="JsonByExample\JsonParser.cs" />
+    <Compile Include="Templates\Factory\CodegenInfo.cs" />
+    <Compile Include="Templates\Factory\FactoryExceptionHelper.cs" />
+    <Compile Include="Templates\Factory\SourceInfo.cs" />
     <Compile Include="JsonDebugHelper.cs" />
-    <Compile Include="JSON-By-Example\MetaTemplate.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstJSConstructor.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstJsonSerializerClass.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstBase.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstRoot.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstUnsafe.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstCase.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstDeserializeFunction.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstGotoProperty.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstGotoValue.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstSwitch.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstVerifier.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstWhile.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstJsonProperty.cs" />
-    <Compile Include="Serializer\Codegen\AstTree\AstSerializeFunction.cs" />
-    <Compile Include="Serializer\Codegen\FTJCsharpGenerator.cs" />
-    <Compile Include="Serializer\Codegen\FTJDomGenerator.cs" />
-    <Compile Include="Serializer\Codegen\ParseTree\ParseNode.cs" />
-    <Compile Include="Serializer\Codegen\ParseTree\ParseTreeGenerator.cs" />
-    <Compile Include="Serializer\Codegen\ParseTree\TemplateMetadata.cs" />
-    <Compile Include="Serializer\Codegen\StdCSharpGenerator.cs" />
-    <Compile Include="Serializer\Codegen\StdDomGenerator.cs" />
+    <Compile Include="Templates\Factory\MetaTemplate.cs" />
     <Compile Include="Serializer\JsonSerializerSettings.cs" />
-    <Compile Include="Serializer\Json\StandardJsonSerializerBase.cs" />
-    <Compile Include="Serializer\SerializerCompiler.cs" />
+    <Compile Include="Serializer\StandardJsonSerializerBase.cs" />
     <Compile Include="Class Json\IBound.cs" />
     <Compile Include="Class Json\Json.Object.ChangeLog.cs" />
     <Compile Include="Class Json\Json.Array.cs" />
     <Compile Include="Class Json\Arr.cs" />
     <Compile Include="ReflectionHelper.cs" />
-    <Compile Include="Serializer\FTJ\FasterThanJsonSerializer.cs" />
     <Compile Include="Sessions\JSON-Patch\ChangeLog.cs" />
     <Compile Include="Sessions\JSON-Patch\DefaultPatchHandler.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatchException.cs" />
@@ -101,6 +89,7 @@
     <Compile Include="Sessions\JSON-Patch\JsonProperty.cs" />
     <Compile Include="TemplateDelegateGenerator.cs" />
     <Compile Include="Templates\DynamicFunctions.cs" />
+    <Compile Include="Templates\Factory\TemplateFactoryException.cs" />
     <Compile Include="Templates\Foundation\TValue.cs" />
     <Compile Include="Templates\TArray.cs" />
     <Compile Include="Templates\TObject.cs" />
@@ -110,29 +99,28 @@
     <Compile Include="Templates\Foundation\Bound.cs" />
     <Compile Include="Templates\Foundation\Property.cs" />
     <Compile Include="Interfaces\IXsonMarkupReader.cs" />
-    <Compile Include="JSON-By-Example\AppTemplateFactory.cs" />
-    <Compile Include="JSON-By-Example\JsonByExampleTemplateReader.cs" />
+    <Compile Include="Templates\Factory\TemplateFactory.cs" />
+    <Compile Include="JsonByExample\JsonByExampleMarkupReader.cs" />
     <Compile Include="Properties\Module.cs" />
     <Compile Include="Binding\DataBindingHelper.cs" />
     <Compile Include="DynamicJson.cs" />
-    <Compile Include="Interfaces\IDebugInfo.cs" />
-    <Compile Include="Interfaces\Template\ITemplateCodeGenerator.cs" />
-    <Compile Include="Interfaces\Template\ITemplateCodeGeneratorModule.cs" />
+    <Compile Include="Interfaces\ISourceInfo.cs" />
+    <Compile Include="Interfaces\ITemplateCodeGenerator.cs" />
+    <Compile Include="Interfaces\ITemplateCodeGeneratorModule.cs" />
     <Compile Include="Input.cs" />
-    <Compile Include="Sessions\ManagedTupleWriter.cs" />
     <Compile Include="Class Json\Json.Object.Dynamic.cs" />
     <Compile Include="Class Json\Json.Object.GetSetValue.cs" />
     <Compile Include="Class Json\Json.Object.Data.cs" />
     <Compile Include="Class Json\Json.IResource.cs" />
     <Compile Include="Class Json\Json.Serializing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Serializer\Json\JsonHelper.cs" />
-    <Compile Include="Serializer\Json\JsonReader.cs" />
-    <Compile Include="Serializer\Json\StandardJsonSerializer.cs" />
+    <Compile Include="Serializer\JsonHelper.cs" />
+    <Compile Include="Serializer\JsonReader.cs" />
+    <Compile Include="Serializer\StandardJsonSerializer.cs" />
     <Compile Include="Sessions\Session.cs" />
     <Compile Include="TemplateAttribute.cs" />
     <Compile Include="Templates\Foundation\PropertyList.cs" />
-    <Compile Include="Templates\Foundation\ReplaceableTemplate.cs" />
+    <Compile Include="Templates\Factory\ReplaceableTemplate.cs" />
     <Compile Include="Templates\Foundation\TContainer.cs" />
     <Compile Include="Templates\Foundation\Template.cs" />
     <Compile Include="Templates\TObjArr.cs" />
@@ -140,9 +128,7 @@
     <Compile Include="Templates\TDecimal.cs" />
     <Compile Include="Templates\TDouble.cs" />
     <Compile Include="Templates\TLong.cs" />
-    <Compile Include="Templates\TOid.cs" />
     <Compile Include="Templates\TString.cs" />
-    <Compile Include="Templates\TTrigger.cs" />
     <Compile Include="Serializer\TypedJsonSerializer.cs" />
     <Compile Include="ValueMetaData\ArrMetadata.cs" />
     <Compile Include="ValueMetaData\BoolMetadata.cs" />
@@ -153,13 +139,8 @@
     <Compile Include="ValueMetaData\LongMetadata.cs" />
     <Compile Include="ValueMetaData\ObjMetadata.cs" />
     <Compile Include="ValueMetaData\StringMetadata.cs" />
-    <Compile Include="ValueMetaData\TriggerMetadata.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">
-      <Project>{dd181012-dd9c-410f-ad8e-01d062cac820}</Project>
-      <Name>FasterThanJson</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
@@ -176,17 +157,11 @@
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsTemplateParser\Starcounter.XSON.JsTemplateParser.fsproj">
-      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
-      <Name>Starcounter.XSON.JsTemplateParser</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Serializer\Codegen\AstTree\FromJson\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

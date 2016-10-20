@@ -1,48 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using Starcounter.Advanced.XSON;
-using Starcounter.Internal.XSON.JsonByExample;
-using Starcounter.Templates;
+using Starcounter.XSON.Interfaces;
+using Starcounter.XSON.JsonByExample;
 
 namespace Starcounter.Internal.XSON.Modules {
     /// <summary>
     /// Represents this module
     /// </summary>
     public static class Starcounter_XSON {
-        private static bool useCodeGeneratedSerializer = false;
         private static Dictionary<string, uint> jsonSerializerIndexes = new Dictionary<string, uint>();
         private static List<TypedJsonSerializer> jsonSerializers = new List<TypedJsonSerializer>();
 
         internal static uint StandardJsonSerializerId;
-        internal static uint FTJSerializerId;
-
+        
         /// <summary>
         /// 
         /// </summary>
         public static void Initialize() {
             StandardJsonSerializerId = RegisterJsonSerializer("json", new StandardJsonSerializer());
-//            FTJSerializerId = RegisterJsonSerializer("ftj", new FasterThanJsonSerializer());
             JsonByExample.Initialize();
         }
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static bool UseCodegeneratedSerializer {
-            get { return useCodeGeneratedSerializer; }
-            set { useCodeGeneratedSerializer = value; }
-        }
-
-        /// <summary>
-        /// If set to true the codegeneration for the serializer will not be done in a background
-        /// and execution will wait until the generated serializer is ready to be used. This is 
-        /// used by for example unittests, where you want to test the genererated code specifically.
-        /// </summary>
-        internal static bool DontCreateSerializerInBackground { get; set; }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -113,76 +92,76 @@ namespace Starcounter.Internal.XSON.Modules {
             /// 
             /// </summary>
             internal static void Initialize() {
-                MarkupReaders.Add("json", new JsonByExampleTemplateReader());
+                MarkupReaders.Add("json", new JsonByExampleMarkupReader());
             }
 
-            /// <summary>
-            /// Creates a json template based on the input json.
-            /// </summary>
-            /// <param name="script2">The json</param>
-            /// <param name="restrictToDesigntimeVariable">if set to <c>true</c> [restrict to designtime variable].</param>
-            /// <returns>an TObj instance</returns>
-            public static TypeTObj CreateFromJs<TypeObj, TypeTObj>(string script2, bool restrictToDesigntimeVariable)
-                where TypeObj : Json, new()
-                where TypeTObj : TObject, new() {
-                return _CreateFromJs<TypeObj, TypeTObj>(script2, "unknown", restrictToDesigntimeVariable); //ignoreNonDesignTimeAssignments);
-            }
+            ///// <summary>
+            ///// Creates a json template based on the input json.
+            ///// </summary>
+            ///// <param name="script2">The json</param>
+            ///// <param name="restrictToDesigntimeVariable">if set to <c>true</c> [restrict to designtime variable].</param>
+            ///// <returns>an TObj instance</returns>
+            //public static TypeTObj CreateFromJs<TypeObj, TypeTObj>(string script2, bool restrictToDesigntimeVariable)
+            //    where TypeObj : Json, new()
+            //    where TypeTObj : TObject, new() {
+            //    return _CreateFromJs<TypeObj, TypeTObj>(script2, "unknown", restrictToDesigntimeVariable); //ignoreNonDesignTimeAssignments);
+            //}
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <typeparam name="TypeObj"></typeparam>
-            /// <typeparam name="TypeTObj"></typeparam>
-            /// <param name="source"></param>
-            /// <param name="sourceReference"></param>
-            /// <param name="ignoreNonDesignTimeAssigments"></param>
-            /// <returns></returns>
-            public static TypeTObj _CreateFromJs<TypeObj, TypeTObj>(string source,
-                                               string sourceReference,
-                                               bool ignoreNonDesignTimeAssigments)
-                where TypeObj : Json, new()
-                where TypeTObj : TObject, new() {
+            ///// <summary>
+            ///// 
+            ///// </summary>
+            ///// <typeparam name="TypeObj"></typeparam>
+            ///// <typeparam name="TypeTObj"></typeparam>
+            ///// <param name="source"></param>
+            ///// <param name="sourceReference"></param>
+            ///// <param name="ignoreNonDesignTimeAssigments"></param>
+            ///// <returns></returns>
+//            public static TypeTObj _CreateFromJs<TypeObj, TypeTObj>(string source,
+//                                               string sourceReference,
+//                                               bool ignoreNonDesignTimeAssigments)
+//                where TypeObj : Json, new()
+//                where TypeTObj : TObject, new() {
 
-                return JsonByExampleTemplateReader.CreateFromJs<TypeObj, TypeTObj>(source, sourceReference, ignoreNonDesignTimeAssigments);
-            }
-
-
+////                return JsonByExampleTemplateReader.CreateFromJs<TypeObj, TypeTObj>(source, sourceReference, ignoreNonDesignTimeAssigments);
+//            }
 
 
-            /// <summary>
-            /// Reads the file and generates a typed json template.
-            /// </summary>
-            /// <param name="fileSpec">The file spec.</param>
-            /// <returns>a Schema instance</returns>
-            public static TObject ReadJsonTemplateFromFile(string fileSpec) {
-                string content = ReadUtf8File(fileSpec);
-                var t = _CreateFromJs<Json, TObject>(content, fileSpec, false);
-                if (t.ClassName == null) {
-                    t.ClassName = Path.GetFileNameWithoutExtension(fileSpec);
-                }
-                return (TObject)t;
-            }
 
-            /// <summary>
-            /// Reads the UTF8 file.
-            /// </summary>
-            /// <param name="fileSpec">The file spec.</param>
-            /// <returns>System.String.</returns>
-            private static string ReadUtf8File(string fileSpec) {
-                byte[] buffer = null;
-                using (FileStream fileStream = new FileStream(
-                    fileSpec,
-                    FileMode.Open,
-                    FileAccess.Read,
-                    FileShare.ReadWrite)) {
 
-                    long len = fileStream.Length;
-                    buffer = new byte[len];
-                    fileStream.Read(buffer, 0, (int)len);
-                }
+            ///// <summary>
+            ///// Reads the file and generates a typed json template.
+            ///// </summary>
+            ///// <param name="fileSpec">The file spec.</param>
+            ///// <returns>a Schema instance</returns>
+            //public static TObject ReadJsonTemplateFromFile(string fileSpec) {
+            //    string content = ReadUtf8File(fileSpec);
+            //    var t = _CreateFromJs<Json, TObject>(content, fileSpec, false);
+            //    if (t.ClassName == null) {
+            //        t.ClassName = Path.GetFileNameWithoutExtension(fileSpec);
+            //    }
+            //    return (TObject)t;
+            //}
 
-                return Encoding.UTF8.GetString(buffer);
-            }
+            ///// <summary>
+            ///// Reads the UTF8 file.
+            ///// </summary>
+            ///// <param name="fileSpec">The file spec.</param>
+            ///// <returns>System.String.</returns>
+            //private static string ReadUtf8File(string fileSpec) {
+            //    byte[] buffer = null;
+            //    using (FileStream fileStream = new FileStream(
+            //        fileSpec,
+            //        FileMode.Open,
+            //        FileAccess.Read,
+            //        FileShare.ReadWrite)) {
+
+            //        long len = fileStream.Length;
+            //        buffer = new byte[len];
+            //        fileStream.Read(buffer, 0, (int)len);
+            //    }
+
+            //    return Encoding.UTF8.GetString(buffer);
+            //}
         }
     }
 }

@@ -49,6 +49,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataLoader.cs" />
+    <Compile Include="doall_stat.json.cs" >
+		<DependentUpon>doall_stat.json</DependentUpon>
+	</Compile>
     <Compile Include="LoadEmulation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -92,10 +95,6 @@
     <ProjectReference Include="..\..\Starcounter.Logging\Starcounter.Logging.csproj">
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
-      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
-      <Name>Starcounter.XSON.JsonByExample</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

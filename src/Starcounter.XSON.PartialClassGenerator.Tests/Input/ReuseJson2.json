@@ -1,13 +1,13 @@
 ﻿{
     "ReusedEmptyObject": {
         "$": { "Reuse": "Starcounter.Util.Json.GenericJson" },
-        "Show": null
+        "Show": 0
     },
     "ReusedEmptyArray": [
         {
             "$": { "Reuse": "Starcounter.Util.Json.GenericJson" },
             "ExtraField": "",
-            "Delete":  null
+            "Delete":  0
         }
     ]
 }

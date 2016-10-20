@@ -1,16 +1,9 @@
-﻿// ***********************************************************************
-// <copyright file="CodeGenerationModule.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿using System;
 using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
-using System;
+using Starcounter.XSON.Interfaces;
 using Starcounter.XSON.Metadata;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
-
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// 
     /// </summary>
@@ -28,6 +21,5 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             var gen = new Gen2DomGenerator(this, tvalue, defaultChildTemplateType, (CodeBehindMetadata)metadata );
             return new Gen2CSharpGenerator( gen, gen.GenerateDomTree(tvalue));
         }
-
     }
 }

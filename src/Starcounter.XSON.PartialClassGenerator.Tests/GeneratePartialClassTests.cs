@@ -7,11 +7,11 @@
 using System;
 using System.IO;
 using NUnit.Framework;
-using Starcounter.Internal.MsBuild.Codegen;
 using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.Interfaces;
 using Starcounter.XSON.Metadata;
-using TJson = Starcounter.Templates.TObject;
+using Starcounter.XSON.PartialClassGenerator;
+using SXP = Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     /// <summary>
@@ -28,11 +28,11 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         /// </summary>
         /// <param name="filePath">The file to load</param>
         /// <returns>The newly created template</returns>
-        private static TJson CreateJsonTemplateFromFile(string filePath) {
+        private static TObject CreateJsonTemplateFromFile(string filePath) {
             string json = File.ReadAllText("Input\\" + filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
-            var tobj = TJson.CreateFromMarkup<Json, TJson>("json", json, className);
-            tobj.ClassName = className;
+            var tobj = (TObject)Template.CreateFromMarkup("json", json, className);
+            tobj.CodegenInfo.ClassName = className;
             return tobj;
         }
 
@@ -41,7 +41,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         /// </summary>
         [Test]
         public static void CreateCsFromJsFile() {
-            TJson templ = CreateJsonTemplateFromFile("MySampleApp.json");
+            TObject templ = CreateJsonTemplateFromFile("MySampleApp.json");
             Assert.NotNull(templ);
         }
 
@@ -50,10 +50,10 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 		/// </summary>
 		[Test]
 		public static void GenerateCsGen2() {
-			TJson actual = CreateJsonTemplateFromFile("MySampleApp.json");
-			Assert.IsInstanceOf(typeof(TJson), actual);
+            TObject actual = CreateJsonTemplateFromFile("MySampleApp.json");
+			Assert.IsInstanceOf(typeof(TObject), actual);
 			Gen2CodeGenerationModule codegenmodule = new Gen2CodeGenerationModule();
-			var codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
+			var codegen = codegenmodule.CreateGenerator(typeof(TObject), "C#", actual, CodeBehindMetadata.Empty);
 			Helper.ConsoleWriteLine(codegen.GenerateCode());
 		}
 
@@ -61,15 +61,15 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateCsFromSimpleJs() {
-            TJson actual = CreateJsonTemplateFromFile("simple.json");
-            actual.ClassName = "PlayerApp";
+            TObject actual = CreateJsonTemplateFromFile("simple.json");
+            actual.CodegenInfo.ClassName = "PlayerApp";
 
 //            var file = new System.IO.StreamReader("simple.facit.cs");
 //            var facit = file.ReadToEnd();
 //            file.Close();
-            Assert.IsInstanceOf(typeof(TJson), actual);
+            Assert.IsInstanceOf(typeof(TObject), actual);
             var codegenmodule = new Gen2CodeGenerationModule();
-            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TObject), "C#", actual, CodeBehindMetadata.Empty);
             Helper.ConsoleWriteLine(codegen.DumpAstTree());
             var code = codegen.GenerateCode();
             Helper.ConsoleWriteLine(code);
@@ -80,8 +80,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateCsFromPrimitiveJs() {
-            TValue actual = TObject.CreateFromJson(@"{""Items"":[19]}");
-            actual.ClassName = "PlayerApp";
+            TValue actual = (TValue)Template.CreateFromJson(@"{""Items"":[19]}");
+            actual.CodegenInfo.ClassName = "PlayerApp";
 
             Assert.IsInstanceOf(typeof(TObject), actual);
 
@@ -98,12 +98,12 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         /// </summary>
         [Test]
         public static void GenerateCsFromSuperSimpleJs() {
-            TJson actual = CreateJsonTemplateFromFile("supersimple.json");
-            actual.ClassName = "PlayerApp";
+            TObject actual = CreateJsonTemplateFromFile("supersimple.json");
+            actual.CodegenInfo.ClassName = "PlayerApp";
 
-            Assert.IsInstanceOf(typeof(TJson), actual);
+            Assert.IsInstanceOf(typeof(TObject), actual);
             var codegenmodule = new Gen2CodeGenerationModule();
-            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TObject), "C#", actual, CodeBehindMetadata.Empty);
             Helper.ConsoleWriteLine(codegen.DumpAstTree());
             var code = codegen.GenerateCode();
             Helper.ConsoleWriteLine(code);
@@ -116,22 +116,22 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             string codeBehindFilePath = "Input\\" + className + ".json.cs";
             string codeBehind = File.ReadAllText(codeBehindFilePath);
 
-            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath);
+            CodeBehindMetadata metadata = SXP.PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath);
 
-            TJson actual = CreateJsonTemplateFromFile(className + ".json");
-            Assert.IsInstanceOf(typeof(TJson), actual);
+            TObject actual = CreateJsonTemplateFromFile(className + ".json");
+            Assert.IsInstanceOf(typeof(TObject), actual);
 
-            actual.Namespace = metadata.RootClassInfo.Namespace;
-            Assert.IsNotNullOrEmpty(actual.Namespace);
+            actual.CodegenInfo.Namespace = metadata.RootClassInfo.Namespace;
+            Assert.IsNotNullOrEmpty(actual.CodegenInfo.Namespace);
 
             Gen2CodeGenerationModule codegenmodule = new Gen2CodeGenerationModule();
-            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TObject), "C#", actual, metadata);
             Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
 
 		[Test]
 		public static void GenerateInheritedPartialClass() {
-			var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+			var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
 				"Input/ChildMsg.json",
 				"Input/ChildMsg.json.cs");
 			var astTree = codegen.DumpAstTree();
@@ -143,7 +143,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void EmptyArrayCodeGenerationTest(){
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/emptyarray.json",
                 null);
 
@@ -152,7 +152,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void GeneratePrimitiveCode1() {
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/Primitive.json",
                 "Input/Primitive.json.cs");
 
@@ -165,7 +165,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void GeneratePrimitiveCode2() {
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/Primitive2.json",
                 null);
 
@@ -178,7 +178,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void GeneratePrimitiveCode3() {
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/Primitive3.json",
                 null);
 
@@ -193,7 +193,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void GeneratePrimitiveArrayCode() {
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/Primitive.json",
                 null);
 
@@ -208,7 +208,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void GeneratePrimitiveUntypedArrayCode() {
             TObjArr tarr = (TObjArr)Template.CreateFromJson("[]");
 
-            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+            var codegen = SXP.PartialClassGenerator.GenerateTypedJsonCode(
                 tarr,
                 null,
                 null);

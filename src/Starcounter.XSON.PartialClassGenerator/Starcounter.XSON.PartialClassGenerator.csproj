@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeBehindMetaData\CodeBehindMetadata.cs" />
+    <Compile Include="CodeBehindMetaData\CodeBehindTypeAssignmentInfo.cs" />
     <Compile Include="CodeBehindMetaData\InputBindingInfo.cs" />
     <Compile Include="CodeBehindMetaData\CodeBehindClassInfo.cs" />
     <Compile Include="CodeBehindMetaData\CodeBehindPropertyInfo.cs" />
@@ -113,17 +114,15 @@
     <Compile Include="Generation2\GeneratorPhase4.cs" />
     <Compile Include="Generation2\GeneratorPhase6.cs" />
     <Compile Include="Generation2\GeneratorPhase7.cs" />
+    <Compile Include="Generation2\GeneratorPrePhase.cs" />
     <Compile Include="PartialClassGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="GeneratorException.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsTemplateParser\Starcounter.XSON.JsTemplateParser.fsproj">
-      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
-      <Name>Starcounter.XSON.JsTemplateParser</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

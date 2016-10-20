@@ -71,10 +71,12 @@
     <Compile Include="DataObjects\PropertyAccessCounter.cs" />
     <Compile Include="DataObjects\Recursive.cs" />
     <Compile Include="DynamicFunctionTests.cs" />
+    <Compile Include="FakeDbImpl.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="ArrayPatchTests.cs" />
     <Compile Include="EvaluateJsonPatchTests.cs" />
     <Compile Include="GenerateJsonPatchTests.cs" />
+    <Compile Include="JsonByExampleTests.cs" />
     <Compile Include="JsonSerializeBenchmarkTests.cs" />
     <Compile Include="JsonSerializeTests.cs" />
     <Compile Include="Json\PregeneratedSerializationCode.cs" />
@@ -83,21 +85,9 @@
     <Compile Include="TypedJsonTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Starcounter.Internal.Tests\Starcounter.Internal.Tests.csproj">
-      <Project>{7dc7044d-7e04-47ee-b5e8-0e1f600ce4a4}</Project>
-      <Name>Starcounter.Internal.Tests</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
-      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
-      <Name>Starcounter.XSON.JsonByExample</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsTemplateParser\Starcounter.XSON.JsTemplateParser.fsproj">
-      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
-      <Name>Starcounter.XSON.JsTemplateParser</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.Tests.CompiledJson\Starcounter.XSON.Tests.CompiledJson.csproj">
       <Project>{43C7287D-816A-4C82-A0CB-188A51E6C94A}</Project>
