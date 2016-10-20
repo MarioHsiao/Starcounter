@@ -36,6 +36,11 @@ namespace Starcounter.Server.Compiler
         public List<string> SourceCode = new List<string>();
 
         /// <summary>
+        /// List of references that will be used to compile the application.
+        /// </summary>
+        public List<string> MetadataReferences = new List<string>();
+
+        /// <summary>
         /// Initialize a new <see cref="AppCompiler"/> instance.
         /// </summary>
         public AppCompiler(string applicationName)
@@ -47,7 +52,7 @@ namespace Starcounter.Server.Compiler
 
             Name = applicationName;
         }
-
+        
         /// <summary>
         /// Compiles the included source code into an application.
         /// </summary>
