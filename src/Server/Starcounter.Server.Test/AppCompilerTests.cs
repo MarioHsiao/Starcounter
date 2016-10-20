@@ -1,6 +1,7 @@
 ﻿
 using NUnit.Framework;
 using Starcounter.Server.Compiler;
+using System;
 using System.IO;
 
 namespace Starcounter.Server.Test
@@ -15,6 +16,17 @@ namespace Starcounter.Server.Test
             Assert.IsNotEmpty(c.MetadataReferences);
             var e = Assert.Throws<AppCompilerException>(() => c.Compile());
             Assert.True(e.Error == AppCompilerError.NoSourceSpecified);
+        }
+
+        [Test]
+        public void CompileWithInvalidTargetPath()
+        {
+            var c = new AppCompiler("app")
+                .WithDefaultReferences()
+                .WithSourceCode("//Will be ignored");
+            c.TargetPath = $@"This\Path\Should\Certainly\Not\{Guid.NewGuid().ToString()}\Exist";
+
+            Assert.Throws<DirectoryNotFoundException>(() => c.Compile());
         }
 
         [Test]
