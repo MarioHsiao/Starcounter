@@ -82,6 +82,16 @@ namespace Starcounter.Server.Compiler
             return compiler;
         }
 
+        public static AppCompiler WithStarcounterAssemblyInfo(this AppCompiler compiler, string starcounterBinDirectory = null)
+        {
+            starcounterBinDirectory = starcounterBinDirectory ?? StarcounterEnvironment.InstallationDirectory;
+
+            var configDir = "cli-config";
+            var assemblyInfoFile = "StarcounterAssembly.cs";
+            var file = Path.Combine(StarcounterEnvironment.InstallationDirectory, configDir, assemblyInfoFile);
+            return compiler.WithSourceCodeFile(file);
+        }
+
         static void AddReferencesToAllAssembliesInDirectory(this AppCompiler compiler, string directory)
         {
             var libraries = Directory.EnumerateFiles(directory, "*.dll");
