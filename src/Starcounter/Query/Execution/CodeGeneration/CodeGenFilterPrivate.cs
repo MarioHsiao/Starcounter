@@ -71,7 +71,7 @@ internal sealed class CodeGenFilterPrivate
 {
     List<CodeGenFilterNode> dataLeaves = null; // Represents all filter tree data leaves.
     CodeGenFilterCacheShared filterCache = null; // Reference to shared filter cache.
-    ByteArrayBuilder filterKey = null; // Data stream representation of the filter.
+    FilterKeyBuilder filterKey = null; // Data stream representation of the filter.
     Boolean numTypeChanged = false; // Indicates if instruction codes changed as a reflection of variable type change.
     UInt64 filterHandle = 0; // Handle to recently used filter.
     ILogicalExpression queryCondition = null; // Condition tree.
@@ -94,7 +94,7 @@ internal sealed class CodeGenFilterPrivate
         numVarTypes = recentNumVarTypes;
         filterCache = sharedFilterCache;
         filterHandle = recentFilterHandle;
-        filterKey = new ByteArrayBuilder();
+        filterKey = new FilterKeyBuilder();
 
         // Filling out data leaves from query condition tree traversal.
         // (also connecting numerical variables with data leaves).
@@ -252,14 +252,6 @@ internal sealed class CodeGenFilterPrivate
         }
 
         return filterKey.GetBufferCached();
-    }
-
-    /// <summary>
-    /// Returns filter key length in bytes.
-    /// </summary>
-    public Int32 GetDataStreamLength()
-    {
-        return filterKey.LengthInBytes();
     }
 
     // Interface to indicate that instruction has been changed.

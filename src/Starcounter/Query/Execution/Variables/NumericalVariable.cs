@@ -592,7 +592,7 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
     /// <param name="obj">Row for which evaluation should be performed.</param>
-    public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
+    public override void AppendToByteArray(FilterKeyBuilder key, IObjectView obj)
     {
         switch (dbTypeCode)
         {
@@ -610,44 +610,6 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
                 break;
             default:
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect dbTypeCode: " + dbTypeCode);
-        }
-    }
-
-    /// <summary>
-    /// Appends maximum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMaxToKey(ByteArrayBuilder key)
-    {
-        switch (dbTypeCode)
-        {
-            case DbTypeCode.Int64:
-                key.Append(IntegerRangeValue.MAX_VALUE);
-                break;
-            case DbTypeCode.UInt64:
-                key.Append(UIntegerRangeValue.MAX_VALUE);
-                break;
-            default:
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "The following data type can not be indexed: " + dbTypeCode);
-        }
-    }
-
-    /// <summary>
-    /// Appends minimum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMinToKey(ByteArrayBuilder key)
-    {
-        switch (dbTypeCode)
-        {
-            case DbTypeCode.Int64:
-                key.Append(IntegerRangeValue.MIN_VALUE);
-                break;
-            case DbTypeCode.UInt64:
-                key.Append(UIntegerRangeValue.MIN_VALUE);
-                break;
-            default:
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "The following data type can not be indexed: " + dbTypeCode);
         }
     }
 
@@ -891,67 +853,6 @@ internal class NumericalVariable : Variable, IVariable, INumericalExpression
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetNumericalVariableValue();");
     }
-
-#if false
-    /// <summary>
-    /// Initializes variable from byte buffer.
-    /// </summary>
-    public override unsafe void InitFromBuffer(ref Byte* buffer)
-    {
-        Byte numericalType = *buffer;
-
-        if (numericalType == 0)
-        {
-            // Undefined value.
-            intValue = null;
-            uintValue = null;
-            dblValue = null;
-            decValue = null;
-
-            buffer++;
-            return;
-        }
-        else
-        {
-            // Defined value.
-            switch (numericalType)
-            {
-                case SqlConnectivityInterface.QUERY_VARTYPE_INT:
-                {
-                    SetValue((*(Int64*)(buffer + 1)));
-                    buffer += 9;
-                    return;
-                }
-
-                case SqlConnectivityInterface.QUERY_VARTYPE_UINT:
-                {
-                    SetValue((*(UInt64*)(buffer + 1)));
-                    buffer += 9;
-                    return;
-                }
-
-                case SqlConnectivityInterface.QUERY_VARTYPE_DOUBLE:
-                {
-                    SetValue((*(Double*)(buffer + 1)));
-                    buffer += 9;
-                    return;
-                }
-
-                case SqlConnectivityInterface.QUERY_VARTYPE_DECIMAL:
-                {
-                    SetValue((*(Decimal*)(buffer + 1)));
-                    buffer += 17; // Decimal is 128-bits long.
-                    return;
-                }
-
-                default:
-                {
-                    throw ErrorCode.ToException(Error.SCERRQUERYWRONGPARAMTYPE, "Incorrect query variable type: " + number);
-                }
-            }
-        }
-    }
-#endif
 
 #if DEBUG
     private bool AssertEqualsVisited = false;

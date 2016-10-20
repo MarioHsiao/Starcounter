@@ -237,7 +237,6 @@
     <Compile Include="Query\Execution\Enumerators\NullObject.cs" />
     <Compile Include="Query\Execution\Enumerators\ReferenceLookup.cs" />
     <Compile Include="Query\Execution\Enumerators\Sort.cs" />
-    <Compile Include="Query\Execution\Enumerators\UserSqlEnumerator.cs" />
     <Compile Include="Query\Execution\Interfaces.cs" />
     <Compile Include="Query\Execution\Literals\BinaryLiteral.cs" />
     <Compile Include="Query\Execution\Literals\BooleanLiteral.cs" />
@@ -302,7 +301,8 @@
     <Compile Include="Query\Execution\Ranges\BooleanDynamicRange.cs" />
     <Compile Include="Query\Execution\Ranges\BooleanRangePoint.cs" />
     <Compile Include="Query\Execution\Ranges\BooleanRangeValue.cs" />
-    <Compile Include="Query\Execution\Ranges\ByteArrayBuilder.cs" />
+    <Compile Include="Query\Execution\Ranges\FilterKeyBuilder.cs" />
+    <Compile Include="Query\Execution\Ranges\IndexKeyBuilder.cs" />
     <Compile Include="Query\Execution\Ranges\DateTimeDynamicRange.cs" />
     <Compile Include="Query\Execution\Ranges\DateTimeRangePoint.cs" />
     <Compile Include="Query\Execution\Ranges\DateTimeRangeValue.cs" />

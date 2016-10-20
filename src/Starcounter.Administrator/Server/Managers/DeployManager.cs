@@ -283,7 +283,7 @@ namespace Administrator.Server.Managers {
                     completionCallback(application);
                 }
             }
-            catch (InvalidOperationException e) {
+            catch (Exception e) {
 
                 if (errorCallback != null) {
                     errorCallback(e.Message);

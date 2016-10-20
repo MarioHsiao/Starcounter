@@ -73,27 +73,9 @@ internal class BooleanVariable : Variable, IVariable, IBooleanExpression
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
     /// <param name="obj">Row for which evaluation should be performed.</param>
-    public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
+    public override void AppendToByteArray(FilterKeyBuilder key, IObjectView obj)
     {
         key.Append(value);
-    }
-
-    /// <summary>
-    /// Appends maximum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMaxToKey(ByteArrayBuilder key)
-    {
-        key.Append(BooleanRangeValue.MAX_VALUE);
-    }
-
-    /// <summary>
-    /// Appends minimum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMinToKey(ByteArrayBuilder key)
-    {
-        key.Append(BooleanRangeValue.MIN_VALUE);
     }
 
     /// <summary>
@@ -216,30 +198,6 @@ internal class BooleanVariable : Variable, IVariable, IBooleanExpression
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetBooleanVariableValue();");
     }
-
-#if false
-    /// <summary>
-    /// Initializes variable from byte buffer.
-    /// </summary>
-    public override unsafe void InitFromBuffer(ref Byte* buffer)
-    {
-        if (*buffer == 0)
-        {
-            // Undefined value.
-            value = null;
-            buffer++;
-            return;
-        }
-
-        // Checking variable data type.
-        if (*buffer != SqlConnectivityInterface.QUERY_VARTYPE_BOOLEAN)
-            throw ErrorCode.ToException(Error.SCERRQUERYWRONGPARAMTYPE, "Incorrect query parameter type: " + number);
-
-        // Defined value.
-        value = (*(Boolean*)(buffer + 1));
-        buffer += 9;
-    }
-#endif
 
 #if DEBUG
     public bool AssertEquals(IValueExpression other) {

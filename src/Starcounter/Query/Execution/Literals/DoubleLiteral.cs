@@ -29,7 +29,7 @@ internal class DoubleLiteral : Literal, ILiteral, IDoublePathItem
         this.value = value;
         
         // Pre-computing byte array for this literal.
-        byteData = ByteArrayBuilder.PrecomputeBuffer(value);
+        byteData = FilterKeyBuilder.PrecomputeBuffer(value);
     }
 
     /// <summary>

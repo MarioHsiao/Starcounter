@@ -4,18 +4,19 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
-using Starcounter.Advanced.XSON;
+using Starcounter.Internal;
 using Starcounter.Internal.XSON.Modules;
+using Starcounter.XSON.Interfaces;
+using Starcounter.XSON.Templates.Factory;
 
 namespace Starcounter.Templates {
     /// <summary>
     /// A template describes an App or a property of an App. A tree of
     /// templates defines the schema of an App.
     /// </summary>
-    public abstract partial class Template : IReadOnlyTree {
+    public abstract class Template : IReadOnlyTree {
         private bool _dynamic;
         private string _className;
         private string _name;
@@ -23,15 +24,10 @@ namespace Starcounter.Templates {
         private bool _sealed;
         internal TContainer _parent;
 
+        private CodegenInfo codegenInfo;
+
         private static readonly IReadOnlyList<IReadOnlyTree> _emptyList = new List<IReadOnlyTree>();
-
-        /// <summary>
-        /// Dictionary used to hold values gathered when json is parsed from file and during codegeneration.
-        /// When using templates in applications this dictionary should never be used or instantiated.
-        /// </summary>
-        private Dictionary<string, string> codegenMetadata;
-        internal CompilerOrigin CompilerOrigin = new CompilerOrigin();
-
+        
         static Template() {
             Starcounter.Internal.XSON.Modules.Starcounter_XSON.Initialize();
         }
@@ -45,19 +41,12 @@ namespace Starcounter.Templates {
             _dynamic = false;
         }
 
-        internal Dictionary<string, string> CodegenMetadata {
+        internal CodegenInfo CodegenInfo {
             get {
-                if (codegenMetadata == null)
-                    codegenMetadata = new Dictionary<string, string>();
-                return codegenMetadata;
+                if (codegenInfo == null)
+                    codegenInfo = new CodegenInfo();
+                return codegenInfo;
             }
-        }
-
-        internal string GetCodegenMetadata(string key) {
-            string value = null;
-            if (codegenMetadata != null)
-                codegenMetadata.TryGetValue(key, out value);
-            return value;
         }
 
         /// <summary>
@@ -81,20 +70,6 @@ namespace Starcounter.Templates {
         public virtual bool IsArray {
             get { return false; }
         }
-
-        /// <summary>
-        /// Gets or sets the name of the class.
-        /// </summary>
-        /// <value>The name of the class.</value>
-        public string ClassName {
-            get { return _className; }
-            set { _className = value; }
-        }
-        /// <summary>
-        /// Gets or sets the namespace.
-        /// </summary>
-        /// <value></value>
-        public string Namespace { get; set; }
 
         /// <summary>
         /// 
@@ -149,13 +124,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value><c>true</c> if editable; otherwise, <c>false</c>.</value>
         public bool Editable { get; set; }
-
-        /// <summary>
-        /// Gets or sets the on update.
-        /// </summary>
-        /// <value>The on update.</value>
-        public string OnUpdate { get; set; }
-
+        
         /// <summary>
         /// The .NET type of the instance represented by this template.TApp
         /// </summary>
@@ -297,8 +266,8 @@ namespace Starcounter.Templates {
                 } else {
                     if (PropertyName != null) {
                         str += PropertyName;
-                    } else if (ClassName != null) {
-                        str += this.ClassName;
+                    } else if (InstanceType?.Name != null) {
+                        str += this.InstanceType.Name;
                     } else {
                         str += "(anonymous)";
                     }
@@ -319,6 +288,7 @@ namespace Starcounter.Templates {
             toTemplate.Editable = Editable;
             toTemplate.Enabled = Enabled;
             toTemplate.Visible = Visible;
+            toTemplate.codegenInfo = codegenInfo;
         }
 
 #if DEBUG
@@ -349,51 +319,28 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static TValue CreateFromJson(string json) {
-            return CreateFromMarkup<Json, TValue>("json", json, null);
+        public static Template CreateFromJson(string json) {
+            return CreateFromMarkup("json", json, null);
         }
-
-        internal static Template CreateFromMarkup(string json) {
-            IXsonTemplateMarkupReader reader;
-            string format = "json";
-
-            if (Starcounter_XSON.JsonByExample.MarkupReaders.TryGetValue(format, out reader))
-                return reader.CompileMarkup<Json, TValue>(json, null);
-            
-            throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
-        }
-
+        
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="TJson"></typeparam>
-        /// <typeparam name="TTemplate"></typeparam>
         /// <param name="format"></param>
         /// <param name="markup"></param>
         /// <param name="origin"></param>
         /// <returns></returns>
-        public static TTemplate CreateFromMarkup<TJson, TTemplate>(string format, string markup, string origin)
-            where TJson : Json, new()
-            where TTemplate : TValue {
+        public static Template CreateFromMarkup(string format, string markup, string origin) {
             IXsonTemplateMarkupReader reader;
-            try {
-                format = format.ToLower();
-                reader = Starcounter.Internal.XSON.Modules.Starcounter_XSON.JsonByExample.MarkupReaders[format];
-            } catch {
-                throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
-            }
-
-            return reader.CompileMarkup<TJson, TTemplate>(markup, origin);
+            string formatToLower = format.ToLower();
+            Template template;
+            
+            if (!Starcounter_XSON.JsonByExample.MarkupReaders.TryGetValue(formatToLower, out reader))
+                throw new Exception(String.Format("Cannot create XSON template. No markup reader is registred for the format {0}.", format));
+            
+            template = reader.CreateTemplate(markup, origin);
+            return template;
         }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public struct CompilerOrigin {
-        public string FileName;
-        public int LineNo;
-        public int ColNo;
     }
 
     internal enum TemplateTypeEnum {

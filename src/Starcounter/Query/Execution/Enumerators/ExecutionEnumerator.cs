@@ -557,20 +557,6 @@ internal abstract class ExecutionEnumerator
         return stringBuilder.ToString();
     }
 
-#if false
-    /// <summary>
-    /// Initializes all query variables from given buffer.
-    /// </summary>
-    /// <param name="queryParamsBuf">Byte array with data for all variables.</param>
-    public unsafe void InitVariablesFromBuffer(Byte *queryParamsBuf)
-    {
-        if (variableArray.Length > 0)
-        {
-            variableArray.InitFromBuffer(queryParamsBuf);
-        }
-    }
-#endif
-
     /// <summary>
     /// Sets a value to an SQL variable.
     /// </summary>

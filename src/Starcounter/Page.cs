@@ -21,7 +21,6 @@ namespace Starcounter {
                 public Schema()
                     : base() {
                     InstanceType = typeof(Page);
-                    ClassName = "Page";
                     Properties.ClearExposed();
                     Html = Add<TString>("Html");
                     Html.BindingStrategy = BindingStrategy.Unbound;

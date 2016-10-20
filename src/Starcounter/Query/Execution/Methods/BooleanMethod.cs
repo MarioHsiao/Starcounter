@@ -112,16 +112,6 @@ internal class BooleanMethod : IBooleanPathItem, IMethod
     }
 
     /// <summary>
-    /// Appends data of this leaf to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Row for which evaluation should be performed.</param>
-    public void AppendToKey(ByteArrayBuilder key, IObjectView obj)
-    {
-        key.Append(EvaluateToBoolean(obj));
-    }
-
-    /// <summary>
     /// Calculates the return value of this method when evaluated on an input object.
     /// If the input object is not a Row then all member references in this expression (argExpression) should refer
     /// to the extent number (extentNumber) of this method and the input object should belong to the corresponding extent.

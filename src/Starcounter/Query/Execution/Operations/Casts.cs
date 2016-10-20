@@ -124,16 +124,6 @@ internal class ObjectCast : IObjectPathItem, IPath
     }
 
     /// <summary>
-    /// Appends data of this leaf to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    /// <param name="obj">Row for which evaluation should be performed.</param>
-    public void AppendToKey(ByteArrayBuilder key, IObjectView obj)
-    {
-        key.Append(EvaluateToObject(obj));
-    }
-
-    /// <summary>
     /// Calculates the value of the cast operation when evaluated on an input object.
     /// </summary>
     /// <param name="obj">The object on which to evaluate the cast operation.</param>

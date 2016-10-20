@@ -54,23 +54,7 @@ namespace Starcounter.Query.Execution
         /// </summary>
         /// <param name="key">Reference to the filter key to which data should be appended.</param>
         /// <param name="obj">Row for which evaluation should be performed.</param>
-        public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj) {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Append is not available for Type");
-        }
-
-        /// <summary>
-        /// Appends maximum value to the provided filter key.
-        /// </summary>
-        /// <param name="key">Reference to the filter key to which data should be appended.</param>
-        public override void AppendMaxToKey(ByteArrayBuilder key) {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Append is not available for Type");
-        }
-
-        /// <summary>
-        /// Appends minimum value to the provided filter key.
-        /// </summary>
-        /// <param name="key">Reference to the filter key to which data should be appended.</param>
-        public override void AppendMinToKey(ByteArrayBuilder key) {
+        public override void AppendToByteArray(FilterKeyBuilder key, IObjectView obj) {
             throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Append is not available for Type");
         }
 
@@ -208,15 +192,6 @@ newValue.GetType().ToString());
         public void GenerateCompilableCode(CodeGenStringGenerator stringGen) {
             throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
         }
-
-#if false
-        /// <summary>
-        /// Initializes variable from byte buffer.
-        /// </summary>
-        public override unsafe void InitFromBuffer(ref Byte* buffer) {
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
-        }
-#endif
 
 #if DEBUG
         public bool AssertEquals(IValueExpression other) {

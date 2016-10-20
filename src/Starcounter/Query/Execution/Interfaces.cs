@@ -202,7 +202,7 @@ internal interface IVariable : IValueExpression
     void SetNullValue();
 
     // Appending variable value to key (with the context object).
-    void AppendToByteArray(ByteArrayBuilder key, IObjectView obj);
+    void AppendToByteArray(FilterKeyBuilder key, IObjectView obj);
 
     // Setting values of different data types.
     void SetValue(Binary newValue);
@@ -228,15 +228,6 @@ internal interface IVariable : IValueExpression
 
     // Sets value to variable in another enumerator.
     void ProlongValue(IExecutionEnumerator destEnum);
-
-    // Appends maximum and minimum value to the provided filter key.
-    void AppendMaxToKey(ByteArrayBuilder key);
-    void AppendMinToKey(ByteArrayBuilder key);
-
-#if false
-    // Initializes variable from byte buffer.
-    unsafe void InitFromBuffer(ref Byte *buffer);
-#endif
 }
 
 /// <summary>
@@ -1126,11 +1117,11 @@ internal interface IExecutionEnumerator : IQueryObject, ISqlEnumerator
 internal interface IDynamicRange : IQueryObject
 {
     // Returns true if the range is an equality range.
-    Boolean Evaluate(Row contextObj, SortOrder sortOrder, ByteArrayBuilder firstKey, ByteArrayBuilder secondKey,
+    Boolean Evaluate(Row contextObj, SortOrder sortOrder, IndexKeyBuilder firstKey, IndexKeyBuilder secondKey,
                      ref ComparisonOperator firstOp, ref ComparisonOperator secondOp);
 
     // Filling the range with minimum/maximum values according to the last operators.
-    void CreateFillRange(SortOrder sortOrder, ByteArrayBuilder firstKey, ByteArrayBuilder secondKey,
+    void CreateFillRange(SortOrder sortOrder, IndexKeyBuilder firstKey, IndexKeyBuilder secondKey,
                          ComparisonOperator lastFirstOperator, ComparisonOperator lastSecondOperator);
 
     void CreateRangePointList(List<ILogicalExpression> conditionList, Int32 extentNumber, String strPath);

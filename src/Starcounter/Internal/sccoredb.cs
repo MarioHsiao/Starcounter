@@ -669,14 +669,14 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static extern unsafe uint star_convert_ucs2_to_turbotext(
+        internal static extern unsafe uint star_convert_ucs2_to_turbotext_OLD(
             string input, uint flags, byte* output, uint outlen
             );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CharSet = CharSet.Unicode)]
-        internal static extern unsafe uint star_convert_ucs2_to_setspectt(
+        internal static extern unsafe uint star_convert_ucs2_to_setspectt_OLD(
             string input, uint flags, byte* output, uint outlen
             );
 
@@ -1016,7 +1016,6 @@ namespace Starcounter.Internal
             UInt32 maxBytes, // [IN] Maximum size in bytes of the result buffer (needed for allocation in Blast).
             UInt32* outLenBytes // [OUT] Length in bytes of the result data.
             );
-#endif
 
         // Types of variable in query.
         /// <summary>
@@ -1059,6 +1058,7 @@ namespace Starcounter.Internal
         /// The QUER y_ VARTYP e_ BOOLEAN
         /// </summary>
         internal const Byte QUERY_VARTYPE_BOOLEAN = 10;
+#endif
     }
 #endif
 }

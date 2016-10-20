@@ -254,7 +254,7 @@ namespace Starcounter.Internal.XSON.Tests {
             uint errorCode;
 
             var schema = new TObject();
-            schema.ClassName = "PersonMsg";
+            schema.CodegenInfo.ClassName = "PersonMsg";
 
             var tname = schema.Add<TString>("Name", "Invalid");
             tname.BindingStrategy = BindingStrategy.Bound;

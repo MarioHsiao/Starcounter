@@ -1,5 +1,20 @@
 ## [Unreleased] - Unreleased
 
+### Fixed
+- Fixed a bug where pushing changes on websocket could cause versioning and patches to be messed up [#3844](https://github.com/Starcounter/Starcounter/issues/3844)
+- Fixed a bug in session management where more than one thread/scheduler got access to a session, leading to incorrect versioning for outgoing patches. 
+- Fixed a bug where setting dataobject on an array lead to a `NullReferenceException` [#3856](https://github.com/Starcounter/Starcounter/issues/3856)
+- Fixed a bug where changing and reusing partials didn't properly generate patches for client [#3465](https://github.com/Starcounter/Starcounter/issues/3465) 
+- Fixed a bug where bound arrays were not properly marked as dirty when setting dataobject to null [#3879](https://github.com/Starcounter/Starcounter/issues/3879)
+- Fixed a bug where database may hang deleting a record. As the root cause of the problem is in the wrong data stored in the database image, it's necessary to do unload/reload during upgrade to fix the image. [#3875]
+- Fixed infinite waiting loop in the installer when the installation folder was not empty.
+
+### Changed
+- Changed the parser for Json-by-example from F# parser to NewtonSoft (nuget) [#3811](https://github.com/Starcounter/Starcounter/issues/3811)
+- Removed code for creating codegenerated jsonserializers for TypedJSON [#3832](https://github.com/Starcounter/Starcounter/issues/3832)
+
+## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
+
 ### Added
 - Better error message when a synonym target an illegal element, [#3677](https://github.com/Starcounter/Starcounter/issues/3677)
 - Made `staradmin list apps` support filtering on a specific database by giving `-d|--database`, [#3521](https://github.com/Starcounter/Starcounter/issues/3521)
@@ -10,6 +25,7 @@
 - Added support for enums when a template for TypedJSON is created based on the type for a dataobject [#3759](https://github.com/Starcounter/Starcounter/issues/3759)
 - Added possibility to configure how missing members (i.e. members that exists in the source, but not in the template) should be handled in TypedJSON when populating an instance. Options are to either throw an error or ignore and skip the member [#3802](https://github.com/Starcounter/Starcounter/issues/3802)
 - ShadowDOM layout capabilities to [`<starcounter-include>`](https://github.com/Starcounter/starcounter-include) shipped in `/sys/` folder. Layout can now be served as `DocumentFragment` full of rich HTML & CSS features to be served with [`juicy-composition`](https://github.com/Juicy/juicy-composition). It's now the resposibility of Starcounter and particular app, not the Launcher. Launcher may only provide additional visual editing features to it.
+- Added HTTP header with disk location for static files: [#3836](https://github.com/Starcounter/Starcounter/issues/3836)
 
 ### Fixed
 - Fixed problems with dirtycheck in TypedJson after previous fix for databindings in [#3509](https://github.com/Starcounter/Starcounter/issues/3509)
@@ -40,7 +56,9 @@
 - Fixed a bug where using an empty jsonobject as response for a mapped uri, did not get properly serialized to client or changes collected correctly when sending patches [#3755](https://github.com/Starcounter/Starcounter/issues/3755)
 - Fixed detecting if a jsonobject is already merged or not when attaching it to a parent [#3771](https://github.com/Starcounter/Starcounter/issues/3771)
 - Fixed a bug in TypedJSON where versionlog of changes in arrays were not properly updated, which in some cases led to a `NullReferenceException` being thrown [#3816](https://github.com/Starcounter/Starcounter/issues/3816)  
-- Fixed a bug where pushing changes on websocket could cause versioning and patches to be messed up [#3844](https://github.com/Starcounter/Starcounter/issues/3844)
+- Fixed the network gateway startup issues: [#3480](https://github.com/Starcounter/Starcounter/issues/3480)
+- Fixed a case when HTTP handler does not respond if mapped in UriMapping.Map but called from the outside: [#3840](https://github.com/Starcounter/Starcounter/issues/3840)
+- Fixed too small time given to release IPC chunks to shared chunk pool: [#3823](https://github.com/Starcounter/Starcounter/issues/3823)
 
 ### Changed
 - Obsoleted `Session.ToAsciiString()` and added `Session.SessionId` [#3586](https://github.com/Starcounter/Starcounter/issues/3586)

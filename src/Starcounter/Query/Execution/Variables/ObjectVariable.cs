@@ -94,27 +94,9 @@ internal class ObjectVariable : Variable, IVariable, IObjectExpression
     /// </summary>
     /// <param name="key">Reference to the filter key to which data should be appended.</param>
     /// <param name="obj">Row for which evaluation should be performed.</param>
-    public override void AppendToByteArray(ByteArrayBuilder key, IObjectView obj)
+    public override void AppendToByteArray(FilterKeyBuilder key, IObjectView obj)
     {
         key.Append(value);
-    }
-
-    /// <summary>
-    /// Appends maximum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMaxToKey(ByteArrayBuilder key)
-    {
-        key.Append(ObjectRangeValue.MAX_VALUE);
-    }
-
-    /// <summary>
-    /// Appends minimum value to the provided filter key.
-    /// </summary>
-    /// <param name="key">Reference to the filter key to which data should be appended.</param>
-    public override void AppendMinToKey(ByteArrayBuilder key)
-    {
-        key.Append(ObjectRangeValue.MIN_VALUE);
     }
 
     /// <summary>
@@ -231,37 +213,6 @@ newValue.GetType().ToString());
     {
         stringGen.AppendLine(CodeGenStringGenerator.CODE_SECTION_TYPE.FUNCTIONS, "GetObjectVariableValue();");
     }
-
-#if false
-    /// <summary>
-    /// Initializes variable from byte buffer.
-    /// </summary>
-    public override unsafe void InitFromBuffer(ref Byte* buffer)
-    {
-        if (*buffer == 0)
-        {
-            // Undefined value.
-            value = null;
-            buffer++;
-            return;
-        }
-
-        // Checking variable data type.
-        if (*buffer != SqlConnectivityInterface.QUERY_VARTYPE_OBJECT)
-            throw ErrorCode.ToException(Error.SCERRQUERYWRONGPARAMTYPE, "Incorrect query parameter type: " + number);
-
-        // Defined value (contains object id).
-        UInt64 oid = (*(UInt64*)(buffer + 1));
-
-        // Creating proxy object or max value object.
-        if (oid == UInt64.MaxValue)
-            value = new MaxValueObject();
-        else
-            value = DbHelper.FromID(oid);
-
-        buffer += 9;
-    }
-#endif
 
 #if DEBUG
     private bool AssertEqualsVisited = false;
