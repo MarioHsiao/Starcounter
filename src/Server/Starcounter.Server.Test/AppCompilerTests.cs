@@ -47,14 +47,16 @@ namespace Starcounter.Server.Test
             {
                 DeleteCompilerResult(result);
             }
+        }
 
-            // Do same thing, this time using a file on disk.
-            
-            c = new AppCompiler("app")
+        [Test]
+        public void CompileMinimalAppFromSourceOnDisk()
+        {
+            var c = new AppCompiler("app")
                 .WithDefaultReferences()
                 .WithSourceCodeFile(TestInputFile("EmptyProgramWithEmptyMain.cs"));
 
-            result = c.Compile();
+            var result = c.Compile();
             try
             {
                 Assert.IsNotNull(result);
@@ -67,16 +69,59 @@ namespace Starcounter.Server.Test
             }
         }
 
+        [Test]
+        public void AssureCompilerPreserveSpecifiedTargetPath()
+        {
+            // When we give the compiler an explicit target path, where
+            // we ask it to compile into, make sure it doesn't add any
+            // files except the artifacts.
+
+            var inputFile = TestInputFile(@"WellDefinedInputFolder\MinimalIsolatedApp.cs");
+            var targetDir = Path.GetFullPath(Path.GetDirectoryName(inputFile));
+
+            // Before compiling, assert there is just our single file
+            Assert.True(File.Exists(inputFile));
+            Assert.AreEqual(1, Directory.GetFiles(targetDir).Length);
+
+            var c = new AppCompiler("app")
+                .WithDefaultReferences()
+                .WithSourceCodeFile(inputFile);
+            c.TargetPath = targetDir;
+
+            var result = c.Compile();
+            try
+            {
+                Assert.IsNotNull(result);
+                Assert.IsNotNullOrEmpty(result.ApplicationPath);
+                Assert.True(File.Exists(result.ApplicationPath));
+
+                // Delete results emitted by compiler
+                DeleteCompilerResult(result, false);
+
+                // And then reassert pre-compilation conditions, assuring
+                // the compiler has left our stuff alone
+                Assert.True(File.Exists(inputFile));
+                Assert.AreEqual(1, Directory.GetFiles(targetDir).Length);
+            }
+            finally
+            {
+                DeleteCompilerResult(result, false);
+            }
+        }
+
         string TestInputFile(string name)
         {
             return $@"TestInputs\Starcounter.Server.Test\{name}";
         }
 
-        void DeleteCompilerResult(AppCompilerResult result)
+        void DeleteCompilerResult(AppCompilerResult result, bool deleteDirectory = true)
         {
             File.Delete(result.ApplicationPath);
             File.Delete(result.SymbolFilePath);
-            Directory.Delete(result.OutputDirectory);
+            if (deleteDirectory)
+            {
+                Directory.Delete(result.OutputDirectory);
+            }
         }
     }
 }
