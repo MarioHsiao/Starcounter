@@ -66,6 +66,22 @@ namespace Starcounter.Server.Compiler
             return compiler;
         }
 
+        public static AppCompiler WithSourceCodeFile(this AppCompiler compiler, string sourceFile)
+        {
+            if (string.IsNullOrEmpty(sourceFile))
+            {
+                throw new ArgumentNullException(nameof(sourceFile));
+            }
+
+            if (!File.Exists(sourceFile))
+            {
+                throw new FileNotFoundException(sourceFile);
+            }
+
+            compiler.SourceFiles.Add(sourceFile);
+            return compiler;
+        }
+
         static void AddReferencesToAllAssembliesInDirectory(this AppCompiler compiler, string directory)
         {
             var libraries = Directory.EnumerateFiles(directory, "*.dll");
