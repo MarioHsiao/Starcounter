@@ -1,24 +1,20 @@
 ﻿
+using PostSharp;
+using PostSharp.Extensibility;
+using PostSharp.Hosting;
+using PostSharp.Sdk.CodeModel;
+using PostSharp.Sdk.Extensibility;
+using Starcounter.Internal;
+using Starcounter.Internal.Weaver;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using PostSharp;
-using PostSharp.Extensibility;
-using PostSharp.Hosting;
-using PostSharp.Sdk.CodeModel;
-using PostSharp.Sdk.Extensibility;
-using Sc.Server.Weaver;
-using Starcounter;
-using Starcounter.Internal;
-using Starcounter.Internal.Weaver;
-using System.Text.RegularExpressions;
-using Error = Starcounter.Internal.Error;
 
-namespace Starcounter.Weaver {
-
+namespace Starcounter.Weaver
+{
     /// <summary>
     /// Exposes the facade of the code weaver engine.
     /// </summary>
@@ -56,6 +52,11 @@ namespace Starcounter.Weaver {
         /// subdirectory of the output directory, with this name.
         /// </remarks>
         public const string DefaultCacheDirectoryName = "cache";
+
+        /// <summary>
+        /// Gets the weaver host.
+        /// </summary>
+        public IWeaverHost Host { get; private set; }
 
         /// <summary>
         /// The directory where the weaver looks for input.
@@ -205,7 +206,13 @@ namespace Starcounter.Weaver {
             get { return Program.OutputVerbosity == Verbosity.Diagnostic; }
         }
 
-        public CodeWeaver(string directory, string file, string outputDirectory, string cacheDirectory) {
+        public CodeWeaver(IWeaverHost host, string directory, string file, string outputDirectory, string cacheDirectory) {
+            if (host == null)
+            {
+                throw new ArgumentNullException(nameof(host));
+            }
+
+            this.Host = host;
             this.InputDirectory = directory;
             this.OutputDirectory = outputDirectory;
             this.CacheDirectory = cacheDirectory;
@@ -300,7 +307,7 @@ namespace Starcounter.Weaver {
 
             var specifiedAssemblyFullPath = Path.Combine(this.InputDirectory, this.AssemblyFile);
             if (!File.Exists(specifiedAssemblyFullPath)) {
-                Program.ReportProgramError(Error.SCERRWEAVERFILENOTFOUND, "Path: {0}", specifiedAssemblyFullPath);
+                Host.WriteError(Error.SCERRWEAVERFILENOTFOUND, "Path: {0}", specifiedAssemblyFullPath);
                 return false;
             }
 
@@ -378,10 +385,7 @@ namespace Starcounter.Weaver {
                             lastAssembly,
                             lastDir);
 
-                        Program.WriteError(
-                            ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDRESOLVEREFERENCE, hint + " " +assemblyLoadEx.ToString()));
-
-                        Program.ReportProgramError(
+                        Host.WriteError(
                             Error.SCERRWEAVERFAILEDRESOLVEREFERENCE,
                             ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDRESOLVEREFERENCE, hint)
                             );
@@ -396,8 +400,8 @@ namespace Starcounter.Weaver {
 
                         // Any exception we catch that orignates from us (i.e.
                         // is based on a Starcounter error code and error message),
-                        // we report as a program error.
-                        Program.ReportProgramError(error.Code, error.ToString());
+                        // we report to the host as an error.
+                        Host.WriteError(error.Code, error.ToString());
                         return false;
                     }
                     finally {
@@ -437,7 +441,7 @@ namespace Starcounter.Weaver {
             boolResult = PostSharp.Sdk.Extensibility.Licensing.LicenseManager.Initialize(licenseKey);
             if (boolResult == false) {
                 errorCode = Error.SCERRBADPOSTSHARPLICENSE;
-                Program.ReportProgramError(errorCode);
+                Host.WriteError(errorCode, ErrorCode.ToMessage(errorCode));
                 return false;
             }
 
@@ -447,7 +451,7 @@ namespace Starcounter.Weaver {
             var analyzerProjectFile = Path.GetFullPath(Path.Combine(this.WeaverRuntimeDirectory, CodeWeaver.AnalyzerProjectFileName));
             if (!File.Exists(analyzerProjectFile)) {
                 errorCode = Error.SCERRWEAVERPROJECTFILENOTFOUND;
-                Program.ReportProgramError(
+                Host.WriteError(
                     errorCode,
                     ErrorCode.ToMessage(errorCode, string.Format("Path: {0}", analyzerProjectFile))
                     );
@@ -458,7 +462,7 @@ namespace Starcounter.Weaver {
             var weaverProjectFile = Path.GetFullPath(Path.Combine(this.WeaverRuntimeDirectory, CodeWeaver.WeaverProjectFileName));
             if (!File.Exists(weaverProjectFile)) {
                 errorCode = Error.SCERRWEAVERPROJECTFILENOTFOUND;
-                Program.ReportProgramError(
+                Host.WriteError(
                     errorCode,
                     ErrorCode.ToMessage(errorCode, string.Format("Path: {0}", weaverProjectFile))
                     );
@@ -574,16 +578,11 @@ namespace Starcounter.Weaver {
                             // Send the actual message as a parameter and the location
                             // information as another.
 
-                            Program.ReportProgramError(
-                                errorCode,
-                                "{0} {1}",
-                                messageIdAndText,
-                                fileLocation.ToString()
-                                );
+                            Host.WriteError(errorCode, "{0} {1}", messageIdAndText, fileLocation.ToString());
                         } else {
                             // Give no location information
 
-                            Program.ReportProgramError(errorCode, messageIdAndText);
+                            Host.WriteError(errorCode, messageIdAndText);
                         }
                     } else {
                         // PostSharp can report errors too. Write these as warnings.
