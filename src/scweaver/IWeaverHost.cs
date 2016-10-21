@@ -8,6 +8,6 @@
         void WriteDebug(string message, params object[] parameters);
         void WriteInformation(string message, params object[] parameters);
         void WriteWarning(string message, params object[] parameters);
-        void WriteError(string message, params object[] parameters);
+        void WriteError(uint code, string message, params object[] parameters);
     }
 }
