@@ -305,19 +305,19 @@ namespace Starcounter.Internal.Weaver {
         }
 
         internal void BootDiagnose() {
-            Program.WriteDebug("Weaver cache:");
+            host.WriteDebug("Weaver cache:");
 
             var props = new Dictionary<string, string>();
             props["Cache directory"] = this.CacheDirectory;
             props["Disabled"] = this.Disabled.ToString();
 
             foreach (var pair in props) {
-                Program.WriteDebug("  {0}: {1}", pair.Key, pair.Value);
+                host.WriteDebug("  {0}: {1}", pair.Key, pair.Value);
             }
 
-            Program.WriteDebug("  {0} search directories:", this.AssemblySearchDirectories.Count);
+            host.WriteDebug("  {0} search directories:", this.AssemblySearchDirectories.Count);
             foreach (var dir in this.AssemblySearchDirectories) {
-                Program.WriteDebug("  " + dir);
+                host.WriteDebug("  " + dir);
             }
         }
 

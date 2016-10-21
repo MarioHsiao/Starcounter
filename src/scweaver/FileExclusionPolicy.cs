@@ -27,16 +27,16 @@ namespace Starcounter.Weaver {
         }
 
         public void BootDiagnose() {
-            Program.WriteDebug("File exclusion policy:");
+            host.WriteDebug("File exclusion policy:");
 
             var configCount = configuredExcludes == null ? 0 : configuredExcludes.Length;
             if (configCount == 0) {
-                Program.WriteDebug(  "(No files configured with weaver.ignore)");
+                host.WriteDebug(  "(No files configured with weaver.ignore)");
             }
             else {
-                Program.WriteDebug("  {0} weaver.ignore files:", configCount);
+                host.WriteDebug("  {0} weaver.ignore files:", configCount);
                 foreach (var ignore in configuredExcludes) {
-                    Program.WriteDebug("  " + ignore);
+                    host.WriteDebug("  " + ignore);
                 }
             }
 
@@ -82,7 +82,7 @@ namespace Starcounter.Weaver {
                 foreach (var exclude in configuredExcludes) {
                     var expr = exclude.Trim();
                     if (expr.Length != exclude.Length) {
-                        Program.WriteInformation("Trimmed weaver.ignore expression \"{0}\" from whitespaces.", exclude);
+                        host.WriteInformation("Trimmed weaver.ignore expression \"{0}\" from whitespaces.", exclude);
                     }
 
                     AddExcludeExpression(expr, excludes);

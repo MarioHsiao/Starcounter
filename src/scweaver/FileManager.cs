@@ -131,25 +131,25 @@ namespace Starcounter.Weaver {
         public void BootDiagnose() {
             exclusionPolicy.BootDiagnose();
 
-            Program.WriteDebug("File manager:");
+            host.WriteDebug("File manager:");
 
             var props = new Dictionary<string, string>();
             props["Source directory"] = this.SourceDirectory;
             props["Target directory"] = this.TargetDirectory;
 
             foreach (var pair in props) {
-                Program.WriteDebug("  {0}: {1}", pair.Key, pair.Value);
+                host.WriteDebug("  {0}: {1}", pair.Key, pair.Value);
             }
 
             // Group files by directory
 
-            Program.WriteDebug("  {0} input files considered.", sourceFiles.Count);
+            host.WriteDebug("  {0} input files considered.", sourceFiles.Count);
 
             var filesByDirectory = new FilesByDirectory(sourceFiles).Files;
             foreach (var hive in filesByDirectory) {
-                Program.WriteDebug("  {0}:", hive.Key);
+                host.WriteDebug("  {0}:", hive.Key);
                 foreach (var file in hive.Value) {
-                    Program.WriteDebug("    {0}:", file);
+                    host.WriteDebug("    {0}:", file);
                 }
             }
         }
@@ -276,11 +276,11 @@ namespace Starcounter.Weaver {
         }
 
         void WriteInfo(string message, params object[] parameters) {
-            Program.WriteInformation(message, parameters);
+            host.WriteInformation(message, parameters);
         }
         
         void WriteDebug(string message, params object[] parameters) {
-            Program.WriteDebug(message, parameters);
+            host.WriteDebug(message, parameters);
         }
     }
 }
