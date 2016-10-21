@@ -25,7 +25,7 @@ namespace Starcounter.Weaver {
             // to process it.
 
             if (module.AssemblyManifest == null) {
-                Program.WriteDebug("Not considering module {0}: no assembly manifest.", module.Name);
+                codeWeaver.Host.WriteDebug("Not considering module {0}: no assembly manifest.", module.Name);
                 return null;
             }
 

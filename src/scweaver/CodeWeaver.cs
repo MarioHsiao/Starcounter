@@ -256,9 +256,9 @@ namespace Starcounter.Weaver
 
                 var filesByDirectory = new FilesByDirectory(files).Files;
                 foreach (var hive in filesByDirectory) {
-                    Program.WriteDebug("  {0}:", hive.Key);
+                    Host.WriteDebug("  {0}:", hive.Key);
                     foreach (var file in hive.Value) {
-                        Program.WriteDebug("    {0}:", file);
+                        Host.WriteDebug("    {0}:", file);
                     }
                 }
             }
@@ -267,7 +267,7 @@ namespace Starcounter.Weaver
         }
 
         void Diagnose(string message, params object[] parameters) {
-            Program.WriteDebug(message, parameters);
+            Host.WriteDebug(message, parameters);
         }
 
         bool Execute() {
@@ -293,7 +293,7 @@ namespace Starcounter.Weaver
             fm.BuildState();
 
             if (fm.OutdatedAssemblies.Count == 0) {
-                Program.WriteInformation("No assemblies needed to be weaved.");
+                Host.WriteInformation("No assemblies needed to be weaved.");
             } else {
 
                 Diagnose("Retreived {0} files to weave.", fm.OutdatedAssemblies.Count);
@@ -488,16 +488,16 @@ namespace Starcounter.Weaver
 
             switch (message.Severity) {
                 case SeverityType.Debug:
-                    Program.WriteDebug(messageIdAndText);
+                    Host.WriteDebug(messageIdAndText);
                     break;
                 case SeverityType.Verbose:
                 case SeverityType.CommandLine:
                 case SeverityType.ImportantInfo:
                 case SeverityType.Info:
-                    Program.WriteInformation(messageIdAndText);
+                    Host.WriteInformation(messageIdAndText);
                     break;
                 case SeverityType.Warning:
-                    Program.WriteWarning(messageIdAndText);
+                    Host.WriteWarning(messageIdAndText);
                     break;
                 case SeverityType.Error:
                 case SeverityType.Fatal:
@@ -558,7 +558,7 @@ namespace Starcounter.Weaver
                     } else {
                         // PostSharp can report errors too. Write these as warnings.
 
-                        Program.WriteWarning(messageIdAndText);
+                        Host.WriteWarning(messageIdAndText);
                     }
                     break;
             }
@@ -611,7 +611,7 @@ namespace Starcounter.Weaver
                 parameters.Properties["NoTransformation"] = bool.TrueString;
             }
 
-            Program.WriteInformation("{0} {1}.", runWeaver ? "Weaving" : "Analyzing", file);
+            Host.WriteInformation("{0} {1}.", runWeaver ? "Weaving" : "Analyzing", file);
 
             // Apply all general, shared parameters
 
