@@ -86,6 +86,7 @@
     <Compile Include="CodeWeaverModuleLoadStrategy.cs" />
     <Compile Include="FileExclusionPolicy.cs" />
     <Compile Include="FileManager.cs" />
+    <Compile Include="IWeaverHost.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgramCommands.cs" />
     <Compile Include="ProgramVerbosity.cs" />
