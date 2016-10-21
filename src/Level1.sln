@@ -479,6 +479,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Server.Test", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Weaver", "Starcounter.Weaver\Starcounter.Weaver.csproj", "{4E56FDE2-AC12-43B0-8C52-F0C80512DF83}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Weaver.Test", "Starcounter.Weaver.Test\Starcounter.Weaver.Test.csproj", "{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1785,6 +1787,18 @@ Global
 		{4E56FDE2-AC12-43B0-8C52-F0C80512DF83}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4E56FDE2-AC12-43B0-8C52-F0C80512DF83}.Release|x64.ActiveCfg = Release|Any CPU
 		{4E56FDE2-AC12-43B0-8C52-F0C80512DF83}.Release|x64.Build.0 = Release|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Debug|x64.Build.0 = Debug|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Release|x64.ActiveCfg = Release|Any CPU
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1930,5 +1944,6 @@ Global
 		{D0C33DB0-C5DB-432B-A89D-0B77D8AD081F} = {8E1384CA-AC3E-4699-BB75-8B3BD919FAB4}
 		{40FF0D61-5978-464E-BB8B-83E635D9BEC2} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
 		{4E56FDE2-AC12-43B0-8C52-F0C80512DF83} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
+		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
 	EndGlobalSection
 EndGlobal
