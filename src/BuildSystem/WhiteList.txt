@@ -115,6 +115,8 @@ Mono.CSharp.dll
 MSG00001.bin
 msvcp110.dll
 msvcr110.dll
+Newtonsoft.Json.dll
+Newtonsoft.Json.xml
 NodeTest.exe
 NodeTest.pdb
 NodeTest.exe.config
