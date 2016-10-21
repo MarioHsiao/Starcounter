@@ -14,7 +14,7 @@ namespace Starcounter.Weaver {
     /// and that the source directory is always synchronized with the
     /// target directory after a successfull weaving session.
     /// </summary>
-    internal class FileManager {
+    public class FileManager {
         readonly IWeaverHost host;
         List<string> sourceFiles;
         Dictionary<string, ModuleLoadStrategy> outdatedAssemblies;

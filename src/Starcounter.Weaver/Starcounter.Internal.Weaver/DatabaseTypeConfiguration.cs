@@ -6,7 +6,7 @@ namespace Starcounter.Internal.Weaver {
     /// Expose functionality that allows a client to ask if a given
     /// class is configured as a database type.
     /// </summary>
-    internal class DatabaseTypeConfiguration {
+    public class DatabaseTypeConfiguration {
         static DatabaseTypeConfiguration empty = new DatabaseTypeConfiguration();
         
         public const string TypeConfigFileName = "db.types";

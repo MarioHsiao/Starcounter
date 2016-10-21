@@ -10,7 +10,7 @@ namespace Starcounter.Weaver {
     /// for the weaver to use to consult if a given file is to be
     /// excluded from weaving.
     /// </summary>
-    internal class FileExclusionPolicy {
+    public class FileExclusionPolicy {
         readonly IWeaverHost host;
         readonly List<Regex> excludes = new List<Regex>();
         string[] configuredExcludes = null;

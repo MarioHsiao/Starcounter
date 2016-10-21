@@ -33,11 +33,6 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
-  <PropertyGroup>
-    <!-- Base paths to redistributables / third party files -->
-    <PostSharpRedistributables>$(OutputPath)</PostSharpRedistributables>
-    <CecilRedistributables>$(OutputPath)</CecilRedistributables>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\bin\Debug\</OutputPath>
@@ -66,77 +61,17 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="PostSharp">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="PostSharp.Hosting">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Hosting.dll</HintPath>
-    </Reference>
-    <Reference Include="PostSharp.Sdk">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Sdk.dll</HintPath>
-    </Reference>
-    <Reference Include="PostSharp.Settings">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Settings.dll</HintPath>
-    </Reference>
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeWeaver.cs" />
-    <Compile Include="CodeWeaverInsidePostSharpDomain.cs" />
-    <Compile Include="CodeWeaverModuleLoadStrategy.cs" />
-    <Compile Include="FileExclusionPolicy.cs" />
-    <Compile Include="FileManager.cs" />
-    <Compile Include="IWeaverHost.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgramCommands.cs" />
     <Compile Include="ProgramVerbosity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\AttachedInstructionWriter.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\BackingInfrastructure\AssemblySpecificationEmit.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\BackingInfrastructure\TypeSpecificationEmit.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\CastHelper.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\DatabaseTypeConfiguration.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\DatabaseTypePolicy.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\DbStateMethodProvider.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\DynamicTypesHelper.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\EntityConstructorCallAdvice.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\EqualityImpl\ImplementsEquality.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\HashHelper.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\IMessageHandler.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\IMethodLevelAdvice.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\InsteadOfFieldAccessAdvice.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\IObjectViewImpl\ImplementsIObjectProxy.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Starcounter.Internal.Weaver\DatabaseClassInitCallMethodAdvice.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\PostSharpExtensions.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\ScAnalysisTask.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\ScAnalysisTrace.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\ScCopyTask.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\ScEnhanceThreadingTask.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\ScMessageSource.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\ScTouchTask.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\ScTransactionScopeTask.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\ScTransformTask.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\ScTransformTrace.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\WeaverCache.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\WeaverNamingConventions.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\WeaverSchemaExtensions.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\WeaverUtilities.cs" />
-    <Compile Include="Utils.cs" />
     <Compile Include="WeaverHost.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <RuntimeFile Include="Starcounter.Internal.Weaver\ScAnalyze.psplugin" />
-    <RuntimeFile Include="Starcounter.Internal.Weaver\ScAnalyzeOnly.psproj" />
-    <RuntimeFile Include="Starcounter.Internal.Weaver\ScIgnore.psproj" />
-    <RuntimeFile Include="Starcounter.Internal.Weaver\ScRuntime.psplugin" />
-    <RuntimeFile Include="Starcounter.Internal.Weaver\ScTransform.psproj">
-      <SubType>Designer</SubType>
-    </RuntimeFile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Server\Starcounter.CLI\Starcounter.CLI.csproj">
@@ -155,14 +90,10 @@
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Starcounter.Internal.Weaver\Messages.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Starcounter.Internal.Weaver\Postsharp.license">
-      <LogicalName>Sc.Postsharp.license</LogicalName>
-    </EmbeddedResource>
+	<ProjectReference Include="..\Starcounter.Weaver\Starcounter.Weaver.csproj">
+      <Project>{4E56FDE2-AC12-43B0-8C52-F0C80512DF83}</Project>
+      <Name>Starcounter.Weaver</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -173,7 +104,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Target Name="AfterBuild">
-    <Copy DestinationFolder="$(OutputPath)" SourceFiles="@(RuntimeFile)" SkipUnchangedFiles="true" />
-  </Target>
 </Project>

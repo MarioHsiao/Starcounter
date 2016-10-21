@@ -1,10 +1,8 @@
 ﻿
-using PostSharp.Extensibility;
 using Sc.Server.Weaver.Schema;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
-using Starcounter.Internal.Weaver;
 using System;
 using System.CodeDom.Compiler;
 using System.Diagnostics;
@@ -192,6 +190,7 @@ namespace Starcounter.Weaver
             weaver.DisableEditionLibraries = arguments.ContainsFlag("DisableEditionLibraries".ToLower());
             weaver.EmitBootAndFinalizationDiagnostics = host.OutputVerbosity == Verbosity.Diagnostic;
             weaver.IncludeLocationInErrorMessages = host.ShouldCreateParceledErrors;
+            weaver.EnableTracing = host.OutputVerbosity == Verbosity.Diagnostic;
 
             // Invoke the weaver subsystem. If it fails, it will report the
             // error itself.
@@ -326,11 +325,6 @@ namespace Starcounter.Weaver
                 }
             }
             
-            if (host.OutputVerbosity == Verbosity.Diagnostic) {
-                PostSharpTrace.EnableCategory(ScAnalysisTrace.Instance);
-                PostSharpTrace.EnableCategory(ScTransformTrace.Instance);
-            }
-
             if (arguments.TryGetProperty("errorparcelid", out propertyValue)) {
                 host.ErrorParcelID = propertyValue;
             }
