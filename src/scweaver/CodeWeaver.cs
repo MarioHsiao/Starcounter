@@ -175,8 +175,20 @@ namespace Starcounter.Weaver
         /// </summary>
         public bool EmitBootAndFinalizationDiagnostics { get; set; }
 
+        /// <summary>
+        /// Instruct the weaver to always include a location when writing errors to
+        /// the host.
+        /// </summary>
+        public bool IncludeLocationInErrorMessages { get; set; }
         
-
+        /// <summary>
+        /// Initialize a new <see cref="CodeWeaver"/> instance.
+        /// </summary>
+        /// <param name="host">The weaver host</param>
+        /// <param name="directory">Directory if inputs.</param>
+        /// <param name="file">Main assembly file to be weaved.</param>
+        /// <param name="outputDirectory">Output directory to write weaved results to.</param>
+        /// <param name="cacheDirectory">Cache directory to use</param>
         public CodeWeaver(IWeaverHost host, string directory, string file, string outputDirectory, string cacheDirectory) {
             if (host == null)
             {
@@ -529,7 +541,7 @@ namespace Starcounter.Weaver
                         // Append location information at the end of the message if we
                         // are instructed to create error message parcels.
 
-                        if (Program.IsCreatingParceledErrors) {
+                        if (IncludeLocationInErrorMessages) {
                             // Every parceled error message should contain a file location
                             // by protocol. If the information is lacking, we still create
                             // an empty location.

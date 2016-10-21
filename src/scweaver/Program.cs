@@ -23,6 +23,10 @@ namespace Starcounter.Weaver
         public int MaxErrors { get; set; }
         public int ErrorCount { get; set; }
 
+        public bool ShouldCreateParceledErrors {
+            get { return !string.IsNullOrEmpty(ErrorParcelID); }
+        }
+
         public WeaverHost()
         {
             OutputVerbosity = Verbosity.Default;
@@ -33,7 +37,10 @@ namespace Starcounter.Weaver
 
         public void WriteDebug(string message, params object[] parameters)
         {
-            throw new NotImplementedException();
+            if (OutputVerbosity < Verbosity.Diagnostic)
+                return;
+
+            WriteWithColor(Console.Out, ConsoleColor.DarkGray, message, parameters);
         }
 
         public void WriteError(uint errorCode, string message, params object[] parameters)
@@ -52,12 +59,18 @@ namespace Starcounter.Weaver
 
         public void WriteInformation(string message, params object[] parameters)
         {
-            throw new NotImplementedException();
+            if (OutputVerbosity < Verbosity.Verbose)
+                return;
+
+            WriteWithColor(Console.Out, ConsoleColor.White, message, parameters);
         }
 
         public void WriteWarning(string message, params object[] parameters)
         {
-            throw new NotImplementedException();
+            if (OutputVerbosity < Verbosity.Minimal)
+                return;
+
+            WriteWithColor(Console.Out, ConsoleColor.Yellow, message, parameters);
         }
 
         void InternalWriteError(string message, params object[] parameters)
@@ -111,16 +124,7 @@ namespace Starcounter.Weaver
     }
 
     class Program {
-
-        public static Verbosity OutputVerbosity = Verbosity.Default;
-        static string ErrorParcelID = string.Empty;
-
-        // Parcels are a thing of the CLI host, not the engine. Resolve.
-        // TODO:
-        internal static bool IsCreatingParceledErrors {
-            get { return !string.IsNullOrEmpty(Program.ErrorParcelID); }
-        }
-
+        
         static void Main(string[] args) {
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
 
@@ -294,6 +298,7 @@ namespace Starcounter.Weaver
             weaver.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
             weaver.DisableEditionLibraries = arguments.ContainsFlag("DisableEditionLibraries".ToLower());
             weaver.EmitBootAndFinalizationDiagnostics = host.OutputVerbosity == Verbosity.Diagnostic;
+            weaver.IncludeLocationInErrorMessages = host.ShouldCreateParceledErrors;
 
             // Invoke the weaver subsystem. If it fails, it will report the
             // error itself.
@@ -395,7 +400,7 @@ namespace Starcounter.Weaver
 
             if (arguments.ContainsFlag("sc-debug")) {
                 if (Debugger.IsAttached)
-                    WriteDebug("A debugger is already attached to the process.");
+                    host.WriteDebug("A debugger is already attached to the process.");
                 else {
                     bool debuggerAttached;
                     try {
@@ -405,7 +410,7 @@ namespace Starcounter.Weaver
                     }
 
                     if (!debuggerAttached)
-                        WriteWarning("Unable to attach a debugger.");
+                        host.WriteWarning("Unable to attach a debugger.");
                 }
             }
 
@@ -427,7 +432,7 @@ namespace Starcounter.Weaver
                         throw ErrorCode.ToException(Error.SCERRBADCOMMANDLINESYNTAX, string.Format("Unknown verbosity: {0}", propertyValue));
                 }
             }
-
+            
             if (host.OutputVerbosity == Verbosity.Diagnostic) {
                 PostSharpTrace.EnableCategory(ScAnalysisTrace.Instance);
                 PostSharpTrace.EnableCategory(ScTransformTrace.Instance);
@@ -637,93 +642,6 @@ namespace Starcounter.Weaver
             }
 
             Console.WriteLine();
-        }
-       
-        /// <summary>
-        /// Writes a debug message to the console, if the verbosity level of
-        /// the program is letting it through.
-        /// </summary>
-        /// <param name="message">Message to write.</param>
-        /// <param name="parameters">Possible message arguments.</param>
-        internal static void WriteDebug(string message, params object[] parameters) {
-            if (Program.OutputVerbosity < Verbosity.Diagnostic)
-                return;
-
-            WriteWithColor(Console.Out, ConsoleColor.DarkGray, message, parameters);
-        }
-
-        /// <summary>
-        /// Writes an information message to the console, if the verbosity level of
-        /// the program is letting it through.
-        /// </summary>
-        /// <param name="message">Message to write.</param>
-        /// <param name="parameters">Possible message arguments.</param>
-        internal static void WriteInformation(string message, params object[] parameters) {
-            if (Program.OutputVerbosity < Verbosity.Verbose)
-                return;
-
-            WriteWithColor(Console.Out, ConsoleColor.White, message, parameters);
-        }
-
-        /// <summary>
-        /// Writes a warning message to the console, if the verbosity level of
-        /// the program is letting it through.
-        /// </summary>
-        /// <param name="message">Message to write.</param>
-        /// <param name="parameters">Possible message arguments.</param>
-        internal static void WriteWarning(string message, params object[] parameters) {
-            if (Program.OutputVerbosity < Verbosity.Minimal)
-                return;
-
-            WriteWithColor(Console.Out, ConsoleColor.Yellow, message, parameters);
-        }
-
-        /// <summary>
-        /// Writes a error message to the console, if the verbosity level of
-        /// the program is letting it through.
-        /// </summary>
-        /// <param name="message">Message to write.</param>
-        /// <param name="parameters">Possible message arguments.</param>
-        internal static void WriteError(string message, params object[] parameters) {
-            if (Program.OutputVerbosity < Verbosity.Minimal)
-                return;
-
-            if (!string.IsNullOrEmpty(Program.ErrorParcelID)) {
-                WriteParcel(Program.ErrorParcelID, Console.Error, message, parameters);
-            }
-
-            WriteWithColor(Console.Error, ConsoleColor.Red, message, parameters);
-        }
-
-        private static void WriteParcel(
-            string parcelID,
-            TextWriter stream,
-            string message,
-            params object[] parameters) {
-            message = ParcelledError.Format(parcelID, message);
-            WriteWithColor(
-                stream,
-                ConsoleColor.DarkBlue,
-                message,
-                parameters
-                );
-        }
-
-        /// <summary>
-        /// Writes a message to the console, to the specific stream, using
-        /// a specified color.
-        /// </summary>
-        /// <param name="stream">The console stream to write to.</param>
-        /// <param name="color">The color to use.</param>
-        /// <param name="message">Message to write.</param>
-        /// <param name="parameters">Possible message arguments.</param>
-        private static void WriteWithColor(TextWriter stream, ConsoleColor color, string message, params object[] parameters) {
-            Console.ForegroundColor = color;
-            try {
-                stream.WriteLine(message, parameters);
-            } finally {
-                Console.ResetColor();
-            }
         }
     }
 }
