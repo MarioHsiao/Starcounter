@@ -15,6 +15,7 @@ namespace Starcounter.Weaver {
     /// target directory after a successfull weaving session.
     /// </summary>
     internal class FileManager {
+        readonly IWeaverHost host;
         List<string> sourceFiles;
         Dictionary<string, ModuleLoadStrategy> outdatedAssemblies;
         List<string> filesToCopy;
@@ -40,14 +41,15 @@ namespace Starcounter.Weaver {
             private set;
         }
 
-        private FileManager(string sourceDir, string targetDir, WeaverCache cache) {
+        private FileManager(IWeaverHost weaverHost, string sourceDir, string targetDir, WeaverCache cache) {
+            host = weaverHost;
             SourceDirectory = sourceDir;
             TargetDirectory = targetDir;
             Cache = cache;
             sourceFiles = new List<string>();
             outdatedAssemblies = new Dictionary<string, ModuleLoadStrategy>();
             filesToCopy = new List<string>();
-            exclusionPolicy = new FileExclusionPolicy(sourceDir);
+            exclusionPolicy = new FileExclusionPolicy(weaverHost, sourceDir);
             presentTargetFiles = new List<string>();
             editionLibriesIndex = -1;
         }
@@ -59,12 +61,13 @@ namespace Starcounter.Weaver {
         /// assemblies considered outdated and also to synchronized the source and
         /// the target directores.
         /// </summary>
+        /// <param name="host">The weaver host</param>
         /// <param name="sourceDir">The source directory.</param>
         /// <param name="targetDir">The target directory.</param>
         /// <param name="cache">The cache</param>
         /// <returns>An open file manager instance.</returns>
-        public static FileManager Open(string sourceDir, string targetDir, WeaverCache cache) {
-            return new FileManager(sourceDir, targetDir, cache).Open();
+        public static FileManager Open(IWeaverHost host, string sourceDir, string targetDir, WeaverCache cache) {
+            return new FileManager(host, sourceDir, targetDir, cache).Open();
         }
 
         /// <summary>

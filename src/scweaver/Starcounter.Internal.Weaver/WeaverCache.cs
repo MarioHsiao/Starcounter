@@ -20,6 +20,8 @@ namespace Starcounter.Internal.Weaver {
     /// </summary>
     /// <remarks>This class is not thread-safe.</remarks>
     public sealed class WeaverCache {
+        readonly IWeaverHost host;
+
         /// <summary>
         /// Represents the result of an assembly extracted from the weaver
         /// cache.
@@ -171,16 +173,19 @@ namespace Starcounter.Internal.Weaver {
         /// <summary>
         /// Initializes a <see cref="WeaverCache" /> instance.
         /// </summary>
+        /// <param name="weaverHost">The weaver host</param>
         /// <param name="cacheDirectory">The directory possibly holding cached files.</param>
         /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         /// <remarks>After a schema instance has been created, it includes the
         /// built-in Starcounter assembly only. To populate the cache,
         /// use the <see cref="Extract" /> method.</remarks>
-        public WeaverCache(string cacheDirectory) {
+        public WeaverCache(IWeaverHost weaverHost, string cacheDirectory) {
             if (!Directory.Exists(cacheDirectory))
                 throw new DirectoryNotFoundException(string.Format("Directory {0} does not exist."));
 
-            this.CacheDirectory = cacheDirectory;
+            host = weaverHost;
+            CacheDirectory = cacheDirectory;
+
             Initialize();
         }
 

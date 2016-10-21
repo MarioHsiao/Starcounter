@@ -282,7 +282,7 @@ namespace Starcounter.Weaver
                 return false;
             }
 
-            var fm = FileManager = FileManager.Open(InputDirectory, OutputDirectory, Cache);
+            var fm = FileManager = FileManager.Open(Host, InputDirectory, OutputDirectory, Cache);
 
             if (EmitBootAndFinalizationDiagnostics) {
                 BootDiagnose();
@@ -449,7 +449,7 @@ namespace Starcounter.Weaver
 
             // Create the cache
 
-            this.Cache = new WeaverCache(this.CacheDirectory);
+            this.Cache = new WeaverCache(Host, this.CacheDirectory);
             this.Cache.Disabled = this.DisableWeaverCache;
             this.Cache.AssemblySearchDirectories.Add(this.InputDirectory);
             this.Cache.AssemblySearchDirectories.Add(this.WeaverRuntimeDirectory);
