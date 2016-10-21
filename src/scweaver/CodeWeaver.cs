@@ -24,6 +24,11 @@ namespace Starcounter.Weaver
         const string WeaverProjectFileName = "ScTransform.psproj";
         
         ProjectInvocationParameters lastProject = null;
+        string TempDirectoryPath;
+        string AnalyzerProjectFile;
+        string WeaverProjectFile;
+        WeaverCache Cache;
+        List<AssemblyName> activelyReferencedAssemblies;
 
         /// <summary>
         /// Gets a reference to the currently executing code weaver.
@@ -159,52 +164,18 @@ namespace Starcounter.Weaver
         public string WeaverRuntimeDirectory { get; set; }
 
         /// <summary>
-        /// Temporary directory used by the transformation engine.
-        /// </summary>
-        private string TempDirectoryPath;
-
-        /// <summary>
-        /// Gets the path to the analyser project file, once resolved. This
-        /// file is used when we are running analysis only (.i.e no transformation).
-        /// </summary>
-        /// <remarks>
-        /// The value is the full path to the file.
-        /// </remarks>
-        private string AnalyzerProjectFile;
-
-        /// <summary>
-        /// Gets the path to the weaver project file, once resolved. This
-        /// file is use when we need to transform assemblies.
-        /// </summary>
-        /// <remarks>
-        /// The value is the full path to the file.
-        /// </remarks>
-        private string WeaverProjectFile;
-
-        /// <summary>
         /// Gets the file manager used by the current weaver.
         /// </summary>
         public FileManager FileManager { get; private set; }
 
-        /// <summary>
-        /// Holds a reference to the weaver cache we'll use when the weaver
-        /// executes.
-        /// </summary>
-        private WeaverCache Cache;
-
-        /// <summary>
-        /// List of assemblies actually referenced from any other assembly
-        /// processed by the weaver.
-        /// </summary>
-        List<AssemblyName> activelyReferencedAssemblies;
 
         /// <summary>
         /// Indicates if the weaver should emit a detailed boot diagnostic message
         /// before actual weaaving kicks in, and a similar message when finalizing.
         /// </summary>
-        bool EmitBootAndFinalizationDiagnostics {
-            get { return Program.OutputVerbosity == Verbosity.Diagnostic; }
-        }
+        public bool EmitBootAndFinalizationDiagnostics { get; set; }
+
+        
 
         public CodeWeaver(IWeaverHost host, string directory, string file, string outputDirectory, string cacheDirectory) {
             if (host == null)

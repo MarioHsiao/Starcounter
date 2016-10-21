@@ -173,11 +173,6 @@ namespace Starcounter.Weaver
                 if (!File.Exists(givenFilePath)) {
                     error = Error.SCERRWEAVERFILENOTFOUND;
                     host.WriteError(error, ErrorCode.ToMessage(error, string.Format("Path: {0}.", givenFilePath)));
-
-                    
-                    //ReportProgramError(
-                    //    error,
-                    //    ErrorCode.ToMessage(error, string.Format("Path: {0}.", givenFilePath)));
                     return;
                 }
             } catch (Exception e) {
@@ -298,6 +293,7 @@ namespace Starcounter.Weaver
             weaver.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
             weaver.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
             weaver.DisableEditionLibraries = arguments.ContainsFlag("DisableEditionLibraries".ToLower());
+            weaver.EmitBootAndFinalizationDiagnostics = host.OutputVerbosity == Verbosity.Diagnostic;
 
             // Invoke the weaver subsystem. If it fails, it will report the
             // error itself.
