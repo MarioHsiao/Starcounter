@@ -63,7 +63,7 @@ namespace Administrator.Server.Managers {
                             completionCallback(PopulateApplicationsFromResponse(store, response));
                         }
                     }
-                    catch (InvalidOperationException e) {
+                    catch (Exception e) {
 
                         if (errorCallback != null) {
                             errorCallback(e.Message);

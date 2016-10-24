@@ -1,23 +1,11 @@
-﻿// ***********************************************************************
-// <copyright file="NMetadataClass.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿using System.Collections.Generic;
 using Starcounter.Templates;
-using System;
-using System.Collections.Generic;
-using TJson = Starcounter.Templates.TObject;
 
-
-namespace Starcounter.Internal.MsBuild.Codegen {
-
-
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Class NMetadataClass
     /// </summary>
     public class AstMetadataClass : AstInnerClass {
-
         /// <summary>
         /// 
         /// </summary>
@@ -25,13 +13,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public AstMetadataClass(Gen2DomGenerator gen)
             : base(gen) {
         }
-
-//        public override string ClassStemIdentifier {
-//            get {
-//                return HelperFunctions.GetClassStemIdentifier(NValueClass.NTemplateClass.Template.MetadataType);
-//            }
-//        }
-
+        
         /// <summary>
         /// Uppers the first.
         /// </summary>
@@ -44,7 +26,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <summary>
         /// The instances
         /// </summary>
-        public static Dictionary<TJson, AstClass> Instances = new Dictionary<TJson, AstClass>();
-
+        public static Dictionary<TObject, AstClass> Instances = new Dictionary<TObject, AstClass>();
     }
 }

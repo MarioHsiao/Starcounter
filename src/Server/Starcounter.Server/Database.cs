@@ -104,10 +104,11 @@ namespace Starcounter.Server {
         /// Gets or sets the instance ID connected with the
         /// current database.
         /// </summary>
-        internal ulong InstanceID {
+        internal Guid db_uuid
+        {
             get;
-            set;
-        }
+            private set;
+        }        
 
         /// <summary>
         /// Intializes a <see cref="Database"/>.
@@ -121,6 +122,7 @@ namespace Starcounter.Server {
             this.Uri = ScUri.MakeDatabaseUri(ScUri.GetMachineName(), server.Name, this.Name).ToString();
             this.Apps = new List<DatabaseApplication>();
             this.CodeHostErrorOutput = new List<string>();
+            this.db_uuid = ReadDbUUID(configuration);
         }
 
         /// <summary>
@@ -168,6 +170,21 @@ namespace Starcounter.Server {
         /// <returns></returns>
         internal Process GetRunningCodeHostProcess() {
             return Server.DatabaseEngine.Monitor.GetCodeHostProcess(this);
+        }
+
+        public static Guid ReadDbUUID(DatabaseConfiguration configuration)
+        {
+            Guid g;
+            ulong first_id;
+            ulong last_id;
+            string db_name = configuration.Name.ToUpperInvariant();
+            string db_path = configuration.Runtime.TransactionLogDirectory.TrimEnd('\\');
+
+            if ( sccoredb.sccoredb_get_db_info_by_path( db_name, db_path, out g, out first_id, out last_id) != 0 )
+                throw new InvalidConfigurationException( 
+                        string.Format("Cannot retrive database uuid. Database name: {0}, path: {1}", db_name, db_path));
+
+            return g;
         }
     }
 }

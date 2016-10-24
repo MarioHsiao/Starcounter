@@ -105,6 +105,7 @@ namespace Starcounter {
                 }
                 this.pendingEnumeration = false;
             }
+
             parent?.CallHasChanged(template);
         }
 

@@ -205,7 +205,7 @@ namespace Starcounter.Internal.XSON.Tests {
             byte[] patchBytes;
             TObject schema;
 
-            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            schema = (TObject)Template.CreateFromMarkup("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
             var session = new Session(SessionOptions.StrictPatchRejection);
             session.Data = json;
@@ -266,7 +266,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             handledCount = 0;
 
-            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            schema = (TObject)Template.CreateFromMarkup("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
             var session = new Session();
             session.Data = json;
@@ -451,7 +451,7 @@ namespace Starcounter.Internal.XSON.Tests {
             TObject tJson;
             TString tValue;
 
-            tJson = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            tJson = (TObject)Template.CreateFromMarkup("json", File.ReadAllText("json\\simple.json"), "Simple");
             tValue = (TString)tJson.Properties[1];
             json = (Json)tJson.CreateInstance();
             session = new Session(SessionOptions.PatchVersioning);
@@ -506,7 +506,7 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestAlreadyApplied() {
             // arrange
-            var tJson = Template.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            var tJson = (TObject)Template.CreateFromMarkup("json", File.ReadAllText("json\\simple.json"), "Simple");
             var json = (Json)tJson.CreateInstance();
             new Session(SessionOptions.PatchVersioning) {Data = json}; // establishes itself as current session
             var version = json.ChangeLog.Version;

@@ -1,13 +1,11 @@
-﻿
-using Starcounter.Templates;
-namespace Starcounter.Internal.MsBuild.Codegen {
+﻿using Starcounter.Templates;
 
+namespace Starcounter.XSON.PartialClassGenerator {
     public class AstTemplateClass : AstInnerClass {
         public AstTemplateClass(Gen2DomGenerator gen)
             : base(gen) {
         }
-
-
+        
         private Template _Template;
 
         /// <summary>
@@ -23,8 +21,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 _Template = value;
             }
         }
-
-
+        
 //        public override string ClassStemIdentifier {
 //            get {
 //                return HelperFunctions.GetClassStemIdentifier(Template.GetType());

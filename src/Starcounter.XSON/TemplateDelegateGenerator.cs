@@ -179,7 +179,7 @@ namespace Starcounter.XSON {
 			Expression<Action<Json, T>> setLambda = null;
 
             try {
-                throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
+                throwException = (property.BindingStrategy == BindingStrategy.Bound);
 
                 string bind = property.Bind;
                 boundDirectlyToData = (property == json.Template);
@@ -248,7 +248,7 @@ namespace Starcounter.XSON {
                 if (bind == null)
                     return;
 
-                throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
+                throwException = (property.BindingStrategy == BindingStrategy.Bound);
                 bInfo = DataBindingHelper.SearchForBinding(json, bind, property, throwException);
                 if (bInfo.Member != null) {
                     getLambda = GenerateBoundGetExpression<object>(bInfo, property);
@@ -298,7 +298,7 @@ namespace Starcounter.XSON {
                 if (bind == null)
                     return;
 
-                throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
+                throwException = (property.BindingStrategy == BindingStrategy.Bound);
                 bInfo = DataBindingHelper.SearchForBinding(json, bind, property, throwException);
 
                 if (property.ElementType == null) {

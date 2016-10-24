@@ -168,15 +168,21 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node) {
-            // By design: Let's not invoke base visitor, since we don't need to analyze 
-            // anything else about it, and we provide a faster execution if we don't.
-
+            // We continue to visit the static constructor since we need to parse type assignments
+            // for templates to support changing the default templatetype that comes from 
+            // Json-by-example and support some syntax for reuse of existing TypedJSON.
             var isStatic = node.Modifiers.Any((t) => t.Kind() == SyntaxKind.StaticKeyword);
             if (!isStatic) {
                 throw IllegalCodeBehindException(InvalidCodeBehindError.DefineInstanceConstructor, node);
             }
+
+            base.VisitConstructorDeclaration(node);
         }
 
+        public override void VisitAssignmentExpression(AssignmentExpressionSyntax node) {
+            DiscoverTemplateInstanceTypeAssignment(node);
+        }
+        
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node) {
             // By design: Let's not invoke base visitor, since we don't need to analyze 
             // anything else about it, and we provide a faster execution if we don't.
@@ -291,6 +297,59 @@ namespace Starcounter.XSON.PartialClassGenerator {
         void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, QualifiedNameSyntax name) {
         }
 
+        /// <summary>
+        /// Finds and stores all assignments of property 'InstanceType'. All other assignments 
+        /// are ignored.
+        /// </summary>
+        /// <remarks>
+        /// To keep the logic for detecting assignments and getting path and typeinformation
+        /// simple some restrictions are needed on how the assignement can look.
+        /// 1) The path for the template needs to start with the static field 'DefaultTemplate'
+        /// 2) The type that is assigned needs to be retrieved using the 'typeof(...)' operator.
+        /// </remarks>
+        /// <param name="node"></param>
+        private void DiscoverTemplateInstanceTypeAssignment(AssignmentExpressionSyntax node) {
+            if (node.Kind() != SyntaxKind.SimpleAssignmentExpression)
+                return;
+
+            var propertySyntax = node.Left as MemberAccessExpressionSyntax;
+            if (propertySyntax == null)
+                return;
+
+            var templateSyntax = propertySyntax.Expression as MemberAccessExpressionSyntax;
+            if (templateSyntax == null)
+                return;
+
+            var propertyName = propertySyntax.Name.Identifier.ValueText;
+            if (propertyName == null || !propertyName.Equals("InstanceType"))
+                return;
+
+            // We only support assigning using the typeof() syntax, since this is the most 
+            // reasonable way for us to be able to get the name of the type. If the type
+            // is assigned to a variable, the syntaxtree will look different and we will have 
+            // to keep track of variable assignments as well.
+            var typeSyntax = node.Right as TypeOfExpressionSyntax;
+            if (typeSyntax == null)
+                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, node);
+
+            string instanceTypeName = typeSyntax.Type.ToString();
+            if (string.IsNullOrEmpty(instanceTypeName))
+                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, node);
+            
+            var templatePath = templateSyntax.ToString();
+            if (!templatePath.StartsWith("DefaultTemplate."))
+                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateTypeUnsupportedAssignment, node);
+
+            // This is an assignment of 'InstanceType' and we have a type. Lets add 
+            // everything to the metadata object so that we can handle the conversion 
+            // when generating code. Unsupported conversions will be handled there.
+            var typeAssignment = new CodeBehindTypeAssignmentInfo() {
+                TypeName = instanceTypeName,
+                TemplatePath = templatePath
+            };
+            codeBehindMetadata.InstanceTypeAssignments.Add(typeAssignment);
+        }
+
         bool IsNamedRootObject() {
             if (this.NestingClass != null) {
                 return false;
@@ -307,7 +366,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
             var generic = name.Identifier.Text;
             return generic.Equals("IBound") || generic.Equals("Starcounter.IBound");
         }
-
+        
         InvalidCodeBehindException IllegalCodeBehindException(InvalidCodeBehindError error, CSharpSyntaxNode node = null) {
             return new InvalidCodeBehindException(error, node);
         }

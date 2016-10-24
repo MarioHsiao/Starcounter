@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Advanced;
 using Starcounter.Templates;
+using Starcounter.XSON.Templates.Factory;
 using Starcounter.XSON.Tests;
 using CJ = Starcounter.Internal.XSON.Tests.CompiledJson;
 
@@ -69,7 +70,7 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestJsonWithSingleValue() {
             string jsonStr = @"19";
-            TLong template = Template.CreateFromMarkup(jsonStr) as TLong;
+            TLong template = Template.CreateFromJson(jsonStr) as TLong;
 
             Assert.IsNotNull(template);
             var json = (Json)template.CreateInstance();
@@ -84,7 +85,7 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestJsonWithSingleArray() {
             string jsonStr = @"[{""Apa"":""Papa""}]";
-            TObjArr template = Template.CreateFromMarkup(jsonStr) as TObjArr;
+            TObjArr template = Template.CreateFromJson(jsonStr) as TObjArr;
 
             Assert.IsNotNull(template);
             var json = (Json)template.CreateInstance();
@@ -95,7 +96,7 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestJsonWithSingleUntypedArray() {
             string jsonStr = @"[]";
-            TObjArr template = Template.CreateFromMarkup(jsonStr) as TObjArr;
+            TObjArr template = Template.CreateFromJson(jsonStr) as TObjArr;
 
             Assert.IsNotNull(template);
             var json = (Json)template.CreateInstance();
@@ -177,7 +178,7 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestNegativeNumberParsing() {
             var jsonStr = @"{""NegInt"":-2,""PosInt"":13,""NegDbl"":-2e2,""PosDbl"":1e5,""NegDec"":-3.5,""PosDec"":3.456}";
-            var schema = TObject.CreateFromJson(jsonStr);
+            var schema = (TObject)Template.CreateFromJson(jsonStr);
 
             dynamic json = schema.CreateInstance();
 
@@ -809,25 +810,25 @@ namespace Starcounter.Internal.XSON.Tests {
             TValue template;
 
             string json = @"{""Name with space"":1}";
-            var ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+            var ex = Assert.Throws<TemplateFactoryException>(
                 () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
             );
             Helper.ConsoleWriteLine(ex.Message);
 
             json = @"{""7Name--with .dea@"":1}";
-            ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+            ex = Assert.Throws<TemplateFactoryException>(
                 () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
             );
             Helper.ConsoleWriteLine(ex.Message);
 
             json = @"{""£blhaha"":1}";
-            ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+            ex = Assert.Throws<TemplateFactoryException>(
                 () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
             );
             Helper.ConsoleWriteLine(ex.Message);
 
             json = @"{""blhaha@1"":1}";
-            ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+            ex = Assert.Throws<TemplateFactoryException>(
                 () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
             );
             Helper.ConsoleWriteLine(ex.Message);
@@ -870,7 +871,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestArrayInArray_3554() {
             var jsonStr = @"{""Items"": [ [ 3 ] ] }";
 
-            TObject schema = (TObject)TObject.CreateFromMarkup(jsonStr);
+            TObject schema = (TObject)Template.CreateFromJson(jsonStr);
 
             Assert.AreEqual(1, schema.Properties.Count);
             Assert.IsInstanceOf(typeof(TObjArr), schema.Properties[0]);

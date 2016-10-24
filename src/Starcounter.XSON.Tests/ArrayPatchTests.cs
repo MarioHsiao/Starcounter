@@ -96,8 +96,10 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]       
 		public static void ReplaceAnElementInAnArray() {
             string debugString;
-            TObject schema = new TObject() { ClassName = "Person" };
-            TObject friendSchema = new TObject() { ClassName = "Friend" };
+            TObject schema = new TObject();
+            schema.CodegenInfo.ClassName = "Person";
+            TObject friendSchema = new TObject();
+            friendSchema.CodegenInfo.ClassName = "Friend";
 
             schema.Add<TString>("FirstName");
             schema.Add<TArray<Json>>("Friends",friendSchema);
@@ -499,7 +501,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestArrayChangesWithBoundNullData() {
-            var tSchema = new TObject() { ClassName = "ObjWithArr" };
+            var tSchema = new TObject();
+            tSchema.CodegenInfo.ClassName = "ObjWithArr";
             var tItems = tSchema.Add<TObjArr>("Items");
             tItems.BindingStrategy = BindingStrategy.Auto;
             tItems.ElementType = new TString() { BindingStrategy = BindingStrategy.Auto };
@@ -528,7 +531,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestArrayChangesWithBoundData() {
-            var tSchema = new TObject() { ClassName = "ObjWithArr" };
+            var tSchema = new TObject();
+            tSchema.CodegenInfo.ClassName = "ObjWithArr";
             var tItems = tSchema.Add<TObjArr>("Items");
             tItems.BindingStrategy = BindingStrategy.Auto;
             tItems.ElementType = new TLong() { BindingStrategy = BindingStrategy.Auto };
@@ -664,7 +668,8 @@ namespace Starcounter.Internal.XSON.Tests {
         // build but nice to have the code. 
         //        [Test]
         public static void BenchmarkArrayChangesWithBoundData() {
-            var tSchema = new TObject() { ClassName = "ObjWithArr" };
+            var tSchema = new TObject();
+            tSchema.CodegenInfo.ClassName = "ObjWithArr";
             var tItems = tSchema.Add<TObjArr>("Items");
             tItems.BindingStrategy = BindingStrategy.Auto;
             tItems.ElementType = new TLong() { BindingStrategy = BindingStrategy.Auto };

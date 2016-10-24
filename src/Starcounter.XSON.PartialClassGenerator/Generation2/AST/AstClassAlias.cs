@@ -1,9 +1,5 @@
-﻿
-
-namespace Starcounter.Internal.MsBuild.Codegen {
-
+﻿namespace Starcounter.XSON.PartialClassGenerator {
     public class AstClassAlias : AstBase {
-
         public string Alias;
         public string Specifier;
 
