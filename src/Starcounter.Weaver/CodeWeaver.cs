@@ -190,16 +190,17 @@ namespace Starcounter.Weaver
         /// Initialize a new <see cref="CodeWeaver"/> instance.
         /// </summary>
         /// <param name="host">The weaver host</param>
-        /// <param name="directory">Directory if inputs.</param>
+        /// <param name="directory">Directory with inputs.</param>
         /// <param name="file">Main assembly file to be weaved.</param>
         /// <param name="outputDirectory">Output directory to write weaved results to.</param>
         /// <param name="cacheDirectory">Cache directory to use</param>
         public CodeWeaver(IWeaverHost host, string directory, string file, string outputDirectory, string cacheDirectory) {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-
+            Guard.NotNull(host, nameof(host));
+            Guard.DirectoryExists(directory, nameof(directory));
+            Guard.FileExistsInDirectory(file, directory, nameof(file));
+            Guard.DirectoryExists(outputDirectory, nameof(outputDirectory));
+            Guard.DirectoryExists(cacheDirectory, nameof(cacheDirectory));
+            
             this.Host = host;
             this.InputDirectory = directory;
             this.OutputDirectory = outputDirectory;
