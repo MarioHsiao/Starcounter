@@ -19,7 +19,7 @@ namespace Starcounter.Internal
         {
             if (value == null)
             {
-                throw new ArgumentNullException($"Parameter {parameterName} can not be null.");
+                throw new ArgumentNullException(parameterName, $"Parameter {parameterName} can not be null.");
             }
         }
 
@@ -35,7 +35,7 @@ namespace Starcounter.Internal
 
             if (string.IsNullOrEmpty(value))
             {
-                throw new ArgumentNullException($"Parameter {parameterName} can not be empty.");
+                throw new ArgumentNullException(parameterName, $"Parameter {parameterName} can not be empty.");
             }
         }
 
@@ -67,7 +67,7 @@ namespace Starcounter.Internal
             Guard.NotNullOrEmpty(file, parameterName);
             if (!File.Exists(file))
             {
-                throw new FileNotFoundException($"File {file}, given by {parameterName}, does not exist.");
+                throw new FileNotFoundException($"File {file}, given by {parameterName}, does not exist.", file);
             }
         }
 
@@ -96,7 +96,7 @@ namespace Starcounter.Internal
             var full = Path.Combine(directory, file);
             if (!File.Exists(full))
             {
-                throw new FileNotFoundException($"File {file} in directory {directory}, given by {parameterName}, does not exist.");
+                throw new FileNotFoundException($"File {file} in directory {directory}, given by {parameterName}, does not exist.", file);
             }
         }
     }
