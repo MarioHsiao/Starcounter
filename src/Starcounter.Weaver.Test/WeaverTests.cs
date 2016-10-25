@@ -115,29 +115,17 @@ namespace Starcounter.Weaver.Test
 
             var result = compiler.Compile();
 
-            IWeaver weaver = null;
-            try
+            using (var resourceGuard = new WeaverResourceGuard())
             {
-                var outDir = Path.Combine(result.OutputDirectory, ".weaved");
-                var weaverCache = Path.Combine(result.OutputDirectory, ".weavercache");
-                Directory.CreateDirectory(outDir);
-                Directory.CreateDirectory(weaverCache);
+                resourceGuard.Add(result);
 
-                var weaverSetup = new WeaverSetup()
-                {
-                    InputDirectory = result.OutputDirectory,
-                    AssemblyFile = result.ApplicationPath,
-                    OutputDirectory = outDir,
-                    CacheDirectory = weaverCache
-                };
+                var setup = CreateDefaultWeaverSetupFromCompiler(result);
+                setup.DisableEditionLibraries = true;
 
-                weaver = WeaverFactory.CreateWeaver(weaverSetup, new DefaultTestWeaverHost());
+                resourceGuard.Add(setup);
+
+                var weaver = WeaverFactory.CreateWeaver(setup, new DefaultTestWeaverHost());
                 weaver.Execute();
-                Assert.IsTrue(true);
-            }
-            finally
-            {
-                SafeCleanupCompilationAndWeaverResult(result, weaver);
             }
         }
 
@@ -151,95 +139,36 @@ namespace Starcounter.Weaver.Test
 
             var result = compiler.Compile();
 
-            IWeaver weaver = null;
-            try
+            using (var resourceGuard = new WeaverResourceGuard())
             {
-                var outDir = Path.Combine(result.OutputDirectory, ".weaved");
-                var weaverCache = Path.Combine(result.OutputDirectory, ".weavercache");
-                Directory.CreateDirectory(outDir);
-                Directory.CreateDirectory(weaverCache);
-                
-                var weaverSetup = new WeaverSetup()
-                {
-                    InputDirectory = result.OutputDirectory,
-                    AssemblyFile = result.ApplicationPath,
-                    OutputDirectory = outDir,
-                    CacheDirectory = weaverCache
-                };
+                resourceGuard.Add(result);
 
-                weaver = WeaverFactory.CreateWeaver(weaverSetup, typeof(DefaultTestWeaverHost));
+                var setup = CreateDefaultWeaverSetupFromCompiler(result);
+                setup.DisableEditionLibraries = true;
+
+                resourceGuard.Add(setup);
+
+                var weaver = WeaverFactory.CreateWeaver(setup, typeof(DefaultTestWeaverHost));
                 weaver.Execute();
-                var weaverResult = true;
-                Assert.IsTrue(weaverResult);
-            }
-            finally
-            {
-                SafeCleanupCompilationAndWeaverResult(result, weaver);
             }
         }
 
-        static void SafeCleanupCompilationAndWeaverResult(AppCompilerResult compilerResult, IWeaver weaver)
+        static WeaverSetup CreateDefaultWeaverSetupFromCompiler(AppCompilerResult result)
         {
-            if (compilerResult != null)
-            {
-                SafeCleanupCompilationResult(compilerResult);
-            }
+            var outDir = Path.Combine(result.OutputDirectory, ".weaved");
+            var weaverCache = Path.Combine(result.OutputDirectory, ".weavercache");
+            Directory.CreateDirectory(outDir);
+            Directory.CreateDirectory(weaverCache);
 
-            if (weaver != null)
+            var weaverSetup = new WeaverSetup()
             {
-                SafeCleanupWeaverResult(weaver);
-            }
-        }
+                InputDirectory = result.OutputDirectory,
+                AssemblyFile = result.ApplicationPath,
+                OutputDirectory = outDir,
+                CacheDirectory = weaverCache
+            };
 
-        static void SafeCleanupCompilationResult(AppCompilerResult compilerResult, bool deleteTopLevelDirectory = true)
-        {
-            SafeDeleteFile(compilerResult.ApplicationPath);
-            SafeDeleteFile(compilerResult.SymbolFilePath);
-            if (deleteTopLevelDirectory)
-            {
-                SafeDeleteDirectory(compilerResult.OutputDirectory);
-            }
-        }
-
-        static void SafeCleanupWeaverResult(IWeaver weaver)
-        {
-            SafeDeleteDirectory(weaver.Setup.OutputDirectory, true);
-        }
-
-        static bool? SafeDeleteFile(string file)
-        {
-            if (!File.Exists(file))
-            {
-                return null;
-            }
-
-            try
-            {
-                File.Delete(file);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        static bool? SafeDeleteDirectory(string directory, bool recursively = false)
-        {
-            if (!Directory.Exists(directory))
-            {
-                return null;
-            }
-
-            try
-            {
-                Directory.Delete(directory, recursive: recursively);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return weaverSetup;
         }
     }
 }
