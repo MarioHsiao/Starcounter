@@ -21,69 +21,88 @@ namespace Starcounter.Weaver.Test
             Assert.True(!Directory.Exists(nonExistingDir));
             Assert.True(!File.Exists(nonExistingFile));
 
-            var e = Assert.Throws<ArgumentNullException>(() => new CodeWeaver(
-                host: null,
-                directory: existingDir, 
-                file: existingFile, 
-                outputDirectory: existingDir, 
-                cacheDirectory : existingDir));
+            var setup = new WeaverSetup()
+            {
+                InputDirectory = existingDir,
+                AssemblyFile = existingFile,
+                OutputDirectory = nonExistingDir,
+                CacheDirectory = existingDir
+            };
+
+            var e = Assert.Throws<ArgumentNullException>(() => WeaverFactory.CreateWeaver(setup, null));
             Assert.AreEqual(e.ParamName.ToLowerInvariant(), "host");
 
-            Assert.Throws<DirectoryNotFoundException>(() => new CodeWeaver(
-                host: new DefaultTestWeaverHost(),
-                directory: nonExistingDir,
-                file: existingFile,
-                outputDirectory: existingDir,
-                cacheDirectory: existingDir));
+            setup = new WeaverSetup()
+            {
+                InputDirectory = nonExistingDir,
+                AssemblyFile = existingFile,
+                OutputDirectory = existingDir,
+                CacheDirectory = existingDir
+            };
+            Assert.Throws<DirectoryNotFoundException>(() => WeaverFactory.CreateWeaver(setup, new DefaultTestWeaverHost()));
 
-            Assert.Throws<ArgumentNullException>(() => new CodeWeaver(
-                host: new DefaultTestWeaverHost(),
-                directory: null,
-                file: existingFile,
-                outputDirectory: existingDir,
-                cacheDirectory: existingDir));
+            setup = new WeaverSetup()
+            {
+                InputDirectory = null,
+                AssemblyFile = existingFile,
+                OutputDirectory = existingDir,
+                CacheDirectory = existingDir
+            };
+            Assert.Throws<ArgumentNullException>(() => WeaverFactory.CreateWeaver(setup, new DefaultTestWeaverHost()));
 
-            Assert.Throws<DirectoryNotFoundException>(() => new CodeWeaver(
-                host: new DefaultTestWeaverHost(),
-                directory: existingDir,
-                file: existingFile,
-                outputDirectory: nonExistingDir,
-                cacheDirectory: existingDir));
+            setup = new WeaverSetup()
+            {
+                InputDirectory = existingDir,
+                AssemblyFile = existingFile,
+                OutputDirectory = nonExistingDir,
+                CacheDirectory = existingDir
+            };
+            Assert.Throws<DirectoryNotFoundException>(() => WeaverFactory.CreateWeaver(setup, new DefaultTestWeaverHost()));
 
-            Assert.Throws<ArgumentNullException>(() => new CodeWeaver(
-                host: new DefaultTestWeaverHost(),
-                directory: existingDir,
-                file: existingFile,
-                outputDirectory: null,
-                cacheDirectory: existingDir));
+            setup = new WeaverSetup()
+            {
+                InputDirectory = existingDir,
+                AssemblyFile = existingFile,
+                OutputDirectory = null,
+                CacheDirectory = existingDir
+            };
+            Assert.Throws<ArgumentNullException>(() => WeaverFactory.CreateWeaver(setup, new DefaultTestWeaverHost()));
 
-            Assert.Throws<DirectoryNotFoundException>(() => new CodeWeaver(
-                host: new DefaultTestWeaverHost(),
-                directory: existingDir,
-                file: existingFile,
-                outputDirectory: existingDir,
-                cacheDirectory: nonExistingDir));
+            setup = new WeaverSetup()
+            {
+                InputDirectory = existingDir,
+                AssemblyFile = existingFile,
+                OutputDirectory = existingDir,
+                CacheDirectory = nonExistingDir
+            };
+            Assert.Throws<DirectoryNotFoundException>(() => WeaverFactory.CreateWeaver(setup, new DefaultTestWeaverHost()));
 
-            Assert.Throws<ArgumentNullException>(() => new CodeWeaver(
-                host: new DefaultTestWeaverHost(),
-                directory: existingDir,
-                file: existingFile,
-                outputDirectory: existingDir,
-                cacheDirectory: null));
+            setup = new WeaverSetup()
+            {
+                InputDirectory = existingDir,
+                AssemblyFile = existingFile,
+                OutputDirectory = existingDir,
+                CacheDirectory = null
+            };
+            Assert.Throws<ArgumentNullException>(() => WeaverFactory.CreateWeaver(setup, new DefaultTestWeaverHost()));
 
-            Assert.Throws<FileNotFoundException>(() => new CodeWeaver(
-                host: new DefaultTestWeaverHost(),
-                directory: existingDir,
-                file: nonExistingFile,
-                outputDirectory: existingDir,
-                cacheDirectory: existingDir));
+            setup = new WeaverSetup()
+            {
+                InputDirectory = existingDir,
+                AssemblyFile = nonExistingFile,
+                OutputDirectory = existingDir,
+                CacheDirectory = existingDir
+            };
+            Assert.Throws<FileNotFoundException>(() => WeaverFactory.CreateWeaver(setup, new DefaultTestWeaverHost()));
 
-            Assert.Throws<ArgumentNullException>(() => new CodeWeaver(
-                host: new DefaultTestWeaverHost(),
-                directory: existingDir,
-                file: null,
-                outputDirectory: existingDir,
-                cacheDirectory: existingDir));
+            setup = new WeaverSetup()
+            {
+                InputDirectory = existingDir,
+                AssemblyFile = null,
+                OutputDirectory = existingDir,
+                CacheDirectory = nonExistingDir
+            };
+            Assert.Throws<ArgumentNullException>(() => WeaverFactory.CreateWeaver(setup, new DefaultTestWeaverHost()));
         }
 
         [Test]
@@ -96,7 +115,7 @@ namespace Starcounter.Weaver.Test
 
             var result = compiler.Compile();
 
-            CodeWeaver weaver = null;
+            IWeaver weaver = null;
             try
             {
                 var outDir = Path.Combine(result.OutputDirectory, ".weaved");
@@ -104,15 +123,53 @@ namespace Starcounter.Weaver.Test
                 Directory.CreateDirectory(outDir);
                 Directory.CreateDirectory(weaverCache);
 
-                weaver = new CodeWeaver(
-                    new DefaultTestWeaverHost(),
-                    result.OutputDirectory,
-                    result.ApplicationPath,
-                    outDir,
-                    weaverCache
-                );
+                var weaverSetup = new WeaverSetup()
+                {
+                    InputDirectory = result.OutputDirectory,
+                    AssemblyFile = result.ApplicationPath,
+                    OutputDirectory = outDir,
+                    CacheDirectory = weaverCache
+                };
 
-                var weaverResult = CodeWeaver.ExecuteCurrent(weaver);
+                weaver = WeaverFactory.CreateWeaver(weaverSetup, new DefaultTestWeaverHost());
+                weaver.Execute();
+                Assert.IsTrue(true);
+            }
+            finally
+            {
+                SafeCleanupCompilationAndWeaverResult(result, weaver);
+            }
+        }
+
+        [Test]
+        public void CompileAndWeaveMinimalAppInOtherDomain()
+        {
+            var compiler = new AppCompiler("app")
+                .WithDefaultReferences()
+                .WithSourceCode("class Program { static void Main() {} }")
+                .WithSourceCode("[Starcounter.Database] public class Foo { }");
+
+            var result = compiler.Compile();
+
+            IWeaver weaver = null;
+            try
+            {
+                var outDir = Path.Combine(result.OutputDirectory, ".weaved");
+                var weaverCache = Path.Combine(result.OutputDirectory, ".weavercache");
+                Directory.CreateDirectory(outDir);
+                Directory.CreateDirectory(weaverCache);
+                
+                var weaverSetup = new WeaverSetup()
+                {
+                    InputDirectory = result.OutputDirectory,
+                    AssemblyFile = result.ApplicationPath,
+                    OutputDirectory = outDir,
+                    CacheDirectory = weaverCache
+                };
+
+                weaver = WeaverFactory.CreateWeaver(weaverSetup, typeof(DefaultTestWeaverHost));
+                weaver.Execute();
+                var weaverResult = true;
                 Assert.IsTrue(weaverResult);
             }
             finally
@@ -121,7 +178,7 @@ namespace Starcounter.Weaver.Test
             }
         }
 
-        static void SafeCleanupCompilationAndWeaverResult(AppCompilerResult compilerResult, CodeWeaver weaver)
+        static void SafeCleanupCompilationAndWeaverResult(AppCompilerResult compilerResult, IWeaver weaver)
         {
             if (compilerResult != null)
             {
@@ -144,9 +201,9 @@ namespace Starcounter.Weaver.Test
             }
         }
 
-        static void SafeCleanupWeaverResult(CodeWeaver weaver)
+        static void SafeCleanupWeaverResult(IWeaver weaver)
         {
-            SafeDeleteDirectory(weaver.OutputDirectory, true);
+            SafeDeleteDirectory(weaver.Setup.OutputDirectory, true);
         }
 
         static bool? SafeDeleteFile(string file)
