@@ -12,31 +12,31 @@ namespace Starcounter.Weaver
     {
         IWeaver weaver;
 
+        public const int ErrorLoadingHostAssembly = 1;
+        public const int ErrorCreatingHostType = 2;
+
         WeaverSetup IWeaver.Setup {
             get {
                 return weaver.Setup;
             }
         }
 
-        public void Setup(WeaverSetup weaverSetup, string weaverHostTypeName, string weaverHostTypeAssembly)
+        public int Setup(WeaverSetup weaverSetup, string weaverHostTypeName, string weaverHostTypeAssembly)
         {
             var hostAssembly = GetWeaverHostAssembly(weaverHostTypeAssembly);
             if (hostAssembly == null)
             {
-                // Return specific error, allowing local domain to raise error to
-                // the caller.
-                // TODO:
+                return ErrorLoadingHostAssembly;
             }
 
-            var host = hostAssembly.CreateInstance(weaverHostTypeAssembly) as IWeaverHost;
+            var host = hostAssembly.CreateInstance(weaverHostTypeName) as IWeaverHost;
             if (host == null)
             {
-                // Return specific error, allowing local domain to raise error to
-                // the caller.
-                // TODO:
+                return ErrorCreatingHostType;
             }
 
             weaver = new CodeWeaver(weaverSetup, host);
+            return 0;
         }
 
         void IWeaver.Execute()

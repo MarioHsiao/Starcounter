@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Diagnostics;
 
 namespace Starcounter.Weaver
 {
@@ -28,7 +29,19 @@ namespace Starcounter.Weaver
                 typeof(RemoteDomainWeaver).Assembly.FullName,
                 typeof(RemoteDomainWeaver).FullName);
 
-            weaver.Setup(weaverSetup, weaverHostType.FullName, weaverHostType.Assembly.FullName);
+            var setupResult = weaver.Setup(weaverSetup, weaverHostType.FullName, weaverHostType.Assembly.FullName);
+            if (setupResult != 0)
+            {
+                if (setupResult == RemoteDomainWeaver.ErrorLoadingHostAssembly)
+                {
+                    throw new ArgumentException($"Unable to find/load assembly of {weaverHostType} in remote domain.", nameof(weaverHostType));
+                }
+                else
+                {
+                    Trace.Assert(setupResult == RemoteDomainWeaver.ErrorCreatingHostType);
+                    throw new ArgumentException($"Unable to instantiate {weaverHostType} in remote domain.", nameof(weaverHostType));
+                }
+            }
 
             setup = weaverSetup;
             remoteDomain = remoteWeaverDomain;
