@@ -44,7 +44,7 @@ namespace Starcounter.Weaver.Test
             SafeDeleteFile(compilerResult.SymbolFilePath);
             if (deleteTopLevelDirectory)
             {
-                SafeDeleteDirectory(compilerResult.OutputDirectory);
+                SafeDeleteDirectory(compilerResult.OutputDirectory, true);
             }
         }
 

@@ -156,7 +156,7 @@ namespace Starcounter.Weaver.Test
         static WeaverSetup CreateDefaultWeaverSetupFromCompiler(AppCompilerResult result)
         {
             var outDir = Path.Combine(result.OutputDirectory, ".weaved");
-            var weaverCache = Path.Combine(result.OutputDirectory, ".weavercache");
+            var weaverCache = Path.Combine(outDir, ".weavercache");
             Directory.CreateDirectory(outDir);
             Directory.CreateDirectory(weaverCache);
 
