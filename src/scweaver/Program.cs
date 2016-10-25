@@ -182,8 +182,6 @@ namespace Starcounter.Weaver
             // execute the underlying weaver engine.
 
             weaver = new CodeWeaver(host, inputDirectory, fileName, outputDirectory, cacheDirectory);
-            weaver.OutputDirectory = outputDirectory;
-            weaver.RunWeaver = true;
             weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
             weaver.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
             weaver.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
