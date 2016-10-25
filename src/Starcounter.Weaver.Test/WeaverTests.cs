@@ -25,7 +25,7 @@ namespace Starcounter.Weaver.Test
             {
                 InputDirectory = existingDir,
                 AssemblyFile = existingFile,
-                OutputDirectory = nonExistingDir,
+                OutputDirectory = existingDir,
                 CacheDirectory = existingDir
             };
 
