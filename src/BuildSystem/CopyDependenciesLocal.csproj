@@ -30,7 +30,6 @@
     <GatewayXMLs Include="..\scnetworkgateway\scripts\scnetworkgateway.sample.xml;..\scnetworkgateway\scripts\scnetworkgateway_proxy_test.xml" />
     
     <PrologSQLParserBinary Include="..\Starcounter\Query\PrologBinary\scsqlparser.exe" />
-    <ClangGatewayUriMatcherBinary Include="..\scllvm\scllvm.dll" />
 
     <LocalServiceConfig Include="..\scservicelib\config\$(ServiceConfigFile)" />
     
@@ -66,7 +65,6 @@
 	<Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ChangeLog)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayXMLs)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PrologSQLParserBinary)" DestinationFolder="$(OutputPath32)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClangGatewayUriMatcherBinary)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="!Exists('$(ServiceConfigTargetFile)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalServiceConfig)" DestinationFolder="$(OutputPathConfig)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClientFiles)" DestinationFiles="@(ClientFiles->'$(OutputPath)\ClientFiles\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(Licenses)" DestinationFiles="@(Licenses->'$(OutputPath)\Licenses\%(RecursiveDir)%(Filename)%(Extension)')" />

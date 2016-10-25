@@ -108,11 +108,6 @@
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
-    <PostBuildEvent>
-      <Command>copy /Y "$(OutputPath)\scllvm.dll" "$(MSBuildProjectDirectory)\scllvm.dll"
-copy /Y "$(OutputPath)\scllvm.lib" "$(MSBuildProjectDirectory)\scllvm.lib"
-copy /Y "$(OutputPath)\scllvm.dll" "$(StarcounterBin)\scllvm.dll"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -163,11 +158,6 @@ copy /Y "$(OutputPath)\scllvm.dll" "$(StarcounterBin)\scllvm.dll"</Command>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
-    <PostBuildEvent>
-      <Command>copy /Y "$(OutputPath)\scllvm.dll" "$(MSBuildProjectDirectory)\scllvm.dll"
-copy /Y "$(OutputPath)\scllvm.lib" "$(MSBuildProjectDirectory)\scllvm.lib"
-copy /Y "$(OutputPath)\scllvm.dll" "$(StarcounterBin)\scllvm.dll"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="scllvm.cpp" />
