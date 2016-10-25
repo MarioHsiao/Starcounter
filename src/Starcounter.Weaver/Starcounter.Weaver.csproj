@@ -84,6 +84,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CallingDomainWeaverProxy.cs" />
     <Compile Include="IWeaver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CodeWeaver.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="FileExclusionPolicy.cs" />
     <Compile Include="FileManager.cs" />
     <Compile Include="IWeaverHost.cs" />
+    <Compile Include="RemoteDomainWeaver.cs" />
     <Compile Include="Starcounter.Internal.Weaver\AttachedInstructionWriter.cs" />
     <Compile Include="Starcounter.Internal.Weaver\BackingInfrastructure\AssemblySpecificationEmit.cs" />
     <Compile Include="Starcounter.Internal.Weaver\BackingInfrastructure\TypeSpecificationEmit.cs" />
