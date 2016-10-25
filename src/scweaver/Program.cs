@@ -15,7 +15,27 @@ namespace Starcounter.Weaver
     using Error = Starcounter.Error;
 
     class Program {
-        
+
+        /// <summary>
+        /// The name of the default output directory, utilized by the weaver
+        /// when no output directory is explicitly given.
+        /// </summary>
+        /// <remarks>
+        /// If no output directory is given, the output directory will be a
+        /// subdirectory of the input directory, with this name.
+        /// </remarks>
+        const string DefaultOutputDirectoryName = ".starcounter";
+
+        /// <summary>
+        /// The name of the default cache directory, if no cache directory
+        /// is given.
+        /// </summary>
+        /// <remarks>
+        /// If no cache directory is given, the cache directory will be a
+        /// subdirectory of the output directory, with this name.
+        /// </remarks>
+        const string DefaultCacheDirectoryName = "cache";
+
         static void Main(string[] args) {
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
 
@@ -97,7 +117,7 @@ namespace Starcounter.Weaver
             // Resolve the output directory to use when transforming/weaving.
 
             if (!arguments.TryGetProperty("outdir", out outputDirectory)) {
-                outputDirectory = Path.Combine(inputDirectory, CodeWeaver.DefaultOutputDirectoryName);
+                outputDirectory = Path.Combine(inputDirectory, DefaultOutputDirectoryName);
             } else {
                 outputDirectory = Path.Combine(inputDirectory, outputDirectory);
             }
@@ -118,7 +138,7 @@ namespace Starcounter.Weaver
             // or from using the default directory.
 
             if (!arguments.TryGetProperty("cachedir", out cacheDirectory)) {
-                cacheDirectory = Path.Combine(outputDirectory, CodeWeaver.DefaultCacheDirectoryName);
+                cacheDirectory = Path.Combine(outputDirectory, DefaultCacheDirectoryName);
             } else {
                 cacheDirectory = Path.Combine(outputDirectory, cacheDirectory);
             }
@@ -176,24 +196,25 @@ namespace Starcounter.Weaver
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
-            CodeWeaver weaver;
 
-            // Create the code weaver facade and configure it properly. Then
-            // execute the underlying weaver engine.
+            var setup = new WeaverSetup()
+            {
+                InputDirectory = inputDirectory,
+                AssemblyFile = fileName,
+                OutputDirectory = outputDirectory,
+                CacheDirectory = cacheDirectory
+            };
 
-            weaver = new CodeWeaver(host, inputDirectory, fileName, outputDirectory, cacheDirectory);
-            weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
-            weaver.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
-            weaver.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
-            weaver.DisableEditionLibraries = arguments.ContainsFlag("DisableEditionLibraries".ToLower());
-            weaver.EmitBootAndFinalizationDiagnostics = host.OutputVerbosity == Verbosity.Diagnostic;
-            weaver.IncludeLocationInErrorMessages = host.ShouldCreateParceledErrors;
-            weaver.EnableTracing = host.OutputVerbosity == Verbosity.Diagnostic;
+            setup.DisableWeaverCache = arguments.ContainsFlag("nocache");
+            setup.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
+            setup.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
+            setup.DisableEditionLibraries = arguments.ContainsFlag("DisableEditionLibraries".ToLower());
+            setup.EmitBootAndFinalizationDiagnostics = host.OutputVerbosity == Verbosity.Diagnostic;
+            setup.IncludeLocationInErrorMessages = host.ShouldCreateParceledErrors;
+            setup.EnableTracing = host.OutputVerbosity == Verbosity.Diagnostic;
 
-            // Invoke the weaver subsystem. If it fails, it will report the
-            // error itself.
-
-            CodeWeaver.ExecuteCurrent(weaver);
+            var weaver = WeaverFactory.CreateWeaver(setup, host);
+            weaver.Execute();
         }
 
         /// <summary>
@@ -211,19 +232,19 @@ namespace Starcounter.Weaver
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
-            CodeWeaver weaver;
-            
-            // Create the code weaver facade and configure it properly. Then
-            // execute the underlying weaver engine.
 
-            weaver = new CodeWeaver(host, inputDirectory, fileName, outputDirectory, cacheDirectory);
-            weaver.RunWeaver = false;
-            weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
+            var setup = new WeaverSetup()
+            {
+                InputDirectory = inputDirectory,
+                AssemblyFile = fileName,
+                OutputDirectory = outputDirectory,
+                CacheDirectory = cacheDirectory
+            };
+            setup.AnalyzeOnly = true;
+            setup.DisableWeaverCache = arguments.ContainsFlag("nocache");
 
-            // Invoke the weaver subsystem. If it fails, it will report the
-            // error itself.
-
-            CodeWeaver.ExecuteCurrent(weaver);
+            var weaver = WeaverFactory.CreateWeaver(setup, host);
+            weaver.Execute();
         }
 
         static void ExecuteSchemaCommand(
