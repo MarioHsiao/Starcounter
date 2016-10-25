@@ -129,51 +129,21 @@ namespace Starcounter.Weaver
         {
             Setup = setup;
             Host = host;
+
+            if (string.IsNullOrEmpty(setup.WeaverRuntimeDirectory))
+            {
+                try
+                {
+                    setup.WeaverRuntimeDirectory = Path.GetDirectoryName(typeof(CodeWeaver).Assembly.Location);
+                }
+                catch
+                {
+                    setup.WeaverRuntimeDirectory = Environment.CurrentDirectory;
+                }
+            }
         }
 
-        ///// <summary>
-        ///// Initialize a new <see cref="CodeWeaver"/> instance.
-        ///// </summary>
-        ///// <param name="host">The weaver host</param>
-        ///// <param name="directory">Directory with inputs.</param>
-        ///// <param name="file">Main assembly file to be weaved.</param>
-        ///// <param name="outputDirectory">Output directory to write weaved results to.</param>
-        ///// <param name="cacheDirectory">Cache directory to use</param>
-        //public CodeWeaver(IWeaverHost host, string directory, string file, string outputDirectory, string cacheDirectory)
-        //{
-        //    Guard.NotNull(host, nameof(host));
-        //    Guard.DirectoryExists(directory, nameof(directory));
-        //    Guard.FileExistsInDirectory(file, directory, nameof(file));
-        //    Guard.DirectoryExists(outputDirectory, nameof(outputDirectory));
-        //    Guard.DirectoryExists(cacheDirectory, nameof(cacheDirectory));
-
-        //    this.Host = host;
-        //    this.InputDirectory = directory;
-        //    this.OutputDirectory = outputDirectory;
-        //    this.CacheDirectory = cacheDirectory;
-        //    this.RunWeaver = true;
-        //    this.DisableWeaverCache = false;
-        //    this.AssemblyFile = file;
-            
-        //    try
-        //    {
-        //        this.WeaverRuntimeDirectory = Path.GetDirectoryName(typeof(CodeWeaver).Assembly.Location);
-        //    }
-        //    catch
-        //    {
-        //        this.WeaverRuntimeDirectory = Environment.CurrentDirectory;
-        //    }
-            
-        //    this.DisableEditionLibraries = false;
-        //}
-
-        /// <summary>
-        /// Executes the given weaver after first assigning it as the
-        /// weaver currently executing.
-        /// </summary>
-        /// <param name="weaver">The weaver to make current and execute.</param>
-        /// <returns>The result of the weaver.</returns>
-        public static bool ExecuteCurrent(CodeWeaver weaver) {
+        static bool ExecuteCurrent(CodeWeaver weaver) {
             try {
                 CodeWeaver.Current = weaver;
                 return weaver.Execute();
