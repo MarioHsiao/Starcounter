@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DefaultTestWeaverHost.cs" />
+    <Compile Include="WeaverResourceGuard.cs" />
     <Compile Include="WeaverTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
