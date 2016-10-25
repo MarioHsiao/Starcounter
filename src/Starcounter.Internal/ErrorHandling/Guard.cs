@@ -99,5 +99,55 @@ namespace Starcounter.Internal
                 throw new FileNotFoundException($"File {file} in directory {directory}, given by {parameterName}, does not exist.", file);
             }
         }
+
+        /// <summary>
+        /// Guard that <c>candidate</c> and <c>constraint</c> is not null and that
+        /// <c>constraint</c> is assignable from <c>candidate</c>.
+        /// </summary>
+        /// <param name="candidate">The candidate to guard.</param>
+        /// <param name="constraint">The constraint to guard for.</param>
+        /// <param name="parameterName">Name of the parameter <c>candidate</c> is
+        /// referenced from.</param>
+        public static void IsAssignableFrom(Type candidate, Type constraint, string parameterName)
+        {
+            Guard.NotNull(candidate, parameterName);
+            Guard.NotNull(constraint, parameterName);
+
+            if (!constraint.IsAssignableFrom(candidate))
+            {
+                throw new ArgumentException($"Type {constraint.Name} is not assignable from {candidate.Name}, specified by {parameterName}.", parameterName);
+            }
+        }
+
+        /// <summary>
+        /// Guard <c>candidate</c> is not null and is not abstract.
+        /// </summary>
+        /// <param name="candidate">The candidate to validate.</param>
+        /// <param name="parameterName">Name of parameter referencing the candidate.</param>
+        public static void IsNotAbstract(Type candidate, string parameterName)
+        {
+            Guard.NotNull(candidate, parameterName);
+
+            if (candidate.IsAbstract)
+            {
+                throw new ArgumentException($"Type {candidate.Name}, specified by {parameterName}, can not be abstract.", parameterName);
+            }
+        }
+
+        /// <summary>
+        /// Guard <c>candidate</c> is not null and has a public default constructor.
+        /// </summary>
+        /// <param name="candidate">The candidate to validate.</param>
+        /// <param name="parameterName">Name of parameter referencing the candidate.</param>
+        public static void HasPublicDefaultConstructor(Type candidate, string parameterName)
+        {
+            Guard.NotNull(candidate, parameterName);
+
+            var defaultCtor = candidate.GetConstructor(Type.EmptyTypes);
+            if (defaultCtor == null)
+            {
+                throw new ArgumentException($"Type {candidate.Name}, specified by {parameterName}, does not have a public default constructor.", parameterName);
+            }
+        }
     }
 }
