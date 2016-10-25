@@ -10,6 +10,7 @@
 - Fixed a bug where database may hang deleting a record. As the root cause of the problem is in the wrong data stored in the database image, it's necessary to do unload/reload during upgrade to fix the image. [#3875]
 - Fixed infinite waiting loop in the installer when the installation folder was not empty.
 - Fixed reloading of floating-point fields.
+- Fixed retrieving long fields containing long.MinValue. [#3907](https://github.com/Starcounter/Starcounter/issues/3907)
 
 ### Improved
 - Improved subsequent startup time for the server/applications. Initial startup is still taking approximately the same time.
