@@ -84,6 +84,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IWeaver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CodeWeaver.cs" />
     <Compile Include="CodeWeaverInsidePostSharpDomain.cs" />
