@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 
@@ -19,7 +20,8 @@ namespace Starcounter.Weaver
     /// Exposes the facade of the code weaver engine.
     /// </summary>
     [Serializable]
-    public class CodeWeaver : MarshalByRefObject, IPostSharpHost {
+    internal class CodeWeaver : MarshalByRefObject, IWeaver, IPostSharpHost
+    {
         const string AnalyzerProjectFileName = "ScAnalyzeOnly.psproj";
         const string WeaverProjectFileName = "ScTransform.psproj";
         
@@ -39,104 +41,29 @@ namespace Starcounter.Weaver
         }
 
         /// <summary>
-        /// The name of the default output directory, utilized by the weaver
-        /// when no output directory is explicitly given.
-        /// </summary>
-        /// <remarks>
-        /// If no output directory is given, the output directory will be a
-        /// subdirectory of the input directory, with this name.
-        /// </remarks>
-        public const string DefaultOutputDirectoryName = ".starcounter";
-
-        /// <summary>
-        /// The name of the default cache directory, if no cache directory
-        /// is given.
-        /// </summary>
-        /// <remarks>
-        /// If no cache directory is given, the cache directory will be a
-        /// subdirectory of the output directory, with this name.
-        /// </remarks>
-        public const string DefaultCacheDirectoryName = "cache";
-
-        /// <summary>
         /// Gets the weaver host.
         /// </summary>
         public IWeaverHost Host { get; private set; }
 
+        // TODO Remove
         /// <summary>
         /// The directory where the weaver looks for input.
         /// </summary>
-        public readonly string InputDirectory;
-
-        /// <summary>
-        /// The directory where the weaver looks for edition
-        /// libraries.
-        /// </summary>
-        public string EditionLibrariesDirectory { get; private set; }
-
-        /// <summary>
-        /// The directory where the weaver looks for libraries
-        /// with database classes.
-        /// </summary>
-        public string LibrariesWithDatabaseClassesDirectory {
+        public string InputDirectory {
             get {
-                return StarcounterEnvironment.LibrariesWithDatabaseClassesDirectory;
+                return Setup.InputDirectory;
             }
         }
 
-        /// <summary>
-        /// The cache directory used by the weaver.
-        /// </summary>
-        public readonly string CacheDirectory;
+        public string EditionLibrariesDirectory {
+            get {
+                return Path.Combine(Setup.WeaverRuntimeDirectory, "EditionLibraries");
+            }
+        }
 
-        /// <summary>
-        /// The output directory, mirroring the binaries in the input directory
-        /// with relevant binaries weaved.
-        /// </summary>
-        public string OutputDirectory;
-
-        /// <summary>
-        /// Gets or sets the assembly file the weaver should act upon. The
-        /// file is expected to be found in the <see cref="InputDirectory"/>.
-        /// </summary>
-        public string AssemblyFile { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value dictating if outdated assemblies should be
-        /// weaved/transformed. Defaults to true. If this is set to false,
-        /// only analysis will be performed.
-        /// </summary>
-        public bool RunWeaver { get; set; }
-
-        public bool UseStateRedirect { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value that adapts the code weaver to perform
-        /// weaving only to the cache directory and never touch the input
-        /// binaries.
-        /// </summary>
-        public bool WeaveToCacheOnly { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating if the weaver cache should be
-        /// disabled. If the cache is disabled, cached assemblies will not
-        /// be considered and all input will always be analyzed and/or
-        /// transformed on every run.
-        /// </summary>
-        public bool DisableWeaverCache { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating if the current weaver should
-        /// exclude any possible edition libraries found when running.
-        /// </summary>
-        public bool DisableEditionLibraries {
-            get { return EditionLibrariesDirectory == string.Empty; }
-            set {
-                if (value) {
-                    EditionLibrariesDirectory = string.Empty;
-                } else {
-                    EditionLibrariesDirectory = Path.Combine(WeaverRuntimeDirectory, "EditionLibraries");
-                }
+        public string LibrariesWithDatabaseClassesDirectory {
+            get {
+                return StarcounterEnvironment.LibrariesWithDatabaseClassesDirectory;
             }
         }
 
@@ -150,73 +77,95 @@ namespace Starcounter.Weaver
             get { return false; }
         }
 
-        /// <summary>
-        /// Gets or sets the weaver runtime directory path. This path will be
-        /// consulted when the weaver needs to locate neccessary runtime files,
-        /// such as the PostSharp-related project- and plugin files.
-        /// </summary>
-        /// <remarks>
-        /// The construtor will try to assign this to the Starcounter binary
-        /// directory and, as a fallback, use the current directory if that
-        /// fails. Tools can override this funcationality by explicitly setting
-        /// it after the weaver component is created (and before executed).
-        /// </remarks>
-        public string WeaverRuntimeDirectory { get; set; }
+        // TODO Remove
+        public string CacheDirectory {
+            get {
+                return Setup.CacheDirectory;
+            }
+        }
 
+        // TODO Remove
+        public string OutputDirectory {
+            get {
+                return Setup.OutputDirectory;
+            }
+        }
+
+        // TODO Remove
+        public string AssemblyFile {
+            get {
+                return Setup.AssemblyFile;
+            }
+        }
+
+        // TODO Remove
+        public bool RunWeaver {
+            get {
+                return !Setup.AnalyzeOnly;
+            }
+        }
+        
         /// <summary>
         /// Gets the file manager used by the current weaver.
         /// </summary>
         public FileManager FileManager { get; private set; }
-
-        /// <summary>
-        /// Can be used by hosts that want to enable maximum tracing
-        /// and diagnostic output.
-        /// </summary>
-        public bool EnableTracing { get; set; }
-
-        /// <summary>
-        /// Indicates if the weaver should emit a detailed boot diagnostic message
-        /// before actual weaaving kicks in, and a similar message when finalizing.
-        /// </summary>
-        public bool EmitBootAndFinalizationDiagnostics { get; set; }
-
-        /// <summary>
-        /// Instruct the weaver to always include a location when writing errors to
-        /// the host.
-        /// </summary>
-        public bool IncludeLocationInErrorMessages { get; set; }
         
+        WeaverSetup IWeaver.Setup {
+            get {
+                return this.Setup;
+            }
+        }
+
+        internal readonly WeaverSetup Setup;
+
         /// <summary>
         /// Initialize a new <see cref="CodeWeaver"/> instance.
+        /// This internal constructor does not validate arguments; it
+        /// is presumed that's already done in the public APIs.
         /// </summary>
-        /// <param name="host">The weaver host</param>
-        /// <param name="directory">Directory with inputs.</param>
-        /// <param name="file">Main assembly file to be weaved.</param>
-        /// <param name="outputDirectory">Output directory to write weaved results to.</param>
-        /// <param name="cacheDirectory">Cache directory to use</param>
-        public CodeWeaver(IWeaverHost host, string directory, string file, string outputDirectory, string cacheDirectory) {
-            Guard.NotNull(host, nameof(host));
-            Guard.DirectoryExists(directory, nameof(directory));
-            Guard.FileExistsInDirectory(file, directory, nameof(file));
-            Guard.DirectoryExists(outputDirectory, nameof(outputDirectory));
-            Guard.DirectoryExists(cacheDirectory, nameof(cacheDirectory));
-            
-            this.Host = host;
-            this.InputDirectory = directory;
-            this.OutputDirectory = outputDirectory;
-            this.CacheDirectory = cacheDirectory;
-            this.RunWeaver = true;
-            this.DisableWeaverCache = false;
-            this.AssemblyFile = file;
-            
-            try {
-                this.WeaverRuntimeDirectory = Path.GetDirectoryName(typeof(CodeWeaver).Assembly.Location);
-            } catch {
-                this.WeaverRuntimeDirectory = Environment.CurrentDirectory;
-            }
-
-            this.DisableEditionLibraries = false;
+        /// <param name="setup">The setup to execute.</param>
+        /// <param name="host">The weaver host.</param>
+        internal CodeWeaver(WeaverSetup setup, IWeaverHost host)
+        {
+            Setup = setup;
+            Host = host;
         }
+
+        ///// <summary>
+        ///// Initialize a new <see cref="CodeWeaver"/> instance.
+        ///// </summary>
+        ///// <param name="host">The weaver host</param>
+        ///// <param name="directory">Directory with inputs.</param>
+        ///// <param name="file">Main assembly file to be weaved.</param>
+        ///// <param name="outputDirectory">Output directory to write weaved results to.</param>
+        ///// <param name="cacheDirectory">Cache directory to use</param>
+        //public CodeWeaver(IWeaverHost host, string directory, string file, string outputDirectory, string cacheDirectory)
+        //{
+        //    Guard.NotNull(host, nameof(host));
+        //    Guard.DirectoryExists(directory, nameof(directory));
+        //    Guard.FileExistsInDirectory(file, directory, nameof(file));
+        //    Guard.DirectoryExists(outputDirectory, nameof(outputDirectory));
+        //    Guard.DirectoryExists(cacheDirectory, nameof(cacheDirectory));
+
+        //    this.Host = host;
+        //    this.InputDirectory = directory;
+        //    this.OutputDirectory = outputDirectory;
+        //    this.CacheDirectory = cacheDirectory;
+        //    this.RunWeaver = true;
+        //    this.DisableWeaverCache = false;
+        //    this.AssemblyFile = file;
+            
+        //    try
+        //    {
+        //        this.WeaverRuntimeDirectory = Path.GetDirectoryName(typeof(CodeWeaver).Assembly.Location);
+        //    }
+        //    catch
+        //    {
+        //        this.WeaverRuntimeDirectory = Environment.CurrentDirectory;
+        //    }
+            
+        //    this.DisableEditionLibraries = false;
+        //}
 
         /// <summary>
         /// Executes the given weaver after first assigning it as the
@@ -232,8 +181,10 @@ namespace Starcounter.Weaver
                 weaver = null;
             }
         }
-
+        
         void BootDiagnose() {
+            var setup = Setup;
+
             Diagnose("=== Bootstrap diagnostics ===");
 
             Diagnose("Code weaver:");
@@ -242,9 +193,9 @@ namespace Starcounter.Weaver
             props["Input directory"] = this.InputDirectory;
             props["Output directory"] = this.OutputDirectory;
             props["Application file"] = this.AssemblyFile;
-            props["Disable edition libraries"] = this.DisableEditionLibraries.ToString();
-            props["Disable cache"] = this.DisableWeaverCache.ToString();
-            props["Weave only to cache"] = this.WeaveToCacheOnly.ToString();
+            props["Disable edition libraries"] = setup.DisableEditionLibraries.ToString();
+            props["Disable cache"] = setup.DisableWeaverCache.ToString();
+            props["Weave only to cache"] = setup.WeaveToCacheOnly.ToString();
 
             foreach (var pair in props) {
                 Diagnose("  {0}: {1}", pair.Key, pair.Value);
@@ -300,9 +251,9 @@ namespace Starcounter.Weaver
                 return false;
             }
 
-            var fm = FileManager = FileManager.Open(Host, InputDirectory, OutputDirectory, Cache);
+            var fm = FileManager = FileManager.Open(Host, Setup, Cache);
 
-            if (EmitBootAndFinalizationDiagnostics) {
+            if (Setup.EmitBootAndFinalizationDiagnostics) {
                 BootDiagnose();
             }
 
@@ -327,7 +278,7 @@ namespace Starcounter.Weaver
                 postSharpSettings.DisableReflection = true;
                 postSharpSettings.SearchDirectories.Add(this.InputDirectory);
 
-                if (!this.DisableEditionLibraries && Directory.Exists(this.EditionLibrariesDirectory)) {
+                if (!Setup.DisableEditionLibraries && Directory.Exists(this.EditionLibrariesDirectory)) {
                     postSharpSettings.SearchDirectories.Add(this.EditionLibrariesDirectory);
                 }
 
@@ -395,7 +346,7 @@ namespace Starcounter.Weaver
                     }
                     finally {
 
-                        if (EmitBootAndFinalizationDiagnostics) {
+                        if (Setup.EmitBootAndFinalizationDiagnostics) {
                             FinalizationDiagnose(((PostSharpObject)postSharpObject).Domain);
                         }
                     }
@@ -405,7 +356,7 @@ namespace Starcounter.Weaver
                 }
             }
 
-            if (!WeaveToCacheOnly) {
+            if (!Setup.WeaveToCacheOnly) {
                 fm.Synchronize();
             }
 
@@ -437,7 +388,7 @@ namespace Starcounter.Weaver
             // Assure the system project files exist and are reachable for this
             // utility. Raise an error if not.
 
-            var analyzerProjectFile = Path.GetFullPath(Path.Combine(this.WeaverRuntimeDirectory, CodeWeaver.AnalyzerProjectFileName));
+            var analyzerProjectFile = Path.GetFullPath(Path.Combine(Setup.WeaverRuntimeDirectory, CodeWeaver.AnalyzerProjectFileName));
             if (!File.Exists(analyzerProjectFile)) {
                 errorCode = Error.SCERRWEAVERPROJECTFILENOTFOUND;
                 Host.WriteError(
@@ -448,7 +399,7 @@ namespace Starcounter.Weaver
             }
             this.AnalyzerProjectFile = analyzerProjectFile;
 
-            var weaverProjectFile = Path.GetFullPath(Path.Combine(this.WeaverRuntimeDirectory, CodeWeaver.WeaverProjectFileName));
+            var weaverProjectFile = Path.GetFullPath(Path.Combine(Setup.WeaverRuntimeDirectory, CodeWeaver.WeaverProjectFileName));
             if (!File.Exists(weaverProjectFile)) {
                 errorCode = Error.SCERRWEAVERPROJECTFILENOTFOUND;
                 Host.WriteError(
@@ -467,14 +418,14 @@ namespace Starcounter.Weaver
 
             // Create the cache
 
-            this.Cache = new WeaverCache(Host, this.CacheDirectory);
-            this.Cache.Disabled = this.DisableWeaverCache;
-            this.Cache.AssemblySearchDirectories.Add(this.InputDirectory);
-            this.Cache.AssemblySearchDirectories.Add(this.WeaverRuntimeDirectory);
-            this.Cache.AssemblySearchDirectories.Add(this.EditionLibrariesDirectory);
+            this.Cache = new WeaverCache(Host, Setup.CacheDirectory);
+            this.Cache.Disabled = Setup.DisableWeaverCache;
+            this.Cache.AssemblySearchDirectories.Add(Setup.InputDirectory);
+            this.Cache.AssemblySearchDirectories.Add(Setup.WeaverRuntimeDirectory);
+            this.Cache.AssemblySearchDirectories.Add(EditionLibrariesDirectory);
 
             if (Directory.Exists(this.LibrariesWithDatabaseClassesDirectory)) {
-                this.Cache.AssemblySearchDirectories.Add(this.LibrariesWithDatabaseClassesDirectory);
+                this.Cache.AssemblySearchDirectories.Add(LibrariesWithDatabaseClassesDirectory);
             }
 
             return true;
@@ -547,7 +498,7 @@ namespace Starcounter.Weaver
                         // Append location information at the end of the message if we
                         // are instructed to create error message parcels.
 
-                        if (IncludeLocationInErrorMessages) {
+                        if (Setup.IncludeLocationInErrorMessages) {
                             // Every parceled error message should contain a file location
                             // by protocol. If the information is lacking, we still create
                             // an empty location.
@@ -618,8 +569,8 @@ namespace Starcounter.Weaver
                 parameters = new ProjectInvocationParameters(weaverProjectFile);
                 parameters.PreventOverwriteAssemblyNames = false;
                 parameters.Properties["TempDirectory"] = this.TempDirectoryPath;
-                parameters.Properties["ScOutputDirectory"] = this.OutputDirectory;
-                parameters.Properties["UseStateRedirect"] = this.UseStateRedirect ? bool.TrueString : bool.FalseString;
+                parameters.Properties["ScOutputDirectory"] = Setup.OutputDirectory;
+                parameters.Properties["UseStateRedirect"] = Setup.UseStateRedirect ? bool.TrueString : bool.FalseString;
 
             } else {
                 // We are only analyzing. Do this straight from the input directory.
@@ -642,7 +593,7 @@ namespace Starcounter.Weaver
             parameters.Properties["AssemblyName"] = Path.GetFileNameWithoutExtension(file);
             parameters.Properties["AssemblyExtension"] = Path.GetExtension(file);
             parameters.Properties["ResolvedReferences"] = "";
-            parameters.Properties["DontCopyToOutput"] = this.WeaveToCacheOnly ? bool.TrueString : bool.FalseString;
+            parameters.Properties["DontCopyToOutput"] = Setup.WeaveToCacheOnly ? bool.TrueString : bool.FalseString;
 
             lastProject = parameters;
 
@@ -704,6 +655,11 @@ namespace Starcounter.Weaver
             Diagnose("Detected reference: {0}.", assemblyName);
             activelyReferencedAssemblies.Add(assemblyName);
             return null;
+        }
+
+        void IWeaver.Execute()
+        {
+            CodeWeaver.ExecuteCurrent(this);
         }
 
         #endregion

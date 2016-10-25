@@ -14,8 +14,9 @@ namespace Starcounter.Weaver {
     /// and that the source directory is always synchronized with the
     /// target directory after a successfull weaving session.
     /// </summary>
-    public class FileManager {
+    internal class FileManager {
         readonly IWeaverHost host;
+        readonly WeaverSetup setup;
         List<string> sourceFiles;
         Dictionary<string, ModuleLoadStrategy> outdatedAssemblies;
         List<string> filesToCopy;
@@ -27,8 +28,18 @@ namespace Starcounter.Weaver {
         /// </summary>
         int editionLibriesIndex;
 
-        public readonly string SourceDirectory;
-        public readonly string TargetDirectory;
+        public string SourceDirectory {
+            get {
+                return setup.InputDirectory;
+            }
+        }
+
+        public string TargetDirectory {
+            get {
+                return setup.OutputDirectory;
+            }
+        }
+
         public readonly WeaverCache Cache;
         public readonly FileExclusionPolicy exclusionPolicy;
 
@@ -41,15 +52,14 @@ namespace Starcounter.Weaver {
             private set;
         }
 
-        private FileManager(IWeaverHost weaverHost, string sourceDir, string targetDir, WeaverCache cache) {
+        private FileManager(IWeaverHost weaverHost, WeaverSetup weaverSetup, WeaverCache cache) {
             host = weaverHost;
-            SourceDirectory = sourceDir;
-            TargetDirectory = targetDir;
+            setup = weaverSetup;
             Cache = cache;
             sourceFiles = new List<string>();
             outdatedAssemblies = new Dictionary<string, ModuleLoadStrategy>();
             filesToCopy = new List<string>();
-            exclusionPolicy = new FileExclusionPolicy(weaverHost, sourceDir);
+            exclusionPolicy = new FileExclusionPolicy(weaverHost, setup.InputDirectory);
             presentTargetFiles = new List<string>();
             editionLibriesIndex = -1;
         }
@@ -62,12 +72,10 @@ namespace Starcounter.Weaver {
         /// the target directores.
         /// </summary>
         /// <param name="host">The weaver host</param>
-        /// <param name="sourceDir">The source directory.</param>
-        /// <param name="targetDir">The target directory.</param>
         /// <param name="cache">The cache</param>
         /// <returns>An open file manager instance.</returns>
-        public static FileManager Open(IWeaverHost host, string sourceDir, string targetDir, WeaverCache cache) {
-            return new FileManager(host, sourceDir, targetDir, cache).Open();
+        public static FileManager Open(IWeaverHost host, WeaverSetup setup, WeaverCache cache) {
+            return new FileManager(host, setup, cache).Open();
         }
 
         /// <summary>
@@ -164,7 +172,7 @@ namespace Starcounter.Weaver {
             // on to avoid having to weave them when they are not referenced
             var editionLibraries = CodeWeaver.Current.EditionLibrariesDirectory;
 
-            if (Directory.Exists(editionLibraries) && (!CodeWeaver.Current.DisableEditionLibraries)) {
+            if (Directory.Exists(editionLibraries) && (!setup.DisableEditionLibraries)) {
                 var libs = Directory.GetFiles(editionLibraries, "*.dll");
                 AddEditionLibraries(libs, sourceFiles);
             }
