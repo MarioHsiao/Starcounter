@@ -510,10 +510,10 @@ extern "C" {
 				clang_cmd_stream << "clang++ ";
 #endif
 				if ((NULL != predefined_clang_params) && ('\0' != predefined_clang_params)) {
-					clang_cmd_stream << "-mcmodel=large " << predefined_clang_params << " " << cpp_file_name << " -o " << obj_file_name << " 2>&1";
+					clang_cmd_stream << "-mcmodel=large " << predefined_clang_params << " " << cpp_file_name << " -o " << obj_file_name;
 				}
 				else {
-					clang_cmd_stream << "-O3 -c -mcmodel=large " << cpp_file_name << " -o " << obj_file_name << " 2>&1";
+					clang_cmd_stream << "-O3 -c -mcmodel=large " << cpp_file_name << " -o " << obj_file_name;
 				}
 
 				// Generating new object file.
