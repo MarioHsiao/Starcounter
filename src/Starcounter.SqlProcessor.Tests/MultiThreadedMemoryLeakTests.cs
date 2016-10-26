@@ -64,7 +64,7 @@ namespace Starcounter.SqlProcessor.Tests {
                 Assert.AreEqual(SqlProcessorTests.ParseOK, exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY],
                     "Exception for query " + i + ": " + exceptions[i].Message);
             }
-#if DEBUG
+#if false
             Assert.AreEqual(0, SqlProcessor.scsql_dump_memory_leaks());
 #endif
             Console.WriteLine(Queries.Length + " queries are executed in " + Queries.Length + " threads.");
@@ -76,7 +76,7 @@ namespace Starcounter.SqlProcessor.Tests {
                 Exception ex = SqlProcessor.CallSqlProcessor(Queries[i]);
                 Assert.AreEqual(SqlProcessorTests.ParseOK, ex.Data[ErrorCode.EC_TRANSPORT_KEY], ex.Message);
             }
-#if DEBUG
+#if false
             Assert.AreEqual(0, SqlProcessor.scsql_dump_memory_leaks());
 #endif
         }
