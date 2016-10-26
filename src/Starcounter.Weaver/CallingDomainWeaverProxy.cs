@@ -48,11 +48,11 @@ namespace Starcounter.Weaver
             remoteWeaver = weaver;
         }
 
-        void IWeaver.Execute()
+        bool IWeaver.Execute()
         {
             try
             {
-                remoteWeaver.Execute();
+                return remoteWeaver.Execute();
             }
             finally
             {

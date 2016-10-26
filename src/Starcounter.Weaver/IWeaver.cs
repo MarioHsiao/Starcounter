@@ -15,6 +15,6 @@ namespace Starcounter.Weaver
         /// <summary>
         /// Executes the weaver.
         /// </summary>
-        void Execute();
+        bool Execute();
     }
 }

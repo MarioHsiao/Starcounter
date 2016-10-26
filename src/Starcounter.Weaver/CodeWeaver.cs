@@ -634,9 +634,9 @@ namespace Starcounter.Weaver
             return null;
         }
 
-        void IWeaver.Execute()
+        bool IWeaver.Execute()
         {
-            CodeWeaver.ExecuteCurrent(this);
+            return CodeWeaver.ExecuteCurrent(this);
         }
 
         #endregion

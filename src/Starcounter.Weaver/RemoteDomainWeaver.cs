@@ -39,9 +39,9 @@ namespace Starcounter.Weaver
             return 0;
         }
 
-        void IWeaver.Execute()
+        bool IWeaver.Execute()
         {
-            weaver.Execute();
+            return weaver.Execute();
         }
 
         Assembly GetWeaverHostAssembly(string weaverHostTypeAssembly)
