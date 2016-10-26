@@ -48,6 +48,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DefaultTestWeaverHost.cs" />
+    <Compile Include="WeaverErrorLogger\ErrorAndMessage.cs" />
+    <Compile Include="WeaverErrorLogger\WeaverErrorLog.cs" />
+    <Compile Include="WeaverErrorLogger\WeaverErrorLogWriter.cs" />
+    <Compile Include="WeaverErrorLogger\WeaverHostLoggingErrors.cs" />
     <Compile Include="WeaverResourceGuard.cs" />
     <Compile Include="WeaverTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
