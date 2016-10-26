@@ -125,7 +125,8 @@ namespace Starcounter.Weaver.Test
                 resourceGuard.Add(setup);
 
                 var weaver = WeaverFactory.CreateWeaver(setup, new DefaultTestWeaverHost());
-                weaver.Execute();
+                var weaverResult = weaver.Execute();
+                Assert.True(weaverResult);
             }
         }
 
@@ -149,7 +150,38 @@ namespace Starcounter.Weaver.Test
                 resourceGuard.Add(setup);
 
                 var weaver = WeaverFactory.CreateWeaver(setup, typeof(DefaultTestWeaverHost));
-                weaver.Execute();
+                var weaverResult = weaver.Execute();
+                Assert.True(weaverResult);
+            }
+        }
+
+        [Test]
+        public void NonPublicDatabaseClassGenerateError()
+        {
+            var compiler = new AppCompiler("app")
+                .WithDefaultReferences()
+                .WithSourceCode("class Program { static void Main() {} }")
+                .WithSourceCode("[Starcounter.Database] class Foo { }");
+
+            var result = compiler.Compile();
+
+            using (var resourceGuard = new WeaverResourceGuard())
+            {
+                resourceGuard.Add(result);
+
+                var errorLogPath = Path.Combine(result.OutputDirectory, "weavererrors.log");
+                var setup = CreateDefaultWeaverSetupFromCompiler(result);
+                setup.DisableEditionLibraries = true;
+                setup.HostProperties.Add(WeaverHostLoggingErrors.FilePropertyKey, errorLogPath);
+
+                resourceGuard.Add(setup);
+
+                var weaver = WeaverFactory.CreateWeaver(setup, typeof(WeaverHostLoggingErrors));
+                var weaverResult = weaver.Execute();
+                Assert.False(weaverResult);
+
+                var errorLog = WeaverErrorLog.OpenThenDelete(errorLogPath);
+                Assert.True(errorLog.GetSingleErrorMessage(4220) != null);
             }
         }
 
