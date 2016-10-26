@@ -8,6 +8,8 @@
 - Fixed a bug where bound arrays were not properly marked as dirty when setting dataobject to null [#3879](https://github.com/Starcounter/Starcounter/issues/3879)
 - Fixed a bug where database may hang deleting a record. As the root cause of the problem is in the wrong data stored in the database image, it's necessary to do unload/reload during upgrade to fix the image. [#3875]
 - Fixed infinite waiting loop in the installer when the installation folder was not empty.
+- Fixed reloading of floating-point fields.
+- Fixed retrieving long fields containing long.MinValue. [#3907](https://github.com/Starcounter/Starcounter/issues/3907)
 
 ### Changed
 - Changed the parser for Json-by-example from F# parser to NewtonSoft (nuget) [#3811](https://github.com/Starcounter/Starcounter/issues/3811)
