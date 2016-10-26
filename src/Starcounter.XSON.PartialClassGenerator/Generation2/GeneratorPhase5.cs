@@ -1,8 +1,9 @@
-﻿using Starcounter.Templates;
+﻿using Starcounter.Internal;
+using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 using TJson = Starcounter.Templates.TObject;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Creates the mapping attributes to be used by the user code-behind source code.
     /// </summary>

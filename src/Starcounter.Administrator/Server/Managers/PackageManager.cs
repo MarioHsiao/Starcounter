@@ -196,9 +196,11 @@ namespace Administrator.Server.Managers {
                 di.Delete(true); // Remove version folder.
 
                 // Delete app image
-                string imageFile = Path.Combine(imageResourceFolder, config.ImageUri);
-                if (File.Exists(imageFile)) {
-                    File.Delete(imageFile);
+                if (!string.IsNullOrEmpty(config.ImageUri)) {
+                    string imageFile = Path.Combine(imageResourceFolder, config.ImageUri);
+                    if (File.Exists(imageFile)) {
+                        File.Delete(imageFile);
+                    }
                 }
 
                 DirectoryInfo channelFolder = di.Parent;
@@ -231,6 +233,12 @@ namespace Administrator.Server.Managers {
         private static void UnpackAppImage(ZipArchive archive, PackageConfigFile config, string imageResourceFolder, out string imageUri) {
 
             string createdDestinationFolder = Administrator.Server.Utilities.Utils.CreateDirectory(imageResourceFolder);
+
+            if (config.ImageUri == null) {
+                // TODO: Use default image?
+                imageUri = null;
+                return;
+            }
 
             try {
                 // Unpack app image to starcounter admin folder
@@ -289,7 +297,9 @@ namespace Administrator.Server.Managers {
             else {
                 config.SourceID = u.Segments[u.Segments.Length - 1];
             }
+
             config.SourceUrl = sourceUrl;
+
 
             Uri su = new Uri(storeUrl);
             if (su.IsFile) {

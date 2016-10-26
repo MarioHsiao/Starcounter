@@ -42,6 +42,7 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             StarcounterAdminAPI.DatabaseSettings_GET(port, server);
             StarcounterAdminAPI.Applications_GET(port, appImagesSubFolder);
+            StarcounterAdminAPI.Applications_UPLOAD(port);
 
             StarcounterAdminAPI.Database_PUT(port, server);
             StarcounterAdminAPI.Database_POST(port, server);

@@ -1,20 +1,13 @@
-﻿// ***********************************************************************
-// <copyright file="NEventClass.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿using Starcounter.Internal;
 using Starcounter.Templates;
-namespace Starcounter.Internal.MsBuild.Codegen {
 
-
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Event classes (like the Input) class are used in the Handle functions
     /// defined by the user in the code behind to catch events. An example of
     /// an event class in the InputEvent class.
     /// </summary>
     public class AstEventClass : AstClass {
-
         /// <summary>
         /// 
         /// </summary>
@@ -59,8 +52,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public AstJsonClass NApp {
             get { return (AstJsonClass)NMember.Parent; }
         }
-
-
+        
         /// <summary>
         /// Gets the inherits.
         /// </summary>
@@ -77,19 +69,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 } else {
                     str += NTemplate.GlobalClassSpecifier;
                 }
-
-                // Triggers have no valuetype, and uses another generic input class.
-                if (!(NMember.Template is TTrigger)) {
-                    str += ", ";
-
-                    if (NMember.Type is AstJsonClass) {
-                        // this is an event for a single primitive value. Need to take template instancetype as generic parameter for the Input.
-                        str += HelperFunctions.GetGlobalClassSpecifier(NMember.Template.InstanceType, true);
-                    } else {
-                        str += NMember.Type.GlobalClassSpecifier;
-                    }
-                }
                 
+                str += ", ";
+
+                if (NMember.Type is AstJsonClass) {
+                    // this is an event for a single primitive value. Need to take template instancetype as generic parameter for the Input.
+                    str += HelperFunctions.GetGlobalClassSpecifier(NMember.Template.InstanceType, true);
+                } else {
+                    str += NMember.Type.GlobalClassSpecifier;
+                }
                 str += ">";
                 return str;
             }

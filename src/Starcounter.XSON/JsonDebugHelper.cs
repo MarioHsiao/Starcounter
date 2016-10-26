@@ -14,9 +14,9 @@ namespace Starcounter.XSON {
         internal static string GetClassName(Template template) {
             string className = null;
             if (template is TObject)
-                className = ((TObject)template).ClassName;
+                className = ((TObject)template).InstanceType?.Name;
             else if (template is TObjArr) {
-                className = ((TObjArr)template).ElementType.ClassName;
+                className = ((TObjArr)template).ElementType.InstanceType?.Name;
             }
 
             if (className == null)

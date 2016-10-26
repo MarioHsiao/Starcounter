@@ -4,8 +4,6 @@ using System.IO;
 using NUnit.Framework;
 using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
-using Starcounter.XSON.Serializer;
-using Starcounter.XSON.Serializer.Parsetree;
 using XSONModule = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter.Internal.XSON.Tests {
@@ -14,12 +12,10 @@ namespace Starcounter.Internal.XSON.Tests {
     /// </summary>
     public static class JsonSerializeTests {
         private static StandardJsonSerializer defaultSerializer;
-//		private static FasterThanJsonSerializer ftjSerializer;
 
         [TestFixtureSetUp]
         public static void InitializeTest() {
 			defaultSerializer = new StandardJsonSerializer();
-//			ftjSerializer = new FasterThanJsonSerializer();
         }
 
         [Test]
@@ -51,150 +47,43 @@ namespace Starcounter.Internal.XSON.Tests {
                 }
             }
         }
-
-		[Test]
-		[Ignore("Requires fixing FTJ serializer")]
-        public static void TestFTJSerializer() {
-            RunFTJSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), false);
-            RunFTJSerializerTest("person.json", File.ReadAllText("Json\\person.json"), false);
-            RunFTJSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"), false);
-            RunFTJSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"), false);
-            RunFTJSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"), false);
-		}
-
-        [Test]
-        [Ignore("Requires fixing FTJ serializer")]
-        public static void TestFTJSerializerWithCompiledJson() {
-            RunFTJSerializerTest("jsstyle.json", jsstyle.DefaultTemplate, false);
-            RunFTJSerializerTest("person.json", person.DefaultTemplate, false);
-            RunFTJSerializerTest("supersimple.json", supersimple.DefaultTemplate, false);
-            RunFTJSerializerTest("simple.json", simple.DefaultTemplate, false);
-            RunFTJSerializerTest("TestMessage.json", TestMessage.DefaultTemplate, false);
-        }
-
-		[Test]
-        [Ignore("Requires fixing FTJ serializer")]
-		public static void TestFTJCodegenSerializer() {
-            RunFTJSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), true);
-            RunFTJSerializerTest("person.json", File.ReadAllText("Json\\person.json"), true);
-            RunFTJSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"), true);
-            RunFTJSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"), true);
-            RunFTJSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"), true);
-		}
-
-        [Test]
-        [Ignore("Requires fixing FTJ serializer")]
-        public static void TestFTJCodegenSerializerWithCompiledJson() {
-            RunFTJSerializerTest("jsstyle.json", jsstyle.DefaultTemplate, true);
-            RunFTJSerializerTest("person.json", person.DefaultTemplate, true);
-            RunFTJSerializerTest("supersimple.json", supersimple.DefaultTemplate, true);
-            RunFTJSerializerTest("simple.json", simple.DefaultTemplate, true);
-            RunFTJSerializerTest("TestMessage.json", TestMessage.DefaultTemplate, true);
-        }
-
+        
 		[Test]
 		public static void TestStandardSerializer() {
-            RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), false);
-            RunStandardSerializerTest("person.json", File.ReadAllText("Json\\person.json"), false);
-            RunStandardSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"), false);
-            RunStandardSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"), false);
-            RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"), false);
-            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"), false);
-            RunStandardSerializerTest("SingleValue.json", File.ReadAllText("Json\\SingleValue.json"), false);
-            RunStandardSerializerTest("SingleArray.json", File.ReadAllText("Json\\SingleArray.json"), false);
+            RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"));
+            RunStandardSerializerTest("person.json", File.ReadAllText("Json\\person.json"));
+            RunStandardSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"));
+            RunStandardSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"));
+            RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"));
+            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"));
+            RunStandardSerializerTest("SingleValue.json", File.ReadAllText("Json\\SingleValue.json"));
+            RunStandardSerializerTest("SingleArray.json", File.ReadAllText("Json\\SingleArray.json"));
 		}
 
         [Test]
         public static void TestStandardSerializerWithCompiledJson() {
-            RunStandardSerializerTest("jsstyle.json", jsstyle.DefaultTemplate, false);
-            RunStandardSerializerTest("person.json", person.DefaultTemplate, false);
-            RunStandardSerializerTest("supersimple.json", supersimple.DefaultTemplate, false);
-            RunStandardSerializerTest("simple.json", simple.DefaultTemplate, false);
-            RunStandardSerializerTest("TestMessage.json", TestMessage.DefaultTemplate, false);
-            RunStandardSerializerTest("JsonWithFiller.json", JsonWithFiller.DefaultTemplate, false);
-            RunStandardSerializerTest("SingleValue.json", SingleValue.DefaultTemplate, false);
-            RunStandardSerializerTest("SingleValue.json", SingleArray.DefaultTemplate, false);
+            RunStandardSerializerTest("jsstyle.json", jsstyle.DefaultTemplate);
+            RunStandardSerializerTest("person.json", person.DefaultTemplate);
+            RunStandardSerializerTest("supersimple.json", supersimple.DefaultTemplate);
+            RunStandardSerializerTest("simple.json", simple.DefaultTemplate);
+            RunStandardSerializerTest("TestMessage.json", TestMessage.DefaultTemplate);
+            RunStandardSerializerTest("JsonWithFiller.json", JsonWithFiller.DefaultTemplate);
+            RunStandardSerializerTest("SingleValue.json", SingleValue.DefaultTemplate);
+            RunStandardSerializerTest("SingleValue.json", SingleArray.DefaultTemplate);
         }
-
-		[Test]
-		public static void TestStandardCodegenSerializer() {
-			RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), true);
-            RunStandardSerializerTest("person.json", File.ReadAllText("Json\\person.json"), true);
-            RunStandardSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"), true);
-            RunStandardSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"), true);
-            RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"), true);
-            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"), true);
-            
-            // TODO:
-            // Codegen does not support single values, only objects currently.
-//            RunStandardSerializerTest("SingleValue.json", File.ReadAllText("Json\\SingleValue.json"), true);
-//            RunStandardSerializerTest("SingleArray.json", File.ReadAllText("Json\\SingleArray.json"), true);
-		}
-
-        [Test]
-        public static void TestStandardCodegenSerializerWithCompiledJson() {
-            RunStandardSerializerTest("jsstyle.json", jsstyle.DefaultTemplate, true);
-            RunStandardSerializerTest("person.json", person.DefaultTemplate, true);
-            RunStandardSerializerTest("supersimple.json", supersimple.DefaultTemplate, true);
-            RunStandardSerializerTest("simple.json", simple.DefaultTemplate, true);
-            RunStandardSerializerTest("TestMessage.json", TestMessage.DefaultTemplate, true);
-            RunStandardSerializerTest("JsonWithFiller.json", JsonWithFiller.DefaultTemplate, true);
-
-            // TODO:
-            // Codegen does not support single values, only objects currently.
-//            RunStandardSerializerTest("SingleValue.json", SingleValue.DefaultTemplate, true);
-//            RunStandardSerializerTest("SingleValue.json", SingleArray.DefaultTemplate, true);
-        }
-
-        private static void RunFTJSerializerTest(string name, string jsonStr, bool useCodegen) {
+        
+        private static void RunStandardSerializerTest(string name, string jsonStr) {
             TValue tval = Helper.CreateJsonTemplateFromContent(Path.GetFileNameWithoutExtension(name), jsonStr);
-            RunFTJSerializerTest(name, tval, useCodegen);
+            RunStandardSerializerTest(name, tval);
         }
 
-		private static void RunFTJSerializerTest(string name, TValue tval, bool useCodegen) {
-            //int serializedSize = 0;
-            //int afterPopulateSize = 0;
-            //Json original;
-            //Json newJson;
-
-            //XSONModule.UseCodegeneratedSerializer = false;
-
-            //original = (Json)tObj.CreateInstance();
-
-            //XSONModule.UseCodegeneratedSerializer = useCodegen;
-            //XSONModule.DontCreateSerializerInBackground = true;
-
-            //byte[] ftj = new byte[tObj.JsonSerializer.EstimateSizeBytes(original)];
-            //serializedSize = tObj.ToFasterThanJson(original, ftj, 0);
-
-            //unsafe {
-            //    fixed (byte* p = ftj) {
-            //        newJson = (Json)tObj.CreateInstance();
-            //        afterPopulateSize = tObj.PopulateFromFasterThanJson(newJson, (IntPtr)p, serializedSize);
-            //    }
-            //}
-
-            //Assert.AreEqual(serializedSize, afterPopulateSize);
-            //Helper.AssertAreEqual(original, newJson);
-		}
-
-        private static void RunStandardSerializerTest(string name, string jsonStr, bool useCodegen) {
-            TValue tval = Helper.CreateJsonTemplateFromContent(Path.GetFileNameWithoutExtension(name), jsonStr);
-            RunStandardSerializerTest(name, tval, useCodegen);
-        }
-
-		private static void RunStandardSerializerTest(string name, TValue tval, bool useCodegen) {
+		private static void RunStandardSerializerTest(string name, TValue tval) {
 			int serializedSize = 0;
 			int afterPopulateSize = 0;
 			Json original;
 			Json newJson;
-
-            XSONModule.UseCodegeneratedSerializer = false;
+            
 			original = (Json)tval.CreateInstance();
-
-            XSONModule.UseCodegeneratedSerializer = useCodegen;
-            XSONModule.DontCreateSerializerInBackground = true;
-
             byte[] jsonArr = new byte[tval.JsonSerializer.EstimateSizeBytes(original)];
 			serializedSize = original.ToJsonUtf8(jsonArr, 0);
 
@@ -212,8 +101,6 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestIncorrectInputJsonForDefaultSerializer() {
             TValue tObj = Helper.CreateJsonTemplateFromFile("PlayerAndAccounts.json");
-
-            XSONModule.UseCodegeneratedSerializer = false;
             var obj = (Json)tObj.CreateInstance();
 
             var invalidJson = "PlayerId: \"Hey!\" }";
@@ -239,8 +126,6 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestIncorrectInputJsonForCodegenSerializer() {
             TValue tObj = Helper.CreateJsonTemplateFromFile("supersimple.json");
 
-            XSONModule.UseCodegeneratedSerializer = true;
-            XSONModule.DontCreateSerializerInBackground = true;
             var obj = (Json)tObj.CreateInstance();
 
             string invalidJson = "message";
@@ -298,55 +183,7 @@ namespace Starcounter.Internal.XSON.Tests {
                     throw new AssertionException("Expected '" + expected[i] + "' but found '" + actual[i] + "' at position " + i + ".");
             }
         }
-
-        [Test]
-        public static void GenerateStdSerializationParseTreeOverview() {
-            TValue objTemplate;
-            objTemplate = Helper.CreateJsonTemplateFromFile("person.json");
-            ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
-            Helper.ConsoleWriteLine(parseTree.ToString());
-        }
-
-        [Test]
-        public static void GenerateStdSerializationAstTreeOverview() {
-            TObject objTemplate;
-            objTemplate = (TObject)Helper.CreateJsonTemplateFromFile("person.json");
-
-			StdDomGenerator domGenerator = new StdDomGenerator(objTemplate);
-            Helper.ConsoleWriteLine(domGenerator.GenerateDomTree().ToString(true));
-        }
-
-		[Test]
-		public static void GenerateFTJSerializationAstTreeOverview() {
-            TObject objTemplate;
-            objTemplate = (TObject)Helper.CreateJsonTemplateFromFile("person.json");
-
-			FTJDomGenerator domGenerator = new FTJDomGenerator(objTemplate);
-            Helper.ConsoleWriteLine(domGenerator.GenerateDomTree().ToString(true));
-		}
-
-		[Test]
-		public static void GenerateStdSerializationCsCode() {
-            TObject objTemplate;
-
-            objTemplate = (TObject)Helper.CreateJsonTemplateFromFile("supersimple.json");
-			objTemplate.ClassName = "PreGenerated";
-
-			StdCSharpGenerator generator = new StdCSharpGenerator(new StdDomGenerator(objTemplate));
-            Helper.ConsoleWriteLine(generator.GenerateCode());
-		}
-
-		[Test]
-		public static void GenerateFTJSerializationCsCode() {
-            TObject objTemplate;
-
-            objTemplate = (TObject)Helper.CreateJsonTemplateFromFile("supersimple.json");
-			objTemplate.ClassName = "PreGenerated";
-
-			FTJCSharpGenerator generator = new FTJCSharpGenerator(new FTJDomGenerator(objTemplate));
-            Helper.ConsoleWriteLine(generator.GenerateCode());
-		}
-
+        
         [Test]
         public static void TestJsonSerialization1() {
             dynamic o1 = new Json();
@@ -539,50 +376,5 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsTrue(ErrorCode.TryGetCode(ex, out errorCode));
             Assert.AreEqual(Error.SCERRJSONPROPERTYNOTFOUND, errorCode);
         }
-        
-        //[Test]
-        //public static void DebugPregeneratedSerializationCode() {
-        //	byte[] jsonArr;
-        //	int size;
-        //	int sizeAfterPopulate;
-        //	string correctJson;
-        //	string codegenJson;
-        //	TJson tPerson;
-
-        //	tPerson = CreateJsonTemplateFromFile("supersimple.json");
-        //	var person = (Json)tPerson.CreateInstance();
-        //	//SetDefaultPersonValues(person);
-
-        //	TypedJsonSerializer serializer = new __starcountergenerated__.PreGeneratedSerializer();
-
-        //	// First use fallback serializer to create a correct json string.
-        //	TJson.UseCodegeneratedSerializer = false;
-        //	TJson.FallbackSerializer = new NewtonsoftSerializer();
-        //	person.PopulateFromJson(File.ReadAllText("supersimple.json"));
-        //	correctJson = person.ToJson();
-
-        //	// Then we do the same but use codegeneration. We use the pregenerated serializer here
-        //	// to be able to debug it, but we will get the same result by enabling codegenerated serializer 
-        //	// on the template.
-        //	TJson.UseCodegeneratedSerializer = true;
-        //	TJson.FallbackSerializer = DefaultSerializer.Instance;
-
-        //	size = serializer.ToJsonUtf8(person, out jsonArr);
-        //	codegenJson = Encoding.UTF8.GetString(jsonArr, 0, size);
-
-        //	Helper.ConsoleWriteLine("Count: " + size);
-        //	Helper.ConsoleWriteLine(codegenJson);
-
-        //	AssertAreEqual(Encoding.UTF8.GetBytes(correctJson), jsonArr, size);
-        //	Assert.AreEqual(correctJson, codegenJson);
-
-        //	// Now we populate a new person instance with values from the serializer json.
-        //	// And compare it to the original. All values should be identical.
-        //	var person2 = (Json)tPerson.CreateInstance();
-        //	sizeAfterPopulate = serializer.PopulateFromJson(person2, jsonArr, size);
-
-        //	Assert.AreEqual(size, sizeAfterPopulate);
-        //	AssertAreEqual(person, person2);
-        //}
     }
 }

@@ -1,20 +1,11 @@
-﻿// ***********************************************************************
-// <copyright file="NPrimitiveType.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using System;
+﻿using System;
 using Starcounter.Templates;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
-
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
-    /// Class NPrimitiveType
+    /// 
     /// </summary>
-    public class AstPrimitiveType : AstInstanceClass
-    {
-
+    public class AstPrimitiveType : AstInstanceClass {
         /// <summary>
         /// 
         /// </summary>
@@ -31,8 +22,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 return type.IsPrimitive || type == typeof(string) || type == typeof(Decimal);
             }
         }
-
-
+        
         /// <summary>
         /// Gets the name of the class.
         /// </summary>
@@ -41,9 +31,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         {
             get
             {
-                if (NTemplateClass.Template is TTrigger)
-                    return "Action";
-
                 var type = NTemplateClass.Template.InstanceType;
                 if (type == typeof(Int64))
                 {

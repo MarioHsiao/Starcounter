@@ -1,13 +1,12 @@
-﻿
+﻿using System;
+using Starcounter.Internal;
 using Starcounter.XSON.Metadata;
-using System;
-namespace Starcounter.Internal.MsBuild.Codegen {
 
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Represents a type (i.e. a class) in the abstract syntax tree (AST tree)
     /// </summary>
     public abstract class AstClass : AstBase {
-
         private AstClass _InheritedClass;
 
         /// <summary>

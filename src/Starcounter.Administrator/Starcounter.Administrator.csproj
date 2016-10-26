@@ -46,12 +46,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.XML" />
@@ -86,6 +91,7 @@
     <Compile Include="API\Utilities\StringExtensions.cs" />
     <Compile Include="Server\API\Authentication.cs" />
     <Compile Include="Server\API\RestHandlers.cs" />
+    <Compile Include="Server\Handlers\ApplicationsHandler.UPLOAD.cs" />
     <Compile Include="Server\Managers\ExternalAPI.cs" />
     <Compile Include="Server\Managers\SoftwareManager.cs" />
     <Compile Include="Server\Model\AppStoreStore.cs" />
@@ -584,6 +590,7 @@
     <None Include="app\vendor\jquery\jquery-2.1.0.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
     <TypedJSON Include="Server\Tasks\UninstallSoftwareTaskJson.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>

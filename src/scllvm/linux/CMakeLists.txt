@@ -3,10 +3,10 @@ cmake_minimum_required (VERSION 2.8)
 project(scllvm)
 
 # Path to unzipped LLVM sources.
-set(LLVMClangSrcDir ~/Documents/llvm-3.8.0.src)
+set(LLVMClangSrcDir ~/Documents/llvm-3.9.0.src)
 
 # Path to LLVM output directory.
-set(LLVMClangOutDir ${LLVMClangSrcDir}/../build)
+set(LLVMClangOutDir ${LLVMClangSrcDir}/build)
 
 # To get needed cxx flags, call "./llvm-config --cxxflags" from "LLVMClangOutDir/bin"
 # Here we have release LLVM, that gave us the following release options.
@@ -22,4 +22,4 @@ add_library(scllvm SHARED scllvm.cpp)
 #add_executable(scllvm scllvm.cpp)
 
 # To get a list of LLVM libs, call "./llvm-config --libs" from "LLVMClangOutDir/bin"
-target_link_libraries(scllvm clangFrontend clangDriver clangSerialization clangCodeGen clangParse clangSema clangAnalysis clangEdit clangAST clangLex clangBasic LLVMLTO LLVMObjCARCOpts LLVMSymbolize LLVMDebugInfoPDB LLVMDebugInfoDWARF LLVMMIRParser LLVMLibDriver LLVMOption gtest_main gtest LLVMTableGen LLVMOrcJIT LLVMPasses LLVMipo LLVMVectorize LLVMLinker LLVMIRReader LLVMAsmParser LLVMX86Disassembler LLVMX86AsmParser LLVMX86CodeGen LLVMSelectionDAG LLVMAsmPrinter LLVMX86Desc LLVMMCDisassembler LLVMX86Info LLVMX86AsmPrinter LLVMX86Utils LLVMMCJIT LLVMLineEditor LLVMDebugInfoCodeView LLVMInterpreter LLVMExecutionEngine LLVMRuntimeDyld LLVMCodeGen LLVMTarget LLVMScalarOpts LLVMInstCombine LLVMInstrumentation LLVMProfileData LLVMObject LLVMMCParser LLVMTransformUtils LLVMMC LLVMBitWriter LLVMBitReader LLVMAnalysis LLVMCore LLVMSupport -lrt -ldl -lpthread -lm)
+target_link_libraries(scllvm clangFrontend clangDriver clangSerialization clangCodeGen clangParse clangSema clangAnalysis clangEdit clangAST clangLex clangBasic LLVMLTO LLVMObjCARCOpts LLVMSymbolize LLVMDebugInfoPDB LLVMDebugInfoDWARF LLVMMIRParser LLVMLibDriver LLVMOption gtest_main gtest LLVMTableGen LLVMOrcJIT LLVMPasses LLVMipo LLVMVectorize LLVMLinker LLVMIRReader LLVMAsmParser LLVMX86Disassembler LLVMX86AsmParser LLVMX86CodeGen LLVMSelectionDAG LLVMAsmPrinter LLVMX86Desc LLVMMCDisassembler LLVMX86Info LLVMX86AsmPrinter LLVMX86Utils LLVMMCJIT LLVMLineEditor LLVMDebugInfoCodeView LLVMInterpreter LLVMExecutionEngine LLVMRuntimeDyld LLVMCodeGen LLVMTarget LLVMScalarOpts LLVMInstCombine LLVMInstrumentation LLVMProfileData LLVMObject LLVMMCParser LLVMTransformUtils LLVMMC LLVMBitWriter LLVMBitReader LLVMAnalysis LLVMCore LLVMSupport LLVMCoverage -lrt -ldl -lpthread -lm)
