@@ -141,15 +141,22 @@ namespace Starcounter.Weaver
                     setup.WeaverRuntimeDirectory = Environment.CurrentDirectory;
                 }
             }
+
+            host.OnWeaverSetup(setup);
         }
 
         static bool ExecuteCurrent(CodeWeaver weaver) {
+            var result = false;
             try {
                 CodeWeaver.Current = weaver;
-                return weaver.Execute();
+                weaver.Host.OnWeaverStart();
+                result = weaver.Execute();
             } finally {
+                weaver.Host.OnWeaverDone(result);
                 weaver = null;
             }
+
+            return result;
         }
         
         void BootDiagnose() {

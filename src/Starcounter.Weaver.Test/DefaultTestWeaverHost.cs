@@ -1,4 +1,6 @@
-﻿namespace Starcounter.Weaver.Test
+﻿using System;
+
+namespace Starcounter.Weaver.Test
 {
     /// <summary>
     /// Test host, just implementing empty stubs. Subclass if we need to
@@ -6,6 +8,19 @@
     /// </summary>
     internal class DefaultTestWeaverHost : IWeaverHost
     {
+        public virtual void OnWeaverDone(bool result)
+        {
+        }
+
+        public virtual void OnWeaverSetup(WeaverSetup setup)
+        {
+        }
+
+        public virtual void OnWeaverStart()
+        {
+
+        }
+
         public virtual void WriteDebug(string message, params object[] parameters)
         {
         }

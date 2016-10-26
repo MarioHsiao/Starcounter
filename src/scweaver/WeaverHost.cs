@@ -24,6 +24,18 @@ namespace Starcounter.Weaver
             ErrorCount = 0;
         }
 
+        public void OnWeaverSetup(WeaverSetup setup)
+        {
+        }
+
+        public void OnWeaverStart()
+        {
+        }
+
+        public void OnWeaverDone(bool result)
+        {
+        }
+
         public void WriteDebug(string message, params object[] parameters)
         {
             if (OutputVerbosity < Verbosity.Diagnostic)
