@@ -86,6 +86,10 @@
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.Weaver\Starcounter.Weaver.csproj">
+      <Project>{4e56fde2-ac12-43b0-8c52-f0c80512df83}</Project>
+      <Name>Starcounter.Weaver</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
