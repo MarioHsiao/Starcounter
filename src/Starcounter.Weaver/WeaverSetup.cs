@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections.Generic;
 
 namespace Starcounter.Weaver
 {
@@ -95,5 +96,11 @@ namespace Starcounter.Weaver
         /// the host.
         /// </summary>
         public bool IncludeLocationInErrorMessages { get; set; }
+
+        /// <summary>
+        /// Properties not considered by the weaver engine but that can be
+        /// passed from a weaver initiator to customize the <c>IWeaverHost</c>.
+        /// </summary>
+        public Dictionary<string, string> HostProperties = new Dictionary<string, string>();
     }
 }
