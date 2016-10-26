@@ -90,10 +90,6 @@
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
     </ProjectReference>
-	<ProjectReference Include="..\Starcounter.Weaver\Starcounter.Weaver.csproj">
-      <Project>{4E56FDE2-AC12-43B0-8C52-F0C80512DF83}</Project>
-      <Name>Starcounter.Weaver</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
