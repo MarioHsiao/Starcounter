@@ -319,6 +319,9 @@ Starcounter.VS.CSTypedWithCodeItemTemplate.XML
 Starcounter.VS11.vsix
 Starcounter.VS12.vsix
 Starcounter.VS14.vsix
+Starcounter.Weaver.dll
+Starcounter.Weaver.pdb
+Starcounter.Weaver.XML
 Starcounter.XSON.dll
 Starcounter.XSON.pdb
 Starcounter.XSON.XML

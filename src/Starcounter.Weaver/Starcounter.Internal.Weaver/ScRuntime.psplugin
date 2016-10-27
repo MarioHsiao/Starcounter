@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<PlugIn xmlns="http://schemas.postsharp.org/1.0/configuration">
+  <!-- Define tasks -->
+  <TaskType	Name="ScTransform"
+				    Phase="Transform"
+				    Implementation="Starcounter.Internal.Weaver.ScTransformTask, Starcounter.Weaver"
+				    >
+    <Dependency TaskType="CodeWeaver" Position="After"/>
+    <Dependency TaskType="Remove" Position="After"/>
+  </TaskType>
+
+  <TaskType Name="ScCopy"
+            Phase="Generate"
+            Implementation="Starcounter.Internal.Weaver.ScCopyTask, Starcounter.Weaver">
+    <Dependency TaskType="Compile" Position="Before"/>
+  </TaskType>
+
+  <TaskType Name="ScTouch"
+          Phase="Generate"
+          Implementation="Starcounter.Internal.Weaver.ScTouchTask, Starcounter.Weaver">
+    <Dependency TaskType="Compile" Position="Before"/>
+  </TaskType>
+
+  <!--
+  PSA 25/9 2012: Not aware of whats been decided about transcation
+  scopes, but since they are not part of even the mock, I'm not doing
+  anything to try to support them in the weaver.
+  <TaskType Name="ScTransactionScope"
+            Phase="Transform"
+            Implementation="Starcounter.Internal.Weaver.ScTransactionScopeTask, Starcounter.Weaver">
+    <Dependency TaskType="CodeWeaver" Position="After"/>
+    <Dependency TaskType="AnnotationRepository" />
+  </TaskType>
+  -->
+  
+  <TaskType Name="ScEnhanceThreadingTask"
+            Phase="Transform"
+            Implementation="Starcounter.Internal.Weaver.ScEnhanceThreadingTask, Starcounter.Weaver">
+    <Dependency TaskType="ScTransform" Required="false" />
+  </TaskType>
+  
+</PlugIn>

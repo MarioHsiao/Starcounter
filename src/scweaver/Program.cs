@@ -1,39 +1,50 @@
 ﻿
-using PostSharp.Extensibility;
-using Starcounter;
+using Sc.Server.Weaver.Schema;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
-using Starcounter.Internal.Weaver;
 using System;
+using System.CodeDom.Compiler;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
-namespace Starcounter.Weaver {
-    using Sc.Server.Weaver.Schema;
-    using System.CodeDom.Compiler;
-    using System.Reflection;
+namespace Starcounter.Weaver
+{
     using Error = Starcounter.Error;
 
     class Program {
 
-        public static Verbosity OutputVerbosity = Verbosity.Default;
-        static string ErrorParcelID = string.Empty;
-        static int MaxErrors = 0;
-        static int ErrorCount = 0;
+        /// <summary>
+        /// The name of the default output directory, utilized by the weaver
+        /// when no output directory is explicitly given.
+        /// </summary>
+        /// <remarks>
+        /// If no output directory is given, the output directory will be a
+        /// subdirectory of the input directory, with this name.
+        /// </remarks>
+        const string DefaultOutputDirectoryName = ".starcounter";
 
-        internal static bool IsCreatingParceledErrors {
-            get { return !string.IsNullOrEmpty(Program.ErrorParcelID); }
-        }
+        /// <summary>
+        /// The name of the default cache directory, if no cache directory
+        /// is given.
+        /// </summary>
+        /// <remarks>
+        /// If no cache directory is given, the cache directory will be a
+        /// subdirectory of the output directory, with this name.
+        /// </remarks>
+        const string DefaultCacheDirectoryName = "cache";
 
         static void Main(string[] args) {
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
 
+            var host = new WeaverHost();
+
             ApplicationArguments arguments;
             try {
-                if (TryGetProgramArguments(args, out arguments))
-                    ApplyOptionsAndExecuteGivenCommand(arguments);
+                if (TryGetProgramArguments(host, args, out arguments))
+                    ApplyOptionsAndExecuteGivenCommand(host, arguments);
             }
             catch (Exception e) {
                 // Catch any unhandled exception to prevent it
@@ -44,14 +55,15 @@ namespace Starcounter.Weaver {
                     errorCode = Error.SCERRUNHANDLEDWEAVEREXCEPTION;
                     e = ErrorCode.ToException(Error.SCERRUNHANDLEDWEAVEREXCEPTION, e);
                 }
-                Program.ReportProgramError(errorCode, e.ToString());
+
+                host.WriteError(errorCode, e.ToString());
 
             } finally {
                 Console.ResetColor();
             }
         }
 
-        static void ApplyOptionsAndExecuteGivenCommand(ApplicationArguments arguments) {
+        static void ApplyOptionsAndExecuteGivenCommand(WeaverHost host, ApplicationArguments arguments) {
             string inputDirectory;
             string cacheDirectory;
             string outputDirectory;
@@ -59,7 +71,7 @@ namespace Starcounter.Weaver {
             string fileName;
             string givenFilePath;
             
-            ApplyGlobalProgramOptions(arguments);
+            ApplyGlobalProgramOptions(host, arguments);
 
             // All commands share the requirement to specify the executable as the first
             // parameter. All commands also support specifying the cache directory. Set
@@ -75,14 +87,12 @@ namespace Starcounter.Weaver {
 
                 if (!File.Exists(givenFilePath)) {
                     error = Error.SCERRWEAVERFILENOTFOUND;
-                    ReportProgramError(
-                        error,
-                        ErrorCode.ToMessage(error, string.Format("Path: {0}.", givenFilePath)));
+                    host.WriteError(error, ErrorCode.ToMessage(error, string.Format("Path: {0}.", givenFilePath)));
                     return;
                 }
             } catch (Exception e) {
                 error = Error.SCERRWEAVERFILENOTFOUND;
-                ReportProgramError(
+                host.WriteError(
                     error,
                     ErrorCode.ToMessage(error, string.Format("Failed resolving path: {0}, Path: {1}.", e.Message, givenFilePath)));
                 return;
@@ -93,7 +103,7 @@ namespace Starcounter.Weaver {
 
             if (!supportedExtensions.Contains<string>(extension)) {
                 error = Error.SCERRWEAVERFILENOTSUPPORTED;
-                ReportProgramError(
+                host.WriteError(
                     error,
                     ErrorCode.ToMessage(error, string.Format("Supported extensions: {0}.", string.Join(",", supportedExtensions)))
                     );
@@ -107,7 +117,7 @@ namespace Starcounter.Weaver {
             // Resolve the output directory to use when transforming/weaving.
 
             if (!arguments.TryGetProperty("outdir", out outputDirectory)) {
-                outputDirectory = Path.Combine(inputDirectory, CodeWeaver.DefaultOutputDirectoryName);
+                outputDirectory = Path.Combine(inputDirectory, DefaultOutputDirectoryName);
             } else {
                 outputDirectory = Path.Combine(inputDirectory, outputDirectory);
             }
@@ -117,7 +127,7 @@ namespace Starcounter.Weaver {
                     Directory.CreateDirectory(outputDirectory);
                 } catch (Exception e) {
                     error = Error.SCERRCODELIBFAILEDNEWCACHEDIR;
-                    ReportProgramError(
+                    host.WriteError(
                         error,
                         ErrorCode.ToMessage(error, string.Format("Message: {0}.", e.Message)));
                     return;
@@ -128,7 +138,7 @@ namespace Starcounter.Weaver {
             // or from using the default directory.
 
             if (!arguments.TryGetProperty("cachedir", out cacheDirectory)) {
-                cacheDirectory = Path.Combine(outputDirectory, CodeWeaver.DefaultCacheDirectoryName);
+                cacheDirectory = Path.Combine(outputDirectory, DefaultCacheDirectoryName);
             } else {
                 cacheDirectory = Path.Combine(outputDirectory, cacheDirectory);
             }
@@ -138,7 +148,7 @@ namespace Starcounter.Weaver {
                     Directory.CreateDirectory(cacheDirectory);
                 } catch (Exception e) {
                     error = Error.SCERRCODELIBFAILEDNEWCACHEDIR;
-                    ReportProgramError(
+                    host.WriteError(
                         error,
                         ErrorCode.ToMessage(error, string.Format("Message: {0}.", e.Message)));
                     return;
@@ -151,10 +161,10 @@ namespace Starcounter.Weaver {
             var caseInsensitive = StringComparison.InvariantCultureIgnoreCase;
             
             if (cmd.Equals(ProgramCommands.Weave, caseInsensitive)) {
-                ExecuteWeaveCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
+                ExecuteWeaveCommand(host, inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
             } else if (cmd.Equals(ProgramCommands.Verify, caseInsensitive)) {
-                ExecuteVerifyCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
+                ExecuteVerifyCommand(host, inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
             } else if (cmd.Equals(ProgramCommands.ShowSchema, caseInsensitive)) {
                 ExecuteSchemaCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
@@ -164,7 +174,7 @@ namespace Starcounter.Weaver {
 
             } else {
                 error = Error.SCERRBADCOMMANDLINESYNTAX;
-                ReportProgramError(
+                host.WriteError(
                     error,
                     ErrorCode.ToMessage(error, string.Format("Command {0} not recognized.", arguments.Command))
                     );
@@ -180,28 +190,31 @@ namespace Starcounter.Weaver {
         /// <param name="fileName">The name of the file to give the weaver.</param>
         /// <param name="arguments">Parsed and verified program arguments.</param>
         static void ExecuteWeaveCommand(
+            WeaverHost host,
             string inputDirectory,
             string outputDirectory,
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
-            CodeWeaver weaver;
 
-            // Create the code weaver facade and configure it properly. Then
-            // execute the underlying weaver engine.
+            var setup = new WeaverSetup()
+            {
+                InputDirectory = inputDirectory,
+                AssemblyFile = fileName,
+                OutputDirectory = outputDirectory,
+                CacheDirectory = cacheDirectory
+            };
 
-            weaver = new CodeWeaver(inputDirectory, fileName, outputDirectory, cacheDirectory);
-            weaver.OutputDirectory = outputDirectory;
-            weaver.RunWeaver = true;
-            weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
-            weaver.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
-            weaver.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
-            weaver.DisableEditionLibraries = arguments.ContainsFlag("DisableEditionLibraries".ToLower());
+            setup.DisableWeaverCache = arguments.ContainsFlag("nocache");
+            setup.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
+            setup.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
+            setup.DisableEditionLibraries = arguments.ContainsFlag("DisableEditionLibraries".ToLower());
+            setup.EmitBootAndFinalizationDiagnostics = host.OutputVerbosity == Verbosity.Diagnostic;
+            setup.IncludeLocationInErrorMessages = host.ShouldCreateParceledErrors;
+            setup.EnableTracing = host.OutputVerbosity == Verbosity.Diagnostic;
 
-            // Invoke the weaver subsystem. If it fails, it will report the
-            // error itself.
-
-            CodeWeaver.ExecuteCurrent(weaver);
+            var weaver = WeaverFactory.CreateWeaver(setup, host);
+            weaver.Execute();
         }
 
         /// <summary>
@@ -213,24 +226,25 @@ namespace Starcounter.Weaver {
         /// <param name="fileName">The name of the file to give the weaver.</param>
         /// <param name="arguments">Parsed and verified program arguments.</param>
         static void ExecuteVerifyCommand(
+            WeaverHost host,
             string inputDirectory,
             string outputDirectory,
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
-            CodeWeaver weaver;
-            
-            // Create the code weaver facade and configure it properly. Then
-            // execute the underlying weaver engine.
 
-            weaver = new CodeWeaver(inputDirectory, fileName, outputDirectory, cacheDirectory);
-            weaver.RunWeaver = false;
-            weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
+            var setup = new WeaverSetup()
+            {
+                InputDirectory = inputDirectory,
+                AssemblyFile = fileName,
+                OutputDirectory = outputDirectory,
+                CacheDirectory = cacheDirectory
+            };
+            setup.AnalyzeOnly = true;
+            setup.DisableWeaverCache = arguments.ContainsFlag("nocache");
 
-            // Invoke the weaver subsystem. If it fails, it will report the
-            // error itself.
-
-            CodeWeaver.ExecuteCurrent(weaver);
+            var weaver = WeaverFactory.CreateWeaver(setup, host);
+            weaver.Execute();
         }
 
         static void ExecuteSchemaCommand(
@@ -286,7 +300,10 @@ namespace Starcounter.Weaver {
             }
         }
 
-        static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
+        // Rename to ApplyHostOptions or ConfigureHost
+        // TODO:
+
+        static void ApplyGlobalProgramOptions(WeaverHost host, ApplicationArguments arguments) {
             string propertyValue;
 
             // Consult global/shared parameters and apply them as specified by
@@ -294,7 +311,7 @@ namespace Starcounter.Weaver {
 
             if (arguments.ContainsFlag("sc-debug")) {
                 if (Debugger.IsAttached)
-                    WriteDebug("A debugger is already attached to the process.");
+                    host.WriteDebug("A debugger is already attached to the process.");
                 else {
                     bool debuggerAttached;
                     try {
@@ -304,36 +321,31 @@ namespace Starcounter.Weaver {
                     }
 
                     if (!debuggerAttached)
-                        WriteWarning("Unable to attach a debugger.");
+                        host.WriteWarning("Unable to attach a debugger.");
                 }
             }
 
             if (arguments.TryGetProperty("verbosity", out propertyValue)) {
                 switch (propertyValue.ToLowerInvariant()) {
                     case "quiet":
-                        Program.OutputVerbosity = Verbosity.Quiet;
+                        host.OutputVerbosity = Verbosity.Quiet;
                         break;
 
                     case "verbose":
-                        Program.OutputVerbosity = Verbosity.Verbose;
+                        host.OutputVerbosity = Verbosity.Verbose;
                         break;
 
                     case "diagnostic":
-                        Program.OutputVerbosity = Verbosity.Diagnostic;
+                        host.OutputVerbosity = Verbosity.Diagnostic;
                         break;
 
                     default:
                         throw ErrorCode.ToException(Error.SCERRBADCOMMANDLINESYNTAX, string.Format("Unknown verbosity: {0}", propertyValue));
                 }
             }
-
-            if (Program.OutputVerbosity == Verbosity.Diagnostic) {
-                PostSharpTrace.EnableCategory(ScAnalysisTrace.Instance);
-                PostSharpTrace.EnableCategory(ScTransformTrace.Instance);
-            }
-
+            
             if (arguments.TryGetProperty("errorparcelid", out propertyValue)) {
-                Program.ErrorParcelID = propertyValue;
+                host.ErrorParcelID = propertyValue;
             }
 
             if (arguments.TryGetProperty("maxerrors", out propertyValue)) {
@@ -342,11 +354,11 @@ namespace Starcounter.Weaver {
                     maxErrors = int.Parse(propertyValue);
                     if (maxErrors < 0) maxErrors = 0;
                 } catch { }
-                Program.MaxErrors = maxErrors;
+                host.MaxErrors = maxErrors;
             }
         }
 
-        static bool TryGetProgramArguments(string[] args, out ApplicationArguments arguments) {
+        static bool TryGetProgramArguments(WeaverHost host, string[] args, out ApplicationArguments arguments) {
             ApplicationSyntaxDefinition syntaxDefinition;
             CommandSyntaxDefinition commandDefinition;
             IApplicationSyntax syntax;
@@ -479,7 +491,7 @@ namespace Starcounter.Weaver {
                 arguments = parser.Parse(syntax);
             } catch (InvalidCommandLineException invalidCommandLine) {
                 Usage(syntax, invalidCommandLine);
-                ReportProgramError(invalidCommandLine.ErrorCode, invalidCommandLine.Message);
+                host.WriteError(invalidCommandLine.ErrorCode, invalidCommandLine.Message);
                 arguments = null;
                 return false;
             }
@@ -536,139 +548,6 @@ namespace Starcounter.Weaver {
             }
 
             Console.WriteLine();
-        }
-
-        /// <summary>
-        /// Sets the environment exit code to the given Starcounter error
-        /// code, after first writing its message to the console.
-        /// </summary>
-        /// <param name="errorCode">The code we should report as the exit
-        /// code of the program.</param>
-        /// <returns>True if the code was set as the exit code. False if
-        /// a previous exit code was already set. In this case, only the
-        /// error message is written to the console.</returns>
-        internal static bool ReportProgramError(uint errorCode) {
-            return ReportProgramError(errorCode, ErrorCode.ToMessage(errorCode));
-        }
-
-        /// <summary>
-        /// Sets the environment exit code to the given Starcounter error
-        /// code, after first writing the supplied message to the console.
-        /// </summary>
-        /// <param name="errorCode">The code we should report as the exit
-        /// code of the program.</param>
-        /// <param name="message">Error message that should be written to
-        /// the console.</param>
-        /// <param name="parameters">Possible message arguments.</param>
-        /// <returns>True if the code was set as the exit code. False if
-        /// a previous exit code was already set. In this case, only the
-        /// error message is written to the console.</returns>
-        internal static bool ReportProgramError(
-            uint errorCode,
-            string message,
-            params object[] parameters) {
-            var result = false;
-            
-            WriteError(message, parameters);
-            if (Environment.ExitCode == 0) {
-                Environment.ExitCode = (int)errorCode;
-                result = true;
-            } else {
-                result = false;
-            }
-
-            if (++Program.ErrorCount == Program.MaxErrors) {
-                Environment.Exit(Environment.ExitCode);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Writes a debug message to the console, if the verbosity level of
-        /// the program is letting it through.
-        /// </summary>
-        /// <param name="message">Message to write.</param>
-        /// <param name="parameters">Possible message arguments.</param>
-        internal static void WriteDebug(string message, params object[] parameters) {
-            if (Program.OutputVerbosity < Verbosity.Diagnostic)
-                return;
-
-            WriteWithColor(Console.Out, ConsoleColor.DarkGray, message, parameters);
-        }
-
-        /// <summary>
-        /// Writes an information message to the console, if the verbosity level of
-        /// the program is letting it through.
-        /// </summary>
-        /// <param name="message">Message to write.</param>
-        /// <param name="parameters">Possible message arguments.</param>
-        internal static void WriteInformation(string message, params object[] parameters) {
-            if (Program.OutputVerbosity < Verbosity.Verbose)
-                return;
-
-            WriteWithColor(Console.Out, ConsoleColor.White, message, parameters);
-        }
-
-        /// <summary>
-        /// Writes a warning message to the console, if the verbosity level of
-        /// the program is letting it through.
-        /// </summary>
-        /// <param name="message">Message to write.</param>
-        /// <param name="parameters">Possible message arguments.</param>
-        internal static void WriteWarning(string message, params object[] parameters) {
-            if (Program.OutputVerbosity < Verbosity.Minimal)
-                return;
-
-            WriteWithColor(Console.Out, ConsoleColor.Yellow, message, parameters);
-        }
-
-        /// <summary>
-        /// Writes a error message to the console, if the verbosity level of
-        /// the program is letting it through.
-        /// </summary>
-        /// <param name="message">Message to write.</param>
-        /// <param name="parameters">Possible message arguments.</param>
-        internal static void WriteError(string message, params object[] parameters) {
-            if (Program.OutputVerbosity < Verbosity.Minimal)
-                return;
-
-            if (!string.IsNullOrEmpty(Program.ErrorParcelID)) {
-                WriteParcel(Program.ErrorParcelID, Console.Error, message, parameters);
-            }
-
-            WriteWithColor(Console.Error, ConsoleColor.Red, message, parameters);
-        }
-
-        private static void WriteParcel(
-            string parcelID,
-            TextWriter stream,
-            string message,
-            params object[] parameters) {
-            message = ParcelledError.Format(parcelID, message);
-            WriteWithColor(
-                stream,
-                ConsoleColor.DarkBlue,
-                message,
-                parameters
-                );
-        }
-
-        /// <summary>
-        /// Writes a message to the console, to the specific stream, using
-        /// a specified color.
-        /// </summary>
-        /// <param name="stream">The console stream to write to.</param>
-        /// <param name="color">The color to use.</param>
-        /// <param name="message">Message to write.</param>
-        /// <param name="parameters">Possible message arguments.</param>
-        private static void WriteWithColor(TextWriter stream, ConsoleColor color, string message, params object[] parameters) {
-            Console.ForegroundColor = color;
-            try {
-                stream.WriteLine(message, parameters);
-            } finally {
-                Console.ResetColor();
-            }
         }
     }
 }

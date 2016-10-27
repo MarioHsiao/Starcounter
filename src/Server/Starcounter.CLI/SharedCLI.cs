@@ -637,7 +637,7 @@ namespace Starcounter.CLI {
                     errorCode = Error.SCERRUNSPECIFIED;
                 }
                 Console.WriteLine();
-                ConsoleUtil.ToConsoleWithColor(e.Message, ConsoleColor.Red);
+                ConsoleUtil.ToConsoleWithColor($"{e.GetType().Name}: {e.Message}", ConsoleColor.Red);
                 Environment.ExitCode = (int)errorCode;
             }
 
