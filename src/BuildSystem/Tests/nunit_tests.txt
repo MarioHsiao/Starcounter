@@ -2,8 +2,10 @@ FasterThanJson.Tests.exe
 HttpParser.Tests.dll
 Starcounter.Apps.Tests.dll
 Starcounter.Internal.Tests.dll
+Starcounter.Server.Test.dll
 Starcounter.SqlProcessor.Tests.exe
 Starcounter.Tests.dll
+Starcounter.Weaver.Test.dll
 Starcounter.Web.Tests.dll
 Starcounter.XSON.HtmlReader.Tests.dll
 Starcounter.XSON.JsonByExample.Tests.dll
