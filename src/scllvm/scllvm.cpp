@@ -20,7 +20,6 @@
 #include <iostream>
 #include <time.h>
 #include <fstream>
-#include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -28,10 +27,20 @@
 extern "C" {
 #endif
 
+	// Version of this SCLLVM.
 #ifdef _WIN32
+	const wchar_t* const ScllvmVersion = L"2.0";
+#else
+	const char* const ScllvmVersion = "2.0";
+#endif
+
+#ifdef _WIN32
+#include <direct.h>
 #include <windows.h>
 # define MODULE_API __declspec(dllexport)
 #else
+#include <unistd.h>
+#include <sys/stat.h>
 # define MODULE_API
 #endif
 
@@ -304,6 +313,7 @@ extern "C" {
 		}
 
 		// Creating directory recursively and making it current. 
+#ifdef _WIN32
 		static void CreateDirAndSwitch(const wchar_t* dir) {
 
 			// Immediately trying to switch to dir.
@@ -347,6 +357,54 @@ extern "C" {
 			err_code = _wchdir(dir);
 			assert((0 == err_code) && "Can't change current directory to cache directory.");
 		}
+#else
+		static void CreateDirAndSwitch(const char* dir) {
+
+			// Immediately trying to switch to dir.
+			int err_code = chdir(dir);
+			if (0 == err_code) {
+				return;
+			}
+
+			char tmp[1024];
+
+			// Copying into temporary string.
+			strcpy(tmp, dir);
+			size_t len = strlen(tmp);
+
+			// Checking for the last slash.
+			if ((tmp[len - 1] == '/') ||
+				(tmp[len - 1] == '\\')) {
+
+				tmp[len - 1] = 0;
+			}
+
+			// Starting from the first character.
+			for (char *p = tmp + 1; *p; p++) {
+
+				// Checking if its a slash.
+				if ((*p == '/') || (*p == '\\')) {
+
+					*p = 0;
+
+					// Making the directory.
+					// TODO: Fix correct mode permissions.
+					mkdir(tmp, 0777);
+
+					*p = '/';
+				}
+			}
+
+			// Creating final directory.
+			// TODO: Fix correct mode permissions.
+			mkdir(tmp, 0777);
+
+			// Changing current directory to dir.
+			err_code = chdir(dir);
+			assert((0 == err_code) && "Can't change current directory to cache directory.");
+		}
+
+#endif
 
 		// Replaces string in string.
 		std::string ReplaceString(std::string subject, const std::string& search,
@@ -363,6 +421,9 @@ extern "C" {
 			const bool print_to_console,
 			const bool do_optimizations,
 			const wchar_t* const path_to_cache_dir,
+#else
+			const char* const path_to_cache_dir,
+#endif
 			const char* const predefined_hash_str,
 			const char* const input_code_chars,
 			const char* const function_names_delimited,
@@ -484,8 +545,8 @@ extern "C" {
 		}
 	};
 
-    // Global mutex.
-    llvm::sys::MutexImpl* g_mutex;
+	// Global mutex.
+	llvm::sys::MutexImpl* g_mutex;
 
 	MODULE_API void ClangInit() {
 
@@ -498,12 +559,12 @@ extern "C" {
 
 	MODULE_API void ClangDeleteModule(CodegenEngine* const clang_engine, void** exec_engine) {
 
-        assert(nullptr != g_mutex);
-        g_mutex->acquire();
+		assert(nullptr != g_mutex);
+		g_mutex->acquire();
 
 		clang_engine->DestroyEngine((llvm::ExecutionEngine**) exec_engine);
 
-        g_mutex->release();
+		g_mutex->release();
 	}
 
 	MODULE_API uint32_t ClangCompileCodeAndGetFuntions(
@@ -542,6 +603,9 @@ extern "C" {
 		const bool print_to_console,
 		const bool do_optimizations,
 		const wchar_t* const path_to_cache_dir,
+#else
+		const char* const path_to_cache_dir,
+#endif
 		const char* const predefined_hash_str,
 		const char* const input_code_str,
 		const char* const function_names_delimited,
@@ -636,6 +700,48 @@ extern "C" {
 		}
 
 		ClangDestroy(cge);
+
+		return 0;
+	}
+
+	// Just a basic test.
+	int32_t main() {
+		ScLLVMInit();
+		CodegenEngine* out_codegen_engine = nullptr;
+
+		char out_hash_65bytes[65];
+		float out_time_seconds;
+		uint64_t out_func_ptrs[1] = { 0 };
+		void* out_exec_module = nullptr;
+
+		int32_t err_code = ScLLVMProduceModule(
+#ifdef _WIN32
+			L"starcÖunter",
+#else
+			"starcÖunter",
+#endif
+			nullptr,
+			"extern \"C\" int gen_function(int p) { return p + 555; }",
+			"gen_function",
+			nullptr,
+			false,
+			nullptr,
+			out_hash_65bytes,
+			&out_time_seconds,
+			out_func_ptrs,
+			&out_exec_module,
+			&out_codegen_engine);
+
+		assert(0 == err_code);
+
+		typedef int(*function_type) (int);
+		function_type gen_func = (function_type)(out_func_ptrs[0]);
+
+		int32_t res = gen_func(3);
+
+		assert(558 == res);
+
+		std::cout << "Test succeeded. Result: " << res << std::endl;
 
 		return 0;
 	}
