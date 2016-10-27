@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace Starcounter.Bootstrap
 {
     public interface IHostConfiguration
@@ -9,7 +11,7 @@ namespace Starcounter.Bootstrap
         ushort DefaultUserHttpPort { get; }
         bool EnableTraceLogging { get; }
         byte GatewayNumberOfWorkers { get; }
-        uint InstanceID { get; }
+        Guid DbUUID { get; }
         string Name { get; }
         bool NoDb { get; }
         bool NoNetworkGateway { get; }

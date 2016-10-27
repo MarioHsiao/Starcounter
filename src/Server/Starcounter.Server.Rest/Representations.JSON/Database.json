@@ -2,7 +2,7 @@
 
   "Uri": "", // "http://example.com/api/databases/foo",
   "Name": "", // "Foo",
-  "InstanceID":  0,
+  "DbUUID":  "",
 
   "Configuration": {
     "Uri": "", // "http://example.com/api/databases/foo/configuration",

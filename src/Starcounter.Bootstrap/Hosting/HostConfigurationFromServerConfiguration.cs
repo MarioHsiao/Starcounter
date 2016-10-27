@@ -42,7 +42,7 @@ namespace Starcounter.Hosting
             var config = new HostConfiguration();
             config.ServerName = "PERSONAL";
             config.Name = database.Name.ToUpper();
-            config.InstanceID = (uint)database.InstanceID;
+            config.DbUUID = Guid.Parse(database.DbUUID);
             config.OutputDirectory = server.Logs.LogDirectory;
             config.TempDirectory = database.Configuration.TempDirectory;
             config.DefaultSystemHttpPort = (ushort)server.Configuration.SystemHttpPort;

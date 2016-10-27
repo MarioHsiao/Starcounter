@@ -17,7 +17,7 @@ namespace Starcounter.Bootstrap
 
         public byte GatewayNumberOfWorkers { get; set; }
 
-        public uint InstanceID { get; set; }
+        public Guid DbUUID { get; set; }
 
         public string Name { get; set; }
 

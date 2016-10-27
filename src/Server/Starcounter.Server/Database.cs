@@ -159,7 +159,7 @@ namespace Starcounter.Server {
                 engine, 
                 this.Configuration.Clone(this.Configuration.ConfigurationFilePath),
                 null);
-            info.InstanceID = this.InstanceID;
+            info.DbUUID = db_uuid;
 
             return info;
         }

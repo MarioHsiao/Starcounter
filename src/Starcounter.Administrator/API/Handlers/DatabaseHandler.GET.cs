@@ -47,7 +47,7 @@ namespace Starcounter.Administrator.API.Handlers
 
             var db = new Database();
             db.Name = applicationDatabase.Name;
-            db.InstanceID = (int)applicationDatabase.InstanceID;
+            db.DbUUID = applicationDatabase.DbUUID.ToString();
             db.Configuration.Uri = admin.Uris.DatabaseConfiguration.ToAbsoluteUri(applicationDatabase.Name);
             db.Engine.Uri = admin.Uris.Engine.ToAbsoluteUri(applicationDatabase.Name);
 

@@ -6,6 +6,7 @@
 
 using System.Xml.Serialization;
 using Starcounter.Advanced.Configuration;
+using System;
 
 namespace Starcounter.Server.PublicModel {
 
@@ -84,14 +85,10 @@ namespace Starcounter.Server.PublicModel {
         public readonly EngineInfo Engine;
 
         /// <summary>
-        /// Gets the instance ID assigned to the represented
-        /// database.
+        /// Gets or sets the UUID used to uniquely identify a database.
         /// </summary>
-        public ulong InstanceID {
-            get;
-            internal set;
-        }
-
+        public Guid DbUUID { get; set; }
+        
         /// <summary>
         /// Initializes a <see cref="DatabaseInfo"/>.
         /// </summary>
