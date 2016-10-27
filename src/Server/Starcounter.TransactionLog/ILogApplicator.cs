@@ -8,6 +8,6 @@ namespace Starcounter.TransactionLog
 {
     interface ILogApplicator
     {
-        void Apply(TransactionData transaction_data);
+        void Apply(TransactionData transactionData);
     }
 }

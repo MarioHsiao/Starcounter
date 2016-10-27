@@ -8,6 +8,6 @@ namespace Starcounter.TransactionLog
 {
     public struct LogPosition
     {
-        public ulong commit_id;
+        public ulong CommitID;
     }
 }

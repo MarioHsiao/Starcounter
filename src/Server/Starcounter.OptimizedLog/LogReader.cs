@@ -69,22 +69,22 @@ namespace Starcounter.OptimizedLog
             return res;
         }
 
-        private create_record_entry read_current_record()
+        private CreateRecordEntry read_current_record()
         {
             Starcounter.TransactionLog.LogReaderImports.insertupdate_entry_info e;
             OptimizedLogReaderImports.OptimizedLogGetEntryInfo(_log_handle, out e);
 
-            return new create_record_entry
+            return new CreateRecordEntry
             {
-                table = _meta_cache[e.table],
-                key = new reference { object_id = e.object_id},
-                columns = read_columns(e)
+                Table = _meta_cache[e.table],
+                Key = new Reference { ObjectID = e.object_id},
+                Columns = read_columns(e)
             };
         }
 
-        private column_update[] read_columns(LogReaderImports.insertupdate_entry_info e)
+        private ColumnUpdate[] read_columns(LogReaderImports.insertupdate_entry_info e)
         {
-            Starcounter.TransactionLog.column_update[] res = new Starcounter.TransactionLog.column_update[e.columns_updates_count];
+            Starcounter.TransactionLog.ColumnUpdate[] res = new Starcounter.TransactionLog.ColumnUpdate[e.columns_updates_count];
             for (uint c = 0; c < e.columns_updates_count; ++c)
             {
                 unsafe

@@ -8,8 +8,8 @@ namespace Starcounter.TransactionLog
 {
     public interface ILogManager
     {
-        ILogReader OpenLog(string db_name, string log_dir, Func<string, bool> table_predicate=null);
+        ILogReader OpenLog(string dbName, string logDir, Func<string, bool> tablePredicate=null);
 
-        ILogReader OpenLog(string db_name, string log_dir, LogPosition position, Func<string, bool> table_predicate = null);
+        ILogReader OpenLog(string dbName, string logDir, LogPosition position, Func<string, bool> tablePredicate = null);
     }
 }

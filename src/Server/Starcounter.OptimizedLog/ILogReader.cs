@@ -10,7 +10,7 @@ namespace Starcounter.OptimizedLog
     public class OptimizedLogReadResult
     {
         public OptimizedLogPosition continuation_position;
-        public Starcounter.TransactionLog.create_record_entry record;
+        public Starcounter.TransactionLog.CreateRecordEntry record;
     }
 
     public interface IOptimizedLogReader : IDisposable

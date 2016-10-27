@@ -9,12 +9,12 @@ namespace Starcounter.TransactionLog
 {
     public class LogReadResult
     {
-        public LogPosition continuation_position;
-        public TransactionData transaction_data;
+        public LogPosition ContinuationPosition;
+        public TransactionData TransactionData;
     }
 
     public interface ILogReader : IDisposable
     {
-        Task<LogReadResult> ReadAsync(CancellationToken ct, bool wait_for_live_updates = true);
+        Task<LogReadResult> ReadAsync(CancellationToken ct, bool waitForLiveUpdates = true);
     }
 }
