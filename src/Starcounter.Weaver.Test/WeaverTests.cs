@@ -4,6 +4,7 @@ using System;
 using Starcounter.Server.Compiler;
 using System.IO;
 using System.Linq;
+using Starcounter.Internal;
 
 namespace Starcounter.Weaver.Test
 {
@@ -181,7 +182,11 @@ namespace Starcounter.Weaver.Test
                 Assert.False(weaverResult);
 
                 var errorLog = WeaverErrorLog.OpenThenDelete(errorLogPath);
-                Assert.True(errorLog.GetSingleErrorMessage(4220) != null);
+
+                ErrorAndMessage error = null;
+                Assert.DoesNotThrow(() => { error = errorLog.GetSingleErrorMessage(Error.SCERRENTITYCLASSNOTPUBLIC); });
+                Assert.IsNotNull(error);
+                Assert.True(error.Message.Contains("Foo"));
             }
         }
 
