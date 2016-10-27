@@ -4757,6 +4757,29 @@
         Input handler methods must have void return type.
       </message>
     </code>
+    <code hex="0022" severity="Error" name="ScErrJsonInvalidInstanceTypeAssignment">
+      <message>
+        Assignment of instancetype for a TypedJSON member must follow the pattern:
+        'DefaultTemplate.{memberpath}.InstanceType = typeof({type});'.
+      </message>
+    </code>
+    <code hex="0023" severity="Error" name="ScErrJsonUnsupportedInstanceTypeAssignment">
+      <message> 
+        Unsupported assignment of instancetype. 
+      </message>
+    </code>
+    <code hex="0024" severity="Error" name="ScErrJsonDuplicateReuse">
+      <message>
+        Reuse of a TypedJSON object is specified both in the json file and code-behind. 
+        The value from code-behind will be used.
+      </message>
+    </code>
+    <code hex="0025" severity="Error" name="ScErrJsonDuplicateNamespace">
+      <message>
+        Namespace is specified both in the json file and code-behind.
+        The value from code-behind will be used.
+      </message>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->

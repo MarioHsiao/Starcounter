@@ -1,10 +1,4 @@
-﻿// ***********************************************************************
-// <copyright file="CSharpGenerator.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-// Remove this define to generate code without #line directives
+﻿// Remove this define to generate code without #line directives
 #define ADDLINEDIRECTIVES
 
 using System;
@@ -12,10 +6,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using Starcounter.Internal;
 using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
+using Starcounter.XSON.Interfaces;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Generates C# code from an AST tree.
     /// </summary>
@@ -73,6 +68,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             this.root = root;
             this.output = new StringBuilder();
             this.indentation = 4;
+        }
+
+        public IEnumerable<ITemplateCodeGeneratorWarning> Warnings {
+            get {
+                return this.generator.Warnings;
+            }
         }
 
         /// <summary>
@@ -157,11 +158,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         private void WriteHeader() {
             output.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");
-            output.Append(root.AppClassClassNode.Template.CompilerOrigin.FileName);
+            output.Append(root.AppClassClassNode.Template.CodegenInfo.SourceInfo.Filename);
             output.Append('"');
             output.AppendLine();
             output.Append("// Version: ");
-            output.Append(XSON.PartialClassGenerator.CSHARP_CODEGEN_VERSION);
+            output.Append(PartialClassGenerator.CSHARP_CODEGEN_VERSION);
             output.AppendLine();
             output.AppendLine("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN");
             output.AppendLine();
@@ -389,9 +390,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="m">The m.</param>
         private void ProcessJsonProperty(AstProperty m) {
-            if (m.Template is TTrigger)
-                return;
-
             var sb = new StringBuilder();
 
             bool appendMemberName = (m.Template != ((AstJsonClass)m.Parent).Template);
@@ -503,13 +501,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(schemaClass.NValueClass.GlobalClassSpecifier);
             sb.Append(");");
             schemaClass.Prefix.Add(sb.ToString());
-
-            sb.Clear();
-            sb.Append("        ClassName = \"");
-            sb.Append(schemaClass.NValueClass.ClassStemIdentifier);
-            sb.Append("\";");
-            schemaClass.Prefix.Add(sb.ToString());
-
+            
             if (schemaClass.Template is TObject) {
                 schemaClass.Prefix.Add("        Properties.ClearExposed();");
             }
@@ -637,7 +629,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="inputBinding"></param>
         /// <param name="schemaClass"></param>
         private void ProcessInputbinding(AstInputBinding inputBinding, AstSchemaClass schemaClass) {
-            bool hasValue = inputBinding.HasValue;
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
 
@@ -647,22 +638,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 sb.Append(inputBinding.BindsToProperty.Template.PropertyName);       // {0}
             }
             sb.Append(".AddHandler((Json pup, ");
-
-            if (hasValue) {
-                sb.Append("Property");
-                sb.Append('<');
-                sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
-                sb.Append('>');
-            } else {
-                sb.Append("TValue");
-            }
+            sb.Append("Property");
+            sb.Append('<');
+            sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append('>');
             sb.Append(" prop");
-
-            if (hasValue) {
-                sb.Append(", ");
-                sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
-                sb.Append(" value");
-            }
+            sb.Append(", ");
+            sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append(" value");
             sb.Append(") => { return (new ");
             sb.Append(inputBinding.InputTypeName);                       // {2}
             sb.Append("() { App = (");
@@ -670,19 +653,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append(")pup, Template = (");
             sb.Append(inputBinding.BindsToProperty.Type.ClassStemIdentifier);      // {4}
             sb.Append(")prop");
-
-            if (hasValue) {
-                sb.Append(", Value = value");
-            }
-
+            sb.Append(", Value = value");
             sb.Append(" }); }, (Json pup, Starcounter.Input");
-
-            if (hasValue) {
-                sb.Append('<');
-                sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
-                sb.Append('>');
-            }
-
+            sb.Append('<');
+            sb.Append(inputBinding.BindsToProperty.Template.JsonType);   // {1}
+            sb.Append('>');
             sb.Append(" input) => { ((");
             sb.Append(inputBinding.DeclaringAppClass.ClassStemIdentifier);         // {5}
             sb.Append(")pup");
@@ -844,7 +819,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
         
         private static string GetLinePosAndFile(Template template) {
-            return string.Format(LINE_POSANDFILE, template.CompilerOrigin.LineNo, template.CompilerOrigin.FileName);
+            return string.Format(LINE_POSANDFILE, template.CodegenInfo.SourceInfo.Line, template.CodegenInfo.SourceInfo.Filename);
         }
     }
 }

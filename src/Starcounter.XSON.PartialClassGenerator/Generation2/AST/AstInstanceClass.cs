@@ -1,19 +1,8 @@
-﻿// ***********************************************************************
-// <copyright file="NValueClass.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using Starcounter.Templates;
-using System.Collections.Generic;
-namespace Starcounter.Internal.MsBuild.Codegen {
-
-
+﻿namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// 
     /// </summary>
     public class AstInstanceClass : AstClass {
-
         /// <summary>
         /// 
         /// </summary>
@@ -33,7 +22,5 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <value>The N template class.</value>
         public AstMetadataClass NMetadataClass { get; set; }
-
-
     }
 }

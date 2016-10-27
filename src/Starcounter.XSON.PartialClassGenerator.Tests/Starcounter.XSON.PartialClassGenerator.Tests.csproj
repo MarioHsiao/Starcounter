@@ -69,6 +69,10 @@
     <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.1\lib\nunit.framework.dll</HintPath>
     </Reference>
@@ -234,10 +238,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">
-      <Project>{dd181012-dd9c-410f-ad8e-01d062cac820}</Project>
-      <Name>FasterThanJson</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
@@ -253,10 +253,6 @@
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter\Starcounter.csproj">
-      <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
-      <Name>Starcounter</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

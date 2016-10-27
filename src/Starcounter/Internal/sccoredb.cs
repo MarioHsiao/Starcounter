@@ -99,9 +99,18 @@ namespace Starcounter.Internal
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern unsafe uint sccoredb_connect(
-            uint instance_id, uint context_count, ulong hlogs
+            ref Guid db_uuid, uint context_count, ulong hlogs
             );
 
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet=CharSet.Unicode)]
+        internal static extern uint sccoredb_get_db_info_by_path(
+              string db_name, string log_dir,
+              out Guid db_uuid, out ulong first_user_record_id, out ulong last_user_record_id
+        );
+
+        
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]

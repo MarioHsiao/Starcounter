@@ -243,8 +243,6 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestDirtyFlagsWithoutBinding() {
-            XSONModule.UseCodegeneratedSerializer = false;
-
             dynamic j = new Json();
             dynamic nicke = new Json();
             nicke.FirstName = "Nicke";
@@ -295,8 +293,6 @@ namespace Starcounter.Internal.XSON.Tests {
 
       //  [Test]
         public static void TestDirtyFlagsWithBinding() {
-            XSONModule.UseCodegeneratedSerializer = false;
-
             Person nickeDb = new Person();
             Person jockeDb = new Person();
             Person henrikDb = new Person();
@@ -358,8 +354,6 @@ namespace Starcounter.Internal.XSON.Tests {
 
      //   [Test]
         public static void TestJsonPatchSimpleMix() {
-            XSONModule.UseCodegeneratedSerializer = false;
-
             dynamic j = new Json();
             dynamic nicke = new Json();
             nicke.FirstName = "Nicke";
@@ -506,27 +500,7 @@ namespace Starcounter.Internal.XSON.Tests {
                     "[{\"op\":\"replace\",\"path\":\"\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
             });
         }
-
-        [Test]
-        public static void TestPatchForTriggers() {
-            var schema = new TObject();
-            var save = schema.Add<TTrigger>("Save$");
-
-            var json = new Json() { Template = schema };
-            json.Session = new Session();
-
-            json.Session.Use(() => {
-                var patch = jsonPatch.Generate(json, true, false);
-                json.MarkAsDirty(save);
-                patch = jsonPatch.Generate(json, true, false);
-
-                Helper.ConsoleWriteLine(patch);
-
-                var expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Save$", "null") + ']';
-                Assert.AreEqual(expected, patch);
-            });
-        }
-
+        
         [Test]
         public static void TestPatchForSubItems() {
             dynamic item1 = new Json();

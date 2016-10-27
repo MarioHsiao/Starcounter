@@ -1,5 +1,4 @@
 {
-	"$": { Namespace: "Administrator.Server.Model" },
 	"Name": "",
     "Databases": [{
 		"$" : { "Reuse" : "Administrator.Server.Model.DatabaseJson" }

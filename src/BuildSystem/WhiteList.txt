@@ -115,6 +115,8 @@ Mono.CSharp.dll
 MSG00001.bin
 msvcp110.dll
 msvcr110.dll
+Newtonsoft.Json.dll
+Newtonsoft.Json.xml
 NodeTest.exe
 NodeTest.pdb
 NodeTest.exe.config
@@ -317,6 +319,9 @@ Starcounter.VS.CSTypedWithCodeItemTemplate.XML
 Starcounter.VS11.vsix
 Starcounter.VS12.vsix
 Starcounter.VS14.vsix
+Starcounter.Weaver.dll
+Starcounter.Weaver.pdb
+Starcounter.Weaver.XML
 Starcounter.XSON.dll
 Starcounter.XSON.pdb
 Starcounter.XSON.XML

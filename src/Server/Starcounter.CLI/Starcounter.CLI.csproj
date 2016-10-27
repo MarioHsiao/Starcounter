@@ -58,7 +58,6 @@
   <ItemGroup>
     <Compile Include="AdminCLI.cs" />
     <Compile Include="CLIClientCommand.cs" />
-    <Compile Include="CLIConfig.cs" />
     <Compile Include="CreateDatabaseCLICommand.cs" />
     <Compile Include="FilterableLogReader.cs" />
     <Compile Include="KeyValueTable\KeyValueTable.cs" />

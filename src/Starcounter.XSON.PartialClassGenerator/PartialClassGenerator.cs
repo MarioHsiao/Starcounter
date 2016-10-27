@@ -1,12 +1,10 @@
-﻿using Starcounter.Internal.MsBuild.Codegen;
+﻿using System.IO;
 using Starcounter.Templates;
-using Starcounter.Templates.Interfaces;
 using Starcounter.XSON.Compiler.Mono;
+using Starcounter.XSON.Interfaces;
 using Starcounter.XSON.Metadata;
-using System;
-using System.IO;
 
-namespace Starcounter.Internal.XSON {
+namespace Starcounter.XSON.PartialClassGenerator {
     public class PartialClassGenerator {
         // DONT FORGET:
         // Currently this value is not used in the buildtasks due to problems
@@ -15,7 +13,7 @@ namespace Starcounter.Internal.XSON {
         // REMEMBER:
         // Update Starcounter.MsBuild.targets and Starcounter.MsBuild.Develop.targets 
         // with the new versionnumber.
-        public const long CSHARP_CODEGEN_VERSION = 2;
+        public const long CSHARP_CODEGEN_VERSION = 3;
         
         public static ITemplateCodeGenerator GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath ) {
             string jsonContent = File.ReadAllText(jsonFilePath);
@@ -28,8 +26,8 @@ namespace Starcounter.Internal.XSON {
                 codeBehind = null;
             }
 
-            var t = TObject.CreateFromMarkup<Json, TValue>("json", jsonContent, jsonFilePath);
-            t.ClassName = Path.GetFileNameWithoutExtension(jsonFilePath);
+            var t = (TValue)Template.CreateFromMarkup("json", jsonContent, jsonFilePath);
+            t.CodegenInfo.ClassName = Path.GetFileNameWithoutExtension(jsonFilePath);
 
             return GenerateTypedJsonCode(t, codeBehind, codeBehindFilePath);
         }
@@ -39,13 +37,8 @@ namespace Starcounter.Internal.XSON {
             ITemplateCodeGenerator codegen;
             ITemplateCodeGeneratorModule codegenmodule;
 
-            metadata = CodeBehindParser.Analyze(template.ClassName, codebehind, codeBehindFilePathNote);
+            metadata = CodeBehindParser.Analyze(template.CodegenInfo.ClassName, codebehind, codeBehindFilePathNote);
             var rootClassInfo = metadata.RootClassInfo;
-
-            if (rootClassInfo != null) {
-                if (String.IsNullOrEmpty(template.Namespace))
-                    template.Namespace = metadata.RootClassInfo.Namespace;
-            }
 
             codegenmodule = new Gen2CodeGenerationModule();
             codegen = codegenmodule.CreateGenerator(template.GetType(), "C#", template, metadata);

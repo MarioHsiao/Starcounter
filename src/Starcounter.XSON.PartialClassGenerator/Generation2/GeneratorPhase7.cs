@@ -2,7 +2,7 @@
 using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Maps existing properties in code-behind with properties coming from the template, and if property 
     /// already exists, marks the AstProperty which will lead to that no accessor-property will be generated.
