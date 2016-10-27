@@ -41,10 +41,9 @@ namespace Starcounter.Weaver.Test
             return new WeaverErrorLog(errors);
         }
 
-        public string GetSingleErrorMessage(uint code)
+        public ErrorAndMessage GetSingleErrorMessage(uint code)
         {
-            var error = Errors.Single((candidate) => candidate.Code == code);
-            return error.Message;
+            return Errors.Single((candidate) => candidate.Code == code);
         }
     }
 }
