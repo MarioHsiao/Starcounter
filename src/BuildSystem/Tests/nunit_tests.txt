@@ -1,6 +1,5 @@
 FasterThanJson.Tests.exe
 HttpParser.Tests.dll
-scweaver.Tests.dll
 Starcounter.Apps.Tests.dll
 Starcounter.Internal.Tests.dll
 Starcounter.SqlProcessor.Tests.exe
