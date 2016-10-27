@@ -1,4 +1,3 @@
-<<<<<<< HEAD:src/Starcounter.Bootstrap/CommandLineConfiguration.cs
 ﻿
 using Starcounter.CommandLine;
 using Starcounter.Hosting;
