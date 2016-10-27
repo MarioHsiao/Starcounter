@@ -14,6 +14,7 @@
 ### Changed
 - Changed the parser for Json-by-example from F# parser to NewtonSoft (nuget) [#3811](https://github.com/Starcounter/Starcounter/issues/3811)
 - Removed code for creating codegenerated jsonserializers for TypedJSON [#3832](https://github.com/Starcounter/Starcounter/issues/3832)
+- Redesigned weaver and app compiler as host-agnostic libraries [#3684](https://github.com/Starcounter/Starcounter/issues/3684)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 
