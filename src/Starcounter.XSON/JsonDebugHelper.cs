@@ -1,11 +1,18 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Text;
 using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
+using Starcounter.Internal;
 using Starcounter.Templates;
 
 namespace Starcounter.XSON {
     internal static class JsonDebugHelper {
+        internal static Exception WrapExceptionWithJsonInfo(Json parent, string templateName, Exception inner) {
+            string str = string.Format("Property '{0}' in '{1}'.", templateName, GetFullName(parent));
+            return ErrorCode.ToException(Error.SCERRDATABINDINGFORJSONEXCEPTION, inner, str);
+        }
+
         /// <summary>
         /// Returns the classname for the specified template.
         /// </summary>

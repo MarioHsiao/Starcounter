@@ -17,8 +17,9 @@ namespace Starcounter.XSON {
         private static MethodInfo propertyUseBindingInfo = typeof(TValue).GetMethod("UseBinding", BindingFlags.NonPublic | BindingFlags.Instance);
         private static MethodInfo updateParentMethodInfo = typeof(Json).GetMethod("UpdateParentAndCachedIndex", BindingFlags.NonPublic | BindingFlags.Instance);
         private static MethodInfo getTemplateMethodInfo = typeof(TObject).GetMethod("get_Template");
-		
-		private static string propNotCompatible = "Incompatible types for binding. Json property '{0}.{1}' ({2}), data property '{3}.{4}' ({5}).";
+        private static MethodInfo wrapExceptionWithInfo = typeof(JsonDebugHelper).GetMethod("WrapExceptionWithJsonInfo", BindingFlags.NonPublic | BindingFlags.Static);
+        
+        private static string propNotCompatible = "Incompatible types for binding. Json property '{0}.{1}' ({2}), data property '{3}.{4}' ({5}).";
         private static string generateBindingFailed = "Unable to generate binding. Json property '{0}.{1}' ({2}), binding '{3}'.";
         private static string untypedArrayBindingFailed = "Unable to create binding for untyped array. Json property '{0}.{1}'.";
 
@@ -402,6 +403,7 @@ namespace Starcounter.XSON {
 			expression = CreateBinding<T>(bInfo, true, expression, null, origin);
 
 			if (expression != null) {
+                expression = WrapInTryCatch(expression, instance, origin);
 				return Expression.Lambda<Func<Json, T>>(expression, instance);
 			}
 			return null;
@@ -420,10 +422,28 @@ namespace Starcounter.XSON {
 			expression = CreateBinding<T>(bInfo, false, expression, value, origin);
 
 			if (expression != null) {
+                expression = WrapInTryCatch(expression, instance, origin);
 				return Expression.Lambda<Action<Json, T>>(expression, instance, value);
 			}
 			return null;
 		}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        private static Expression WrapInTryCatch(Expression body, Expression jsonInstance,  Template origin) {
+            ParameterExpression exExpr = Expression.Variable(typeof(Exception));
+            ConstantExpression nameExpr = Expression.Constant(origin.TemplateName, typeof(string));
+            
+            Expression catchBody = Expression.Call(null, wrapExceptionWithInfo, jsonInstance, nameExpr, exExpr);
+            catchBody = Expression.Throw(catchBody, body.Type);
+
+            CatchBlock catchBlock = Expression.Catch(exExpr, catchBody);
+
+            return Expression.TryCatch(body, catchBlock);
+        }
 
 		/// <summary>
 		/// 
