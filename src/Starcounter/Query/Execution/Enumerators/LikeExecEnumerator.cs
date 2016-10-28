@@ -111,7 +111,8 @@ namespace Starcounter.Query.Execution
 
             // Allocating strings to cover all combinations.
             String[] convertedQueries = new String[combNum];
-            subExecEnums = new IExecutionEnumerator[combNum];
+            var tempExecEnums = new IExecutionEnumerator[combNum];
+            int nrTemps = 0;
 
             // Creating combined strings.
             for (Int32 i = 0; i < combNum; i++)
@@ -127,9 +128,18 @@ namespace Starcounter.Query.Execution
                     convertedQueries[i] += likeAndStartWith[combBits[k]] + splittedQuery[k + 1];
 
                 // Creating query in cache and obtaining enumerator.
-                subExecEnums[i] = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator<T>(convertedQueries[i], slowSql, values);
+                try {
+                    tempExecEnums[i] = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator<T>(convertedQueries[i], slowSql, values);
+                    nrTemps++;
+                } catch (SqlException e) {
+                    if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLINCORRECTSYNTAX)
+                        throw;
+                }
             }
-
+            combNum = nrTemps;
+            subExecEnums = new IExecutionEnumerator[combNum];
+            for (int i = 0; i < combNum; i++)
+                subExecEnums[i] = tempExecEnums[i];
             // Setting variable array to reference most efficient execution enumerator.
             bestEnumIndex = combNum - 1;
             variableArray = subExecEnums[bestEnumIndex].VarArray;
