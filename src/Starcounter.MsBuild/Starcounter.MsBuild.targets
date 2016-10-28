@@ -5,10 +5,11 @@
       to avoid that Starcounter.MsBuild.dll gets locked during compilation of Starcounter 
     -->
     <CSharpCodegenVersion>3</CSharpCodegenVersion>
-    
+
     <!--<PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetTypedJsonCSharpCodegenVersion</PrepareForBuildDependsOn>-->
     <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateTypedJsonCode</CoreCompileDependsOn>
     <CleanDependsOn>$(CleanDependsOn);CleanupOldJsonGeneratedFiles</CleanDependsOn>
+    <CoreBuildDependsOn>$(CoreBuildDependsOn);BuildTimeWeave</CoreBuildDependsOn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -41,6 +42,25 @@
       <GeneratedFilesList Include="$(IntermediateOutputPath)**\*.json.g.cs" />
     </ItemGroup>
     <Delete Files="@(GeneratedFilesList)" />
+  </Target>
+
+  <Target Name="BuildTimeWeave" Condition="( '$(RunCompileTimeWeaver)' == 'true' )">
+    
+    <PropertyGroup>
+      <FullOutputPath>$(MSBuildProjectDirectory)\$(OutputPath)</FullOutputPath>
+      <WeaverOutputDirectory>$(FullOutputPath).starcounter</WeaverOutputDirectory>
+      <WeaverCacheDirectory>$(FullOutputPath).starcounter\cache</WeaverCacheDirectory>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(WeaverOutputDirectory);$(WeaverCacheDirectory)" />
+    <Exec Command="scweaver --nocache --tocache --outdir=$(WeaverOutputDirectory) --cachedir=$(WeaverCacheDirectory) @(MainAssembly) "/>
+
+    <Copy SourceFiles="$(WeaverCacheDirectory)\$(AssemblyName).exe" DestinationFiles="$(FullOutputPath)$(AssemblyName).exe" />
+    <Copy SourceFiles="$(WeaverCacheDirectory)\$(AssemblyName).pdb" DestinationFiles="$(FullOutputPath)$(AssemblyName).pdb" />
+    <Copy SourceFiles="$(WeaverCacheDirectory)\$(AssemblyName).schema" DestinationFiles="$(FullOutputPath)$(AssemblyName).schema" />
+
+    <Message Text="Successfully weaved $(FullOutputPath)$(AssemblyName).exe" />
+    
   </Target>
   
 </Project>
