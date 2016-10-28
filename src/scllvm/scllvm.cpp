@@ -16,6 +16,10 @@
 #include <stdexcept>
 #include <string>
 #include <cstring>
+#include <codecvt>
+#include <locale>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +36,7 @@ extern "C" {
 #include <direct.h>
 #include <windows.h>
 # define MODULE_API __declspec(dllexport)
+
 #else
 #include <unistd.h>
 #include <sys/stat.h>
@@ -259,15 +264,14 @@ extern "C" {
 			return elems;
 		}
 
-		// Creating directory recursively and making it current. 
+		// Creating directory path. 
 #ifdef _WIN32
-		static void CreateDirAndSwitch(const wchar_t* dir) {
+		static void CreateDirPath(const wchar_t* dir) {
 
-			// Immediately trying to switch to dir.
-			int err_code = _wchdir(dir);
-			if (0 == err_code) {
+			// Checking if directory exists.
+			struct _stat64i32 dir_info;
+			if (_wstat(dir, &dir_info) == 0)
 				return;
-			}
 
 			wchar_t tmp[1024];
 
@@ -299,19 +303,14 @@ extern "C" {
 
 			// Creating final directory.
 			_wmkdir(tmp);
-
-			// Changing current directory to dir.
-			err_code = _wchdir(dir);
-			assert((0 == err_code) && "Can't change current directory to cache directory.");
 		}
 #else
-		static void CreateDirAndSwitch(const char* dir) {
+		static void CreateDirPath(const char* dir) {
 
-			// Immediately trying to switch to dir.
-			int err_code = chdir(dir);
-			if (0 == err_code) {
+			// Checking if directory exists.
+			struct stat dir_info;
+			if (stat(dir, &dir_info) == 0)
 				return;
-			}
 
 			char tmp[1024];
 
@@ -345,10 +344,6 @@ extern "C" {
 			// Creating final directory.
 			// TODO: Fix correct mode permissions.
 			mkdir(tmp, 0777);
-
-			// Changing current directory to dir.
-			err_code = chdir(dir);
-			assert((0 == err_code) && "Can't change current directory to cache directory.");
 		}
 
 #endif
@@ -441,7 +436,10 @@ extern "C" {
 				.setOptLevel(CodeGenOpt::Aggressive)
 				.create();
 
-			assert((NULL != exec_engine) && "Can't create LLVM execution engine.");
+			if (nullptr == exec_engine) {
+				std::cout << "Can't create LLVM execution engine. Error: " << error_str;
+				assert(false && "Can't create LLVM execution engine.");
+			}
 
 			std::string file_name_no_ext;
 
@@ -466,73 +464,91 @@ extern "C" {
 			int32_t err_code;
 
 #ifdef _WIN32
-			wchar_t saved_original_dir[1024];
-			_wgetcwd(saved_original_dir, 1024);
-
 			std::wstring path_to_cache_dir_versioned = path_to_cache_dir;
 			path_to_cache_dir_versioned += L"/";
 			path_to_cache_dir_versioned += ScllvmVersion;
 #else
-			char saved_original_dir[1024];
-			char* cur_dir = getcwd(saved_original_dir, 1024);
-			assert((nullptr != cur_dir) && "getcwd returned NULL by some reason.");
-
 			std::string path_to_cache_dir_versioned = path_to_cache_dir;
 			path_to_cache_dir_versioned += "/";
 			path_to_cache_dir_versioned += ScllvmVersion;
 #endif
 
-			// Creating directory and switching. 
-			CreateDirAndSwitch(path_to_cache_dir_versioned.c_str());
+			// Creating directory path. 
+			CreateDirPath(path_to_cache_dir_versioned.c_str());
 
-			std::string obj_file_name = file_name_no_ext;
-			std::ifstream f(obj_file_name);
+#ifdef _WIN32
+			std::wstringstream tmp;
+			tmp << path_to_cache_dir_versioned << "/" << file_name_no_ext.c_str();
+			std::wstring obj_file_path = tmp.str();
+			tmp.str(L"");
+			tmp.clear();
+			tmp << path_to_cache_dir_versioned << "/" << file_name_no_ext.c_str() << ".cpp";
+			std::wstring cpp_file_path = tmp.str();
+#else
+			std::string obj_file_path = path_to_cache_dir_versioned + "/" + file_name_no_ext;
+			std::string cpp_file_path = path_to_cache_dir_versioned + "/" + file_name_no_ext + ".cpp";
+#endif
+
+			std::ifstream f(obj_file_path);
 
 			// Checking if object file does not exist. 
 			if (!f.good()) {
 
-				// Adding cpp file extension. 
-				std::string cpp_file_name = file_name_no_ext + ".cpp";
-
 				// Saving source file to disk. 
-				std::ofstream temp_cpp_file(cpp_file_name);
+				std::ofstream temp_cpp_file(cpp_file_path);
 				temp_cpp_file << "#undef _MSC_VER\n";
 				temp_cpp_file << code_string;
 				temp_cpp_file.close();
 
-				// Creating command line for clang. 
+#ifdef _WIN32
+				std::wstringstream clang_cmd_stream;
+#else
 				std::stringstream clang_cmd_stream;
+#endif
 
 				// Checking if we have custom clang parameters from the user.
-#ifdef _WIN32
-				clang_cmd_stream << "clang++ ";
-#else
-				clang_cmd_stream << "clang++ ";
-#endif
 				if ((NULL != predefined_clang_params) && ('\0' != predefined_clang_params)) {
-					clang_cmd_stream << "-mcmodel=large " << predefined_clang_params << " " << cpp_file_name << " -o " << obj_file_name;
+					clang_cmd_stream << "clang++ -c -mcmodel=large " << predefined_clang_params << " \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
 				}
 				else {
-					clang_cmd_stream << "-O3 -c -mcmodel=large " << cpp_file_name << " -o " << obj_file_name;
+					clang_cmd_stream << "clang++ -O3 -c -mcmodel=large \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
 				}
 
 				// Generating new object file.
+#ifdef _WIN32
+				std::wstring clang_cmd = clang_cmd_stream.str();
+				err_code = _wsystem(clang_cmd.c_str());
+#else
 				std::string clang_cmd = clang_cmd_stream.str();
 				err_code = system(clang_cmd.c_str());
+#endif
+
 				assert((0 == err_code) && "clang++ returned an error while compiling generated code.");
 
 				// Deleting source file if necessary. 
 				if (delete_sources) {
+#ifdef _WIN32
+					err_code = _wremove(cpp_file_path.c_str());
+#else
+					err_code = remove(cpp_file_path.c_str());
+#endif
 
-					err_code = remove(cpp_file_name.c_str());
 					assert((0 == err_code) && "Deleting the source file returned an error.");
 				}
 			}
 
 			// Loading the object file. 
-			llvm::Expected<object::OwningBinary<object::ObjectFile>> obj_file =
-				object::ObjectFile::createObjectFile(obj_file_name.c_str());
+#ifdef _WIN32
 
+			// Same as for Linux, LLVM operates with UTF-8 strings, so we need to convert from wide string.
+			std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
+			std::string utf8_obj_file_path = utf8_conv.to_bytes(obj_file_path);
+			llvm::Expected<object::OwningBinary<object::ObjectFile>> obj_file =
+				object::ObjectFile::createObjectFile(utf8_obj_file_path);
+#else
+			llvm::Expected<object::OwningBinary<object::ObjectFile>> obj_file =
+				object::ObjectFile::createObjectFile(obj_file_path);
+#endif
 			assert((obj_file) && "Can't load given object file.");
 
 			object::OwningBinary<object::ObjectFile> &obj_file_ref = obj_file.get();
@@ -565,14 +581,6 @@ extern "C" {
 			float time_took = (float)(end_time - start_time) / CLOCKS_PER_SEC;
 			if (nullptr != out_time_seconds)
 				*out_time_seconds = time_took;
-
-			// Changing current directory back to original. 
-#ifdef _WIN32
-			_wchdir(saved_original_dir);
-#else
-			err_code = chdir(saved_original_dir);
-			assert((0 == err_code) && "chdir returned a non-zero exit code.");
-#endif
 
 			return 0;
 		}
@@ -824,16 +832,16 @@ extern "C" {
 
 		int32_t err_code = ScLLVMProduceModule(
 #ifdef _WIN32
-			L"starcÖunter",
+			L"star cÖunter",
 #else
-			"starcÖunter",
+			"star cÖunter",
 #endif
 			nullptr,
 			"extern \"C\" int gen_function(int p) { return p + 555; }",
 			"gen_function",
 			nullptr,
 			false,
-			nullptr,
+			nullptr, //"-O3 -c",
 			out_hash_65bytes,
 			&out_time_seconds,
 			out_func_ptrs,
@@ -841,7 +849,7 @@ extern "C" {
 			&out_codegen_engine);
 
 		assert(0 == err_code);
-
+		
 		typedef int(*function_type) (int);
 		function_type gen_func = (function_type)(out_func_ptrs[0]);
 
