@@ -222,6 +222,29 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Gets a value indicating if the given exception stems from an
+        /// error code, i.e. is most likely created using the 
+        /// <see cref="ExceptionFactory"/> or a specialization thereof,
+        /// and the error code is equal to <c>code</c>.
+        /// </summary>
+        /// <param name="exception">The exception to evaluate.</param>
+        /// <param name="code">The error code to compare against.</param>
+        /// <returns>
+        /// True if the exception stems from the error code <c>code</c>;
+        /// false if not.
+        /// </returns>
+        public static bool IsFromErrorCode(Exception exception, uint code)
+        {
+            uint candidate;
+            if (TryGetCode(exception, out candidate))
+            {
+                return candidate == code;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Gets a value indicating if the given string matches the format
         /// of a decorated Starcounter error code (e.g. "SCERR1234").
         /// </summary>
