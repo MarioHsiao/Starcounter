@@ -41,8 +41,6 @@
         View the <a href="#/server/log">log</a> for more details.
 
         <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-click="btnRefreshAppStoreStores()" title="Refresh">Refresh</button>
-
-
     </div>
 </div>
 
@@ -53,16 +51,25 @@
         <tbody>
 
             <tr>
+                <td class="vert-align" style="padding-left: 40px;width:200px">
 
-                <!-- Status -->
+                    <div class="checkbox" style="margin-top: 5px; margin-bottom:5px">
+                        <label title="Show compatible versions with installed Starcounter version">
+                            <input type="checkbox" ng-model="settings.showCompatibleVersions">Show Compatible
+                        </label>
+                    </div>
+                </td>
+
                 <td class="vert-align" style="padding-left: 40px">
 
                     <div class="checkbox" style="margin-top: 5px; margin-bottom:5px">
                         <label title="Show compatible versions with installed Starcounter version">
-                            <input type="checkbox" ng-model="showCompatibleVersions">Show Compatible
+                            <input type="checkbox" ng-model="settings.showWarehouse">Warehouse <span class="text-danger">(BETA)</span>
                         </label>
                     </div>
+
                 </td>
+
             </tr>
         </tbody>
     </table>
@@ -72,19 +79,17 @@
 <div ng-show="database" style="margin-bottom:20px">
 
 
-    <div class="panel panel-default" ng-repeat="store in database.AppStoreStores | filter:database.AppStoreStores.Applications.length > 0 | orderBy:'DisplayName'">
+    <div class="panel panel-default" ng-repeat="store in database.AppStoreStores | storefilter:settings.showWarehouse | orderBy:['DisplayName']">
 
         <div class="panel-heading">
-            <h4>  {{store.DisplayName}} store</h4>
+            <h4>  {{store.DisplayName}}</h4>
             <p ng-show="store.Description">{{store.Description}}</p>
         </div>
-
         <table class="table">
 
             <tbody>
 
-                <tr ng-repeat="item in store.Applications | semver:serverModel.settings.Version:showCompatibleVersions | orderBy:['DisplayName'] ">
-
+                <tr ng-repeat="item in store.Applications | appstorefilter:serverModel.settings.Version:settings.showCompatibleVersions:serverModel.settings.Version:showWarehouse| orderBy:['DisplayName','-VersionDate']">
                     <td style="width: 41px; padding-top:12px; padding-left: 15px">
                         <span ng-show="!item.HasErrorMessage && item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Installed" title="Downloaded"></span>
                         <span ng-show="!item.HasErrorMessage && !item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Not installed" title="Not downloaded"></span>
@@ -130,7 +135,7 @@
             </tbody>
         </table>
 
-        <div class="panel-body" ng-show="((store.Applications | semver:serverModel.settings.Version:showCompatibleVersions).length==0)">
+        <div class="panel-body" ng-show="((store.Applications | semver:serverModel.settings.Version:settings.showCompatibleVersions).length==0)">
             <p style="padding:0px" class="_bg-info">There is no available or compatible applications.</p>
         </div>
 
@@ -152,7 +157,7 @@
 
                 <tbody>
 
-                    <tr ng-repeat="item in store.Applications | semver:serverModel.settings.Version:showCompatibleVersions | orderBy:['DisplayName'] ">
+                    <tr ng-repeat="item in store.Applications | semver:serverModel.settings.Version:settings.showCompatibleVersions | orderBy:['DisplayName'] ">
 
                         <td style="width: 41px; padding-top:12px; padding-left: 15px">
                             <span ng-show="!item.HasErrorMessage && item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Installed" title="Downloaded"></span>
@@ -199,7 +204,7 @@
                 </tbody>
             </table>
 
-            <div class="panel-body" ng-show="((store.Applications | semver:serverModel.settings.Version:showCompatibleVersions).length==0)">
+            <div class="panel-body" ng-show="((store.Applications | semver:serverModel.settings.Version:settings.showCompatibleVersions).length==0)">
                 <p style="padding:0px" class="_bg-info">There is no available or compatible applications.</p>
             </div>
         </li>
