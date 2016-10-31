@@ -68,11 +68,7 @@ namespace Starcounter.Weaver
             Guard.FileExistsInDirectory(setup.AssemblyFile, setup.InputDirectory, nameof(setup.AssemblyFile));
             Guard.DirectoryExists(setup.OutputDirectory, nameof(setup.OutputDirectory));
             Guard.DirectoryExists(setup.CacheDirectory, nameof(setup.CacheDirectory));
-
-            if (!string.IsNullOrEmpty(setup.WeaverRuntimeDirectory))
-            {
-                Guard.DirectoryExists(setup.WeaverRuntimeDirectory, nameof(setup.WeaverRuntimeDirectory));
-            }
+            Guard.DirectoryExists(setup.WeaverRuntimeDirectory, nameof(setup.WeaverRuntimeDirectory));
         }
     }
 }

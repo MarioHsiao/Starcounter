@@ -1,6 +1,8 @@
 ﻿
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Starcounter.Weaver
 {
@@ -102,5 +104,32 @@ namespace Starcounter.Weaver
         /// passed from a weaver initiator to customize the <c>IWeaverHost</c>.
         /// </summary>
         public Dictionary<string, string> HostProperties = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Initialize a new <c>WeaverSetup</c> instance.
+        /// </summary>
+        public WeaverSetup()
+        {
+            AssignDefaultRuntimeDirectory();
+        }
+
+        void AssignDefaultRuntimeDirectory()
+        {
+            try
+            {
+                WeaverRuntimeDirectory = StarcounterEnvironment.InstallationDirectory;
+            }
+            catch (Exception e) when (ErrorCode.IsFromErrorCode(e, Error.SCERRBINDIRENVNOTFOUND))
+            {
+                try
+                {
+                    WeaverRuntimeDirectory = Path.GetDirectoryName(typeof(WeaverSetup).Assembly.Location);
+                }
+                catch
+                {
+                    WeaverRuntimeDirectory = Environment.CurrentDirectory;
+                }
+            }
+        }
     }
 }

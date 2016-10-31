@@ -129,19 +129,7 @@ namespace Starcounter.Weaver
         {
             Setup = setup;
             Host = host;
-
-            if (string.IsNullOrEmpty(setup.WeaverRuntimeDirectory))
-            {
-                try
-                {
-                    setup.WeaverRuntimeDirectory = Path.GetDirectoryName(typeof(CodeWeaver).Assembly.Location);
-                }
-                catch
-                {
-                    setup.WeaverRuntimeDirectory = Environment.CurrentDirectory;
-                }
-            }
-
+            
             host.OnWeaverSetup(setup);
         }
 
