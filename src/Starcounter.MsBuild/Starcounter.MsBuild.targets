@@ -17,6 +17,8 @@
   </ItemGroup>
   
   <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToTypedJsonCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
+  <UsingTask TaskName="Starcounter.Weaver.MsBuild.Weave" AssemblyFile="$(StarcounterBin)\Starcounter.Weaver.dll" />
+  
   <!--<UsingTask TaskName="Starcounter.Internal.MsBuild.GetTypedJsonCSharpCodegenVersionTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />-->
 
   <!--<Target Name="GetTypedJsonCSharpCodegenVersion">
@@ -49,17 +51,12 @@
     <PropertyGroup>
       <FullOutputPath>$(MSBuildProjectDirectory)\$(OutputPath)</FullOutputPath>
       <WeaverOutputDirectory>$(FullOutputPath).starcounter</WeaverOutputDirectory>
-      <WeaverCacheDirectory>$(FullOutputPath).starcounter\cache</WeaverCacheDirectory>
+      <WeaverCacheDirectory Condition="( '$(WeaverCacheDirectory)' == '' )">$(WeaverOutputDirectory)\cache</WeaverCacheDirectory>
     </PropertyGroup>
 
-    <MakeDir Directories="$(WeaverOutputDirectory);$(WeaverCacheDirectory)" />
-    <Exec Command="scweaver --nocache --tocache --outdir=$(WeaverOutputDirectory) --cachedir=$(WeaverCacheDirectory) @(MainAssembly) "/>
-
-    <Copy SourceFiles="$(WeaverCacheDirectory)\$(AssemblyName).exe" DestinationFiles="$(FullOutputPath)$(AssemblyName).exe" />
-    <Copy SourceFiles="$(WeaverCacheDirectory)\$(AssemblyName).pdb" DestinationFiles="$(FullOutputPath)$(AssemblyName).pdb" />
-    <Copy SourceFiles="$(WeaverCacheDirectory)\$(AssemblyName).schema" DestinationFiles="$(FullOutputPath)$(AssemblyName).schema" />
-
-    <Message Text="Successfully weaved $(FullOutputPath)$(AssemblyName).exe" />
+    <Weave AssemblyFile="$(TargetPath)" MSBuildArchitecture= "x64" CacheDirectory="$(WeaverCacheDirectory)"/>
+    
+    <Message Text="Successfully weaved $(TargetPath)" />
     
   </Target>
   
