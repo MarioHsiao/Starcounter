@@ -420,6 +420,7 @@ extern "C" {
 		uint32_t CompileAndLoadObjectFile(
 			const bool print_to_console,
 			const bool do_optimizations,
+#ifdef _WIN32
 			const wchar_t* const path_to_cache_dir,
 #else
 			const char* const path_to_cache_dir,
@@ -602,6 +603,7 @@ extern "C" {
 		CodegenEngine** const clang_engine,
 		const bool print_to_console,
 		const bool do_optimizations,
+#ifdef _WIN32
 		const wchar_t* const path_to_cache_dir,
 #else
 		const char* const path_to_cache_dir,
@@ -700,48 +702,6 @@ extern "C" {
 		}
 
 		ClangDestroy(cge);
-
-		return 0;
-	}
-
-	// Just a basic test.
-	int32_t main() {
-		ScLLVMInit();
-		CodegenEngine* out_codegen_engine = nullptr;
-
-		char out_hash_65bytes[65];
-		float out_time_seconds;
-		uint64_t out_func_ptrs[1] = { 0 };
-		void* out_exec_module = nullptr;
-
-		int32_t err_code = ScLLVMProduceModule(
-#ifdef _WIN32
-			L"starcÖunter",
-#else
-			"starcÖunter",
-#endif
-			nullptr,
-			"extern \"C\" int gen_function(int p) { return p + 555; }",
-			"gen_function",
-			nullptr,
-			false,
-			nullptr,
-			out_hash_65bytes,
-			&out_time_seconds,
-			out_func_ptrs,
-			&out_exec_module,
-			&out_codegen_engine);
-
-		assert(0 == err_code);
-
-		typedef int(*function_type) (int);
-		function_type gen_func = (function_type)(out_func_ptrs[0]);
-
-		int32_t res = gen_func(3);
-
-		assert(558 == res);
-
-		std::cout << "Test succeeded. Result: " << res << std::endl;
 
 		return 0;
 	}
