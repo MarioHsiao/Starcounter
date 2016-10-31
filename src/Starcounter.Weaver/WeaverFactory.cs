@@ -46,21 +46,17 @@ namespace Starcounter.Weaver
                 var current = AppDomain.CurrentDomain;
 
                 var domainSetup = new AppDomainSetup();
-                domainSetup.ApplicationBase = current.BaseDirectory;
-
+                domainSetup.ApplicationBase = setup.WeaverRuntimeDirectory;
+                
                 domain = AppDomain.CreateDomain("CodeWeaverDomain", null, info: domainSetup);
             }
 
-            // When do we create the remote instance in the domain? Not
-            // until it's executed?
-            // TODO:
-
-            var proxy = new CallingDomainWeaverProxy(setup, domain, weaverHostType);
-            proxy.UnloadDomainWhenExecuted = unloadDomainAfterExecution;
+            var proxy = new CallingDomainWeaverProxy(setup, domain, unloadDomainAfterExecution);
+            proxy.SetupRemoteDomainWeaver(weaverHostType);
 
             return proxy;
         }
-
+        
         static void GuardSetup(WeaverSetup setup)
         {
             Guard.NotNull(setup, nameof(setup));
