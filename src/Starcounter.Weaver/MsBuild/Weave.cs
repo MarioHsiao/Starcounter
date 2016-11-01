@@ -3,6 +3,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 
 namespace Starcounter.Weaver.MsBuild
@@ -51,17 +52,30 @@ namespace Starcounter.Weaver.MsBuild
             var weaver = WeaverFactory.CreateWeaver(setup, typeof(MsBuildWeaverHost));
             try
             {
-                return weaver.Execute();
+                var result = weaver.Execute();
+                Trace.Assert(result);
+                return result;
             }
             catch (Exception ex) when (MsBuildWeaverHost.IsOriginatorOf(ex))
             {
-                foreach (var error in MsBuildWeaverHost.EnumerateErrorsFrom(ex))
+                var errorsAndWarnings = MsBuildWeaverHost.DeserializeErrorsAndWarnings(ex);
+
+                foreach (var errorOrWarning in errorsAndWarnings)
                 {
-                    Log.LogError(error);
+                    if (errorOrWarning.IsWarning)
+                    {
+                        Log.LogWarning(errorOrWarning.Message);
+                    }
+                    else
+                    {
+                        var errorCode = ErrorCode.ToDecoratedCode(errorOrWarning.ErrorCode);
+                        var helpLink = ErrorCode.ToHelpLink(errorOrWarning.ErrorCode);
+
+                        Log.LogError(null, errorCode, helpLink, string.Empty, 0, 0, 0, 0, errorOrWarning.Message);
+                    }
                 }
 
-                // Log.LogErrorFromException(ex);
-                return false;
+                return !Log.HasLoggedErrors;
             }
         }
     }
