@@ -220,8 +220,8 @@ namespace Starcounter.Weaver
 
         void Reuse(string file, CachedAssembly cachedAssembly) {
             WriteDebug("Not processing assembly {0}: it's reused from the cache.", Path.GetFileName(file));
-            if (!cachedAssembly.IsSchemaOnly) {
-                filesToCopy.AddRange(cachedAssembly.Files);
+            if (!cachedAssembly.Files.IsSchemaOnly) {
+                filesToCopy.AddRange(cachedAssembly.Files.ArtifactPaths);
             }
         }
 

@@ -174,16 +174,8 @@ namespace Starcounter.Internal.Weaver.Cache
             // Let the result contain the list of files considered cached
             // for the given assembly.
 
-            result.Files = new List<string>();
-            result.Files.Add(schemaFile);
-            if (candidate.IsTransformed) {
-                result.Files.Add(assemblyFile);
-                var pdb = Path.ChangeExtension(assemblyFile, ".pdb");
-                if (File.Exists(pdb)) {
-                    result.Files.Add(pdb);
-                }
-            }
-
+            result.Files = new CachedAssemblyFiles(schemaFile, candidate.IsTransformed ? assemblyFile : null);
+            
             // Add it to the schema and assign the candidate binary to the
             // result before we finally return.
 
