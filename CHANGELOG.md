@@ -2,9 +2,9 @@
 
 ### Fixed
 - Fixed a bug where pushing changes on websocket could cause versioning and patches to be messed up [#3844](https://github.com/Starcounter/Starcounter/issues/3844)
-- Fixed a bug in session management where more than one thread/scheduler got access to a session, leading to incorrect versioning for outgoing patches. 
+- Fixed a bug in session management where more than one thread/scheduler got access to a session, leading to incorrect versioning for outgoing patches.
 - Fixed a bug where setting dataobject on an array lead to a `NullReferenceException` [#3856](https://github.com/Starcounter/Starcounter/issues/3856)
-- Fixed a bug where changing and reusing partials didn't properly generate patches for client [#3465](https://github.com/Starcounter/Starcounter/issues/3465) 
+- Fixed a bug where changing and reusing partials didn't properly generate patches for client [#3465](https://github.com/Starcounter/Starcounter/issues/3465)
 - Fixed a bug where bound arrays were not properly marked as dirty when setting dataobject to null [#3879](https://github.com/Starcounter/Starcounter/issues/3879)
 - Fixed a bug where database may hang deleting a record. As the root cause of the problem is in the wrong data stored in the database image, it's necessary to do unload/reload during upgrade to fix the image. [#3875]
 - Fixed infinite waiting loop in the installer when the installation folder was not empty.
@@ -15,6 +15,9 @@
 - Changed the parser for Json-by-example from F# parser to NewtonSoft (nuget) [#3811](https://github.com/Starcounter/Starcounter/issues/3811)
 - Removed code for creating codegenerated jsonserializers for TypedJSON [#3832](https://github.com/Starcounter/Starcounter/issues/3832)
 - Redesigned weaver and app compiler as host-agnostic libraries [#3684](https://github.com/Starcounter/Starcounter/issues/3684)
+
+### Changed
+- Upgraded Polymer to 1.7.0 [#3888](https://github.com/Starcounter/Starcounter/issues/3888)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 

@@ -1,0 +1,38 @@
+﻿{
+  "$": { "Namespace": "Warehouse.Api.REST" },
+  "ID": "",
+  "Type": "",
+  "Name": "",
+  "Description": "",
+  "Organization": "",
+  "IconUrl": "",
+  "EntryPoint": "",
+  "Namespace": "",
+  "Versions": [ { "$": { "Reuse": "Warehouse.Api.REST.Version_v1" } } ],
+  "Apps": [
+    {
+      "ID": "",
+      "Url": "",
+      "Name": "",
+      "Description": "",
+      "Namespace": "",
+      "Organization": "",
+      "IconUrl": "",
+      "Versions": [ { "$": { "Reuse": "Warehouse.Api.REST.Version_v1" } } ]
+    }
+  ],
+  "SuiteContents": [
+    {
+      "ID": "",
+      "Namespace": "",
+      "Type": "",
+      "Url": "",
+      "Name": "",
+      "Description": "",
+      "IconUrl": ""
+    }
+  ],
+  "Banners": [ { "$": { "Reuse": "Warehouse.Api.REST.SoftwareImage_v1" } } ],
+  "Screenshots": [ { "$": { "Reuse": "Warehouse.Api.REST.SoftwareImage_v1" } } ],
+  "Icons": [ { "$": { "Reuse": "Warehouse.Api.REST.SoftwareImage_v1" } } ]
+}

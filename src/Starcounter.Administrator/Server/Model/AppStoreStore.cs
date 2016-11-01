@@ -20,8 +20,30 @@ namespace Administrator.Server.Model {
 
         #region Properties
         public string ID;               // SourceUrl + SourceID
-        public string DisplayName;
-        public string Description;
+        public string DepotKey;         // Store Key from warehouse
+        private string _DisplayName;
+        public string DisplayName {
+            get {
+                return this._DisplayName;
+            }
+            internal set {
+                if (this._DisplayName == value) return;
+                this._DisplayName = value;
+                this.OnPropertyChanged("DisplayName");
+            }
+        }
+
+        private string _Description;
+        public string Description {
+            get {
+                return this._Description;
+            }
+            internal set {
+                if (this._Description == value) return;
+                this._Description = value;
+                this.OnPropertyChanged("Description");
+            }
+        }
         public string SourceID;         // App Store store id
         public string SourceUrl;        // App Store store source
         public bool ShowCompatibleVersions; 
@@ -41,6 +63,11 @@ namespace Administrator.Server.Model {
         public AppStoreStore() {
 
             this.Applications.CollectionChanged += Applications_CollectionChanged;
+            this.PropertyChanged += AppStoreStore_PropertyChanged;
+        }
+
+        private void AppStoreStore_PropertyChanged(object sender, PropertyChangedEventArgs e) {
+            this.OnChanged(sender, e);
         }
 
         void Applications_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {

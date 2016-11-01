@@ -34,7 +34,7 @@
     "tag": "2.2.1",
     "commit": "317e2bbc4fdb77ae356b9c5f618fde81c088266a"
   },
-  "_source": "git://github.com/puppetjs/puppetjs.git",
-  "_target": "^2.2.0",
-  "_originalSource": "puppetjs/puppetjs"
+  "_source": "https://github.com/PuppetJs/PuppetJs.git",
+  "_target": ">=2.2.1",
+  "_originalSource": "PuppetJs"
 }

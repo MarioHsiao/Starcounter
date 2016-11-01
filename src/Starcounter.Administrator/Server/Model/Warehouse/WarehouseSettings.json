@@ -1,0 +1,10 @@
+﻿{
+  "$": { "Namespace": "Warehouse.Api.REST" },
+  "WarehouseHost": "warehouse.starcounter.com",
+  "WarehousePort": 80,
+  "Stores": [
+    {
+      "DepotKey": ""
+    }
+  ]
+}
