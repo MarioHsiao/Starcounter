@@ -21,6 +21,39 @@ namespace Starcounter.Internal.Weaver.Cache
         }
 
         /// <summary>
+        /// Gets a set of <see cref="CachedAssemblyFiles"/> representing the artifact set
+        /// of every cached assembly in a given weaver cache directory.
+        /// </summary>
+        /// <param name="cacheDirectory">The weaver cache directory.</param>
+        /// <returns>Set of artifacts.</returns>
+        public static IEnumerable<CachedAssemblyFiles> GetAllFromCacheDirectory(string cacheDirectory)
+        {
+            Guard.DirectoryExists(cacheDirectory, nameof(cacheDirectory));
+
+            var schemas = Directory.GetFiles(cacheDirectory, "*.schema");
+            var result = new List<CachedAssemblyFiles>(schemas.Length);
+
+            foreach (var schema in schemas)
+            {
+                var assembly = Path.ChangeExtension(schema, ".dll");
+                if (!File.Exists(assembly))
+                {
+                    assembly = Path.ChangeExtension(schema, ".exe");
+                    if (!File.Exists(assembly))
+                    {
+                        // It's a schema-only assembly
+                        assembly = null;
+                    }
+                }
+
+                var f = new CachedAssemblyFiles(schema, assembly);
+                result.Add(f);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Initialize a new <see cref="CachedAssemblyFiles"/> instance.
         /// </summary>
         /// <param name="schemaPath">Full path to the schema file.</param>
