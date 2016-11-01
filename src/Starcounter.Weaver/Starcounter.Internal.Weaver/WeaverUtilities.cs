@@ -203,7 +203,7 @@ namespace Starcounter.Internal.Weaver
         /// represented by <paramref name="cachedAssembly"/> was not properly
         /// extracted.
         /// </returns>
-        public static string GetExtractionFailureReason(WeaverCache.CachedAssembly cachedAssembly)
+        public static string GetExtractionFailureReason(CachedAssembly cachedAssembly)
         {
             if (cachedAssembly == null)
                 throw new ArgumentNullException("cachedAssembly");
