@@ -1,14 +1,13 @@
 ﻿
 using PostSharp.Sdk.Extensibility;
-using Starcounter.Internal;
 using Starcounter.Internal.Weaver;
+using Starcounter.Internal.Weaver.Cache;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace Starcounter.Weaver {
-    
+namespace Starcounter.Weaver
+{
     /// <summary>
     /// Governs the management of files to be processed by the weaver
     /// and that the source directory is always synchronized with the

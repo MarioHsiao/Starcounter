@@ -1,19 +1,13 @@
-﻿// ***********************************************************************
-// <copyright file="WeaverCache.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿
+using Sc.Server.Weaver.Schema;
+using Starcounter.Weaver;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using Sc.Server.Weaver.Schema;
-using Starcounter;
-using Starcounter.Weaver;
 
-namespace Starcounter.Internal.Weaver {
+namespace Starcounter.Internal.Weaver.Cache
+{
     /// <summary>
     /// Represents, and implements the functionality behind, the cache used
     /// by the Starcounter code weaver system.

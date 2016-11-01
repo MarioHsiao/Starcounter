@@ -1,13 +1,8 @@
-﻿// ***********************************************************************
-// <copyright file="WeaverUtilities.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using System;
-using Starcounter;
-using System.Diagnostics;
+﻿
 using PostSharp.Sdk.CodeModel;
+using Starcounter.Internal.Weaver.Cache;
+using System;
+using System.Diagnostics;
 
 namespace Starcounter.Internal.Weaver
 {

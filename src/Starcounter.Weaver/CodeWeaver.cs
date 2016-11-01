@@ -6,11 +6,11 @@ using PostSharp.Sdk.CodeModel;
 using PostSharp.Sdk.Extensibility;
 using Starcounter.Internal;
 using Starcounter.Internal.Weaver;
+using Starcounter.Internal.Weaver.Cache;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Xml;
 
