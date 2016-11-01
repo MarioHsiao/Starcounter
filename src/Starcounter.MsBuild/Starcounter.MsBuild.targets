@@ -8,8 +8,16 @@
 
     <!--<PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetTypedJsonCSharpCodegenVersion</PrepareForBuildDependsOn>-->
     <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateTypedJsonCode</CoreCompileDependsOn>
-    <CleanDependsOn>$(CleanDependsOn);CleanupOldJsonGeneratedFiles</CleanDependsOn>
+    <CleanDependsOn>$(CleanDependsOn);CleanupOldJsonGeneratedFiles;CleanWeaverArtifacts</CleanDependsOn>
     <CoreBuildDependsOn>$(CoreBuildDependsOn);BuildTimeWeave</CoreBuildDependsOn>
+  </PropertyGroup>
+
+  <!-- Compile-time weaving related properties -->
+  <PropertyGroup>
+    <FullOutputPath>$(MSBuildProjectDirectory)\$(OutputPath)</FullOutputPath>
+    <WeaverOutputDirectory>$(FullOutputPath).starcounter</WeaverOutputDirectory>
+    <WeaverCacheDirectory Condition="( '$(WeaverCacheDirectory)' == '' )">$(WeaverOutputDirectory)\cache</WeaverCacheDirectory>
+    <DisableWeaverCache Condition="( '$(DisableWeaverCache)' == '' )">false</DisableWeaverCache>
   </PropertyGroup>
 
   <ItemGroup>
@@ -48,13 +56,6 @@
 
   <Target Name="BuildTimeWeave" Condition="( '$(RunCompileTimeWeaver)' == 'true' )">
     
-    <PropertyGroup>
-      <FullOutputPath>$(MSBuildProjectDirectory)\$(OutputPath)</FullOutputPath>
-      <WeaverOutputDirectory>$(FullOutputPath).starcounter</WeaverOutputDirectory>
-      <WeaverCacheDirectory Condition="( '$(WeaverCacheDirectory)' == '' )">$(WeaverOutputDirectory)\cache</WeaverCacheDirectory>
-      <DisableWeaverCache Condition="( '$(DisableWeaverCache)' == '' )">false</DisableWeaverCache>
-    </PropertyGroup>
-
     <Weave 
       MSBuildArchitecture= "x64"
       AssemblyFile="$(TargetPath)"
@@ -63,6 +64,26 @@
       />
     
     <Message Text="Successfully weaved $(TargetPath)" />
+    
+  </Target>
+
+  <!-- Cleans up cached weaver artifacts. -->
+  <Target Name="CleanWeaverArtifacts" Condition="( '$(RunCompileTimeWeaver)' == 'true' )">
+    
+    <ItemGroup>
+      <CachedWeaverFiles Include="$(WeaverCacheDirectory)\*.schema" />
+      <CachedWeaverFiles Include="$(WeaverCacheDirectory)\*.dll" />
+      <CachedWeaverFiles Include="$(WeaverCacheDirectory)\*.exe" />
+      <CachedWeaverFiles Include="$(WeaverCacheDirectory)\*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(CachedWeaverFiles)" />
+
+    <ItemGroup>
+      <OutputSchemaFiles Include="$(FullOutputPath)\*.schema" />
+    </ItemGroup>
+    <Delete Files="@(OutputSchemaFiles)" />
+
+    <Message Text="Successfully cleaned weaver artifacts in $(FullOutputPath) and $(WeaverCacheDirectory)" />
     
   </Target>
   
