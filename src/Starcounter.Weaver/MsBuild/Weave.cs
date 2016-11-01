@@ -1,8 +1,10 @@
 ﻿
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Starcounter.Internal.Weaver.Cache;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
@@ -31,6 +33,18 @@ namespace Starcounter.Weaver.MsBuild
                 Directory.CreateDirectory(CacheDirectory);
             }
 
+            var result = WeaveToCache();
+            if (result)
+            {
+                var weavedArtifacts = CachedAssemblyFiles.GetAllFromCacheDirectory(CacheDirectory);
+                return CopyWeavedArtifactsToOutputDirectory(weavedArtifacts);
+            }
+
+            return result;
+        }
+
+        bool WeaveToCache()
+        {
             // We are weaving to cache only, so output directory should not really
             // be in play here.
 
@@ -39,7 +53,7 @@ namespace Starcounter.Weaver.MsBuild
             {
                 Directory.CreateDirectory(ignoredOutputDirectory);
             }
-            
+
             var setup = new WeaverSetup()
             {
                 InputDirectory = Path.GetDirectoryName(AssemblyFile),
@@ -80,6 +94,18 @@ namespace Starcounter.Weaver.MsBuild
 
                 return !Log.HasLoggedErrors;
             }
+        }
+
+        bool CopyWeavedArtifactsToOutputDirectory(IEnumerable<CachedAssemblyFiles> files)
+        {
+            var outputDirectory = Path.GetDirectoryName(AssemblyFile);
+
+            foreach (var cachedFiles in files)
+            {
+                cachedFiles.CopyTo(outputDirectory, true);
+            }
+
+            return true;
         }
     }
 }
