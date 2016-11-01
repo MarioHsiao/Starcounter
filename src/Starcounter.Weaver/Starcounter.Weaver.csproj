@@ -88,6 +88,7 @@
   <ItemGroup>
     <Compile Include="CallingDomainWeaverProxy.cs" />
     <Compile Include="IWeaver.cs" />
+    <Compile Include="MsBuild\ErrorOrWarning.cs" />
     <Compile Include="MsBuild\MsBuildWeaverHost.cs" />
     <Compile Include="MsBuild\Weave.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
