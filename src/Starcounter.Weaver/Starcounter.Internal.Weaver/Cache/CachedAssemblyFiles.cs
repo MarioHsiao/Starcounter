@@ -21,6 +21,16 @@ namespace Starcounter.Internal.Weaver.Cache
         }
 
         /// <summary>
+        /// Gets a value indicating if the cached assembly is a
+        /// lone schema file, and does not include any binary files.
+        /// </summary>
+        public bool IsSchemaOnly {
+            get {
+                return artifacts != null && artifacts.Count == 1;
+            }
+        }
+
+        /// <summary>
         /// Gets a set of <see cref="CachedAssemblyFiles"/> representing the artifact set
         /// of every cached assembly in a given weaver cache directory.
         /// </summary>
@@ -78,13 +88,16 @@ namespace Starcounter.Internal.Weaver.Cache
             }
         }
 
-        /// <summary>
-        /// Gets a value indicating if the cached assembly is a
-        /// lone schema file, and does not include any binary files.
-        /// </summary>
-        public bool IsSchemaOnly {
-            get {
-                return artifacts != null && artifacts.Count == 1;
+        public void CopyTo(string targetDirectory, bool overwriteExistingArtifacts = false)
+        {
+            Guard.DirectoryExists(targetDirectory, nameof(targetDirectory));
+
+            foreach (var artifact in artifacts)
+            {
+                var fileName = Path.GetFileName(artifact);
+                var targetName = Path.Combine(targetDirectory, fileName);
+
+                File.Copy(artifact, targetName, overwriteExistingArtifacts);
             }
         }
     }
