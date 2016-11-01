@@ -4882,7 +4882,7 @@
       </message>
     </code>
     <code hex="000C" severity="Error" name="ScErrDataBindingForJsonException">
-      <message>An exception occurred when a databinding between json and dataobject was used.</message>
+      <message>An exception occurred when a databinding for a property in json was used.</message>
     </code>
   </facility>
   

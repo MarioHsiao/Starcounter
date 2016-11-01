@@ -30,6 +30,18 @@ namespace Starcounter.XSON {
                 className = "<noname>";
             return className;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="template"></param>
+        /// <returns></returns>
+        internal static string GetTemplateOrClassName(Template template) {
+            string name = template.TemplateName;
+            if(string.IsNullOrEmpty(name))
+                name = GetClassName(template);
+            return name;
+        }
         
         /// <summary>
         /// Returns the fully qualified name for the specified json, and 
@@ -93,7 +105,7 @@ namespace Starcounter.XSON {
             if (json.Parent != null) {
                 WriteFullName(json.Parent, sb);
                 sb.Append('.');
-                sb.Append(json.Template.TemplateName);
+                sb.Append(GetTemplateOrClassName(json.Template));
             } else {
                 sb.Append(GetClassName(json.Template));
             }
