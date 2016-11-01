@@ -125,7 +125,7 @@
     <Compile Include="Starcounter.Internal.Weaver\ScTransactionScopeTask.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ScTransformTask.cs" />
     <Compile Include="Starcounter.Internal.Weaver\ScTransformTrace.cs" />
-    <Compile Include="Starcounter.Internal.Weaver\WeaverCache.cs" />
+    <Compile Include="Starcounter.Internal.Weaver\Cache\WeaverCache.cs" />
     <Compile Include="Starcounter.Internal.Weaver\WeaverNamingConventions.cs" />
     <Compile Include="Starcounter.Internal.Weaver\WeaverSchemaExtensions.cs" />
     <Compile Include="Starcounter.Internal.Weaver\WeaverUtilities.cs" />
