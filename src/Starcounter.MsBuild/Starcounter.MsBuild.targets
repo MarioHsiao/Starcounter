@@ -52,9 +52,15 @@
       <FullOutputPath>$(MSBuildProjectDirectory)\$(OutputPath)</FullOutputPath>
       <WeaverOutputDirectory>$(FullOutputPath).starcounter</WeaverOutputDirectory>
       <WeaverCacheDirectory Condition="( '$(WeaverCacheDirectory)' == '' )">$(WeaverOutputDirectory)\cache</WeaverCacheDirectory>
+      <DisableWeaverCache Condition="( '$(DisableWeaverCache)' == '' )">false</DisableWeaverCache>
     </PropertyGroup>
 
-    <Weave AssemblyFile="$(TargetPath)" MSBuildArchitecture= "x64" CacheDirectory="$(WeaverCacheDirectory)"/>
+    <Weave 
+      MSBuildArchitecture= "x64"
+      AssemblyFile="$(TargetPath)"
+      CacheDirectory="$(WeaverCacheDirectory)"
+      DisableCache="$(DisableWeaverCache)"
+      />
     
     <Message Text="Successfully weaved $(TargetPath)" />
     

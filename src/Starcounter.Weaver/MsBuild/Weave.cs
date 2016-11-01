@@ -16,6 +16,8 @@ namespace Starcounter.Weaver.MsBuild
         [Required]
         public string CacheDirectory { get; set; }
 
+        public bool DisableCache { get; set; }
+
         public override bool Execute()
         {
             if (!File.Exists(AssemblyFile))
@@ -46,6 +48,7 @@ namespace Starcounter.Weaver.MsBuild
                 CacheDirectory = CacheDirectory
             };
             setup.WeaveToCacheOnly = true;
+            setup.DisableWeaverCache = DisableCache;
 
             Log.LogMessageFromText($"Weaving {AssemblyFile} -> {CacheDirectory}", MessageImportance.High);
 
