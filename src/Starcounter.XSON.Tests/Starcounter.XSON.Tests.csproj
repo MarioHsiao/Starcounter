@@ -65,6 +65,7 @@
     <Compile Include="BindingTests.cs" />
     <Compile Include="DataObjects\Address.cs" />
     <Compile Include="DataObjects\Agent.cs" />
+    <Compile Include="DataObjects\ObjectWithExceptions.cs" />
     <Compile Include="DataObjects\ObjectWithTypes.cs" />
     <Compile Include="DataObjects\ObjectWOBindable.cs" />
     <Compile Include="DataObjects\Company.cs" />
