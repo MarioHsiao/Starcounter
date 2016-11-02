@@ -169,7 +169,7 @@ namespace Starcounter.Tests {
             decimal actual;
             int[] bits;
             long value;
-
+           
             expected = 0m;
             value = X6Decimal.ToEncoded(expected);
             actual = X6Decimal.FromEncoded(value);
@@ -262,6 +262,9 @@ namespace Starcounter.Tests {
             bits[2] = 23234;
             expected = new decimal(bits);
             Assert.Catch(() => X6Decimal.ToEncoded(expected));
+            
+            expected = 16770000000000.0m; // United States gross national product
+            Assert.Catch(() => value = X6Decimal.ToEncoded(expected));
         }
 
         /// <summary>
@@ -351,7 +354,7 @@ namespace Starcounter.Tests {
 			stop = DateTime.Now;
 			Console.WriteLine("Managed decimal (" + value + "): " + (stop - start).TotalMilliseconds + " ms.");
 		}
-
+        
         /// <summary>
         /// 
         /// </summary>
