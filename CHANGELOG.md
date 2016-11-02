@@ -10,7 +10,7 @@
 - Fixed a bug where database may hang deleting a record. As the root cause of the problem is in the wrong data stored in the database image, it's necessary to do unload/reload during upgrade to fix the image. [#3875]
 - Fixed infinite waiting loop in the installer when the installation folder was not empty.
 - Fixed reloading of floating-point fields.
-- Fixed retrieving long fields containing long.MinValue. [#3907](https://github.com/Starcounter/Starcounter/issues/3907)
+- Fixed retrieving long fields containing long.MinValue. [#3907](https://github.com/Starcounter/Starcounter/issues/3907) - Improved errormessage when an exception occurs in a binding between a TypedJSON object and a dataobject [#3760](https://github.com/Starcounter/Starcounter/issues/3760)
 - Fixed bug in X6Decimal where an exception was not raised in some cases leading to unhandled dataloss [#3892](https://github.com/Starcounter/Starcounter/issues/3892)
 
 ### Improved
