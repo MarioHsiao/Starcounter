@@ -11,13 +11,15 @@
     <CleanDependsOn>$(CleanDependsOn);CleanupOldJsonGeneratedFiles;CleanWeaverArtifacts</CleanDependsOn>
     <CoreBuildDependsOn>$(CoreBuildDependsOn);BuildTimeWeave</CoreBuildDependsOn>
   </PropertyGroup>
-
-  <!-- Compile-time weaving related properties -->
+  
+  <!-- Compile-time weaving and self-hosting related properties -->
   <PropertyGroup>
     <FullOutputPath>$(MSBuildProjectDirectory)\$(OutputPath)</FullOutputPath>
     <WeaverOutputDirectory>$(FullOutputPath).starcounter</WeaverOutputDirectory>
     <WeaverCacheDirectory Condition="( '$(WeaverCacheDirectory)' == '' )">$(WeaverOutputDirectory)\cache</WeaverCacheDirectory>
     <DisableWeaverCache Condition="( '$(DisableWeaverCache)' == '' )">false</DisableWeaverCache>
+    <RunCompileTimeWeaver Condition="( '$(SelfHosted)' == 'true' )">true</RunCompileTimeWeaver>
+    <RunCompileTimeWeaver Condition="( '$(RunCompileTimeWeaver)' == '' )">false</RunCompileTimeWeaver>
   </PropertyGroup>
 
   <ItemGroup>
