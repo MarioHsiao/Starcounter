@@ -73,31 +73,7 @@ namespace Starcounter {
         /// </remarks>
         public bool ValueChanged { get; internal set; }
     }
-
-    /// <summary>
-    /// An event that encapsulates a single incomming action trigger for a specific value in
-    /// a Obj. Used as base class for incomming trigger events in Objs.
-    /// </summary>
-    /// <typeparam name="TApp">The type of the Obj.</typeparam>
-    /// <typeparam name="TTemplate">The type of the ....TODO</typeparam>
-    public class Input<TApp, TTemplate> : Input
-        where TApp : Json
-        where TTemplate : TTrigger {
-        private TApp _app;
-        private TTemplate _template;
-
-        public TApp App { get { return _app; } set { _app = value; } }
-        public TTemplate Template { get { return _template; } set { _template = value; } }
-
-        public override void Base() {
-            if (_template != null) {
-                var baseTemplate = _template.BasedOn as TTemplate;
-                if (baseTemplate != null)
-                    baseTemplate.ProcessInput(App, this);
-            }
-        }
-    }
-
+    
     /// <summary>
     /// An event that encapsulates a single incomming update for a specific value in
     /// a Obj. Used as base class for incomming event data in Objs.

@@ -1,10 +1,11 @@
-﻿using System;
-using Microsoft.Build.Framework;
+﻿using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using SXP = Starcounter.XSON.PartialClassGenerator;
 
 namespace Starcounter.Internal.MsBuild {
     /// <summary>
-    /// Class JsonToCsMsBuildTask without loading into domain (slower).
+    /// Task for MsBuild responsible for generating partial class for TypedJSON. 
+    /// Executed without loading into domain (slower).
     /// </summary>
     public class JsonToTypedJsonCsMsBuildTaskNoLocking : AppDomainIsolatedTask {
         static JsonToTypedJsonCsMsBuildTaskNoLocking() {
@@ -50,7 +51,7 @@ namespace Starcounter.Internal.MsBuild {
         /// </summary>
         /// <returns>true if the task successfully executed; otherwise, false.</returns>
         public override bool Execute() {
-            CSharpCodegenVersion = Starcounter.Internal.XSON.PartialClassGenerator.CSHARP_CODEGEN_VERSION;
+            CSharpCodegenVersion = SXP.PartialClassGenerator.CSHARP_CODEGEN_VERSION;
             return true;
         }
     }

@@ -180,9 +180,8 @@ namespace star {
                     SourceCodeCompiler.CompileSingleFileToExecutable(sourceCode, out filePath);
                     applicationFilePath = sourceCode;
                     sourceCodeInput = true;
-                } catch (Exception experimental) {
-                    SharedCLI.ShowErrorAndSetExitCode(
-                        ErrorCode.ToMessage(Error.SCERRUNSPECIFIED, experimental.ToString()), true);
+                } catch (Exception e) {
+                    SharedCLI.ShowErrorAndSetExitCode(e, showStackTrace: false, exit: true);
                 }
             }
 

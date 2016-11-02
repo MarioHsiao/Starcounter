@@ -353,7 +353,7 @@ namespace Starcounter {
                 stateFlags.Clear();
             }
 
-            InternalClear();    
+            InternalClear();
             Parent?.CallHasChanged((TContainer)Template);
         }
 

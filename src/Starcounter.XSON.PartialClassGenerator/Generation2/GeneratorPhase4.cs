@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Starcounter.Internal;
 using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 
-namespace Starcounter.Internal.MsBuild.Codegen {
+namespace Starcounter.XSON.PartialClassGenerator {
     /// <summary>
     /// Hooks up the code-behind bind classes and reorders the generated partials accordingly.
     /// </summary>
@@ -49,10 +50,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 mapInfo = metadata.CodeBehindClasses[i];
 
                 if (mapInfo.IsMapped) {
-                    appTemplate = FindTemplate(mapInfo, rootTemplate);
+                    appTemplate = generator.FindTemplate(mapInfo, rootTemplate);
 
-                    if (appTemplate.GetCodegenMetadata(Gen2DomGenerator.InstanceDataTypeName) != null) {
-                        generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CompilerOrigin);
+                    if (appTemplate.CodegenInfo.BoundToType != null) {
+                        generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON,
+                                                             "", 
+                                                             null, 
+                                                             appTemplate.CodegenInfo.SourceInfo);
                     }
 
                     // TODO:
@@ -62,9 +66,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     // here.
                     // Do we need to create a new TApp and replace the existing one
                     // for all NClasses?
-                    appTemplate.ClassName = mapInfo.ClassName;
-                    if (!String.IsNullOrEmpty(mapInfo.Namespace))
-                        appTemplate.Namespace = mapInfo.Namespace;
+                    appTemplate.CodegenInfo.ClassName = mapInfo.ClassName;
+                    if (!String.IsNullOrEmpty(mapInfo.Namespace)) {
+                        if (!string.IsNullOrEmpty(appTemplate.CodegenInfo.Namespace)) {
+                            // Namespace already set in Json-by-example. 
+                            generator.AddWarning(Error.SCERRJSONDUPLICATENAMESPACE, appTemplate.CodegenInfo.SourceInfo);
+                        }
+                        appTemplate.CodegenInfo.Namespace = mapInfo.Namespace;
+                    }
 
                     nAppClass = (AstJsonClass)generator.ObtainValueClass(appTemplate);
                     nAppClass.IsPartial = true;
@@ -80,7 +89,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         ntAppClass.InheritedClass = outsider.NTemplateClass;
                         mdAppClass.InheritedClass = outsider.NMetadataClass;
                     }
-
+                    
                     //                    if (mapInfo.AutoBindToDataObject) {
                     //                        ntAppClass.AutoBindProperties = true;
                     //                   }
@@ -206,66 +215,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 return false;
             });
         }
-
-        /// <summary>
-        /// Finds the correct template using the classpath specified in the the code-behind metadata.
-        /// </summary>
-        /// <param name="rootTemplate">The root template to the search from.</param>
-        /// <returns>A template, or null if no match is found.</returns>
-        private TValue FindTemplate(CodeBehindClassInfo ci, TValue rootTemplate) {
-            TValue appTemplate;
-            string[] mapParts;
-            Template template;
-
-#if DEBUG
-            if (ci.ClassPath.Contains(".json."))
-                throw new Exception("The class path should be free from .json. text");
-#endif
-            appTemplate = rootTemplate;
-
-            mapParts = ci.ClassPath.Split('.');
-
-            // We skip the two first parts since the first one will always be "json" 
-            // and the second the rootTemplate.
-            for (Int32 i = 1; i < mapParts.Length; i++) {
-                if (!(appTemplate is TObject)) {
-                    throw new Exception(
-                            String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found.",
-                                ci.JsonMapAttribute,
-                                mapParts[i]
-                            ));
-                }
-
-                // We start with i=1. This means that we assume that the first part
-                // of the class path is the root class no matter what name is used.
-                // This makes it easier when user is refactoring his or her code.
-
-                template = ((TObject)appTemplate).Properties.GetTemplateByPropertyName(mapParts[i]);
-                if (template is TObjArr) {
-                    appTemplate = ((TObjArr)template).ElementType;
-                } else if (template != null) {
-                    appTemplate = (TValue)template;
-                } else {
-                    // TODO:
-                    // Change to starcounter errorcode.
-                    if (template == null) {
-                        throw new Exception(
-                            String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found.",
-                                ci.JsonMapAttribute,
-                                mapParts[i]
-                            ));
-                    }
-                    throw new Exception(
-                        String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} has the unsupported type {2}.",
-                            ci.JsonMapAttribute,
-                            mapParts[i],
-                            template.GetType().Name
-                        ));
-                }
-            }
-            return appTemplate;
-        }
-
+        
         /// <summary>
         /// Finds the property that corresponds to the information specified in the code-behind.
         /// </summary>
@@ -395,8 +345,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                     break;
                                 parent = parent.Parent;
                             }
-                            propertyName = ((TObject)parent).ClassName + propertyName;
-                            generator.ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.CompilerOrigin);
+                            propertyName = ((TObject)parent).CodegenInfo.ClassName + propertyName;
+                            generator.ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.CodegenInfo.SourceInfo);
                         }
                         CheckMissingBindingInformation(childTApp);
                     }

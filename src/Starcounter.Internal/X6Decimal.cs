@@ -10,7 +10,7 @@ namespace Starcounter.Internal {
         public const long MinValue = -4398046511103999999;
         public const decimal MaxDecimalValue = 4398046511103.999999m;
         public const decimal MinDecimalValue = -4398046511103.999999m;
-
+        
         private static readonly decimal[] scale_conversions = {
             1m,         // scale is already 6. Will never be used.
             1.0m,       
@@ -74,7 +74,8 @@ namespace Starcounter.Internal {
         public static long ToRaw(decimal value) {
             int scale;
             long rawValue;
-
+            ulong unsignedRaw;
+            
             unsafe {
                 int* pvalue = (int*)&value;
                 
@@ -92,10 +93,11 @@ namespace Starcounter.Internal {
                 }
 
                 // We dont care if it is a positive or negative number since only the sign bit will differ.
-                rawValue = ((long*)&value)[1];
-                if ((pvalue[1] != 0) || (rawValue > X6Decimal.MaxValue)) // high != 0 or value > x6 decimal max.
+                unsignedRaw = ((ulong*)&value)[1];
+                if ((pvalue[1] != 0) || (unsignedRaw > X6Decimal.MaxValue)) // high != 0 or value > x6 decimal max.
                     throw ErrorCode.ToException(Error.SCERRCLRDECTOX6DECRANGEERROR);
 
+                rawValue = (long)unsignedRaw;
                 if (((pvalue[0] & 0x80000000) != 0)) { // sign
                     rawValue = -rawValue;
                 }

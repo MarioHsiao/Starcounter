@@ -29,53 +29,53 @@ namespace Starcounter.TransactionLog
             return LookupTableInBindings(name) ?? LookupTableInMetadata(name);
         }
 
-        public void Apply(TransactionData transaction_data)
+        public void Apply(TransactionData transactionData)
         {
-            foreach (var c in transaction_data.creates)
+            foreach (var c in transactionData.Creates)
             {
-                var table_def = LookupTable(c.table);
+                var table_def = LookupTable(c.Table);
                 if (table_def==null)
-                    throw ErrorCode.ToException(Error.SCERRTABLENOTFOUND, string.Format("Table: {0}", c.table));
+                    throw ErrorCode.ToException(Error.SCERRTABLENOTFOUND, string.Format("Table: {0}", c.Table));
 
                 ulong object_ref;
-                DbState.InsertWithId(table_def.TableId, c.key.object_id, out object_ref);
+                DbState.InsertWithId(table_def.TableId, c.Key.ObjectID, out object_ref);
 
-                fill_record(c.key.object_id, object_ref, table_def, c.columns);
+                fill_record(c.Key.ObjectID, object_ref, table_def, c.Columns);
             }
 
-            foreach (var u in transaction_data.updates)
+            foreach (var u in transactionData.Updates)
             {
-                var table_def = LookupTable(u.table);
+                var table_def = LookupTable(u.Table);
                 if (table_def == null)
-                    throw ErrorCode.ToException(Error.SCERRTABLENOTFOUND, string.Format("Table: {0}", u.table));
+                    throw ErrorCode.ToException(Error.SCERRTABLENOTFOUND, string.Format("Table: {0}", u.Table));
 
-                ObjectRef? o = DbState.Lookup(u.key.object_id);
+                ObjectRef? o = DbState.Lookup(u.Key.ObjectID);
                 if (!o.HasValue)
-                    throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND, string.Format("ObjectID: {0}", u.key.object_id));
+                    throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND, string.Format("ObjectID: {0}", u.Key.ObjectID));
 
-                fill_record(u.key.object_id, o.Value.ETI, table_def, u.columns);
+                fill_record(u.Key.ObjectID, o.Value.ETI, table_def, u.Columns);
             }
 
-            foreach( var d in transaction_data.deletes)
+            foreach( var d in transactionData.Deletes)
             {
-                ObjectRef? o = DbState.Lookup(d.key.object_id);
+                ObjectRef? o = DbState.Lookup(d.Key.ObjectID);
                 if (!o.HasValue)
-                    throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND, string.Format("ObjectID: {0}", d.key.object_id));
+                    throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND, string.Format("ObjectID: {0}", d.Key.ObjectID));
 
                 Db.Delete(o.Value);
             }
 
         }
 
-        static private void fill_record(ulong object_id, ulong object_ref, TableDef table_def, column_update[] columns)
+        static private void fill_record(ulong object_id, ulong object_ref, TableDef table_def, ColumnUpdate[] columns)
         {
             foreach (var c in columns)
             {
-                var column_def = table_def.ColumnDefs.Select((cd, i) => new { cd = cd, i = i }).Where(d => d.cd.Name == c.name).SingleOrDefault();
+                var column_def = table_def.ColumnDefs.Select((cd, i) => new { cd = cd, i = i }).Where(d => d.cd.Name == c.Name).SingleOrDefault();
                 if (column_def == null)
-                    throw ErrorCode.ToException(Error.SCERRCOLUMNNOTFOUND, string.Format("Table.Column: {0}.{1}", table_def.Name, c.name));
+                    throw ErrorCode.ToException(Error.SCERRCOLUMNNOTFOUND, string.Format("Table.Column: {0}.{1}", table_def.Name, c.Name));
 
-                put_value(object_id, object_ref, column_def.cd.Type, column_def.i, c.value);
+                put_value(object_id, object_ref, column_def.cd.Type, column_def.i, c.Value);
             }
         }
 
@@ -117,7 +117,7 @@ namespace Starcounter.TransactionLog
                     break;
 
                 case sccoredb.STAR_TYPE_REFERENCE:
-                    DbState.WriteObjectRaw(object_id, object_ref, column_index, new ObjectRef { ObjectID = ((reference)value).object_id, ETI = 0 });
+                    DbState.WriteObjectRaw(object_id, object_ref, column_index, new ObjectRef { ObjectID = ((Reference)value).ObjectID, ETI = 0 });
                     break;
 
                 default:

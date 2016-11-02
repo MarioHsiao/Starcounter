@@ -277,7 +277,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestSuppressingInputChange() {
             TObject schema;
 
-            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            schema = (TObject)Template.CreateFromMarkup("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
             var session = new Session();
             session.Data = json;
@@ -370,7 +370,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestCancellingInputChange() {
             TObject schema;
 
-            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            schema = (TObject)Template.CreateFromMarkup("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
             var session = new Session();
             session.Data = json;
@@ -966,6 +966,37 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Verifying that name is cached in unbound storage.
             Assert.AreEqual(data.AgentSkipCounter, tAgent.UnboundGetter(json).Data);
+        }
+
+        [Test]
+        public void TestDirtyCheckForBoundArrayDataSetToNull() {
+            Recursive data = new Recursive();
+            data.Name = "Root";
+            data.Recursives.Add(new Recursive() { Name = "1" });
+            data.Recursives.Add(new Recursive() { Name = "2" });
+
+            TObject arrItemSchema = new TObject();
+            arrItemSchema.Add<TString>("Name", "Name");
+
+            TObject schema = new TObject();
+            var nameTemplate = schema.Add<TString>("Name", "Name");
+            var arrSchema = schema.Add<TArray<Json>>("Recursives", "Recursives");
+            arrSchema.ElementType = arrItemSchema;
+            
+            dynamic json = new Json() { Template = schema };
+            json.Data = data;
+            json.Session = new Session();
+
+            Assert.AreEqual("Root", json.Name);
+            Assert.AreEqual(2, json.Recursives.Count);
+            json.ChangeLog.Checkpoint();
+
+            json.Data = null;
+            Assert.AreEqual("", json.Name);
+            Assert.AreEqual(0, json.Recursives.Count);
+            Assert.IsTrue(json.IsDirty());
+            Assert.IsTrue(json.IsDirty(nameTemplate));
+            Assert.IsTrue(json.IsDirty(arrSchema));
         }
     }
 }

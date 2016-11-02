@@ -52,21 +52,19 @@ namespace Starcounter.Internal {
             Json siblingJson;
             Json mainJson;
             SiblingList stepSiblings;
+            SiblingList oldSiblings;
 
             // Checking if there is only one response, which becomes the main response.
             if (resp != null) {
-
                 mainJson = resp.Resource as Json;
-
                 if (mainJson != null) {
-                    if (mainJson.Siblings != null) {
-                        if (mainJson.Siblings.HasBeenSent(mainJson.Siblings.IndexOf(mainJson))) {
-                            stepSiblings = new SiblingList();
-                            stepSiblings.Add(mainJson);
-                            stepSiblings.MarkAsSent(0);
-                            mainJson.Siblings = stepSiblings;
-                        }
-                    }
+                    oldSiblings = mainJson.Siblings;
+                    stepSiblings = new SiblingList();
+                    stepSiblings.Add(mainJson);
+
+                    stepSiblings.CompareAndInvalidate(oldSiblings);
+
+                    mainJson.Siblings = stepSiblings;
                     mainJson.appName = resp.AppName;
                     mainJson.wrapInAppName = true;
                 }
@@ -107,14 +105,14 @@ namespace Starcounter.Internal {
                 mainJson.appName = mainResponse.AppName;
                 mainJson.wrapInAppName = true;
                 
-                var oldSiblings = mainJson.Siblings;
+                oldSiblings = mainJson.Siblings;
 
                 stepSiblings = new SiblingList();
                 stepSiblings.Add(mainJson);
                 mainJson.Siblings = stepSiblings;
 
                 if (responses.Count == 1) {
-                    MarkExistingSiblingsAsSent(mainJson, oldSiblings);
+                    stepSiblings.CompareAndInvalidate(oldSiblings);
                     return mainResponse;
                 }
 
@@ -164,7 +162,7 @@ namespace Starcounter.Internal {
                     }
                 }
 
-                MarkExistingSiblingsAsSent(mainJson, oldSiblings);
+                stepSiblings.CompareAndInvalidate(oldSiblings);
             }
             return mainResponse;
         }
@@ -196,21 +194,6 @@ namespace Starcounter.Internal {
 
             if (json.Siblings == null && list.Count > 1) {
                 json.Siblings = list;
-            }
-        }
-
-        private static void MarkExistingSiblingsAsSent(Json mainJson, SiblingList oldSiblings) {
-            SiblingList newSiblings;
-
-            if (oldSiblings != null && mainJson.Parent != null) {
-                newSiblings = mainJson.Siblings;
-                for (int i = 0; i < newSiblings.Count; i++) {
-                    int index = oldSiblings.IndexOf(newSiblings[i]);
-                    if (index != -1) {
-                        // The same sibling already exists. Lets not send it again.
-                        newSiblings.MarkAsSent(index);
-                    }
-                }
             }
         }
     }

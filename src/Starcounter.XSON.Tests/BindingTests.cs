@@ -254,7 +254,7 @@ namespace Starcounter.Internal.XSON.Tests {
             uint errorCode;
 
             var schema = new TObject();
-            schema.ClassName = "PersonMsg";
+            schema.CodegenInfo.ClassName = "PersonMsg";
 
             var tname = schema.Add<TString>("Name", "Invalid");
             tname.BindingStrategy = BindingStrategy.Bound;
@@ -456,7 +456,12 @@ namespace Starcounter.Internal.XSON.Tests {
             json.TestEnum = "Third";
             Assert.AreEqual(TestEnum.Third, dataObj.TestEnum);
 
-            Assert.Throws<ArgumentException>(() => { json.TestEnum = "NonExisting"; });
+
+            uint ec;
+            var ex = Assert.Catch<Exception>(() => { json.TestEnum = "NonExisting"; });
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out ec));
+            Assert.AreEqual(Error.SCERRDATABINDINGFORJSONEXCEPTION, ec);
+            Assert.IsInstanceOf<ArgumentException>(ex.InnerException);
         }
 
         [Test]
@@ -614,6 +619,26 @@ namespace Starcounter.Internal.XSON.Tests {
             uint ec;
             Assert.IsTrue(ErrorCode.TryGetCode(ex, out ec));
             Assert.AreEqual(ec, Error.SCERRCREATEDATABINDINGFORJSON);
+        }
+
+        [Test]
+        public static void TestExceptionFromDataBindingUsage() {
+            uint ec;
+            dynamic json = new Json();
+            json.Data = new ObjectWithExceptions();
+
+            // Setter
+            var ex = Assert.Catch<Exception>(() => { json.Name = "test"; });
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out ec));
+            Assert.AreEqual(Error.SCERRDATABINDINGFORJSONEXCEPTION, ec);
+            Assert.IsTrue(ErrorCode.TryGetCode(ex.InnerException, out ec));
+            Assert.AreEqual(Error.SCERRINVALIDOBJECTACCESS, ec);
+
+            // Getter
+            ex = Assert.Catch<Exception>(() => { string s = json.Name; });
+            Assert.IsTrue(ErrorCode.TryGetCode(ex, out ec));
+            Assert.AreEqual(Error.SCERRDATABINDINGFORJSONEXCEPTION, ec);
+            Assert.IsAssignableFrom<NullReferenceException>(ex.InnerException);
         }
     }
 }

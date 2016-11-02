@@ -28,7 +28,7 @@ IF NOT EXIST %DB_DIR% ( MKDIR %DB_DIR% )
 IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 
 :: Creating image files.
-sccreatedb.exe -ip %DB_DIR% %DB_NAME%
+sccreatedb.exe -ip %DB_DIR% -uuid "def000db-dfdb-dfdb-dfdb-def0db0df0db" %DB_NAME%
 
 :: Weaving the test.
 CALL scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
@@ -56,7 +56,7 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Starting database memory management process.
-TART CMD /C "scdata.exe -instid 1 "{ \"eventloghost\": \"%DB_NAME%\", \"eventlogdir\": \"%DB_OUT_DIR%\", \"databasename\": \"%DB_NAME%\", \"databasedir\": \"%DB_DIR%\" }""
+TART CMD /C "scdata.exe "{ \"eventloghost\": \"%DB_NAME%\", \"eventlogdir\": \"%DB_OUT_DIR%\", \"databasename\": \"%DB_NAME%\", \"databasedir\": \"%DB_DIR%\" }""
 
 :: Starting Prolog process.
 START CMD /C "32bitComponents\scsqlparser.exe 8066"

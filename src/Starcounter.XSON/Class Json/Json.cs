@@ -80,7 +80,6 @@ namespace Starcounter {
         static Json() {
             // TODO! Whay is this and why is it needed?
             HelperFunctions.PreLoadCustomDependencies();
-            //    XSON.CodeGeneration.Initializer.InitializeXSON();
         }
 
         /// <summary>

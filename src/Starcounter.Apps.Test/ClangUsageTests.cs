@@ -24,7 +24,7 @@ namespace Starcounter.Clang.Tests {
         /// <summary>
         /// Pointer to create Clang engine.
         /// </summary>
-        static IntPtr clangEngine_ = IntPtr.Zero;
+        static void* clangEngine_ = null;
 
         /// <summary>
         /// Test function type.
@@ -45,7 +45,7 @@ namespace Starcounter.Clang.Tests {
         public void InitEverything() {
 
             // Initializing Clang engine components.
-            ScLLVMFunctions.ScLLVMInit();
+            ClangFunctions.ClangInit();
         }
 
         /// <summary>
@@ -56,13 +56,16 @@ namespace Starcounter.Clang.Tests {
 
             IntPtr[] out_functions_ptrs = new IntPtr[1];
 
-            UInt32 errCode = ScLLVMFunctions.GenerateClangFunctions(
-                "extern \"C\" int func1() { return 124; }",
-                new String[] { "func1" },
-                out_functions_ptrs,
-                out clangEngine_);
+            fixed (void** clang_engine = &clangEngine_) {
 
-            Assert.IsTrue(0 == errCode);
+                UInt32 errCode = ClangFunctions.GenerateClangFunctions(
+                    clang_engine,
+                    "extern \"C\" int func1() { return 124; }",
+                    new String[] { "func1" },
+                    out_functions_ptrs);
+
+                Assert.IsTrue(0 == errCode);
+            }
 
             // Getting the managed.
             TestFunctionType testFunction = (TestFunctionType)Marshal.GetDelegateForFunctionPointer(out_functions_ptrs[0], typeof(TestFunctionType));
@@ -80,14 +83,17 @@ namespace Starcounter.Clang.Tests {
 
             IntPtr[] out_functions_ptrs = new IntPtr[2];
 
-            UInt32 errCode = ScLLVMFunctions.GenerateClangFunctions(
-                "extern \"C\" int func1() { return 124; }\r\n"+
-                "extern \"C\" int func2() { return 125; }",
-                new String[] { "func1", "func2" },
-                out_functions_ptrs,
-                out clangEngine_);
+            fixed (void** clang_engine = &clangEngine_) {
 
-            Assert.IsTrue(0 == errCode);
+                UInt32 errCode = ClangFunctions.GenerateClangFunctions(
+                    clang_engine,
+                    "extern \"C\" int func1() { return 124; }\r\n"+
+                    "extern \"C\" int func2() { return 125; }",
+                    new String[] { "func1", "func2" },
+                    out_functions_ptrs);
+
+                Assert.IsTrue(0 == errCode);
+            }
 
             // Getting the managed.
             TestFunctionType testFunction1 = (TestFunctionType)Marshal.GetDelegateForFunctionPointer(out_functions_ptrs[0], typeof(TestFunctionType)),
@@ -109,16 +115,19 @@ namespace Starcounter.Clang.Tests {
 
             IntPtr[] out_functions_ptrs = new IntPtr[3];
 
-            UInt32 errCode = ScLLVMFunctions.GenerateClangFunctions(
-                "extern \"C\" int func1() { return 124; }\r\n" +
-                "extern \"C\" int func3(int a, int b) { return a + b; }\r\n" +
-                "extern \"C\" int func2() { return 125; }\r\n" +
-                "extern \"C\" int func4intrinsics() { asm(\"int3\");  __builtin_unreachable(); }\r\n",
-                new String[] { "func1", "func2", "func3" },
-                out_functions_ptrs,
-                out clangEngine_);
+            fixed (void** clang_engine = &clangEngine_) {
 
-            Assert.IsTrue(0 == errCode);
+                UInt32 errCode = ClangFunctions.GenerateClangFunctions(
+                    clang_engine,
+                    "extern \"C\" int func1() { return 124; }\r\n" +
+                    "extern \"C\" int func3(int a, int b) { return a + b; }\r\n" +
+                    "extern \"C\" int func2() { return 125; }\r\n" +
+                    "extern \"C\" int func4intrinsics() { asm(\"int3\");  __builtin_unreachable(); }\r\n",
+                    new String[] { "func1", "func2", "func3" },
+                    out_functions_ptrs);
+
+                Assert.IsTrue(0 == errCode);
+            }
 
             // Getting the managed.
             TestFunctionType testFunction1 = (TestFunctionType)Marshal.GetDelegateForFunctionPointer(out_functions_ptrs[0], typeof(TestFunctionType)),

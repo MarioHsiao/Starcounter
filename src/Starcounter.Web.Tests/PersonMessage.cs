@@ -9,7 +9,7 @@ namespace Starcounter.Internal.Tests {
         private static TJson Schema;
 
         static PersonMessage() {
-            Schema = new TJson() { ClassName = "PersonMessage", InstanceType = typeof(PersonMessage) };
+            Schema = new TJson() { InstanceType = typeof(PersonMessage) };
             Schema.Add<TString>("FirstName");
             Schema.Add<TString>("LastName");
             Schema.Add<TLong>("Age");

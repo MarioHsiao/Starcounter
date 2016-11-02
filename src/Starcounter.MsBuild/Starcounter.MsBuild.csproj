@@ -68,6 +68,10 @@
   <ItemGroup>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
@@ -84,14 +88,6 @@
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
-      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
-      <Name>Starcounter.XSON.JsonByExample</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.JsTemplateParser\Starcounter.XSON.JsTemplateParser.fsproj">
-      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
-      <Name>Starcounter.XSON.JsTemplateParser</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.PartialClassGenerator\Starcounter.XSON.PartialClassGenerator.csproj">
       <Project>{7824b013-943c-4cf5-b0b9-953a6d828eb6}</Project>
       <Name>Starcounter.XSON.PartialClassGenerator</Name>
@@ -100,16 +96,13 @@
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ThirdParty\DynamoIoc\DynamoIoc.csproj">
-      <Project>{ea81e2c5-0477-42ab-82f2-b57228af694e}</Project>
-      <Name>DynamoIoc</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.BitsAndBytes\BitsAndBytes.csproj">
       <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>
       <Name>BitsAndBytes</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Starcounter.MsBuild.Develop.targets" />
     <None Include="Starcounter.MsBuild.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
