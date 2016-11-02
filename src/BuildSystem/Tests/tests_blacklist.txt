@@ -61,20 +61,18 @@ OffsetkeyEmptyBug3502_test.bat
 
 Level0\msbuild\x64\Debug\fletcher32_test.exe
 Level0\msbuild\x64\Debug\log_reader_test.exe
-Level0\msbuild\x64\Debug\log_writer_test.exe
+log_writer_test.exe
 Level0\msbuild\x64\Debug\max_io_bandwidth_test.exe
 Level0\msbuild\x64\Debug\sccorelog_test.exe
 Level0\msbuild\x64\Debug\stream_buffer_test.exe
 Level0\msbuild\x64\Debug\sunflower_test.exe
 Level0\msbuild\x64\Release\fletcher32_test.exe
 Level0\msbuild\x64\Release\log_reader_test.exe
-Level0\msbuild\x64\Release\log_writer_test.exe
 Level0\msbuild\x64\Release\max_io_bandwidth_test.exe
 Level0\msbuild\x64\Release\sccorelog_test.exe
 Level0\msbuild\x64\Release\stream_buffer_test.exe
 Level1\bin\Release\fletcher32_test.exe
 Level1\bin\Release\log_reader_test.exe
-Level1\bin\Release\log_writer_test.exe
 Level1\bin\Release\max_io_bandwidth_test.exe
 Level1\bin\Release\sccorelog_test.exe
 Level1\bin\Release\sc_ipc_test.exe
