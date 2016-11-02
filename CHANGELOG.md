@@ -10,6 +10,7 @@
 - Fixed infinite waiting loop in the installer when the installation folder was not empty.
 - Fixed reloading of floating-point fields.
 - Fixed retrieving long fields containing long.MinValue. [#3907](https://github.com/Starcounter/Starcounter/issues/3907)
+- Improved errormessage when an exception occurs in a binding between a TypedJSON object and a dataobject [#3760](https://github.com/Starcounter/Starcounter/issues/3760)
 
 ### Changed
 - Changed the parser for Json-by-example from F# parser to NewtonSoft (nuget) [#3811](https://github.com/Starcounter/Starcounter/issues/3811)
