@@ -48,10 +48,6 @@
       <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.1.0.0\lib\net45\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Mono.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Mono.CSharp.3.0.6\Lib\net40\Mono.CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -84,11 +80,6 @@
     <Compile Include="CodeBehindParser\RootClass.cs" />
     <Compile Include="CodeBehindParser\RoslynCodeBehindParser.cs" />
     <Compile Include="CodeBehindParser\RoslynSyntaxHelpers.cs" />
-    <Compile Include="CompilerMono\CodeBehindParser.cs" />
-    <Compile Include="CompilerMono\CSharpToken.cs" />
-    <Compile Include="CompilerMono\MiniAst\MastBase.cs" />
-    <Compile Include="CompilerMono\MiniAst\MastClass.cs" />
-    <Compile Include="CompilerMono\MiniAst\MastInherits.cs" />
     <Compile Include="Generation2\AST\AstClassAlias.cs" />
     <Compile Include="Generation2\AST\AstJsonMetadataClass.cs" />
     <Compile Include="Generation2\AST\AstTemplateClass.cs" />
@@ -111,7 +102,6 @@
     <Compile Include="Generation2\AST\AstOtherClass.cs" />
     <Compile Include="Generation2\AST\AstPrimitiveType.cs" />
     <Compile Include="Generation2\AST\AstRoot.cs" />
-    <Compile Include="CompilerMono\MonoCSharpEnumerator.cs" />
     <Compile Include="Generation2\GeneratorPhase1.cs" />
     <Compile Include="Generation2\GeneratorPhase3.cs" />
     <Compile Include="Generation2\GeneratorPhase2.cs" />
