@@ -58,7 +58,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
     UriMatchCodegenCompilerType comp_type,
     const std::wstring& gen_file_name,    
     const char* const root_function_name,
-    void** clang_engine_addr,
+    void** codegen_engine_addr,
     MixedCodeConstants::MatchUriType* out_match_uri_func,
     HMODULE* out_codegen_dll_handle)
 {
@@ -204,20 +204,26 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
         case COMPILER_CLANG:
         {
             void* out_functions[1];
-            void* exec_module = NULL;
+            void* out_exec_module = NULL;
+			float time_took_sec = 0;
 
-            uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
-                clang_engine_addr,
-                false,
-                false,
-				MixedCodeConstants::SCLLVM_OPT_FLAG,
-                uri_matching_code_,
-                root_function_name,
-                out_functions,
-                &exec_module);
+			uint32_t err_code = ScLLVMProduceModule(
+				g_gateway.get_user_temp_sc_dir().c_str(), // Path to cache directory.
+				nullptr, // Letting LLVM generate the hash itself.
+				uri_matching_code_, // code_to_build
+				root_function_name, // function_names_delimited
+				nullptr, // ext_libraries_names_delimited
+				true, // delete_sources
+				nullptr, // predefined_clang_params
+				nullptr, // Generated hash.
+				&time_took_sec, // out_time_seconds
+				out_functions, // out_func_ptrs
+				&out_exec_module, // out_exec_engine
+				codegen_engine_addr // codegen_engine_addr
+			); 
 
             GW_ASSERT(0 == err_code);
-            GW_ASSERT(NULL != exec_module);
+            GW_ASSERT(NULL != out_exec_module);
 
             (*out_match_uri_func) = (MixedCodeConstants::MatchUriType) out_functions[0];
 
