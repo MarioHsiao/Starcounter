@@ -28,6 +28,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="metadata"></param>
         private void ProcessBindAssignments(TValue prototype, CodeBehindMetadata metadata) {
             foreach (var classInfo in metadata.CodeBehindClasses) {
+                // TODO:
+                // Due to lack of time for testing, and to want to keep old stuff as is for the moment we
+                // will ignore all assignments of Bind if the ExplicitBound<T> interface is not used.
+                // These assignments are currently only needed to get correct compilation-errors for
+                // explicitly bound properties.
+                if(!classInfo.ExplicitlyBound)
+                    return;
+
                 TValue classRoot = generator.FindTemplate(classInfo, prototype);
                 foreach (var bindAssignment in classInfo.BindAssignments) {
                     ProcessOneBindAssignment(classRoot, bindAssignment);

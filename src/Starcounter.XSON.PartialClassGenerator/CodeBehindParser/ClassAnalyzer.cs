@@ -332,6 +332,14 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// <param name="node"></param>
         /// <param name="templatePath"></param>
         private void HandleTemplateBindAssignment(AssignmentExpressionSyntax node, string templatePath) {
+            // TODO:
+            // Due to lack of time for testing, and to want to keep old stuff as is for the moment we
+            // will ignore all assignments of Bind if the ExplicitBound<T> interface is not used.
+            // These assignments are currently only needed to get correct compilation-errors for
+            // explicitly bound properties.
+            if(!codeBehindMetadata.ExplicitlyBound)
+                return;
+
             if(!templatePath.StartsWith("DefaultTemplate."))
                 throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateBindInvalidAssignment, node);
 
