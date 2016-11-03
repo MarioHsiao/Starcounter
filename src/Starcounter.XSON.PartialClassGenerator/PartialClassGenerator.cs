@@ -36,8 +36,12 @@ namespace Starcounter.XSON.PartialClassGenerator {
             ITemplateCodeGenerator codegen;
             ITemplateCodeGeneratorModule codegenmodule;
 
-            var parser = new RoslynCodeBehindParser(template.CodegenInfo.ClassName, codebehind, codeBehindFilePathNote);
-            metadata = parser.ParseToMetadata();
+            if (string.IsNullOrEmpty(codebehind)) {
+                metadata = CodeBehindMetadata.Empty;
+            } else {
+                var parser = new RoslynCodeBehindParser(template.CodegenInfo.ClassName, codebehind, codeBehindFilePathNote);
+                metadata = parser.ParseToMetadata();
+            }
 
             var rootClassInfo = metadata.RootClassInfo;
 
@@ -54,6 +58,9 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// <param name="codeBehindFilePath"></param>
         /// <returns></returns>
         public static CodeBehindMetadata CreateCodeBehindMetadata(string className, string code, string codeBehindFilePath) {
+            if (string.IsNullOrEmpty(code))
+                return CodeBehindMetadata.Empty;
+
             var parser = new RoslynCodeBehindParser(className, code, codeBehindFilePath);
             return parser.ParseToMetadata();
         }

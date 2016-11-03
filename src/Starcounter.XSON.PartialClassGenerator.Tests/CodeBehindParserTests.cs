@@ -323,21 +323,21 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var typeAssignments = cbClass.InstanceTypeAssignments;
             Assert.AreEqual(5, typeAssignments.Count);
             Assert.AreEqual("DefaultTemplate.ElapsedTime", typeAssignments[0].TemplatePath);
-            Assert.AreEqual("double", typeAssignments[0].TypeName);
+            Assert.AreEqual("double", typeAssignments[0].Value);
             Assert.AreEqual("DefaultTemplate.Page", typeAssignments[1].TemplatePath);
-            Assert.AreEqual("MyOtherJson", typeAssignments[1].TypeName);
+            Assert.AreEqual("MyOtherJson", typeAssignments[1].Value);
             Assert.AreEqual("DefaultTemplate.Page.ChildOfPage", typeAssignments[2].TemplatePath);
-            Assert.AreEqual("Int64", typeAssignments[2].TypeName);
+            Assert.AreEqual("Int64", typeAssignments[2].Value);
             Assert.AreEqual("DefaultTemplate.Page.SubPage.SuberPage.Value", typeAssignments[3].TemplatePath);
-            Assert.AreEqual("decimal", typeAssignments[3].TypeName);
+            Assert.AreEqual("decimal", typeAssignments[3].Value);
             Assert.AreEqual("DefaultTemplate.Items.ElementType", typeAssignments[4].TemplatePath);
-            Assert.AreEqual("ReusedItemJson", typeAssignments[4].TypeName);
+            Assert.AreEqual("ReusedItemJson", typeAssignments[4].Value);
 
             cbClass = roslyn.CodeBehindClasses.Find((item) => { return !item.IsRootClass; });
             typeAssignments = cbClass.InstanceTypeAssignments;
             Assert.AreEqual(1, typeAssignments.Count);
             Assert.AreEqual("DefaultTemplate.PartialTime", typeAssignments[0].TemplatePath);
-            Assert.AreEqual("double", typeAssignments[0].TypeName);
+            Assert.AreEqual("double", typeAssignments[0].Value);
         }
 
         private static void AssertFieldOrPropertyInfo(string name, string typeName, bool isProperty, 
@@ -345,6 +345,171 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.AreEqual(name, fop.Name);
             Assert.AreEqual(typeName, fop.TypeName);
             Assert.AreEqual(isProperty, fop.IsProperty);
+        }
+
+        [Test]
+        public static void CodeBehindDetectIBoundAndIExplicitBound() {
+            string source;
+            string dataType = "MyDataType";
+            string dataType2 = "SubType";
+            string dataType3 = "SubType2";
+
+            // IBound<T> : Bound to T, explicit flag should be false.
+            source = "public partial class Foo: Json, IBound<" + dataType + "> { }";
+            var roslyn = ParserAnalyzeCode("Foo", source);
+            AssertBoundToMetadata(roslyn.RootClassInfo, dataType, false);
+
+            // IExplicitBound<T> : Bound to T, explicit flag should be true.
+            source = "public partial class Foo: Json, IExplicitBound<" + dataType + "> { }";
+            roslyn = ParserAnalyzeCode("Foo", source);
+            AssertBoundToMetadata(roslyn.RootClassInfo, dataType, true);
+
+            // Both IBound<T> and IExplicitBound<T> : IExplicitBound<T> should be used.
+            source = "public partial class Foo: Json, IBound<" + dataType + ">, IExplicitBound<" + dataType + "> { }";
+            roslyn = ParserAnalyzeCode("Foo", source);
+            AssertBoundToMetadata(roslyn.RootClassInfo, dataType, true);
+
+            source = "public partial class Foo: Json, IExplicitBound<" + dataType + ">, IBound<" + dataType + "> { }";
+            roslyn = ParserAnalyzeCode("Foo", source);
+            AssertBoundToMetadata(roslyn.RootClassInfo, dataType, true);
+
+            // No interface added : No datatype set and explicit flag should be false.
+            source = "public partial class Foo: Json { }";
+            roslyn = ParserAnalyzeCode("Foo", source);
+            AssertBoundToMetadata(roslyn.RootClassInfo, null, false);
+
+            // IExplicitBound<T> : Bound to T, explicit flag should be true.
+            source = "public partial class Foo: Json, IExplicitBound<" + dataType + "> {"
+                   + "   [Foo_json.Page]"
+                   + "   partial class FooPage : IExplicitBound< " + dataType2 + "{ }"
+                   + "   [Foo_json.Page2]"
+                   + "   partial class FooPage2 : IBound< " + dataType3 + "{ }" // Will not be explicitly bound.
+                   + "   [Foo_json.Page3]"
+                   + "   partial class FooPage3 : Json { }"; // Will not be explicitly bound.
+
+            roslyn = ParserAnalyzeCode("Foo", source);
+            AssertBoundToMetadata(roslyn.RootClassInfo, dataType, true);
+            AssertBoundToMetadata(roslyn.CodeBehindClasses.Find((classInfo) => classInfo.ClassName == "FooPage"), dataType2, true);
+            AssertBoundToMetadata(roslyn.CodeBehindClasses.Find((classInfo) => classInfo.ClassName == "FooPage2"), dataType3, false);
+            AssertBoundToMetadata(roslyn.CodeBehindClasses.Find((classInfo) => classInfo.ClassName == "FooPage3"), null, false);
+        }
+
+        private static void AssertBoundToMetadata(CodeBehindClassInfo classInfo, string boundToType, bool explicitlyBound) {
+            Assert.IsNotNull(classInfo);
+            Assert.AreEqual(boundToType, classInfo.BoundDataClass);
+            Assert.AreEqual(explicitlyBound, classInfo.ExplicitlyBound);
+        }
+
+        [Test]
+        public static void CodeBehindUnsupportedTemplateBindAssignment() {
+            var source = "public partial class Foo: Json, IExplicitBound<Bar> {"
+                        + "  static Foo() {"
+                        + "    var t = DefaultTemplate;"
+                        + @"    t.RemainingTime.Bind = ""bind"";"
+                        + "  }"
+                        + "}";
+
+            var ex = Assert.Throws<InvalidCodeBehindException>(() => {
+                var roslyn = ParserAnalyzeCode("Foo", source);
+            });
+            Assert.AreEqual(InvalidCodeBehindError.TemplateBindInvalidAssignment, ex.Error);
+
+            source = "public partial class Foo: Json, IExplicitBound<Bar>{"
+                        + "  static Foo() {"
+                        + "    var subPage = DefaultTemplate.Page.SubPage;"
+                        + @"    subPage.RemainingTime.Bind = ""bind"";"
+                        + "  }"
+                        + "}";
+
+            ex = Assert.Throws<InvalidCodeBehindException>(() => {
+                var roslyn = ParserAnalyzeCode("Foo", source);
+            });
+            Assert.AreEqual(InvalidCodeBehindError.TemplateBindInvalidAssignment, ex.Error);
+
+            // No errors currently if IExplicitBound<T> is not used.
+            source = "public partial class Foo: Json {"
+                       + "  static Foo() {"
+                       + "    var subPage = DefaultTemplate.Page.SubPage;"
+                       + @"    subPage.RemainingTime.Bind = ""bind"";"
+                       + "  }"
+                       + "}";
+
+            Assert.DoesNotThrow(() => { var roslyn = ParserAnalyzeCode("Foo", source); });
+        }
+
+        [Test]
+        public static void CodeBehindDetectTemplateBindAssignment() {
+            var source = "public partial class Foo: Json, IExplicitBound<Bar> {"
+                        + "  static Foo() {"
+                        + @"    DefaultTemplate.ElapsedTime.Bind = ""elapsedtime"";"
+                        + @"    DefaultTemplate.Page.Bind = null;"
+                        + @"    DefaultTemplate.Page.ChildOfPage.Bind = ""childofpage"";"
+                        + @"    DefaultTemplate.Page.SubPage.SuberPage.Value.Bind = ""value"";"
+                        + @"    DefaultTemplate.Items.ElementType.Bind = ""elementtype"";"
+                        + "  }"
+                        + "  [Foo_json.Page2]"
+                        + "  partial class Page2 : Json, IExplicitBound<Bar> {"
+                        + "    static Page2() {"
+                        + @"      DefaultTemplate.PartialTime.Bind = ""partialtime"";"
+                        + "    }"
+                        + "  }"
+                        + "}";
+            var roslyn = ParserAnalyzeCode("Foo", source);
+
+            Assert.IsNotNull(roslyn.RootClassInfo);
+            Assert.AreEqual(2, roslyn.CodeBehindClasses.Count);
+
+            var cbClass = roslyn.RootClassInfo;
+            var bindAssignments = cbClass.BindAssignments;
+            Assert.AreEqual(5, bindAssignments.Count);
+            Assert.AreEqual("DefaultTemplate.ElapsedTime", bindAssignments[0].TemplatePath);
+            Assert.AreEqual("elapsedtime", bindAssignments[0].Value);
+            Assert.AreEqual("DefaultTemplate.Page", bindAssignments[1].TemplatePath);
+            Assert.IsNull(bindAssignments[1].Value);
+            Assert.AreEqual("DefaultTemplate.Page.ChildOfPage", bindAssignments[2].TemplatePath);
+            Assert.AreEqual("childofpage", bindAssignments[2].Value);
+            Assert.AreEqual("DefaultTemplate.Page.SubPage.SuberPage.Value", bindAssignments[3].TemplatePath);
+            Assert.AreEqual("value", bindAssignments[3].Value);
+            Assert.AreEqual("DefaultTemplate.Items.ElementType", bindAssignments[4].TemplatePath);
+            Assert.AreEqual("elementtype", bindAssignments[4].Value);
+
+            cbClass = roslyn.CodeBehindClasses.Find((item) => { return !item.IsRootClass; });
+            bindAssignments = cbClass.BindAssignments;
+            Assert.AreEqual(1, bindAssignments.Count);
+            Assert.AreEqual("DefaultTemplate.PartialTime", bindAssignments[0].TemplatePath);
+            Assert.AreEqual("partialtime", bindAssignments[0].Value);
+        }
+
+        [Test]
+        public static void CodeBehindDetectTemplateBindAssignmentWithOtherSyntax() {
+            // When some other assignments is used, we need to treat the template as custom bound.
+            // Which means we wont add any code to test the binding compile-time, but it should still
+            // be a valid assignment (so no exception can be raised!).
+
+            var source = "public partial class Foo: Json, IExplicitBound<Bar> {"
+                        + "  static Foo() {"
+                        + "    DefaultTemplate.ElapsedTime.Bind = GetBinding();"
+                        + "    DefaultTemplate.Page.Bind = nameof(Bar.Foo)"
+                        + @"    DefaultTemplate.Page.ChildOfPage.Bind = nameof(Bar.Foo) + ""."" + nameof(Foo.Bar);"
+                        + "  }"
+                        + "}";
+
+            CodeBehindMetadata roslyn = null;
+            Assert.DoesNotThrow(() => {
+                roslyn = ParserAnalyzeCode("Foo", source);
+            });
+
+            Assert.IsNotNull(roslyn.RootClassInfo);
+
+            var cbClass = roslyn.RootClassInfo;
+            var bindAssignments = cbClass.BindAssignments;
+            Assert.AreEqual(3, bindAssignments.Count);
+            Assert.AreEqual("DefaultTemplate.ElapsedTime", bindAssignments[0].TemplatePath);
+            Assert.IsNull(bindAssignments[0].Value);
+            Assert.AreEqual("DefaultTemplate.Page", bindAssignments[1].TemplatePath);
+            Assert.IsNull(bindAssignments[1].Value);
+            Assert.AreEqual("DefaultTemplate.Page.ChildOfPage", bindAssignments[2].TemplatePath);
+            Assert.IsNull(bindAssignments[2].Value);
         }
     }
 }

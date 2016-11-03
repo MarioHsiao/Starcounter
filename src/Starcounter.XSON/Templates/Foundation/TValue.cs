@@ -69,9 +69,11 @@ namespace Starcounter.Templates {
 					if (parent == null)
 						return BindingStrategy.Auto;
 
-					while (!(parent is TObject))
+					while (parent != null && !(parent is TObject))
 						parent = parent.Parent;
-					return ((TObject)parent).BindChildren;
+
+                    if (parent != null)
+					    return ((TObject)parent).BindChildren;
 				}
 
 				return strategy;
