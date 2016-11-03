@@ -397,7 +397,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void CodeBehindUnsupportedTemplateBindAssignment() {
-            var source = "public partial class Foo: Json {"
+            var source = "public partial class Foo: Json, IExplicitBound<Bar> {"
                         + "  static Foo() {"
                         + "    var t = DefaultTemplate;"
                         + @"    t.RemainingTime.Bind = ""bind"";"
@@ -408,19 +408,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 var roslyn = ParserAnalyzeCode("Foo", source, true);
             });
             Assert.AreEqual(InvalidCodeBehindError.TemplateBindInvalidAssignment, ex.Error);
-
-            source = "public partial class Foo: Json {"
-                        + "  static Foo() {"
-                        + "    DefaultTemplate.RemainingTime.Bind = Helper.MethodForGettingBinding();"
-                        + "  }"
-                        + "}";
-
-            ex = Assert.Throws<InvalidCodeBehindException>(() => {
-                var roslyn = ParserAnalyzeCode("Foo", source, true);
-            });
-            Assert.AreEqual(InvalidCodeBehindError.TemplateBindInvalidAssignment, ex.Error);
-
-            source = "public partial class Foo: Json {"
+            
+            source = "public partial class Foo: Json, IExplicitBound<Bar>{"
                         + "  static Foo() {"
                         + "    var subPage = DefaultTemplate.Page.SubPage;"
                         + @"    subPage.RemainingTime.Bind = ""bind"";"
@@ -431,11 +420,21 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 var roslyn = ParserAnalyzeCode("Foo", source, true);
             });
             Assert.AreEqual(InvalidCodeBehindError.TemplateBindInvalidAssignment, ex.Error);
+
+            // No errors currently if IExplicitBound<T> is not used.
+            source = "public partial class Foo: Json {"
+                       + "  static Foo() {"
+                       + "    var subPage = DefaultTemplate.Page.SubPage;"
+                       + @"    subPage.RemainingTime.Bind = ""bind"";"
+                       + "  }"
+                       + "}";
+
+            Assert.DoesNotThrow(() => { var roslyn = ParserAnalyzeCode("Foo", source, true); });
         }
 
         [Test]
         public static void CodeBehindDetectTemplateBindAssignment() {
-            var source = "public partial class Foo: Json {"
+            var source = "public partial class Foo: Json, IExplicitBound<Bar> {"
                         + "  static Foo() {"
                         + @"    DefaultTemplate.ElapsedTime.Bind = ""elapsedtime"";"
                         + @"    DefaultTemplate.Page.Bind = null;"
@@ -444,7 +443,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                         + @"    DefaultTemplate.Items.ElementType.Bind = ""elementtype"";"
                         + "  }"
                         + "  [Foo_json.Page2]"
-                        + "  partial class Page2 : Json {"
+                        + "  partial class Page2 : Json, IExplicitBound<Bar> {"
                         + "    static Page2() {"
                         + @"      DefaultTemplate.PartialTime.Bind = ""partialtime"";"
                         + "    }"
@@ -474,6 +473,38 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.AreEqual(1, bindAssignments.Count);
             Assert.AreEqual("DefaultTemplate.PartialTime", bindAssignments[0].TemplatePath);
             Assert.AreEqual("partialtime", bindAssignments[0].Value);
+        }
+
+        [Test]
+        public static void CodeBehindDetectTemplateBindAssignmentWithOtherSyntax() {
+            // When some other assignments is used, we need to treat the template as custom bound.
+            // Which means we wont add any code to test the binding compile-time, but it should still
+            // be a valid assignment (so no exception can be raised!).
+
+            var source = "public partial class Foo: Json, IExplicitBound<Bar> {"
+                        + "  static Foo() {"
+                        + "    DefaultTemplate.ElapsedTime.Bind = GetBinding();"
+                        + "    DefaultTemplate.Page.Bind = nameof(Bar.Foo)"
+                        + @"    DefaultTemplate.Page.ChildOfPage.Bind = nameof(Bar.Foo) + ""."" + nameof(Foo.Bar);"
+                        + "  }"
+                        + "}";
+
+            CodeBehindMetadata roslyn = null;
+            Assert.DoesNotThrow(() => {
+                roslyn = ParserAnalyzeCode("Foo", source, true);
+            });
+
+            Assert.IsNotNull(roslyn.RootClassInfo);
+            
+            var cbClass = roslyn.RootClassInfo;
+            var bindAssignments = cbClass.BindAssignments;
+            Assert.AreEqual(3, bindAssignments.Count);
+            Assert.AreEqual("DefaultTemplate.ElapsedTime", bindAssignments[0].TemplatePath);
+            Assert.IsNull(bindAssignments[0].Value);
+            Assert.AreEqual("DefaultTemplate.Page", bindAssignments[1].TemplatePath);
+            Assert.IsNull(bindAssignments[1].Value);
+            Assert.AreEqual("DefaultTemplate.Page.ChildOfPage", bindAssignments[2].TemplatePath);
+            Assert.IsNull(bindAssignments[2].Value);
         }
     }
 }
