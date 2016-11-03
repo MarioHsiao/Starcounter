@@ -4745,6 +4745,11 @@
         Input handler methods must have void return type.
       </message>
     </code>
+    <code hex="0022" severity="Error" name="ScErrJsonAmbiguousDatatypeIExplicitBound">
+      <message>
+        A datatype specified as a generic parameter for IExplicitBound interface is ambiguous. Please use the fully qualified name.
+      </message>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->
