@@ -376,19 +376,16 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             // IExplicitBound<T> : Bound to T, explicit flag should be true.
             source = "public partial class Foo: Json, IExplicitBound<" + dataType + "> {"
                    + "   [Foo_json.Page]"
-                   + "   partial class FooPage : IExplicitBound< " + dataType2 + "{ }" 
+                   + "   partial class FooPage : IExplicitBound< " + dataType2 + "{ }"
                    + "   [Foo_json.Page2]"
                    + "   partial class FooPage2 : IBound< " + dataType3 + "{ }" // Will not be explicitly bound.
                    + "   [Foo_json.Page3]"
-                   + "   partial class FooPage3 : Json { }" // Will still be explicitly bound even though 
-                   + "}";                                   // we cannot get the type other than in generated code.
+                   + "   partial class FooPage3 : Json { }"; // Will not be explicitly bound.
+
             roslyn = ParserAnalyzeCode("Foo", source, true);
             AssertBoundToMetadata(roslyn.RootClassInfo, dataType, true);
             AssertBoundToMetadata(roslyn.CodeBehindClasses.Find((classInfo) => classInfo.ClassName == "FooPage"), dataType2, true);
             AssertBoundToMetadata(roslyn.CodeBehindClasses.Find((classInfo) => classInfo.ClassName == "FooPage2"), dataType3, false);
-
-            // TODO: Check this. Not sure if the explicit flag should be set here, or infered when generating code since this class 
-            // lacks information at this stage.
             AssertBoundToMetadata(roslyn.CodeBehindClasses.Find((classInfo) => classInfo.ClassName == "FooPage3"), null, false);
         }
 
