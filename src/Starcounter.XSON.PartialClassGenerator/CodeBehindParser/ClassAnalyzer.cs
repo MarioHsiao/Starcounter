@@ -175,6 +175,12 @@ namespace Starcounter.XSON.PartialClassGenerator {
             if (!isStatic) {
                 throw IllegalCodeBehindException(InvalidCodeBehindError.DefineInstanceConstructor, node);
             }
+
+            base.VisitConstructorDeclaration(node);
+        }
+
+        public override void VisitAssignmentExpression(AssignmentExpressionSyntax node) {
+            DiscoverTemplatePropertyAssignments(node);
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node) {
@@ -295,6 +301,63 @@ namespace Starcounter.XSON.PartialClassGenerator {
         void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, QualifiedNameSyntax name) {
         }
 
+        /// <summary>
+        /// Finds and evaluates assignments to templates. Currenty assignments of 'Bind' is supported.
+        /// </summary>
+        /// <param name="node"></param>
+        private void DiscoverTemplatePropertyAssignments(AssignmentExpressionSyntax node) {
+            if(node.Kind() != SyntaxKind.SimpleAssignmentExpression)
+                return;
+
+            var propertySyntax = node.Left as MemberAccessExpressionSyntax;
+            if(propertySyntax == null)
+                return;
+
+            var templateSyntax = propertySyntax.Expression as MemberAccessExpressionSyntax;
+            if(templateSyntax == null)
+                return;
+
+            var propertyName = propertySyntax.Name.Identifier.ValueText;
+            if(propertyName == null)
+                return;
+
+            if(propertyName.Equals("Bind")) {
+                HandleTemplateBindAssignment(node, templateSyntax.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="templatePath"></param>
+        private void HandleTemplateBindAssignment(AssignmentExpressionSyntax node, string templatePath) {
+            if(!templatePath.StartsWith("DefaultTemplate."))
+                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateBindInvalidAssignment, node);
+
+            var bindSyntax = node.Right as LiteralExpressionSyntax;
+            if (bindSyntax == null)
+                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateBindInvalidAssignment, node);
+
+            string bind;
+            SyntaxKind kind = bindSyntax.Kind();
+            if(kind == SyntaxKind.NullLiteralExpression) {
+                bind = null;
+            } else if(kind == SyntaxKind.StringLiteralExpression) {
+                bind = bindSyntax.ToString();
+                if(!string.IsNullOrEmpty(bind) && bind[0] == '"')
+                    bind = bind.Substring(1, bind.Length - 2);
+            } else {
+                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateBindInvalidAssignment, node);
+            }
+
+            var assignmentInfo = new CodeBehindAssignmentInfo() {
+                TemplatePath = templatePath,
+                Value = bind
+            };
+            codeBehindMetadata.BindAssignments.Add(assignmentInfo);
+        }
+        
         bool IsNamedRootObject() {
             if (this.NestingClass != null) {
                 return false;

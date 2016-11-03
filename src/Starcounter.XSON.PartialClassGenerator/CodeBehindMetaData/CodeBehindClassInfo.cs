@@ -97,6 +97,11 @@ namespace Starcounter.XSON.Metadata {
         public List<CodeBehindFieldOrPropertyInfo> FieldOrPropertyList = new List<CodeBehindFieldOrPropertyInfo>();
 
         /// <summary>
+        /// A list of assignments to the property Bind for a template. 
+        /// </summary>
+        public List<CodeBehindAssignmentInfo> BindAssignments = new List<CodeBehindAssignmentInfo>();
+
+        /// <summary>
         /// 
         /// </summary>
         public CodeBehindClassInfo(string raw) {
