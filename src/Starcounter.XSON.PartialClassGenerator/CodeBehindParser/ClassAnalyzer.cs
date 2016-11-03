@@ -269,9 +269,11 @@ namespace Starcounter.XSON.PartialClassGenerator {
             // first (and possibly only) type is IBound<T>, such as
             // partial class Foo : IBound<Bar> { ... }.
             if (baseType.Type.Kind() == SyntaxKind.GenericName) {
+                bool explicitlyBound;
                 var genericName = (GenericNameSyntax)baseType.Type;
-                if (IsBindingName(genericName)) {
+                if (IsBindingName(genericName, out explicitlyBound)) {
                     codeBehindMetadata.BoundDataClass = genericName.TypeArgumentList.Arguments[0].ToString();
+                    codeBehindMetadata.ExplicitlyBound = explicitlyBound;
                     name = string.Empty;
                 }
             }
@@ -283,8 +285,10 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, GenericNameSyntax name) {
-            if (IsBindingName(name)) {
+            bool explicitlyBound;
+            if (IsBindingName(name, out explicitlyBound)) {
                 codeBehindMetadata.BoundDataClass = name.TypeArgumentList.Arguments[0].ToString();
+                codeBehindMetadata.ExplicitlyBound = explicitlyBound;
             }
         }
 
@@ -299,12 +303,23 @@ namespace Starcounter.XSON.PartialClassGenerator {
             return this.Node.Identifier.ValueText == this.CodeBehindAnalyzer.Root.Name;
         }
 
-        bool IsBindingName(GenericNameSyntax name) {
-            if (name.TypeArgumentList == null || name.TypeArgumentList.Arguments.Count != 1) {
+        bool IsBindingName(GenericNameSyntax name, out bool explicitlyBound) {
+            explicitlyBound = false;
+
+            // If ExplicitlyBound is already set to true, it means that we have both IBound<T> 
+            // and IExplicitBound<T> declared. IExplicitBound<T> will have  priority.
+            if(name.TypeArgumentList == null 
+                || name.TypeArgumentList.Arguments.Count != 1
+                || this.codeBehindMetadata.ExplicitlyBound == true) {
                 return false;
             }
 
             var generic = name.Identifier.Text;
+            if(generic.Equals("IExplicitBound") || generic.Equals("Starcounter.IExplicitBound")) {
+                explicitlyBound = true;
+                return true;
+            }
+            
             return generic.Equals("IBound") || generic.Equals("Starcounter.IBound");
         }
 

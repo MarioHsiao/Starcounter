@@ -46,7 +46,12 @@ namespace Starcounter.XSON.Metadata {
         /// 
         /// </summary>
         public BindingStrategy BindChildren = BindingStrategy.Auto;
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool ExplicitlyBound;
+
         /// <summary>
         /// If the code-behind contains a partial class for this class, this property is true
         /// </summary>
