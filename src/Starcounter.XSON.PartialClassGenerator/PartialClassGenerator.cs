@@ -12,7 +12,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
         // REMEMBER:
         // Update Starcounter.MsBuild.targets and Starcounter.MsBuild.Develop.targets 
         // with the new versionnumber.
-        public const long CSHARP_CODEGEN_VERSION = 3;
+        public const long CSHARP_CODEGEN_VERSION = 4;
         
         public static ITemplateCodeGenerator GenerateTypedJsonCode(string jsonFilePath, string codeBehindFilePath ) {
             string jsonContent = File.ReadAllText(jsonFilePath);
