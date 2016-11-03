@@ -27,9 +27,9 @@ extern "C" {
 
 	// Version of this SCLLVM.
 #ifdef _WIN32
-	const wchar_t* const ScllvmVersion = L"2.0";
+	const wchar_t* const ScllvmVersion = L"2.1";
 #else
-	const char* const ScllvmVersion = "2.0";
+	const char* const ScllvmVersion = "2.1";
 #endif
 
 #ifdef _WIN32
@@ -334,16 +334,14 @@ extern "C" {
 					*p = 0;
 
 					// Making the directory.
-					// TODO: Fix correct mode permissions.
-					mkdir(tmp, 0777);
+					mkdir(tmp, 0700);
 
 					*p = '/';
 				}
 			}
 
 			// Creating final directory.
-			// TODO: Fix correct mode permissions.
-			mkdir(tmp, 0777);
+			mkdir(tmp, 0700);
 		}
 
 #endif
@@ -358,31 +356,6 @@ extern "C" {
 			}
 			return subject;
 		}
-
-		std::string RunCmdAndGetOutput(const char* cmd) {
-
-			char buffer[128];
-			std::string result = "";
-#ifdef _WIN32
-			FILE* pipe = _popen(cmd, "r");
-#else
-			FILE* pipe = popen(cmd, "r");
-#endif
-			assert(NULL != pipe);
-
-			while (!feof(pipe)) {
-				if (fgets(buffer, 128, pipe) != NULL)
-					result += buffer;
-			}
-
-#ifdef _WIN32
-			_pclose(pipe);
-#else
-			pclose(pipe);
-#endif
-			return result;
-		}
-
 
 		uint32_t ProduceModuleAndReturnPointers(
 #ifdef _WIN32
@@ -600,12 +573,12 @@ extern "C" {
 		g_mutex->release();
 	}
 
-	MODULE_API void ScLLVMDeleteModule(CodegenEngine* const clang_engine, void** scllvm_module) {
+	MODULE_API void ScLLVMDeleteModule(CodegenEngine* const codegen_engine, void** scllvm_module) {
 
 		assert(nullptr != g_mutex);
 		g_mutex->acquire();
 
-		clang_engine->DestroyEngine((llvm::ExecutionEngine**) scllvm_module);
+		codegen_engine->DestroyEngine((llvm::ExecutionEngine**) scllvm_module);
 
 		g_mutex->release();
 	}
@@ -856,6 +829,8 @@ extern "C" {
 		int32_t res = gen_func(3);
 
 		assert(558 == res);
+
+		ScLLVMDeleteModule(out_codegen_engine, &out_exec_module);
 
 		std::cout << "Test succeeded. Result: " << res << std::endl;
 
