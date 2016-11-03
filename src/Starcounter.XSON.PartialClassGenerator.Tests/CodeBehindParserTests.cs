@@ -24,7 +24,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var monoMetadata = ParserAnalyze("Simple", @"Input\simple.json.cs");
             var roslynMetadata = ParserAnalyze("Simple", @"Input\simple.json.cs", true);
 
-            foreach (var metadata in new[] { monoMetadata, roslynMetadata }) {
+            foreach(var metadata in new[] { monoMetadata, roslynMetadata }) {
                 Assert.AreEqual(null, metadata.RootClassInfo.BoundDataClass);
                 Assert.AreEqual("Simple_json", metadata.RootClassInfo.JsonMapAttribute);
                 Assert.AreEqual("Json", metadata.RootClassInfo.BaseClassName);
@@ -51,7 +51,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var monoMetadata = ParserAnalyze("Complex", @"Input\complex.json.cs");
             var roslynMetadata = ParserAnalyze("Complex", @"Input\complex.json.cs", true);
 
-            foreach (var metadata in new[] { monoMetadata, roslynMetadata }) {
+            foreach(var metadata in new[] { monoMetadata, roslynMetadata }) {
                 Assert.AreEqual("Order", metadata.RootClassInfo.BoundDataClass);
                 Assert.AreEqual("Complex_json", metadata.RootClassInfo.JsonMapAttribute);
                 Assert.AreEqual("MyBaseJsonClass", metadata.RootClassInfo.BaseClassName);
@@ -154,7 +154,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.AreEqual(c1.GlobalClassSpecifier, c2.GlobalClassSpecifier);
             Assert.AreEqual(c1.UseGlobalSpecifier, c2.UseGlobalSpecifier);
 
-            for (int i = 0; i < c1.ParentClasses.Count; i++) {
+            for(int i = 0; i < c1.ParentClasses.Count; i++) {
                 Assert.AreEqual(c1.ParentClasses[i], c2.ParentClasses[i]);
             }
 
@@ -173,19 +173,18 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             roslyn = ParserAnalyzeCode("Foo", source, true);
 
             Assert.AreEqual(mono.CodeBehindClasses.Count, roslyn.CodeBehindClasses.Count);
-            for (int i = 0; i < mono.CodeBehindClasses.Count; i++) {
+            for(int i = 0; i < mono.CodeBehindClasses.Count; i++) {
                 var mc = mono.CodeBehindClasses[i];
                 var rc = roslyn.CodeBehindClasses[i];
 
-                if (mc.ClassName != "Foo5") {
+                if(mc.ClassName != "Foo5") {
                     // For Foo5, the mono parser generate a naked IBound as the
                     // base type, while Roslyn return IBound<Fubar.Bar>. Let's not
                     // bother with this in mono parser.
                     Assert.AreEqual(mc.BaseClassName, rc.BaseClassName);
                     Assert.AreEqual(mc.BoundDataClass, rc.BoundDataClass);
                     Assert.AreEqual(mc.DerivesDirectlyFromJson, rc.DerivesDirectlyFromJson);
-                }
-                else {
+                } else {
                     // Check Roslyn produce a more accurate result
                     Assert.AreEqual(rc.BaseClassName, string.Empty);
                     Assert.AreEqual(rc.BoundDataClass, "Fubar.Bar");
@@ -216,7 +215,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             roslyn = ParserAnalyzeCode("Foo", source, true);
 
             Assert.AreEqual(mono.RootClassInfo.InputBindingList.Count, roslyn.RootClassInfo.InputBindingList.Count);
-            for (int i = 0; i < mono.RootClassInfo.InputBindingList.Count; i++) {
+            for(int i = 0; i < mono.RootClassInfo.InputBindingList.Count; i++) {
                 var mh = mono.RootClassInfo.InputBindingList[i];
                 var rh = roslyn.RootClassInfo.InputBindingList[i];
 
@@ -303,7 +302,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 roslyn = ParserAnalyzeCode("Foo", source, true);
             });
             Assert.AreEqual((uint)ex.Error, Error.SCERRJSONWITHCONSTRUCTOR);
-            
+
             // Inner unmapped class. Should be ignored.
             source = "public partial class Foo : Json { public class Bar { public Bar(int value) { } } }";
             roslyn = ParserAnalyzeCode("Foo", source, true);
@@ -312,7 +311,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void CodeBehindDetectPropertiesAndFieldsTest() {
             string source;
-            
+
             source = "public partial class Foo: Json {"
                     + "private string one; "
                     + "private int two, thrEE; "
@@ -326,7 +325,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             Assert.IsNotNull(roslyn.RootClassInfo);
             Assert.AreEqual(7, roslyn.RootClassInfo.FieldOrPropertyList.Count);
-            
+
             AssertFieldOrPropertyInfo("one", "string", false, roslyn.RootClassInfo.FieldOrPropertyList[0]);
             AssertFieldOrPropertyInfo("two", "int", false, roslyn.RootClassInfo.FieldOrPropertyList[1]);
             AssertFieldOrPropertyInfo("thrEE", "int", false, roslyn.RootClassInfo.FieldOrPropertyList[2]);
@@ -336,11 +335,67 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             AssertFieldOrPropertyInfo("seven", "long", true, roslyn.RootClassInfo.FieldOrPropertyList[6]);
         }
 
-        private static void AssertFieldOrPropertyInfo(string name, string typeName, bool isProperty, 
+        private static void AssertFieldOrPropertyInfo(string name, string typeName, bool isProperty,
                                                       CodeBehindFieldOrPropertyInfo fop) {
             Assert.AreEqual(name, fop.Name);
             Assert.AreEqual(typeName, fop.TypeName);
             Assert.AreEqual(isProperty, fop.IsProperty);
+        }
+
+        [Test]
+        public static void CodeBehindDetectIBoundAndIExplicitBound() {
+            string source;
+            string dataType = "MyDataType";
+            string dataType2 = "SubType";
+            string dataType3 = "SubType2";
+
+            // IBound<T> : Bound to T, explicit flag should be false.
+            source = "public partial class Foo: Json, IBound<" + dataType + "> { }";
+            var roslyn = ParserAnalyzeCode("Foo", source, true);
+            AssertBoundToMetadata(roslyn.RootClassInfo, dataType, false);
+            
+            // IExplicitBound<T> : Bound to T, explicit flag should be true.
+            source = "public partial class Foo: Json, IExplicitBound<" + dataType + "> { }";
+            roslyn = ParserAnalyzeCode("Foo", source, true);
+            AssertBoundToMetadata(roslyn.RootClassInfo, dataType, true);
+
+            // Both IBound<T> and IExplicitBound<T> : IExplicitBound<T> should be used.
+            source = "public partial class Foo: Json, IBound<" + dataType + ">, IExplicitBound<" + dataType + "> { }";
+            roslyn = ParserAnalyzeCode("Foo", source, true);
+            AssertBoundToMetadata(roslyn.RootClassInfo, dataType, true);
+
+            source = "public partial class Foo: Json, IExplicitBound<" + dataType + ">, IBound<" + dataType + "> { }";
+            roslyn = ParserAnalyzeCode("Foo", source, true);
+            AssertBoundToMetadata(roslyn.RootClassInfo, dataType, true);
+
+            // No interface added : No datatype set and explicit flag should be false.
+            source = "public partial class Foo: Json { }";
+            roslyn = ParserAnalyzeCode("Foo", source, true);
+            AssertBoundToMetadata(roslyn.RootClassInfo, null, false);
+
+            // IExplicitBound<T> : Bound to T, explicit flag should be true.
+            source = "public partial class Foo: Json, IExplicitBound<" + dataType + "> {"
+                   + "   [Foo_json.Page]"
+                   + "   partial class FooPage : IExplicitBound< " + dataType2 + "{ }" 
+                   + "   [Foo_json.Page2]"
+                   + "   partial class FooPage2 : IBound< " + dataType3 + "{ }" // Will not be explicitly bound.
+                   + "   [Foo_json.Page3]"
+                   + "   partial class FooPage3 : Json { }" // Will still be explicitly bound even though 
+                   + "}";                                   // we cannot get the type other than in generated code.
+            roslyn = ParserAnalyzeCode("Foo", source, true);
+            AssertBoundToMetadata(roslyn.RootClassInfo, dataType, true);
+            AssertBoundToMetadata(roslyn.CodeBehindClasses.Find((classInfo) => classInfo.ClassName == "FooPage"), dataType2, true);
+            AssertBoundToMetadata(roslyn.CodeBehindClasses.Find((classInfo) => classInfo.ClassName == "FooPage2"), dataType3, false);
+
+            // TODO: Check this. Not sure if the explicit flag should be set here, or infered when generating code since this class 
+            // lacks information at this stage.
+            AssertBoundToMetadata(roslyn.CodeBehindClasses.Find((classInfo) => classInfo.ClassName == "FooPage3"), null, false);
+        }
+
+        private static void AssertBoundToMetadata(CodeBehindClassInfo classInfo, string boundToType, bool explicitlyBound) {
+            Assert.IsNotNull(classInfo);
+            Assert.AreEqual(boundToType, classInfo.BoundDataClass);
+            Assert.AreEqual(explicitlyBound, classInfo.ExplicitlyBound);
         }
     }
 }
