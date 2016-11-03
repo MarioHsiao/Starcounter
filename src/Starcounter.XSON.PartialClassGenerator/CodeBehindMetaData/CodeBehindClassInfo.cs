@@ -14,6 +14,8 @@ namespace Starcounter.XSON.Metadata {
     /// a class in the codebehind file.
     /// </summary>
     public class CodeBehindClassInfo {
+        private bool explicitlyBound;
+
         /// <summary>
         /// The name of the class in the codebehind file.
         /// </summary>
@@ -50,7 +52,13 @@ namespace Starcounter.XSON.Metadata {
         /// <summary>
         /// 
         /// </summary>
-        public bool ExplicitlyBound;
+        public bool ExplicitlyBound {
+            get { return explicitlyBound; }
+            set {
+                BindChildren = (value) ? BindingStrategy.Bound : BindingStrategy.Auto;
+                explicitlyBound = value;
+            }
+        }
 
         /// <summary>
         /// If the code-behind contains a partial class for this class, this property is true
