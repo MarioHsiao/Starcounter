@@ -342,21 +342,23 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
             if(!templatePath.StartsWith("DefaultTemplate."))
                 throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateBindInvalidAssignment, node);
-
-            var bindSyntax = node.Right as LiteralExpressionSyntax;
-            if (bindSyntax == null)
-                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateBindInvalidAssignment, node);
-
+            
             string bind;
-            SyntaxKind kind = bindSyntax.Kind();
+            SyntaxKind kind = node.Right.Kind();
             if(kind == SyntaxKind.NullLiteralExpression) {
                 bind = null;
             } else if(kind == SyntaxKind.StringLiteralExpression) {
-                bind = bindSyntax.ToString();
+                bind = node.Right.ToString();
                 if(!string.IsNullOrEmpty(bind) && bind[0] == '"')
                     bind = bind.Substring(1, bind.Length - 2);
             } else {
-                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateBindInvalidAssignment, node);
+                // We treat all other assignments as null as well for now to not generate any code for 
+                // compile-time checking of bindings. What will happen is that the template will be considered
+                // unbound during codegeneration and later when it instantiated the correct binding will be set.
+
+                // What we probably should do (for a more correct approach) is to somehow mark these as custom 
+                // bindings already here.
+                bind = null;    
             }
 
             var assignmentInfo = new CodeBehindAssignmentInfo() {
