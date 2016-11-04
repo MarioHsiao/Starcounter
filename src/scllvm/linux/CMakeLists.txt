@@ -17,9 +17,11 @@ include_directories(${LLVMClangSrcDir}/tools/clang/include ${LLVMClangOutDir}/to
 link_directories(${LLVMClangOutDir} ${LLVMClangOutDir}/lib)
 
 add_library(scllvm SHARED scllvm.cpp)
+#add_library(scllvm STATIC scllvm.cpp)
 
 # Uncomment the following to create executable and run it so the tests are invoked.
 #add_executable(scllvm scllvm.cpp)
 
 # To get a list of LLVM libs, call "./llvm-config --libs" from "LLVMClangOutDir/bin"
-target_link_libraries(scllvm LLVMCore LLVMExecutionEngine LLVMMC LLVMSupport LLVMX86CodeGen LLVMX86Desc LLVMX86Info LLVMRuntimeDyld LLVMMCDisassembler LLVMAsmPrinter LLVMSelectionDAG LLVMCodeGen LLVMTarget LLVMScalarOpts; LLVMObject LLVMBitReader LLVMMCParser LLVMTransformUtils LLVMAnalysis LLVMX86AsmPrinter LLVMX86Utils LLVMMCJIT LLVMDebugInfoCodeView -lrt -ldl -lpthread -lm)
+
+target_link_libraries(scllvm clangFrontend clangDriver clangSerialization clangCodeGen clangParse clangSema clangAnalysis clangEdit clangAST clangLex clangBasic LLVMLTO LLVMObjCARCOpts LLVMSymbolize LLVMDebugInfoPDB LLVMDebugInfoDWARF LLVMMIRParser LLVMLibDriver LLVMOption gtest_main gtest LLVMTableGen LLVMOrcJIT LLVMPasses LLVMipo LLVMVectorize LLVMLinker LLVMIRReader LLVMAsmParser LLVMX86Disassembler LLVMX86AsmParser LLVMX86CodeGen LLVMSelectionDAG LLVMAsmPrinter LLVMX86Desc LLVMMCDisassembler LLVMX86Info LLVMX86AsmPrinter LLVMX86Utils LLVMMCJIT LLVMLineEditor LLVMDebugInfoCodeView LLVMInterpreter LLVMExecutionEngine LLVMRuntimeDyld LLVMCodeGen LLVMTarget LLVMScalarOpts LLVMInstCombine LLVMInstrumentation LLVMProfileData LLVMObject LLVMMCParser LLVMTransformUtils LLVMMC LLVMBitWriter LLVMBitReader LLVMAnalysis LLVMCore LLVMSupport -lrt -ldl -lpthread -lm)

@@ -334,14 +334,14 @@ extern "C" {
 					*p = 0;
 
 					// Making the directory.
-					mkdir(tmp, 0700);
+					mkdir(tmp, 0600);
 
 					*p = '/';
 				}
 			}
 
 			// Creating final directory.
-			mkdir(tmp, 0700);
+			mkdir(tmp, 0600);
 		}
 
 #endif
