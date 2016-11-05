@@ -27,8 +27,10 @@ extern "C" {
 
 	// Version of this SCLLVM.
 #ifdef _WIN32
+	std::wstring g_scllvm_diag_prefix;
 	const wchar_t* const ScllvmVersion = L"2.2";
 #else
+	std::string g_scllvm_diag_prefix;
 	const char* const ScllvmVersion = "2.2";
 #endif
 
@@ -473,9 +475,9 @@ extern "C" {
 				// Printing diagnostics.
 				if (g_diag_on) {
 #ifdef _WIN32
-					std::wcout << "[scllvm]: module is not cached, creating it: \"" << obj_file_path << "\"" << std::endl;
+					std::wcout << g_scllvm_diag_prefix << "module is not cached, creating it: \"" << obj_file_path << "\"" << std::endl;
 #else
-					std::cout << "[scllvm]: module is not cached, creating it: \"" << obj_file_path << "\"" << std::endl;
+					std::cout << g_scllvm_diag_prefix << "module is not cached, creating it: \"" << obj_file_path << "\"" << std::endl;
 #endif
 				}
 
@@ -506,14 +508,14 @@ extern "C" {
 #ifdef _WIN32
 				std::wstring clang_cmd = clang_cmd_stream.str();
 				if (g_diag_on) {
-					std::wcout << "[scllvm]: running clang tool: " << clang_cmd << std::endl;
+					std::wcout << g_scllvm_diag_prefix << "running clang tool: " << clang_cmd << std::endl;
 				}
 
 				err_code = _wsystem(clang_cmd.c_str());
 #else
 				std::string clang_cmd = clang_cmd_stream.str();
 				if (g_diag_on) {
-					std::cout << "[scllvm]: running clang tool: " << clang_cmd << std::endl;
+					std::cout << g_scllvm_diag_prefix << "running clang tool: " << clang_cmd << std::endl;
 				}
 
 				err_code = system(clang_cmd.c_str());
@@ -593,6 +595,17 @@ extern "C" {
 
 		g_mutex = new llvm::sys::MutexImpl();
 		g_mutex->acquire();
+
+		// Creating diagnostics prefix.
+#ifdef _WIN32
+		g_scllvm_diag_prefix = L"[scllvm-";
+		g_scllvm_diag_prefix += ScllvmVersion;
+		g_scllvm_diag_prefix += L"]: ";
+#else
+		g_scllvm_diag_prefix = "[scllvm-";
+		g_scllvm_diag_prefix += ScllvmVersion;
+		g_scllvm_diag_prefix += "]: ";
+#endif
 
 		// Checking if we have diagnostics on.
 		char* scllvm_diag_var = getenv("SCLLVM_DIAG_ON");
