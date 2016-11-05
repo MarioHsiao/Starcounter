@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 2.8)
 
 project(scllvm)
 
+set(SCLLVMTarget scllvm-2.2)
+
 # Path to unzipped LLVM sources.
 set(LLVMClangSrcDir ~/Documents/llvm-3.9.0.src)
 
@@ -16,12 +18,12 @@ include_directories(${LLVMClangSrcDir}/tools/clang/include ${LLVMClangOutDir}/to
 
 link_directories(${LLVMClangOutDir} ${LLVMClangOutDir}/lib)
 
-add_library(scllvm SHARED scllvm.cpp)
-#add_library(scllvm STATIC scllvm.cpp)
+add_library(${SCLLVMTarget} SHARED scllvm.cpp)
+#add_library(${SCLLVMTarget} STATIC scllvm.cpp)
 
 # Uncomment the following to create executable and run it so the tests are invoked.
-#add_executable(scllvm scllvm.cpp)
+#add_executable(${SCLLVMTarget} scllvm.cpp)
 
 # To get a list of LLVM libs, call "./llvm-config --libs" from "LLVMClangOutDir/bin"
 
-target_link_libraries(scllvm clangFrontend clangDriver clangSerialization clangCodeGen clangParse clangSema clangAnalysis clangEdit clangAST clangLex clangBasic LLVMLTO LLVMObjCARCOpts LLVMSymbolize LLVMDebugInfoPDB LLVMDebugInfoDWARF LLVMMIRParser LLVMLibDriver LLVMOption gtest_main gtest LLVMTableGen LLVMOrcJIT LLVMPasses LLVMipo LLVMVectorize LLVMLinker LLVMIRReader LLVMAsmParser LLVMX86Disassembler LLVMX86AsmParser LLVMX86CodeGen LLVMSelectionDAG LLVMAsmPrinter LLVMX86Desc LLVMMCDisassembler LLVMX86Info LLVMX86AsmPrinter LLVMX86Utils LLVMMCJIT LLVMLineEditor LLVMDebugInfoCodeView LLVMInterpreter LLVMExecutionEngine LLVMRuntimeDyld LLVMCodeGen LLVMTarget LLVMScalarOpts LLVMInstCombine LLVMInstrumentation LLVMProfileData LLVMObject LLVMMCParser LLVMTransformUtils LLVMMC LLVMBitWriter LLVMBitReader LLVMAnalysis LLVMCore LLVMSupport -lrt -ldl -lpthread -lm)
+target_link_libraries(${SCLLVMTarget} clangFrontend clangDriver clangSerialization clangCodeGen clangParse clangSema clangAnalysis clangEdit clangAST clangLex clangBasic LLVMLTO LLVMObjCARCOpts LLVMSymbolize LLVMDebugInfoPDB LLVMDebugInfoDWARF LLVMMIRParser LLVMLibDriver LLVMOption gtest_main gtest LLVMTableGen LLVMOrcJIT LLVMPasses LLVMipo LLVMVectorize LLVMLinker LLVMIRReader LLVMAsmParser LLVMX86Disassembler LLVMX86AsmParser LLVMX86CodeGen LLVMSelectionDAG LLVMAsmPrinter LLVMX86Desc LLVMMCDisassembler LLVMX86Info LLVMX86AsmPrinter LLVMX86Utils LLVMMCJIT LLVMLineEditor LLVMDebugInfoCodeView LLVMInterpreter LLVMExecutionEngine LLVMRuntimeDyld LLVMCodeGen LLVMTarget LLVMScalarOpts LLVMInstCombine LLVMInstrumentation LLVMProfileData LLVMObject LLVMMCParser LLVMTransformUtils LLVMMC LLVMBitWriter LLVMBitReader LLVMAnalysis LLVMCore LLVMSupport -lrt -ldl -lpthread -lm)

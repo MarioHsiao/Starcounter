@@ -27,9 +27,9 @@ extern "C" {
 
 	// Version of this SCLLVM.
 #ifdef _WIN32
-	const wchar_t* const ScllvmVersion = L"2.1";
+	const wchar_t* const ScllvmVersion = L"2.2";
 #else
-	const char* const ScllvmVersion = "2.1";
+	const char* const ScllvmVersion = "2.2";
 #endif
 
 #ifdef _WIN32
@@ -469,9 +469,12 @@ extern "C" {
 
 				// Saving source file to disk. 
 				std::ofstream temp_cpp_file(cpp_file_path);
-				temp_cpp_file << "#undef _MSC_VER\n";
 				temp_cpp_file << code_string;
 				temp_cpp_file.close();
+
+#ifndef _WIN32
+				chmod(cpp_file_path.c_str(), 0600);
+#endif
 
 #ifdef _WIN32
 				std::wstringstream clang_cmd_stream;
@@ -497,6 +500,10 @@ extern "C" {
 #endif
 
 				assert((0 == err_code) && "clang++ returned an error while compiling generated code.");
+
+#ifndef _WIN32
+				chmod(obj_file_path.c_str(), 0600);
+#endif
 
 				// Deleting source file if necessary. 
 				if (delete_sources) {
