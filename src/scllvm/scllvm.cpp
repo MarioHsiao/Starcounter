@@ -362,6 +362,27 @@ extern "C" {
 
 		uint32_t ProduceModuleAndReturnPointers(
 #ifdef _WIN32
+			FILE* pipe = _popen(cmd, "r");
+#else
+			FILE* pipe = popen(cmd, "r");
+#endif
+			assert(NULL != pipe);
+
+			while (!feof(pipe)) {
+				if (fgets(buffer, 128, pipe) != NULL)
+					result += buffer;
+			}
+
+#ifdef _WIN32
+			_pclose(pipe);
+#else
+			pclose(pipe);
+#endif
+			return result;
+		}
+
+
+		uint32_t ProduceModuleAndReturnPointers(
 			const wchar_t* const path_to_cache_dir,
 #else
 			const char* const path_to_cache_dir,
