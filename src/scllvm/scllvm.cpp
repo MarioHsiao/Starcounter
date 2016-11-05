@@ -204,6 +204,9 @@ extern "C" {
 		}
 	};
 
+	// Is scllvm diagnostics on? 
+	bool g_diag_on = false;
+
 	class CodegenEngine
 	{
 		std::vector<llvm::ExecutionEngine*> exec_engines_;
@@ -467,6 +470,15 @@ extern "C" {
 			// Checking if object file does not exist. 
 			if (!f.good()) {
 
+				// Printing diagnostics.
+				if (g_diag_on) {
+#ifdef _WIN32
+					std::wcout << "[scllvm]: module is not cached, creating it: \"" << obj_file_path << "\"" << std::endl;
+#else
+					std::cout << "[scllvm]: module is not cached, creating it: \"" << obj_file_path << "\"" << std::endl;
+#endif
+				}
+
 				// Saving source file to disk. 
 				std::ofstream temp_cpp_file(cpp_file_path);
 				temp_cpp_file << code_string;
@@ -493,9 +505,17 @@ extern "C" {
 				// Generating new object file.
 #ifdef _WIN32
 				std::wstring clang_cmd = clang_cmd_stream.str();
+				if (g_diag_on) {
+					std::wcout << "[scllvm]: running clang tool: " << clang_cmd << std::endl;
+				}
+
 				err_code = _wsystem(clang_cmd.c_str());
 #else
 				std::string clang_cmd = clang_cmd_stream.str();
+				if (g_diag_on) {
+					std::cout << "[scllvm]: running clang tool: " << clang_cmd << std::endl;
+				}
+
 				err_code = system(clang_cmd.c_str());
 #endif
 
@@ -573,6 +593,17 @@ extern "C" {
 
 		g_mutex = new llvm::sys::MutexImpl();
 		g_mutex->acquire();
+
+		// Checking if we have diagnostics on.
+		char* scllvm_diag_var = getenv("SCLLVM_DIAG_ON");
+		if (nullptr != scllvm_diag_var) {
+
+			// Assuming if T is first letter than its True value.
+			if ((scllvm_diag_var[0] == 't') ||
+				(scllvm_diag_var[0] == 'T')) {
+				g_diag_on = true;
+			}			
+		}
 
 		llvm::InitializeNativeTarget();
 		llvm::InitializeNativeTargetAsmPrinter();
