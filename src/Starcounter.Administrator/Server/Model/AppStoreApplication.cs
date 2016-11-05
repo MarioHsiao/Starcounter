@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -23,10 +24,8 @@ namespace Administrator.Server.Model {
         public string ID;
         public string Namespace;
         public string Channel;
-        public string DatabaseName
-        {
-            get
-            {
+        public string DatabaseName {
+            get {
                 if (this.Database != null) {
                     return this.Database.ID;
                 }
@@ -34,10 +33,8 @@ namespace Administrator.Server.Model {
             }
         }
         public string DisplayName;
-        public string AppName
-        {
-            get
-            {
+        public string AppName {
+            get {
 
                 if (this.HasDatabaseAppliction) {
                     return this.DatabaseApplication.AppName;
@@ -46,7 +43,20 @@ namespace Administrator.Server.Model {
                 return string.Empty;
             }
         }
-        public string Description;
+
+        private string _Description;
+
+        public string Description {
+            get {
+                return this._Description;
+            }
+            set {
+                if (this._Description == value) return;
+                this._Description = value;
+                this.OnPropertyChanged("Description");
+            }
+        }
+
         public string Version;
         public DateTime VersionDate;
         public string ResourceFolder;
@@ -66,44 +76,33 @@ namespace Administrator.Server.Model {
         public string Heading;
         public long Rating;
 
-        public bool IsDeployed
-        {
-            get
-            {
+        public bool IsDeployed {
+            get {
                 return this.HasDatabaseAppliction;
             }
         }
-        public bool IsRunning
-        {
-            get
-            {
+        public bool IsRunning {
+            get {
                 return this.HasDatabaseAppliction && this.DatabaseApplication.IsRunning;
             }
         }
-        public bool IsInstalled
-        {
-            get
-            {
+        public bool IsInstalled {
+            get {
                 return this.HasDatabaseAppliction && this.DatabaseApplication.IsInstalled;
             }
         }
-        public bool CanBeUninstalled
-        {
-            get
-            {
+        public bool CanBeUninstalled {
+            get {
                 return this.HasDatabaseAppliction && this.DatabaseApplication.CanBeUninstalled;
             }
         }
         // Version exist (Is deployed) and versionDate is newer
         private bool _CanUpgrade;
-        public bool CanUpgrade
-        {
-            get
-            {
+        public bool CanUpgrade {
+            get {
                 return this._CanUpgrade;
             }
-            set
-            {
+            set {
                 if (this._CanUpgrade == value) return;
                 this._CanUpgrade = value;
                 this.OnPropertyChanged("CanUpgrade");
@@ -111,10 +110,8 @@ namespace Administrator.Server.Model {
         }
 
         private ApplicationStatus _Status;
-        public ApplicationStatus Status
-        {
-            get
-            {
+        public ApplicationStatus Status {
+            get {
 
                 //if (this.HasDatabaseAppliction) {
                 //    return this.DatabaseApplication.Status;
@@ -122,8 +119,7 @@ namespace Administrator.Server.Model {
 
                 return this._Status;
             }
-            set
-            {
+            set {
                 if (this._Status == value) return;
                 this._Status = value;
                 this.OnPropertyChanged("Status");
@@ -131,10 +127,8 @@ namespace Administrator.Server.Model {
         }
 
         private string _StatusText;
-        public string StatusText
-        {
-            get
-            {
+        public string StatusText {
+            get {
 
                 //if (this.HasDatabaseAppliction) {
                 //    return this.DatabaseApplication.StatusText;
@@ -142,8 +136,7 @@ namespace Administrator.Server.Model {
 
                 return this._StatusText;
             }
-            set
-            {
+            set {
                 if (this._StatusText == value) return;
                 this._StatusText = value;
                 this.OnPropertyChanged("StatusText");
@@ -151,10 +144,8 @@ namespace Administrator.Server.Model {
         }
 
         private ErrorMessage _ErrorMessage = new ErrorMessage();
-        public ErrorMessage ErrorMessage
-        {
-            get
-            {
+        public ErrorMessage ErrorMessage {
+            get {
 
                 //if (this.HasDatabaseAppliction) {
                 //    return this.DatabaseApplication.ErrorMessage;
@@ -164,10 +155,8 @@ namespace Administrator.Server.Model {
             }
         }
 
-        public bool HasErrorMessage
-        {
-            get
-            {
+        public bool HasErrorMessage {
+            get {
 
                 //if (this.HasDatabaseAppliction) {
                 //    return this.DatabaseApplication.HasErrorMessage;
@@ -181,14 +170,11 @@ namespace Administrator.Server.Model {
         }
 
         private bool _DeployError;
-        public bool DeployError
-        {
-            get
-            {
+        public bool DeployError {
+            get {
                 return this._DeployError;
             }
-            set
-            {
+            set {
                 if (this._DeployError == value) return;
                 this._DeployError = value;
                 this.OnPropertyChanged("DeployError");
@@ -196,14 +182,11 @@ namespace Administrator.Server.Model {
         }
 
         private bool _DeleteError;
-        public bool DeleteError
-        {
-            get
-            {
+        public bool DeleteError {
+            get {
                 return this._DeleteError;
             }
-            set
-            {
+            set {
                 if (this._DeleteError == value) return;
                 this._DeleteError = value;
                 this.OnPropertyChanged("DeleteError");
@@ -211,14 +194,11 @@ namespace Administrator.Server.Model {
         }
 
         private bool _UpgradeError;
-        public bool UpgradeError
-        {
-            get
-            {
+        public bool UpgradeError {
+            get {
                 return this._UpgradeError;
             }
-            set
-            {
+            set {
                 if (this._UpgradeError == value) return;
                 this._UpgradeError = value;
                 this.OnPropertyChanged("UpgradeError");
@@ -227,23 +207,18 @@ namespace Administrator.Server.Model {
 
         public Database Database { get; set; }
 
-        public bool HasDatabaseAppliction
-        {
-            get
-            {
+        public bool HasDatabaseAppliction {
+            get {
                 return this.DatabaseApplication != null;
             }
         }
 
         private DatabaseApplication _DatabaseApplication;
-        public DatabaseApplication DatabaseApplication
-        {
-            get
-            {
+        public DatabaseApplication DatabaseApplication {
+            get {
                 return this._DatabaseApplication;
             }
-            internal set
-            {
+            internal set {
                 if (this._DatabaseApplication != null) {
                     this._DatabaseApplication.Changed -= _DatabaseApplication_Changed;
                 }
@@ -414,6 +389,47 @@ namespace Administrator.Server.Model {
 
             this.DeployError = false;
             this.Status |= ApplicationStatus.Installing;
+            //#region App Suite
+            //if (this.AppStoreSuiteApps.Count > 0) {
+            //    // It's a suite
+
+            //    List<InstallSoftwareTaskJson.SoftwareContentsElementJson> content = new List<InstallSoftwareTaskJson.SoftwareContentsElementJson>();
+            //    foreach (var app in this.AppStoreSuiteApps) {
+
+            //        InstallSoftwareTaskJson.SoftwareContentsElementJson versionToInstall = new InstallSoftwareTaskJson.SoftwareContentsElementJson();
+
+            //        // TODO: Pick version
+            //        AppStoreSuiteAppVersion appVersion = app.Versions[0]; // TODO: pick correct version
+
+            //        versionToInstall.Namespace = this.Namespace;
+            //        versionToInstall.Version = appVersion.Name;
+            //        versionToInstall.VersionDate = appVersion.VersionDate.ToString("s") + "Z"; // "2012-04-23T18:25:43.511Z"
+            //        versionToInstall.Channel = appVersion.Channel;
+            //        versionToInstall.SourceUrl = appVersion.Url;
+            //        versionToInstall.Compatiblility = appVersion.Compatiblility;
+            //        content.Add(versionToInstall);
+            //    }
+
+            //    bool bTimeout = !SoftwareManager.InstallSoftware(this.Database, this.ID, content, (installedSoftware) => {
+            //        // Success
+            //        this.Status &= ~ApplicationStatus.Installing;
+
+            //        this.DeployApplicationErrorCallbacks.Clear();
+            //        this.InvokeActionListeners(this.DeployApplicationCallbacks);
+            //    }, (text) => {
+            //        // Progress
+            //        //responseTask.Message = text;
+            //    }, (code, text) => {
+            //        // Error
+            //        this.Status &= ~ApplicationStatus.Installing;
+            //        this.DeployError = true;
+            //        this.OnCommandError("Deploy application", text, null);
+            //        this.DeployApplicationCallbacks.Clear();
+            //        this.InvokeActionErrorListeners(this.DeployApplicationErrorCallbacks, false, "Deploy application", text, null);
+            //    });
+            //    return;
+            //}
+            //#endregion
 
             DeployManager.Download(this.SourceUrl, this.Database, true, (application) => {
 
