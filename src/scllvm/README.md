@@ -18,4 +18,5 @@ When extra parameters are supplied, the following command line is used (note tha
 ("path_to_gen_cpp_file" and "path_to_obj_file" are provided by scllvm, so you can't affect them)
 
 To enable diagnostics for scllvm (prints to console full clang++ command, notifies if module is not cached) set env var "SCLLVM_DIAG_ON" to true.
+scllvm start its diagnostic messages using "[scllvm-<version>]" string, so you can find those, for example, in TeamCity build log.
 scllvm ALWAYS prints output from clang++ even warnings, since normally there should be no warnings/errors. In later versions we will treat warnings as errors for clang++.
