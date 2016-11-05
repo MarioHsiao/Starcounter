@@ -10,5 +10,12 @@ On Linux it saves modules in "/var/tmp/starcounter" (or in directory defined in 
 scllvm calls clang++.exe in order to produce object file that is cached. Cached module key is calculated as SHA-256 on input source code, however user can
 supply a given hash key. User can also check if the module is already cached, delete the module, etc. Look at "scllvm_tests" for such examples.
 
+scllvm supports adding custom parameters to clang++ and link external shared libraries (consult "scllvm_tests" for the example).
+When no extra parameters are given the following command line is used:
+"clang++ -O3 -c -mcmodel=large <path_to_gen_cpp_file> -o <path_to_obj_file>"
+When extra parameters are supplied, the following command line is used (note that -O3 is omitted, so you have to supply it if needed):
+"clang++ -c -mcmodel=large <your_parameters_here> <path_to_gen_cpp_file> -o <path_to_obj_file>"
+("path_to_gen_cpp_file" and "path_to_obj_file" are provided by scllvm, so you can't affect them)
+
 To enable diagnostics for scllvm (prints to console full clang++ command, notifies if module is not cached) set env var "SCLLVM_DIAG_ON" to true.
 scllvm ALWAYS prints output from clang++ even warnings, since normally there should be no warnings/errors. In later versions we will treat warnings as errors for clang++.
