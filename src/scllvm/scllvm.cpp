@@ -28,10 +28,10 @@ extern "C" {
 	// Version of this SCLLVM.
 #ifdef _WIN32
 	std::wstring g_scllvm_diag_prefix;
-	const wchar_t* const ScllvmVersion = L"2.2";
+	const wchar_t* const ScllvmVersion = L"2.2.1";
 #else
 	std::string g_scllvm_diag_prefix;
-	const char* const ScllvmVersion = "2.2";
+	const char* const ScllvmVersion = "2.2.1";
 #endif
 
 #ifdef _WIN32
