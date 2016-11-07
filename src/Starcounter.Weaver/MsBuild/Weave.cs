@@ -20,8 +20,15 @@ namespace Starcounter.Weaver.MsBuild
 
         public bool DisableCache { get; set; }
 
+        public bool AttachDebugger { get; set; }
+
         public override bool Execute()
         {
+            if (AttachDebugger)
+            {
+                Debugger.Launch();
+            }
+
             if (!File.Exists(AssemblyFile))
             {
                 Log.LogError($"Unable to weave {AssemblyFile}: file does not exist");
@@ -53,6 +60,15 @@ namespace Starcounter.Weaver.MsBuild
             {
                 Directory.CreateDirectory(ignoredOutputDirectory);
             }
+
+            // Bug: when doing CLEAN Simplified.Data.Model.dll and Starcounter.Extensions.dll
+            // is not deleted from the OUTPUT directory.
+            //
+            // And second bug: when that happens, and you then build the project, the weaver
+            // will fail ScErrAppDeplyedEditionLibrary, but the build report success (and the
+            // weaver cache is empty).
+            //
+            // TODO:
 
             var setup = new WeaverSetup()
             {

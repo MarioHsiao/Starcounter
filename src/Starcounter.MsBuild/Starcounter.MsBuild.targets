@@ -57,12 +57,16 @@
   </Target>
 
   <Target Name="BuildTimeWeave" Condition="( '$(RunCompileTimeWeaver)' == 'true' )">
+    <PropertyGroup>
+      <sc-debug Condition="( '$(sc-debug)' == '' )">false</sc-debug>  
+    </PropertyGroup>
     
     <Weave 
       MSBuildArchitecture= "x64"
       AssemblyFile="$(TargetPath)"
       CacheDirectory="$(WeaverCacheDirectory)"
       DisableCache="$(DisableWeaverCache)"
+      AttachDebugger="$(sc-debug)"
       />
     
     <Message Text="Successfully weaved $(TargetPath)" />
