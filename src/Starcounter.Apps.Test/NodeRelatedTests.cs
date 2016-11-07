@@ -51,8 +51,8 @@ namespace Starcounter.Internal.Tests
             Assert.IsTrue("www.starcounter.com" == endpoint);
             Assert.IsTrue("/" == relativeUri);
 
-            Http.GetEndpointFromUri("file://teamcity.starcounter.org/FTP/SCDev/BuildSystem/Logs/StatisticsEngine/default.htm", out endpoint, out relativeUri);
-            Assert.IsTrue("teamcity.starcounter.org" == endpoint);
+            Http.GetEndpointFromUri("file://scbuildserver/FTP/SCDev/BuildSystem/Logs/StatisticsEngine/default.htm", out endpoint, out relativeUri);
+            Assert.IsTrue("scbuildserver" == endpoint);
             Assert.IsTrue("/FTP/SCDev/BuildSystem/Logs/StatisticsEngine/default.htm" == relativeUri);
 
             Http.GetEndpointFromUri("/emails", out endpoint, out relativeUri);

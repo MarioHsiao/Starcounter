@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <GIT_LEVEL0_BRANCH Condition=" '$(GIT_LEVEL0_BRANCH)' == '' ">develop</GIT_LEVEL0_BRANCH>
-    <BinariesFTP>\\teamcity.starcounter.org\FTP</BinariesFTP>
+    <BinariesFTP>\\scbuildserver\FTP</BinariesFTP>
     <BinariesFTPAccessible Condition="'$(SC_BUILD_SKIP_LOCAL_FTP)' != 'True' AND Exists('$(BinariesFTP)')">True</BinariesFTPAccessible>
   </PropertyGroup>
 
