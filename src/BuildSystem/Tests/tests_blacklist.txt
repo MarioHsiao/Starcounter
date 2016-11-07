@@ -59,23 +59,11 @@ OffsetkeyEmptyBug3502_test.bat
 
 # Level0 tests that has to be reenabled in future (they are not maintained at the moment).
 
-Level0\msbuild\x64\Debug\fletcher32_test.exe
-Level0\msbuild\x64\Debug\log_reader_test.exe
-Level0\msbuild\x64\Debug\log_writer_test.exe
-Level0\msbuild\x64\Debug\max_io_bandwidth_test.exe
-Level0\msbuild\x64\Debug\sccorelog_test.exe
-Level0\msbuild\x64\Debug\stream_buffer_test.exe
-Level0\msbuild\x64\Debug\sunflower_test.exe
-Level0\msbuild\x64\Release\fletcher32_test.exe
-Level0\msbuild\x64\Release\log_reader_test.exe
-Level0\msbuild\x64\Release\log_writer_test.exe
-Level0\msbuild\x64\Release\max_io_bandwidth_test.exe
-Level0\msbuild\x64\Release\sccorelog_test.exe
-Level0\msbuild\x64\Release\stream_buffer_test.exe
-Level1\bin\Release\fletcher32_test.exe
-Level1\bin\Release\log_reader_test.exe
-Level1\bin\Release\log_writer_test.exe
-Level1\bin\Release\max_io_bandwidth_test.exe
-Level1\bin\Release\sccorelog_test.exe
-Level1\bin\Release\sc_ipc_test.exe
-Level1\bin\Release\stream_buffer_test.exe
+fletcher32_test.exe
+log_reader_test.exe
+log_writer_test.exe
+max_io_bandwidth_test.exe
+sccorelog_test.exe
+stream_buffer_test.exe
+sunflower_test.exe
+sc_ipc_test.exe
