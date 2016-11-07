@@ -1,6 +1,6 @@
 ﻿{
   "TestStats": [ {
-	  "ServerName": "scbuildserver",
+	  "ServerName": "teamcity.starcounter.org",
       "TestName": "NumSimplestEchosPerSecond",
       "ReceivedTime": "2007-05-12 12:30:21",
       "ClientIp": "123.123.123.123",
