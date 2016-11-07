@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.8)
 
 project(scllvm)
 
-set(SCLLVMTarget scllvm-2.2)
+set(SCLLVMTarget scllvm)
 
 # Path to unzipped LLVM sources.
 set(LLVMClangSrcDir ~/Documents/llvm-3.9.0.src)
