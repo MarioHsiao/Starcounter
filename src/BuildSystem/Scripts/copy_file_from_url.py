@@ -1,3 +1,10 @@
+import sys
+
+# Checking if Python 3 is used.
+if sys.version_info.major < 3:
+	print("ERROR: This script requires Python 3 to run properly!")
+	sys.exit(1)
+
 import argparse
 import os
 import urllib.request
