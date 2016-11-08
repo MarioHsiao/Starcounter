@@ -473,6 +473,17 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// The contents of the `X-Referer` header to execute the server side handler in scope of a session.
+        /// </summary>
+        public String Referer
+        {
+            get
+            {
+                return ScSessionClass.DataLocationUriPrefix + SessionId;
+            }
+        }
+
         /// Returns True if session is being used now.
         /// </summary>
         /// <returns></returns>
