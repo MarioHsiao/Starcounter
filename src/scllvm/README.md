@@ -19,4 +19,8 @@ When extra parameters are supplied, the following command line is used (note tha
 
 To enable diagnostics for scllvm (prints to console full clang++ command, notifies if module is not cached) set env var "SCLLVM_DIAG_ON" to true.
 scllvm start its diagnostic messages using "[scllvm-<version>]" string, so you can find those, for example, in TeamCity build log.
+For example:
+[scllvm-2.2.1]: running clang tool: clang++ -c -mcmodel=large -O3 -std=c++11 "/home/teamcity/buildAgent/temp/buildTmp/starcounter/db-3740270811-56283-56283/sql/2.2.1/063f1b62675505a89098f9a4f42fada4b3e2b1b52a8180337efbbddc471001ed.cpp" -o "/home/teamcity/buildAgent/temp/buildTmp/starcounter/db-3740270811-56283-56283/sql/2.2.1/063f1b62675505a89098f9a4f42fada4b3e2b1b52a8180337efbbddc471001ed"
+
+
 scllvm ALWAYS prints output from clang++ even warnings, since normally there should be no warnings/errors. In later versions we will treat warnings as errors for clang++.
