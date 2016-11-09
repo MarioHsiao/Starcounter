@@ -28,10 +28,10 @@ extern "C" {
 	// Version of this SCLLVM.
 #ifdef _WIN32
 	std::wstring g_scllvm_diag_prefix;
-	const wchar_t* const ScllvmVersion = L"2.2.1";
+	const wchar_t* const ScllvmVersion = L"2.2.2";
 #else
 	std::string g_scllvm_diag_prefix;
-	const char* const ScllvmVersion = "2.2.1";
+	const char* const ScllvmVersion = "2.2.2";
 #endif
 
 #ifdef _WIN32
@@ -492,16 +492,18 @@ extern "C" {
 
 #ifdef _WIN32
 				std::wstringstream clang_cmd_stream;
+				clang_cmd_stream << "clang++ ";
 #else
 				std::stringstream clang_cmd_stream;
+				clang_cmd_stream << "./clang++ ";
 #endif
 
 				// Checking if we have custom clang parameters from the user.
 				if ((NULL != predefined_clang_params) && ('\0' != predefined_clang_params)) {
-					clang_cmd_stream << "clang++ -c -mcmodel=large " << predefined_clang_params << " \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
+					clang_cmd_stream << "-c -mcmodel=large " << predefined_clang_params << " \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
 				}
 				else {
-					clang_cmd_stream << "clang++ -O3 -c -mcmodel=large \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
+					clang_cmd_stream << "-O3 -c -mcmodel=large \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
 				}
 
 				// Generating new object file.
