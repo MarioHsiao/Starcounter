@@ -12,7 +12,7 @@ supply a given hash key. User can also check if the module is already cached, de
 
 scllvm supports adding custom parameters to clang++ and link external shared libraries (consult "scllvm_tests" for the example).
 When no extra parameters are given the following command line is used:
-"clang++ -O3 -c -mcmodel=large <path_to_gen_cpp_file> -o <path_to_obj_file>"
+"clang++ -Wall -O3 -c -mcmodel=large <path_to_gen_cpp_file> -o <path_to_obj_file>"
 When extra parameters are supplied, the following command line is used (note that -O3 is omitted, so you have to supply it if needed):
 "clang++ -c -mcmodel=large <your_parameters_here> <path_to_gen_cpp_file> -o <path_to_obj_file>"
 ("path_to_gen_cpp_file" and "path_to_obj_file" are provided by scllvm, so you can't affect them)
