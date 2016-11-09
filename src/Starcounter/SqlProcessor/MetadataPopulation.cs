@@ -30,11 +30,10 @@ namespace Starcounter.SqlProcessor {
                     Debug.Assert(rawview != null);
                     ClrClass parentView = null;
                     if (typeDef.BaseName != null)
-                        parentView = Db.SQL<ClrClass>("select v from Starcounter.Metadata.ClrClass v where fullclassname = ?", typeDef.BaseName).First;
+                        parentView = Db.SQL<ClrClass>("select v from Starcounter.Metadata.ClrClass v where fullname = ?", typeDef.BaseName).First;
                     ClrClass obj = new ClrClass {
                         Name = typeDef.Name.LastDotWord(),
                         FullName = typeDef.Name,
-                        FullClassName = typeDef.Name,
                         UniqueIdentifierReversed = uniqueIdentifierRev,
                         UniqueIdentifier = uniqueIdentifier,
                         Mapper = rawview,
@@ -50,12 +49,12 @@ namespace Starcounter.SqlProcessor {
                 for (int j = 0; j < typeDefs.Length; j++) {
                     TypeDef typeDef = typeDefs[j];
                     ClrClass theView = createdViews[j];
-                    Debug.Assert(theView.FullClassName == typeDef.Name);
+                    Debug.Assert(theView.FullName == typeDef.Name);
                     for (int i = 0; i < typeDef.PropertyDefs.Length; i++) {
                         PropertyDef propDef = typeDef.PropertyDefs[i];
                         Starcounter.Metadata.DataType propType = null;
                         if (propDef.Type == DbTypeCode.Object)
-                            propType = Db.SQL<ClrClass>("select v from Starcounter.Metadata.ClrClass v where fullclassname = ?", propDef.TargetTypeName).First;
+                            propType = Db.SQL<ClrClass>("select v from Starcounter.Metadata.ClrClass v where fullname = ?", propDef.TargetTypeName).First;
                         else
                             propType = Db.SQL<Starcounter.Metadata.ClrPrimitiveType>("select t from Starcounter.Metadata.ClrPrimitivetype t where dbtypecode = ?", propDef.Type).First;
                         if (propType != null) {
@@ -90,7 +89,7 @@ namespace Starcounter.SqlProcessor {
                         } else {
                             LogSources.Sql.LogWarning("Non database type " +
                                 (propDef.Type == DbTypeCode.Object ? propDef.TargetTypeName : propDef.Type.ToString()) +
-                                " of property " + propDef.Name + " in class " + theView.FullClassName);
+                                " of property " + propDef.Name + " in class " + theView.FullName);
                         }
                     }
                 }

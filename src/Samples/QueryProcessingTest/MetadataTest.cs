@@ -264,9 +264,9 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Table.FullName == "QueryProcessingTest.User");
             Trace.Assert(c.Table is ClrClass);
             ClrClass cl = c.Table as ClrClass;
-            Trace.Assert(cl.FullClassName == "QueryProcessingTest.User");
-            Trace.Assert(c.Table.UniqueIdentifierReversed == cl.FullClassName.ReverseOrderDotWords());
-            Trace.Assert(c.Table.UniqueIdentifier == cl.FullClassName);
+            Trace.Assert(cl.FullName == "QueryProcessingTest.User");
+            Trace.Assert(c.Table.UniqueIdentifierReversed == cl.FullName.ReverseOrderDotWords());
+            Trace.Assert(c.Table.UniqueIdentifier == cl.FullName);
             Trace.Assert(c.DataType != null);
             Trace.Assert(c.DataType is Starcounter.Metadata.ClrPrimitiveType);
             Trace.Assert((c.DataType as Starcounter.Metadata.ClrPrimitiveType).DbTypeCode == (ushort)DbTypeCode.Int32);
@@ -280,7 +280,7 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Table.Name == "ClrPrimitiveType");
             Trace.Assert(c.Table.FullName == "Starcounter.Metadata.ClrPrimitiveType");
             Trace.Assert(c.Table is ClrClass);
-            Trace.Assert((c.Table as ClrClass).FullClassName == "Starcounter.Metadata.ClrPrimitiveType");
+            Trace.Assert((c.Table as ClrClass).FullName == "Starcounter.Metadata.ClrPrimitiveType");
             Trace.Assert(c.DataType != null);
             Trace.Assert(c.DataType is Starcounter.Metadata.ClrPrimitiveType);
             Trace.Assert((c.DataType as Starcounter.Metadata.ClrPrimitiveType).DbTypeCode == (ushort)DbTypeCode.Boolean);
@@ -295,13 +295,13 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Table.Name == "Account");
             Trace.Assert(c.Table.FullName == "QueryProcessingTest.Account");
             Trace.Assert(c.Table is ClrClass);
-            Trace.Assert((c.Table as ClrClass).FullClassName == "QueryProcessingTest.Account");
+            Trace.Assert((c.Table as ClrClass).FullName == "QueryProcessingTest.Account");
             Trace.Assert(c.DataType != null);
             Trace.Assert(!(c.DataType is Starcounter.Metadata.MapPrimitiveType));
             Trace.Assert(c.DataType is ClrClass);
             Trace.Assert((c.DataType as ClrClass).Name == "User");
             Trace.Assert((c.DataType as ClrClass).FullName == "QueryProcessingTest.User");
-            Trace.Assert((c.DataType as ClrClass).FullClassName == "QueryProcessingTest.User");
+            Trace.Assert((c.DataType as ClrClass).FullName == "QueryProcessingTest.User");
             nrcc = 0;
             foreach (MappedProperty tc in Db.SQL<MappedProperty>(
                 "select c from starcounter.metadata.MappedProperty c where name = ? and c.table is ClrClass", 
