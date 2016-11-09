@@ -9,6 +9,7 @@ import argparse
 import os
 import urllib.request
 import shutil
+import stat
 
 # Declaring argument parsing rules.
 parser = argparse.ArgumentParser(description='Download a file by URL if needed.')
