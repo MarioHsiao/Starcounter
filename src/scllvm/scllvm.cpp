@@ -28,10 +28,10 @@ extern "C" {
 	// Version of this SCLLVM.
 #ifdef _WIN32
 	std::wstring g_scllvm_diag_prefix;
-	const wchar_t* const ScllvmVersion = L"2.2.2";
+	const wchar_t* const ScllvmVersion = L"2.2.3";
 #else
 	std::string g_scllvm_diag_prefix;
-	const char* const ScllvmVersion = "2.2.2";
+	const char* const ScllvmVersion = "2.2.3";
 #endif
 
 #ifdef _WIN32
@@ -439,7 +439,7 @@ extern "C" {
 				file_name_no_ext = predefined_hash_str;
 			}
 
-			int32_t err_code;
+			uint32_t err_code = 1;
 
 #ifdef _WIN32
 			std::wstring path_to_cache_dir_versioned = path_to_cache_dir;
@@ -503,7 +503,7 @@ extern "C" {
 					clang_cmd_stream << "-c -mcmodel=large " << predefined_clang_params << " \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
 				}
 				else {
-					clang_cmd_stream << "-O3 -c -mcmodel=large \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
+					clang_cmd_stream << "-Wall -O3 -c -mcmodel=large \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
 				}
 
 				// Generating new object file.
@@ -513,13 +513,38 @@ extern "C" {
 					std::wcout << g_scllvm_diag_prefix << "running clang tool: " << clang_cmd << std::endl;
 				}
 
-				err_code = _wsystem(clang_cmd.c_str());
+				PROCESS_INFORMATION proc_info = { 0 };
+				STARTUPINFOW startup_info = { 0 };
+				startup_info.cb = sizeof(startup_info);
+
+				// Create the clang process.
+				BOOL result = CreateProcessW(NULL, const_cast<LPWSTR>(clang_cmd.c_str()),
+					NULL, NULL, FALSE,
+					NORMAL_PRIORITY_CLASS,
+					NULL, NULL, &startup_info, &proc_info);
+
+				assert((TRUE == result) && "Error calling CreateProcessW for clang++.");
+
+				// Successfully created the process.  Wait for it to finish.
+				WaitForSingleObject(proc_info.hProcess, INFINITE);
+
+				// Get the exit code.
+				result = GetExitCodeProcess(proc_info.hProcess, (DWORD*)&err_code);
+				assert((TRUE == result) && "Error calling GetExitCodeProcess for clang++.");
+
+				// Close the handles.
+				result = CloseHandle(proc_info.hProcess);
+				assert((TRUE == result) && "Error closing process handle for clang++.");
+
+				result = CloseHandle(proc_info.hThread);
+				assert((TRUE == result) && "Error closing thread handle for clang++.");
+
 #else
 				std::string clang_cmd = clang_cmd_stream.str();
 				if (g_diag_on) {
 					std::cout << g_scllvm_diag_prefix << "running clang tool: " << clang_cmd << std::endl;
 				}
-
+				 
 				err_code = system(clang_cmd.c_str());
 #endif
 
@@ -863,7 +888,7 @@ extern "C" {
 			"star cÖunter",
 #endif
 			nullptr,
-			"extern \"C\" int gen_function(int p) { return p + 555; }",
+			"extern \"C\" int gen_function(int p) { char x = p; return p + 555; }",
 			"gen_function",
 			nullptr,
 			false,
