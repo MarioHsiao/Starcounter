@@ -61,6 +61,7 @@ namespace Starcounter.Weaver {
                 "Starcounter.Hosting.dll",
                 "Starcounter.Hypermedia.dll",
                 "Starcounter.Bootstrap.dll",
+                "Starcounter.Server.Rest.dll",
                 "Starcounter.Apps.JsonPatch.dll",
                 "Starcounter.Internal.dll",
                 "Starcounter.BitsAndBytes.Unsafe.dll",
