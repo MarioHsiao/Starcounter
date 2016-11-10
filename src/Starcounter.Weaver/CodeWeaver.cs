@@ -44,17 +44,7 @@ namespace Starcounter.Weaver
         /// Gets the weaver host.
         /// </summary>
         public IWeaverHost Host { get; private set; }
-
-        // TODO Remove
-        /// <summary>
-        /// The directory where the weaver looks for input.
-        /// </summary>
-        public string InputDirectory {
-            get {
-                return Setup.InputDirectory;
-            }
-        }
-
+        
         public string EditionLibrariesDirectory {
             get {
                 return Path.Combine(Setup.WeaverRuntimeDirectory, "EditionLibraries");
@@ -144,7 +134,7 @@ namespace Starcounter.Weaver
             Diagnose("Code weaver:");
 
             var props = new Dictionary<string, string>();
-            props["Input directory"] = this.InputDirectory;
+            props["Input directory"] = Setup.InputDirectory;
             props["Output directory"] = Setup.OutputDirectory;
             props["Application file"] = Setup.AssemblyFile;
             props["Disable edition libraries"] = setup.DisableEditionLibraries.ToString();
@@ -199,7 +189,7 @@ namespace Starcounter.Weaver
             if (SetupEngine() == false)
                 return false;
 
-            var specifiedAssemblyFullPath = Path.Combine(this.InputDirectory, Setup.AssemblyFile);
+            var specifiedAssemblyFullPath = Path.Combine(Setup.InputDirectory, Setup.AssemblyFile);
             if (!File.Exists(specifiedAssemblyFullPath)) {
                 Host.WriteError(Error.SCERRWEAVERFILENOTFOUND, "Path: {0}", specifiedAssemblyFullPath);
                 return false;
@@ -230,7 +220,7 @@ namespace Starcounter.Weaver
                 postSharpSettings.ProjectExecutionOrder = ProjectExecutionOrder.Phased;
                 postSharpSettings.OverwriteAssemblyNames = false;
                 postSharpSettings.DisableReflection = true;
-                postSharpSettings.SearchDirectories.Add(this.InputDirectory);
+                postSharpSettings.SearchDirectories.Add(Setup.InputDirectory);
 
                 if (!Setup.DisableEditionLibraries && Directory.Exists(this.EditionLibrariesDirectory)) {
                     postSharpSettings.SearchDirectories.Add(this.EditionLibrariesDirectory);
