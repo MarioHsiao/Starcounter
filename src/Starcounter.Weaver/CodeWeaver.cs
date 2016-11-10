@@ -135,11 +135,28 @@ namespace Starcounter.Weaver
 
         static bool ExecuteCurrent(CodeWeaver weaver) {
             var result = false;
-            try {
+            try
+            {
                 CodeWeaver.Current = weaver;
                 weaver.Host.OnWeaverStart();
                 result = weaver.Execute();
-            } finally {
+            }
+            catch (Exception e)
+            {
+                // Catch any unhandled exception to prevent it
+                // from slipping to the shell, and handle it the
+                // best way we can.
+                uint errorCode;
+                if (!ErrorCode.TryGetCode(e, out errorCode))
+                {
+                    errorCode = Error.SCERRUNHANDLEDWEAVEREXCEPTION;
+                    e = ErrorCode.ToException(Error.SCERRUNHANDLEDWEAVEREXCEPTION, e);
+                }
+
+                weaver.Host.WriteError(errorCode, e.ToString());
+            }
+            finally
+            {
                 weaver.Host.OnWeaverDone(result);
                 weaver = null;
             }

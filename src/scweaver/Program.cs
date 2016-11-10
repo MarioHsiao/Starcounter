@@ -46,19 +46,7 @@ namespace Starcounter.Weaver
                 if (TryGetProgramArguments(host, args, out arguments))
                     ApplyOptionsAndExecuteGivenCommand(host, arguments);
             }
-            catch (Exception e) {
-                // Catch any unhandled exception to prevent it
-                // from slipping to the shell, and handle it the
-                // best way we can.
-                uint errorCode;
-                if (!ErrorCode.TryGetCode(e, out errorCode)) {
-                    errorCode = Error.SCERRUNHANDLEDWEAVEREXCEPTION;
-                    e = ErrorCode.ToException(Error.SCERRUNHANDLEDWEAVEREXCEPTION, e);
-                }
-
-                host.WriteError(errorCode, e.ToString());
-
-            } finally {
+            finally {
                 Console.ResetColor();
             }
         }
