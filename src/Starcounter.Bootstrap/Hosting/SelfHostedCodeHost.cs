@@ -1,6 +1,7 @@
 ﻿
 using Starcounter.Bootstrap;
 using Starcounter.Bootstrap.RuntimeHosts;
+using Starcounter.Bootstrap.RuntimeHosts.SelfHosted;
 using Starcounter.Ioc;
 using System;
 

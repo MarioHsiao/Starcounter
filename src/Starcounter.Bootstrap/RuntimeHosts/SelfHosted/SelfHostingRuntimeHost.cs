@@ -4,41 +4,10 @@ using Starcounter.Hosting;
 using System;
 using System.Diagnostics;
 
-namespace Starcounter.Bootstrap.RuntimeHosts
+namespace Starcounter.Bootstrap.RuntimeHosts.SelfHosted
 {
     public class SelfHostingRuntimeHost : RuntimeHost
     {
-        class LifetimeService : ILifetimeService
-        {
-            readonly SelfHostingRuntimeHost host;
-
-            public LifetimeService(SelfHostingRuntimeHost h)
-            {
-                host = h;
-            }
-
-            void ILifetimeService.Configure(IHostConfiguration configuration)
-            {
-            }
-            
-            void ILifetimeService.Start(IntPtr schedulerContext)
-            {    
-            }
-
-            void ILifetimeService.Run()
-            {
-                host.ApplicationMainLoop();
-            }
-        }
-
-        class ExceptionManagerImpl : IExceptionManager
-        {
-            public bool HandleUnhandledException(Exception ex)
-            {
-                return false;
-            }
-        }
-
         /// <summary>
         /// Callback invoked by the self-hosting host when ready for service.
         /// </summary>
@@ -56,7 +25,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts
 
         protected override IExceptionManager CreateExceptionManager()
         {
-            return new ExceptionManagerImpl();
+            return new ExceptionManager();
         }
 
         protected override void RunLifetimeService(ILifetimeService lifetimeService)

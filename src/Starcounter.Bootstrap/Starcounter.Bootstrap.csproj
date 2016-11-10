@@ -83,6 +83,8 @@
     <Compile Include="Hosting\TaskSchedulerImpl.cs" />
     <Compile Include="IAppStart.cs" />
     <Compile Include="ILifetimeService.cs" />
+    <Compile Include="RuntimeHosts\SelfHosted\ExceptionManager.cs" />
+    <Compile Include="RuntimeHosts\SelfHosted\LifetimeService.cs" />
     <Compile Include="RuntimeHosts\Shared\AppSharedRuntimeHost.cs" />
     <Compile Include="RuntimeHosts\RuntimeHost.cs" />
     <Compile Include="HostConfiguration.cs" />
