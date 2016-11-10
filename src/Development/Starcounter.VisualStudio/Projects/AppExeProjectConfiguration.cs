@@ -113,28 +113,38 @@ namespace Starcounter.VisualStudio.Projects {
                 }
             }
             this.WriteDebugLaunchStatus("started");
-            
-            // Pass it on:
-            try {
-                result = DoBeginDebug(debugConfiguration, flags, cmdLine);
-            } catch (SocketException se) {
-                // Map the socket level error code to a correspoding Starcounter
-                // error code. Try to be as specific as possible.
-                uint scErrorCode;
-                switch (se.SocketErrorCode) {
-                    case SocketError.ConnectionRefused:
-                        scErrorCode = Error.SCERRSERVERNOTRUNNING;
-                        break;
-                    default:
-                        scErrorCode = Error.SCERRSERVERNOTAVAILABLE;
-                        break;
+
+            if (debugConfiguration.IsSelfHosted)
+            {
+                result = DoBeginDebugSelfHosted(debugConfiguration, flags, cmdLine);
+            }
+            else
+            {
+                try
+                {
+                    result = DoBeginDebug(debugConfiguration, flags, cmdLine);
                 }
+                catch (SocketException se)
+                {
+                    // Map the socket level error code to a correspoding Starcounter
+                    // error code. Try to be as specific as possible.
+                    uint scErrorCode;
+                    switch (se.SocketErrorCode)
+                    {
+                        case SocketError.ConnectionRefused:
+                            scErrorCode = Error.SCERRSERVERNOTRUNNING;
+                            break;
+                        default:
+                            scErrorCode = Error.SCERRSERVERNOTAVAILABLE;
+                            break;
+                    }
 
-                SharedCLI.ResolveAdminServer(cmdLine, out serverHost, out serverPort, out serverName);
-                var serverInfo = string.Format("\"{0}\" at {1}:{2}", serverName, serverHost, serverPort);
+                    SharedCLI.ResolveAdminServer(cmdLine, out serverHost, out serverPort, out serverName);
+                    var serverInfo = string.Format("\"{0}\" at {1}:{2}", serverName, serverHost, serverPort);
 
-                this.ReportError((ErrorMessage)ErrorCode.ToMessage(scErrorCode, string.Format("(Server: {0})", serverInfo)));
-                result = false;
+                    this.ReportError((ErrorMessage)ErrorCode.ToMessage(scErrorCode, string.Format("(Server: {0})", serverInfo)));
+                    result = false;
+                }
             }
 
             if (result) {
@@ -147,6 +157,12 @@ namespace Starcounter.VisualStudio.Projects {
             return result;
         }
 
+        bool DoBeginDebugSelfHosted(AssemblyDebugConfiguration debugConfig, __VSDBGLAUNCHFLAGS flags, ApplicationArguments args)
+        {
+            var p = System.Diagnostics.Process.Start(debugConfig.AssemblyPath);
+            return AttachSelfHostedDebugger(p);
+        }
+        
         bool DoBeginDebug(AssemblyDebugConfiguration debugConfig, __VSDBGLAUNCHFLAGS flags, ApplicationArguments args) {
             string serverHost;
             int serverPort;
@@ -157,7 +173,7 @@ namespace Starcounter.VisualStudio.Projects {
             ErrorDetail errorDetail;
             int statusCode;
             Dictionary<String, String> headers;
-
+            
             TypedJsonEvents.OnDebuggerProcessChange = DebuggerStateChanged;
             ResponseExtensions.OnUnexpectedResponse = this.HandleUnexpectedResponse;
 
@@ -339,6 +355,33 @@ namespace Starcounter.VisualStudio.Projects {
             }
 
             return true;
+        }
+
+        bool AttachSelfHostedDebugger(System.Diagnostics.Process p)
+        {
+            var dte = this.package.DTE;
+            var debugger = (Debugger3)dte.Debugger;
+            var attached = false;
+
+            foreach (Process3 process in debugger.LocalProcesses)
+            {
+                if (process.ProcessID == p.Id)
+                {
+                    process.Attach();
+                    CodeHostMonitor.Current.AssureMonitored(process.ProcessID);
+                    attached = true;
+                    break;
+                }
+            }
+
+            if (attached == false)
+            {
+                this.ReportError(
+                    (ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGNODBPROCESS,
+                    $"Self-hosted process {p.Id}"));
+            }
+
+            return attached;
         }
 
         bool AttachDebugger(Engine engine) {
