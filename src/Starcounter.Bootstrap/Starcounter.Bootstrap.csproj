@@ -73,6 +73,7 @@
     <Compile Include="Hosting\CodeHostError.cs" />
     <Compile Include="Hosting\EntrypointOptions.cs" />
     <Compile Include="Hosting\HostConfigurationFromServerConfiguration.cs" />
+    <Compile Include="Hosting\IAssemblyResolver.cs" />
     <Compile Include="Hosting\IExceptionManager.cs" />
     <Compile Include="Hosting\IPrivateAssemblyStore.cs" />
     <Compile Include="Hosting\Package.cs" />
@@ -97,7 +98,7 @@
     <Compile Include="Management\Representations.JSON\Executable.json.cs">
       <DependentUpon>Executable.json</DependentUpon>
     </Compile>
-	<Compile Include="Management\Representations.JSON\CodeHost.json.cs">
+    <Compile Include="Management\Representations.JSON\CodeHost.json.cs">
       <DependentUpon>CodeHost.json</DependentUpon>
     </Compile>
     <Compile Include="RuntimeHosts\SelfHostingRuntimeHost.cs" />
