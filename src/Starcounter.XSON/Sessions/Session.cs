@@ -474,9 +474,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// The contents of the `X-Referer` header to execute the server side handler in scope of a session.
+        /// The URI identifier of the specific session.
+        /// For example, the contents of the `X-Referer` header to execute the server side handler in scope of a session.
         /// </summary>
-        public String Referer
+        public String SessionUri
         {
             get
             {
