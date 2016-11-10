@@ -242,27 +242,7 @@ namespace Starcounter.Weaver
             string fileName,
             ApplicationArguments arguments) {
 
-            // Change this to use newly introduced DatabaseSchema.DeserializeFrom(DirectoryInfo);
-            // TODO:
-
-            var schemaFiles = new DirectoryInfo(outputDirectory).GetFiles("*.schema");
-            if (schemaFiles.Length == 0) {
-                Console.WriteLine("No schema found (looked in '{0}')", outputDirectory);
-                return;
-            }
-
-            var schema = new DatabaseSchema();
-            var databaseAssembly = new DatabaseAssembly("Starcounter", typeof(DatabaseAttribute).Assembly.FullName);
-            databaseAssembly.SetSchema(schema);
-            schema.Assemblies.Add(databaseAssembly);
-
-            for (int i = 0; i < schemaFiles.Length; i++) {
-                databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
-                schema.Assemblies.Add(databaseAssembly);
-            }
-
-            schema.AfterDeserialization();
-
+            var schema = DatabaseSchema.DeserializeFrom(new DirectoryInfo(outputDirectory));
             schema.DebugOutput(new IndentedTextWriter(Console.Out));
         }
 
