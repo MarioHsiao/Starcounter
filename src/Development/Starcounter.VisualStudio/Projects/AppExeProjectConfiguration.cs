@@ -159,8 +159,15 @@ namespace Starcounter.VisualStudio.Projects {
 
         bool DoBeginDebugSelfHosted(AssemblyDebugConfiguration debugConfig, __VSDBGLAUNCHFLAGS flags, ApplicationArguments args)
         {
+            bool attachDebugger = (flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0;
+            if (attachDebugger)
+            {
+                ReportError("Currently can't support attaching debugger to self-hosted applications. Use Shift+F5 and Debugger.Launch() until fixed.");
+                return false;
+            }
+
             var p = System.Diagnostics.Process.Start(debugConfig.AssemblyPath);
-            return AttachSelfHostedDebugger(p);
+            return attachDebugger ? AttachSelfHostedDebugger(p) : true;
         }
         
         bool DoBeginDebug(AssemblyDebugConfiguration debugConfig, __VSDBGLAUNCHFLAGS flags, ApplicationArguments args) {
@@ -359,29 +366,34 @@ namespace Starcounter.VisualStudio.Projects {
 
         bool AttachSelfHostedDebugger(System.Diagnostics.Process p)
         {
-            var dte = this.package.DTE;
-            var debugger = (Debugger3)dte.Debugger;
-            var attached = false;
+            // This don't work as desired, and we must try to find an alternative
+            // to it.
+            // TODO:
+            
+            return true;
 
-            foreach (Process3 process in debugger.LocalProcesses)
-            {
-                if (process.ProcessID == p.Id)
-                {
-                    process.Attach();
-                    CodeHostMonitor.Current.AssureMonitored(process.ProcessID);
-                    attached = true;
-                    break;
-                }
-            }
+            //var dte = this.package.DTE;
+            //var debugger = (Debugger3)dte.Debugger;
+            //var attached = false;
 
-            if (attached == false)
-            {
-                this.ReportError(
-                    (ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGNODBPROCESS,
-                    $"Self-hosted process {p.Id}"));
-            }
+            //foreach (Process3 process in debugger.LocalProcesses)
+            //{
+            //    if (process.ProcessID == p.Id)
+            //    {
+            //        process.Attach();
+            //        attached = true;
+            //        break;
+            //    }
+            //}
 
-            return attached;
+            //if (attached == false)
+            //{
+            //    this.ReportError(
+            //        (ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGNODBPROCESS,
+            //        $"Self-hosted process {p.Id}"));
+            //}
+
+            //return attached;
         }
 
         bool AttachDebugger(Engine engine) {
