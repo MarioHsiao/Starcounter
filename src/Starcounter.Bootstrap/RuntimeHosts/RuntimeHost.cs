@@ -124,6 +124,11 @@ namespace Starcounter.Bootstrap.RuntimeHosts
             OnExceptionFactoryInstalled();
 
             exceptionManager = CreateExceptionManager();
+
+            var assemblyResolver = CreateAssemblyResolver();
+            Loader.SetCustomAssemblyResolver(assemblyResolver);
+
+            OnAppDomainConfigured();
         }
         
         internal unsafe void SetupFromConfiguration(IHostConfiguration config)
@@ -266,11 +271,6 @@ namespace Starcounter.Bootstrap.RuntimeHosts
 
                     OnNetworkGatewayConnected();
                 }
-
-                var assemblyResolver = CreateAssemblyResolver();                
-                Loader.SetCustomAssemblyResolver(assemblyResolver);
-
-                OnAppDomainConfigured();
 
                 lifetimeService.Start(new IntPtr(hsched_));
                 OnServerCommandHandlersRegistered();

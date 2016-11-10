@@ -6,7 +6,7 @@ namespace Starcounter.Hosting {
     /// Represent the application directory of an application that has been
     /// requested to launch into a host.
     /// </summary>
-    internal sealed class ApplicationDirectory {
+    public sealed class ApplicationDirectory {
         /// <summary>
         /// Full path to the directory.
         /// </summary>
@@ -16,7 +16,7 @@ namespace Starcounter.Hosting {
         /// Set of binaries that have been resolved from the current
         /// directory.
         /// </summary>
-        public readonly PrivateBinaryFile[] Binaries;
+        internal readonly PrivateBinaryFile[] Binaries;
 
         /// <summary>
         /// Initialize a new <see cref="ApplicationDirectory"/>.

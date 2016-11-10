@@ -30,7 +30,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts.SelfHosted
 
         protected override IAssemblyResolver CreateAssemblyResolver()
         {
-            throw new NotImplementedException();
+            return new AssemblyResolver();
         }
 
         protected override void RunLifetimeService(ILifetimeService lifetimeService)

@@ -288,14 +288,7 @@ namespace Starcounter.Hosting
         Assembly LoadMainAssembly(Application application, ApplicationDirectory appDir) {
             var assemblyResolver = Loader.Resolver;
 
-            assemblyResolver.PrivateAssemblies.RegisterApplicationDirectory(appDir);
-            OnInputVerifiedAndAssemblyResolverUpdated();
-
-            var assembly = assemblyResolver.ResolveApplication(application.HostedFilePath);
-            if (assembly.EntryPoint == null) {
-                throw ErrorCode.ToException(
-                    Error.SCERRAPPLICATIONNOTANEXECUTABLE, string.Format("Failing application file: {0}", application.HostedFilePath));
-            }
+            var assembly = assemblyResolver.RegisterApplication(application.HostedFilePath, appDir);
             OnTargetAssemblyLoaded();
 
             return assembly;
