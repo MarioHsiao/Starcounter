@@ -49,7 +49,7 @@ namespace Starcounter.Hosting
             config.DefaultUserHttpPort = (ushort)database.Configuration.DefaultUserHttpPort;
             config.SchedulerCount = (uint)database.Configuration.SchedulerCount;
             config.NoDb = false;
-            config.NoNetworkGateway = false;
+            config.NoNetworkGateway = true;     // Until we can fix bug https://github.com/Starcounter/Starcounter/issues/3869#issuecomment-257071378
 
             return config;
         }
