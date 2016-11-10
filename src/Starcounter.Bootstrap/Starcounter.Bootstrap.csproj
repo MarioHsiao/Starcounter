@@ -83,7 +83,7 @@
     <Compile Include="Hosting\TaskSchedulerImpl.cs" />
     <Compile Include="IAppStart.cs" />
     <Compile Include="ILifetimeService.cs" />
-    <Compile Include="RuntimeHosts\AppSharedRuntimeHost.cs" />
+    <Compile Include="RuntimeHosts\Shared\AppSharedRuntimeHost.cs" />
     <Compile Include="RuntimeHosts\RuntimeHost.cs" />
     <Compile Include="HostConfiguration.cs" />
     <Compile Include="Hosting\AppHostBuilder.cs" />
@@ -101,7 +101,7 @@
     <Compile Include="Management\Representations.JSON\CodeHost.json.cs">
       <DependentUpon>CodeHost.json</DependentUpon>
     </Compile>
-    <Compile Include="RuntimeHosts\SelfHostingRuntimeHost.cs" />
+    <Compile Include="RuntimeHosts\SelfHosted\SelfHostingRuntimeHost.cs" />
     <Compile Include="StarcounterInternal.Hosting\ExceptionManager.cs" />
     <Compile Include="StarcounterInternal.Hosting\Loader.cs" />
     <Compile Include="StarcounterInternal.Hosting\orange.cs" />
