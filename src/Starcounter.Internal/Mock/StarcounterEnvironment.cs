@@ -91,6 +91,11 @@ namespace Starcounter.Internal
         public static Boolean OntologyMappingEnabled = true;
 
         /// <summary>
+        /// Enables or disables HTML compositions registration.
+        /// </summary>
+        public static Boolean RegisterHTMLCompositions = true;
+
+        /// <summary>
         /// Set if there is no network gateway.
         /// </summary>
         public static Boolean NoNetworkGatewayFlag = false;

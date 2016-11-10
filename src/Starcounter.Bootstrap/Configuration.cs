@@ -273,6 +273,10 @@ namespace StarcounterInternal.Bootstrap
                 StarcounterEnvironment.OntologyMappingEnabled = Boolean.Parse(s);
             }
 
+            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.RegisterHTMLCompositions);
+            if (ProgramArguments.TryGetProperty(propName, out s)) {
+                StarcounterEnvironment.RegisterHTMLCompositions = Boolean.Parse(s);
+            }
         }
 
         /// <summary>

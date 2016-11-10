@@ -135,6 +135,7 @@ namespace Starcounter.Advanced.Configuration {
         public Boolean XFilePathHeader = StarcounterEnvironment.XFilePathHeader;
         public Boolean UriMappingEnabled = StarcounterEnvironment.UriMappingEnabled;
         public Boolean OntologyMappingEnabled = StarcounterEnvironment.OntologyMappingEnabled;
+        public Boolean RegisterHTMLCompositions = StarcounterEnvironment.RegisterHTMLCompositions;
         public Boolean RequestFiltersEnabled = StarcounterEnvironment.RequestFiltersEnabled;
 
         /// <summary>

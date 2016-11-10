@@ -181,6 +181,7 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.UriMappingEnabled), "Enables URI mapping.");
             commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.RequestFiltersEnabled), "Enables request filters.");
             commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.OntologyMappingEnabled), "Enables ontology mapping.");
+            commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.RegisterHTMLCompositions), "Enables or disables HTML compositions registration.");
 
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber, "Specifies the number of gateway workers.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");

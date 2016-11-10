@@ -658,6 +658,7 @@ namespace Starcounter.Server {
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.RequestFiltersEnabled) + "={0}", database.Configuration.Runtime.RequestFiltersEnabled);
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.UriMappingEnabled) + "={0}", database.Configuration.Runtime.UriMappingEnabled);
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.OntologyMappingEnabled) + "={0}", database.Configuration.Runtime.OntologyMappingEnabled);
+            args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.RegisterHTMLCompositions) + "={0}", database.Configuration.Runtime.RegisterHTMLCompositions);
 
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber + "={0}", StarcounterEnvironment.Gateway.NumberOfWorkers);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort + "={0}", database.Server.Configuration.SystemHttpPort);
