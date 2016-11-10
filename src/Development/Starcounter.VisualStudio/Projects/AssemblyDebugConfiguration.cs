@@ -53,6 +53,11 @@ namespace Starcounter.VisualStudio.Projects {
             }
         }
 
+        internal bool IsSelfHosted {
+            get;
+            private set;
+        }
+
         internal bool IsConsoleApplication {
             get {
                 return this.outputType.Equals(OutputType.ConsoleApplication);
@@ -106,6 +111,13 @@ namespace Starcounter.VisualStudio.Projects {
             }
             this.AssemblyPath = targetAssembly;
 
+            var selfHosted = false;
+            var selfHostedCfg = cfg.GetPropertyValue(ConfigurationProperty.SelfHosted);
+            if (!string.IsNullOrEmpty(selfHostedCfg))
+            {
+                selfHosted = bool.Parse(selfHostedCfg);
+            }
+
             var targetDirectory = Path.GetDirectoryName(targetAssembly);
             var workingDirectory = cfg.GetPropertyValue(ConfigurationProperty.WorkingDirectory);
             if (string.IsNullOrEmpty(workingDirectory)) {
@@ -116,7 +128,7 @@ namespace Starcounter.VisualStudio.Projects {
             }
 
             this.WorkingDirectory = workingDirectory;
-
+            this.IsSelfHosted = selfHosted;
             this.startArgumentsString = cfg.GetPropertyValue(ConfigurationProperty.StartArguments);
         }
     }

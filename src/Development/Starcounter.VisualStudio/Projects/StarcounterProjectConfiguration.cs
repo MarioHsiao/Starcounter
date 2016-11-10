@@ -22,6 +22,7 @@ namespace Starcounter.VisualStudio.Projects {
             internal const string AssemblyPath = "TargetPath";
             internal const string WorkingDirectory = "StartWorkingDirectory";
             internal const string StartArguments = "StartArguments";
+            internal const string SelfHosted = "SelfHosted";
         }
 
         /// <summary>
@@ -149,6 +150,8 @@ namespace Starcounter.VisualStudio.Projects {
             properties[PropertyNames.WorkingDirectory] =
                 new ProjectPropertySettings(_PersistStorageType.PST_USER_FILE, true);
             properties[PropertyNames.StartArguments] =
+                new ProjectPropertySettings(_PersistStorageType.PST_USER_FILE, true);
+            properties[PropertyNames.SelfHosted] =
                 new ProjectPropertySettings(_PersistStorageType.PST_USER_FILE, true);
         }
 
