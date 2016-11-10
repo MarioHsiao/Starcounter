@@ -33,6 +33,16 @@ namespace Starcounter.Weaver.MsBuild
         {
             if (!result)
             {
+                var containReportedErrors = errorsAndWarnings.Any(ew => !ew.IsWarning);
+                if (!containReportedErrors)
+                {
+                    var e = new ErrorOrWarning();
+                    e.ErrorCode = Error.SCERRUNSPECIFIED;
+                    e.Message = ErrorCode.ToMessage(Error.SCERRUNSPECIFIED, 
+                        $"IWeaverHost.OnWeaverDone(false) invoked by no reported errors");
+                    errorsAndWarnings.Add(e);
+                }
+
                 RaiseExceptionFromErrors();
             }
         }
