@@ -9,6 +9,7 @@ namespace Starcounter.Hosting
     /// </summary>
     public interface IAssemblyResolver
     {
+        Assembly RegisterApplication(string executablePath, ApplicationDirectory appDirectory);
         Assembly ResolveApplicationReference(ResolveEventArgs args);
     }
 }
