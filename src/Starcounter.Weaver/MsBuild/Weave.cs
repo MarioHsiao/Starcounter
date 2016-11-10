@@ -110,6 +110,11 @@ namespace Starcounter.Weaver.MsBuild
 
                 return !Log.HasLoggedErrors;
             }
+            catch (Exception e)
+            {
+                Log.LogErrorFromException(e);
+                return false;
+            }
         }
 
         bool CopyWeavedArtifactsToOutputDirectory(IEnumerable<CachedAssemblyFiles> files)
