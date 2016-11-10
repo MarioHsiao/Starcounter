@@ -17,30 +17,30 @@ namespace StarcounterInternal.Hosting
     /// </summary>
     public static class Loader
     {
-        static AssemblyResolver assemblyResolver = new AssemblyResolver(new PrivateAssemblyStore());
+        static IAssemblyResolver assemblyResolver;
 
         internal static LogSource Log = LogSources.CodeHostLoader;
 
         [ThreadStatic]
         private static Stopwatch stopwatch_;
 
-        internal static AssemblyResolver Resolver {
+        internal static IAssemblyResolver Resolver {
             get {
                 return assemblyResolver;
             }
         }
 
-        /// <summary>
-        /// Resolves the assembly.
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="args">The <see cref="ResolveEventArgs" /> instance containing the event data.</param>
-        /// <returns>Assembly.</returns>
-        public static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
+        internal static void SetCustomAssemblyResolver(IAssemblyResolver resolver)
         {
-            return assemblyResolver.ResolveApplicationReference(args);
-        }
+            assemblyResolver = resolver;
 
+            var appDomain = AppDomain.CurrentDomain;
+            appDomain.AssemblyResolve += (sender, args) =>
+            {
+                return resolver.ResolveApplicationReference(args);
+            };
+        }
+        
         /// <summary>
         /// Adds the package defined by Starcounter, part of every code host
         /// and always loaded first.
