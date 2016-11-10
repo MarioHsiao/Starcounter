@@ -1,23 +1,16 @@
-﻿// ***********************************************************************
-// <copyright file="Loader.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
+﻿
 using Sc.Server.Weaver.Schema;
 using Starcounter.Binding;
+using Starcounter.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using Starcounter.Logging;
 
 namespace Starcounter.Internal
 {
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
-    
+
     /// <summary>
     /// Class LoaderHelper
     /// </summary>
@@ -100,26 +93,11 @@ namespace Starcounter.Internal
         {
             errorsFoundWithCodeScErrNonPublicFieldNotExposed = 0;
 
-            // Replace with call to new method DatabaseSchema.DeserializeFrom(DirectoryInfo)
             // TODO:
 
-            var schemaFiles = inputDir.GetFiles("*.schema");
-
-            var databaseSchema = new DatabaseSchema();
-            databaseSchema.AddStarcounterAssembly();
-
+            var databaseSchema = DatabaseSchema.DeserializeFrom(inputDir);
+            
             var typeDefs = new List<TypeDef>();
-
-            DatabaseAssembly databaseAssembly;
-
-            for (int i = 0; i < schemaFiles.Length; i++)
-            {
-                databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
-                databaseSchema.Assemblies.Add(databaseAssembly);
-            }
-
-            databaseSchema.AfterDeserialization();
-
             var databaseClasses = new List<DatabaseEntityClass>();
             databaseSchema.PopulateOrderedDatabaseEntityClasses2(databaseClasses);
             
@@ -127,7 +105,7 @@ namespace Starcounter.Internal
             for (int i = 0; i < databaseClassCount; i++)
             {
                 var databaseClass = databaseClasses[i];
-                databaseAssembly = databaseClass.Assembly;
+                var databaseAssembly = databaseClass.Assembly;
                 var assemblyName = new AssemblyName(databaseAssembly.FullName);
                 var typeLoader = new TypeLoader(assemblyName, databaseClass.Name);
                 var typeDef = EntityClassToTypeDef(databaseClass, typeLoader);
