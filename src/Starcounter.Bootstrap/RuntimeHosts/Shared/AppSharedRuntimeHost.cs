@@ -33,5 +33,10 @@ namespace Starcounter.Bootstrap.RuntimeHosts.Shared
         {
             return new ExceptionManager();
         }
+
+        protected override IAssemblyResolver CreateAssemblyResolver()
+        {
+            return new AssemblyResolver(new PrivateAssemblyStore());
+        }
     }
 }

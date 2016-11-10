@@ -28,6 +28,11 @@ namespace Starcounter.Bootstrap.RuntimeHosts.SelfHosted
             return new ExceptionManager();
         }
 
+        protected override IAssemblyResolver CreateAssemblyResolver()
+        {
+            throw new NotImplementedException();
+        }
+
         protected override void RunLifetimeService(ILifetimeService lifetimeService)
         {
             var hostJson = new CodeHost();

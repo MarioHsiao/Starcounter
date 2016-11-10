@@ -98,7 +98,8 @@ namespace Starcounter.Bootstrap.RuntimeHosts
 
         protected abstract ILifetimeService CreateLifetimeService();
         protected abstract IExceptionManager CreateExceptionManager();
-        
+        protected abstract IAssemblyResolver CreateAssemblyResolver();
+
         public virtual void Run(Func<IHostConfiguration> configProvider, Func<IAppStart> appStartProvider = null)
         {
             var config = configProvider();
@@ -266,8 +267,8 @@ namespace Starcounter.Bootstrap.RuntimeHosts
                     OnNetworkGatewayConnected();
                 }
 
-                var appDomain = AppDomain.CurrentDomain;
-                appDomain.AssemblyResolve += new ResolveEventHandler(Loader.ResolveAssembly);
+                var assemblyResolver = CreateAssemblyResolver();                
+                Loader.SetCustomAssemblyResolver(assemblyResolver);
 
                 OnAppDomainConfigured();
 
