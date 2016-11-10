@@ -76,34 +76,6 @@ namespace Starcounter.Weaver
         public bool OnlyIncludeEditionLibrariesReferenced {
             get { return false; }
         }
-
-        // TODO Remove
-        public string CacheDirectory {
-            get {
-                return Setup.CacheDirectory;
-            }
-        }
-
-        // TODO Remove
-        public string OutputDirectory {
-            get {
-                return Setup.OutputDirectory;
-            }
-        }
-
-        // TODO Remove
-        public string AssemblyFile {
-            get {
-                return Setup.AssemblyFile;
-            }
-        }
-
-        // TODO Remove
-        public bool RunWeaver {
-            get {
-                return !Setup.AnalyzeOnly;
-            }
-        }
         
         /// <summary>
         /// Gets the file manager used by the current weaver.
@@ -173,8 +145,8 @@ namespace Starcounter.Weaver
 
             var props = new Dictionary<string, string>();
             props["Input directory"] = this.InputDirectory;
-            props["Output directory"] = this.OutputDirectory;
-            props["Application file"] = this.AssemblyFile;
+            props["Output directory"] = Setup.OutputDirectory;
+            props["Application file"] = Setup.AssemblyFile;
             props["Disable edition libraries"] = setup.DisableEditionLibraries.ToString();
             props["Disable cache"] = setup.DisableWeaverCache.ToString();
             props["Weave only to cache"] = setup.WeaveToCacheOnly.ToString();
@@ -227,7 +199,7 @@ namespace Starcounter.Weaver
             if (SetupEngine() == false)
                 return false;
 
-            var specifiedAssemblyFullPath = Path.Combine(this.InputDirectory, this.AssemblyFile);
+            var specifiedAssemblyFullPath = Path.Combine(this.InputDirectory, Setup.AssemblyFile);
             if (!File.Exists(specifiedAssemblyFullPath)) {
                 Host.WriteError(Error.SCERRWEAVERFILENOTFOUND, "Path: {0}", specifiedAssemblyFullPath);
                 return false;
@@ -395,7 +367,7 @@ namespace Starcounter.Weaver
             // Decide all finalized directory paths to use and make sure all
             // directories we might need is actually in place.
 
-            this.TempDirectoryPath = Path.Combine(this.CacheDirectory, "WeaverTemp");
+            this.TempDirectoryPath = Path.Combine(Setup.CacheDirectory, "WeaverTemp");
             if (!Directory.Exists(this.TempDirectoryPath)) Directory.CreateDirectory(this.TempDirectoryPath);
 
             // Create the cache
@@ -539,7 +511,7 @@ namespace Starcounter.Weaver
             // referenced, in case we are not always including edition
             // libraries
             
-            var runWeaver = RunWeaver;
+            var runWeaver = !Setup.AnalyzeOnly;
             if (OnlyIncludeEditionLibrariesReferenced) {
                 if (FileManager.IsEditionLibrary(file)) {
                     runWeaver = HasBeenReferenced(module);
@@ -567,7 +539,7 @@ namespace Starcounter.Weaver
             // Apply all general, shared parameters
 
             parameters.Properties["ScInputDirectory"] = Path.GetDirectoryName(file);
-            parameters.Properties["ScCacheDirectory"] = this.CacheDirectory;
+            parameters.Properties["ScCacheDirectory"] = Setup.CacheDirectory;
             parameters.Properties["CacheTimestamp"] =
                 XmlConvert.ToString(File.GetLastWriteTime(file),
                 XmlDateTimeSerializationMode.RoundtripKind);
