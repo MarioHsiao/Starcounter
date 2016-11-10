@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 
 namespace Starcounter.Hosting {
+    
     /// <summary>
     /// Implements the Starcounter Code Host Assembly resolver.
     /// The primary service offered by the assembly resolver is
@@ -20,7 +21,7 @@ namespace Starcounter.Hosting {
     /// sure to update this article of any of the resolving
     /// internals change.
     /// </remarks>
-    internal sealed class AssemblyResolver {
+    internal sealed class AssemblyResolver : IAssemblyResolver {
         readonly LogSource log = LogSources.CodeHostAssemblyResolver;
 
         public readonly PrivateAssemblyStore PrivateAssemblies;
