@@ -1,5 +1,4 @@
-﻿
-using Starcounter.Bootstrap.RuntimeHosts;
+﻿using Starcounter.Bootstrap.RuntimeHosts.Shared;
 using Starcounter.Internal;
 
 namespace scadminserver

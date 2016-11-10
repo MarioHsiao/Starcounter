@@ -104,6 +104,7 @@
       <DependentUpon>CodeHost.json</DependentUpon>
     </Compile>
     <Compile Include="RuntimeHosts\SelfHosted\SelfHostingRuntimeHost.cs" />
+    <Compile Include="RuntimeHosts\Shared\ExceptionManager.cs" />
     <Compile Include="StarcounterInternal.Hosting\ExceptionManager.cs" />
     <Compile Include="StarcounterInternal.Hosting\Loader.cs" />
     <Compile Include="StarcounterInternal.Hosting\orange.cs" />
