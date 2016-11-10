@@ -10,6 +10,7 @@ namespace Starcounter.Internal.Weaver.Cache
     public sealed class CachedAssemblyFiles
     {
         readonly List<string> artifacts;
+        readonly string name;
 
         /// <summary>
         /// Gets the full path of each artifact.
@@ -17,6 +18,15 @@ namespace Starcounter.Internal.Weaver.Cache
         public IEnumerable<string> ArtifactPaths {
             get {
                 return artifacts;
+            }
+        }
+
+        /// <summary>
+        /// Gets the logical name of this file set.
+        /// </summary>
+        public string Name {
+            get {
+                return name;
             }
         }
 
@@ -41,9 +51,49 @@ namespace Starcounter.Internal.Weaver.Cache
             Guard.DirectoryExists(cacheDirectory, nameof(cacheDirectory));
 
             var schemas = Directory.GetFiles(cacheDirectory, "*.schema");
-            var result = new List<CachedAssemblyFiles>(schemas.Length);
+            return CreateSetFromSchemaFiles(schemas);
+        }
 
-            foreach (var schema in schemas)
+        /// <summary>
+        /// Gets a set of <see cref="CachedAssemblyFiles"/> representing the artifact set
+        /// of every cached assembly in a given weaver cache directory, filtered by corresponding
+        /// input assemblies in a given source directory.
+        /// </summary>
+        /// <param name="cacheDirectory">The weaver cache directory.</param>
+        /// <param name="sourceDirectory">Directory whose assemblies define a filter of cached
+        /// artifacts to include in the result.</param>
+        /// <returns>Set of artifacts.</returns>
+        public static IEnumerable<CachedAssemblyFiles> GetAllFromCacheDirectoryMatchingSources(
+            string cacheDirectory,
+            string sourceDirectory)
+        {
+            Guard.DirectoryExists(cacheDirectory, nameof(cacheDirectory));
+            Guard.DirectoryExists(sourceDirectory, nameof(sourceDirectory));
+
+            var sourceAssemblies = new List<string>();
+            sourceAssemblies.AddRange(Directory.GetFiles(sourceDirectory, "*.dll"));
+            sourceAssemblies.AddRange(Directory.GetFiles(sourceDirectory, "*.exe"));
+
+            var schemaFiles = new List<string>();
+
+            foreach (var sourceFile in sourceAssemblies)
+            {
+                var sourceName = Path.GetFileNameWithoutExtension(sourceFile);
+                var schemaFile = Path.Combine(cacheDirectory, sourceName + ".schema");
+                if (File.Exists(schemaFile))
+                {
+                    schemaFiles.Add(schemaFile);
+                }
+            }
+
+            return CreateSetFromSchemaFiles(schemaFiles);
+        }
+
+        static IEnumerable<CachedAssemblyFiles> CreateSetFromSchemaFiles(IEnumerable<string> schemaFiles)
+        {
+            var result = new List<CachedAssemblyFiles>();
+
+            foreach (var schema in schemaFiles)
             {
                 var assembly = Path.ChangeExtension(schema, ".dll");
                 if (!File.Exists(assembly))
@@ -72,6 +122,8 @@ namespace Starcounter.Internal.Weaver.Cache
         public CachedAssemblyFiles(string schemaPath, string transformedAssemblyPath)
         {
             Guard.FileExists(schemaPath, nameof(schemaPath));
+
+            name = Path.GetFileNameWithoutExtension(schemaPath);
 
             artifacts = new List<string>();
             artifacts.Add(schemaPath);
