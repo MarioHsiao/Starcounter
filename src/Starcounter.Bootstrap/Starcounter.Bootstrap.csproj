@@ -69,6 +69,7 @@
     <Compile Include="CommandLineConfiguration.cs" />
     <Compile Include="Hosting\ApplicationDirectory.cs" />
     <Compile Include="Hosting\AppStart.cs" />
+    <Compile Include="RuntimeHosts\SelfHosted\AssemblyResolver.cs" />
     <Compile Include="RuntimeHosts\Shared\AssemblyResolver.cs" />
     <Compile Include="Hosting\CodeHostError.cs" />
     <Compile Include="Hosting\EntrypointOptions.cs" />
