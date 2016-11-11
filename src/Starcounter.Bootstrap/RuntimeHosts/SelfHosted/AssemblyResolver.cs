@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace Starcounter.Bootstrap.RuntimeHosts.SelfHosted
@@ -51,11 +52,17 @@ namespace Starcounter.Bootstrap.RuntimeHosts.SelfHosted
             {
                 return Assembly.LoadFile(assemblyPath);
             }
+            
+            var binary = appDirectory.Binaries.FirstOrDefault((candidate) =>
+            {
+                return candidate.IsAssembly && candidate.Name == name;
+            });
 
-            // Either look in the root application directory, or in the cache
-            // it reference. Do this via custom ApplicationDirectory and PrivateBinaries.
-            // TODO:
-
+            if (binary != null)
+            {
+                return Assembly.LoadFile(binary.FilePath);
+            }
+            
             return null;
         }
     }
