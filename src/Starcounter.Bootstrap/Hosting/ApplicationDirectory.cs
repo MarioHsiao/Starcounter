@@ -1,14 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace Starcounter.Hosting {
+namespace Starcounter.Hosting
+{
     /// <summary>
     /// Represent the application directory of an application that has been
     /// requested to launch into a host.
     /// </summary>
-    public sealed class ApplicationDirectory {
+    public class ApplicationDirectory {
+        readonly FileInfo[] schemaFiles;
+
         /// <summary>
-        /// Full path to the directory.
+        /// Full path to the primary application directory.
         /// </summary>
         public readonly string Path;
 
@@ -21,29 +24,45 @@ namespace Starcounter.Hosting {
         /// <summary>
         /// Initialize a new <see cref="ApplicationDirectory"/>.
         /// </summary>
-        /// <param name="directory">The directory to initialize from.</param>
-        public ApplicationDirectory(DirectoryInfo directory) {
-            Path = directory.FullName;
-            
-            var binaries = new List<FileInfo>();
-            binaries.AddRange(directory.GetFiles("*.dll"));
-            binaries.AddRange(directory.GetFiles("*.exe"));
+        /// <param name="primaryDirectory">The directory to initialize from.</param>
+        /// <param name="secondaryDirectories">Optional secondary directories.</param>
+        public ApplicationDirectory(DirectoryInfo primaryDirectory, IEnumerable<DirectoryInfo> secondaryDirectories = null) {
+            Path = primaryDirectory.FullName;
 
+            var binaries = new List<FileInfo>();
+            var schemas = new List<FileInfo>();
+
+            AddArtifactFilesFromDirectory(primaryDirectory, binaries, schemas);
+            foreach (var secondary in secondaryDirectories)
+            {
+                AddArtifactFilesFromDirectory(secondary, binaries, schemas);
+            }
+            
             Binaries = new PrivateBinaryFile[binaries.Count];
             int i = 0;
             foreach (var binary in binaries) {
                 Binaries[i] = new PrivateBinaryFile(binary.FullName);
                 i++;
             }
+
+            schemaFiles = schemas.ToArray();
         }
 
+        void AddArtifactFilesFromDirectory(DirectoryInfo directory, List<FileInfo> binaries, List<FileInfo> schemaFiles)
+        {
+            binaries.AddRange(directory.GetFiles("*.dll"));
+            binaries.AddRange(directory.GetFiles("*.exe"));
+            
+            schemaFiles.AddRange(directory.GetFiles("*.schema"));
+        }
+        
         /// <summary>
         /// Return a list of schema files from the given virtual directory.
         /// </summary>
         /// <returns>List of schema files.</returns>
         public IEnumerable<FileInfo> GetApplicationSchemaFiles()
         {
-            return GetApplicationSchemaFilesFromDirectory(Path);
+            return schemaFiles;
         }
 
         /// <summary>
