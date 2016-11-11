@@ -29,8 +29,8 @@ namespace Starcounter.Hosting
         public ApplicationDirectory(DirectoryInfo primaryDirectory, IEnumerable<DirectoryInfo> secondaryDirectories = null) {
             Path = primaryDirectory.FullName;
 
-            var binaries = new List<FileInfo>();
-            var schemas = new List<FileInfo>();
+            var binaries = new Dictionary<string, FileInfo>();
+            var schemas = new Dictionary<string, FileInfo>();
 
             AddArtifactFilesFromDirectory(primaryDirectory, binaries, schemas);
             foreach (var secondary in secondaryDirectories)
@@ -40,20 +40,36 @@ namespace Starcounter.Hosting
             
             Binaries = new PrivateBinaryFile[binaries.Count];
             int i = 0;
-            foreach (var binary in binaries) {
+            foreach (var binary in binaries.Values) {
                 Binaries[i] = new PrivateBinaryFile(binary.FullName);
                 i++;
             }
 
-            schemaFiles = schemas.ToArray();
+            schemaFiles = new FileInfo[schemas.Count];
+            schemas.Values.CopyTo(schemaFiles, 0);
         }
 
-        void AddArtifactFilesFromDirectory(DirectoryInfo directory, List<FileInfo> binaries, List<FileInfo> schemaFiles)
+        void AddArtifactFilesFromDirectory(DirectoryInfo directory, Dictionary<string, FileInfo> binaries, Dictionary<string, FileInfo> schemaFiles)
         {
-            binaries.AddRange(directory.GetFiles("*.dll"));
-            binaries.AddRange(directory.GetFiles("*.exe"));
-            
-            schemaFiles.AddRange(directory.GetFiles("*.schema"));
+            AddAllFilesNotContainedByName(directory.GetFiles("*.dll"), binaries);
+            AddAllFilesNotContainedByName(directory.GetFiles("*.exe"), binaries);
+            AddAllFilesNotContainedByName(directory.GetFiles("*.schema"), schemaFiles);
+        }
+
+        void AddAllFilesNotContainedByName(FileInfo[] files, Dictionary<string, FileInfo> filesByName)
+        {
+            foreach (var file in files)
+            {
+                if (!filesByName.ContainsKey(file.Name))
+                {
+                    filesByName.Add(file.Name, file);
+                }
+                else
+                {
+                    // Trace or log this, maybe even a notice.
+                    // TODO:
+                }
+            }
         }
         
         /// <summary>
