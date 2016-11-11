@@ -102,10 +102,9 @@ namespace StarcounterInternal.Hosting
             OnLoaderStarted();
 
             var application = new Application(appBase, DefaultHost.Current);
-            var inputFile = new FileInfo(application.HostedFilePath);
-            var appDir = new ApplicationDirectory(inputFile.Directory);
+            var appDir = assemblyResolver.RegisterApplication(application.HostedFilePath);
 
-            var typeDefs = SchemaLoader.LoadAndConvertSchema(inputFile.Directory);
+            var typeDefs = SchemaLoader.LoadAndConvertSchema(appDir.GetApplicationSchemaFiles());
             OnSchemaVerifiedAndLoaded();
 
             var package = new Package(

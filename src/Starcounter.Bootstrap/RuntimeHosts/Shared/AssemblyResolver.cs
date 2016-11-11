@@ -31,10 +31,18 @@ namespace Starcounter.Hosting {
             PrivateAssemblies = store;
         }
 
-        Assembly IAssemblyResolver.RegisterApplication(string executablePath, ApplicationDirectory appDirectory)
+        ApplicationDirectory IAssemblyResolver.RegisterApplication(string executablePath)
         {
-            PrivateAssemblies.RegisterApplicationDirectory(appDirectory);
-            
+            var exe = new FileInfo(executablePath);
+            var appDir = new ApplicationDirectory(exe.Directory);
+
+            PrivateAssemblies.RegisterApplicationDirectory(appDir);
+
+            return appDir;
+        }
+
+        Assembly IAssemblyResolver.ResolveApplication(string executablePath)
+        {
             var assembly = ResolveApplication(executablePath);
             if (assembly.EntryPoint == null)
             {
@@ -44,31 +52,8 @@ namespace Starcounter.Hosting {
 
             return assembly;
         }
-
-        public Assembly ResolveApplication(string applicationHostFile) {
-            Trace("Resolving application: {0}", applicationHostFile);
-
-            var store = PrivateAssemblies.Immutable;
-            var name = store.GetAssembly(applicationHostFile);
-
-            var matches = GetAllWithName(AppDomain.CurrentDomain.GetAssemblies(), name);
-            var resolved = MatchOne(name, applicationHostFile, matches);
-            if (resolved != null) {
-                // This is kind of an awkward case. We log a notice about
-                // it to help out investigating if something later behaves
-                // weird. We might consider not supporting this later (i.e
-                // have the application to fail starting instead).
-                Trace("Application loaded: {0}, resolved to {1}{2}", applicationHostFile, resolved.FullName, resolved.Location);
-                log.LogNotice(
-                    "Redirecting application assembly {0}, executable {1} to already loaded {2}",
-                    resolved.FullName, applicationHostFile, resolved.Location);
-                return resolved;
-            }
-
-            return Load(name, applicationHostFile);
-        }
-
-        public Assembly ResolveApplicationReference(ResolveEventArgs args) {
+        
+        Assembly IAssemblyResolver.ResolveApplicationReference(ResolveEventArgs args) {
             Trace("Asked to resolve reference to {0}, requested by {1}", args.Name, args.RequestingAssembly == null ? "<unknown>" : args.RequestingAssembly.FullName);
             
             var name = new AssemblyName(args.Name);
@@ -95,6 +80,31 @@ namespace Starcounter.Hosting {
                 ResolveApplicationReferenceUnscoped(name, store);
 
             return pick == null ? null : Load(pick.Name, pick.FilePath);
+        }
+
+        Assembly ResolveApplication(string applicationHostFile)
+        {
+            Trace("Resolving application: {0}", applicationHostFile);
+
+            var store = PrivateAssemblies.Immutable;
+            var name = store.GetAssembly(applicationHostFile);
+
+            var matches = GetAllWithName(AppDomain.CurrentDomain.GetAssemblies(), name);
+            var resolved = MatchOne(name, applicationHostFile, matches);
+            if (resolved != null)
+            {
+                // This is kind of an awkward case. We log a notice about
+                // it to help out investigating if something later behaves
+                // weird. We might consider not supporting this later (i.e
+                // have the application to fail starting instead).
+                Trace("Application loaded: {0}, resolved to {1}{2}", applicationHostFile, resolved.FullName, resolved.Location);
+                log.LogNotice(
+                    "Redirecting application assembly {0}, executable {1} to already loaded {2}",
+                    resolved.FullName, applicationHostFile, resolved.Location);
+                return resolved;
+            }
+
+            return Load(name, applicationHostFile);
         }
 
         PrivateBinaryFile ResolveApplicationReferenceUnscoped(AssemblyName name, IPrivateAssemblyStore store) {

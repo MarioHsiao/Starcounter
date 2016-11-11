@@ -85,17 +85,15 @@ namespace Starcounter.Internal
         internal static LogSource Log = LogSources.CodeHostLoader;
 
         /// <summary>
-        /// Loads the and convert schema.
+        /// Loads and convert the schema.
         /// </summary>
-        /// <param name="inputDir">The input dir.</param>
+        /// <param name="schemaFiles">Application schema file</param>
         /// <returns>List{TypeDef}.</returns>
-        public static List<TypeDef> LoadAndConvertSchema(DirectoryInfo inputDir)
+        public static List<TypeDef> LoadAndConvertSchema(IEnumerable<FileInfo> schemaFiles)
         {
             errorsFoundWithCodeScErrNonPublicFieldNotExposed = 0;
-
-            // TODO:
-
-            var databaseSchema = DatabaseSchema.DeserializeFrom(inputDir);
+            
+            var databaseSchema = DatabaseSchema.DeserializeFrom(schemaFiles);
             
             var typeDefs = new List<TypeDef>();
             var databaseClasses = new List<DatabaseEntityClass>();

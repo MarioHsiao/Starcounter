@@ -24,7 +24,7 @@ namespace Starcounter.Hosting {
         /// <param name="directory">The directory to initialize from.</param>
         public ApplicationDirectory(DirectoryInfo directory) {
             Path = directory.FullName;
-
+            
             var binaries = new List<FileInfo>();
             binaries.AddRange(directory.GetFiles("*.dll"));
             binaries.AddRange(directory.GetFiles("*.exe"));
@@ -35,6 +35,26 @@ namespace Starcounter.Hosting {
                 Binaries[i] = new PrivateBinaryFile(binary.FullName);
                 i++;
             }
+        }
+
+        /// <summary>
+        /// Return a list of schema files from the given virtual directory.
+        /// </summary>
+        /// <returns>List of schema files.</returns>
+        public IEnumerable<FileInfo> GetApplicationSchemaFiles()
+        {
+            return GetApplicationSchemaFilesFromDirectory(Path);
+        }
+
+        /// <summary>
+        /// Return a list of schema files found in a specific directory.
+        /// </summary>
+        /// <param name="directory">The target directory to look in.</param>
+        /// <returns>List of schema files</returns>
+        public static IEnumerable<FileInfo> GetApplicationSchemaFilesFromDirectory(string directory)
+        {
+            var dir = new DirectoryInfo(directory);
+            return dir.GetFiles("*.schema");
         }
     }
 }

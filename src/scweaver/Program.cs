@@ -3,6 +3,7 @@ using Sc.Server.Weaver.Schema;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
+using Starcounter.Hosting;
 using System;
 using System.CodeDom.Compiler;
 using System.Diagnostics;
@@ -242,7 +243,8 @@ namespace Starcounter.Weaver
             string fileName,
             ApplicationArguments arguments) {
 
-            var schema = DatabaseSchema.DeserializeFrom(new DirectoryInfo(outputDirectory));
+            var schemaFiles = ApplicationDirectory.GetApplicationSchemaFilesFromDirectory(outputDirectory);
+            var schema = DatabaseSchema.DeserializeFrom(schemaFiles);
             schema.DebugOutput(new IndentedTextWriter(Console.Out));
         }
 

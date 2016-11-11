@@ -288,7 +288,7 @@ namespace Starcounter.Hosting
         Assembly LoadMainAssembly(Application application, ApplicationDirectory appDir) {
             var assemblyResolver = Loader.Resolver;
 
-            var assembly = assemblyResolver.RegisterApplication(application.HostedFilePath, appDir);
+            var assembly = assemblyResolver.ResolveApplication(application.HostedFilePath);
             OnTargetAssemblyLoaded();
 
             return assembly;
