@@ -568,43 +568,8 @@ namespace TransactionLogTest
             }
         }
 
-        static public void CreateIndex(string index_name, string query)
-        {
-            bool index_exist = false;
-            Db.Transact(() => index_exist = Db.SQL("SELECT i FROM Starcounter.Metadata.\"Index\" i WHERE Name = ?", index_name).Any());
-            if (!index_exist)
-                Db.SQL(query);
-        }
-
         static void Main(string[] args)
         {
-            CreateIndex("IntTestKey", "CREATE INDEX IntTestKey ON IntTest (val)");
-
-            Db.Transact(() =>
-            {
-                if (!Db.SQL<IntTest>("SELECT i FROM IntTest i").Any())
-                {
-                    new IntTest { val = long.MinValue };
-                    new IntTest { val = -1 };
-                    System.Console.Out.WriteLine("insert new values");
-                }
-                else
-                {
-                    System.Console.Out.WriteLine("found values");
-                }
-            });
-
-            Db.Transact(() =>{
-                var r = Db.SQL<IntTest>("SELECT i FROM IntTest i ORDER BY val").ToArray();
-
-                System.Console.Out.WriteLine(r[0].val);
-                System.Console.Out.WriteLine(r[1].val);
-
-                Trace.Assert(r[0].val < r[1].val);
-            });
-
-#if false
-
             check_create_entry();
             check_create_entry_for_inherited_tables();
             check_update_entry();
@@ -617,7 +582,7 @@ namespace TransactionLogTest
             check_apply_update_to_nonexistent_record();
             check_apply_delete();
             check_apply_delete_of_nonexistent_record();
-#endif
+
             Environment.Exit(0);
         }
     }
