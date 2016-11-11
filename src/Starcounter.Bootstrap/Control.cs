@@ -508,7 +508,7 @@ namespace StarcounterInternal.Bootstrap {
 
         private static void ProcessCallbackMessagesThread(Object parameters) {
             ulong hlogs = (ulong)parameters;
-            synccommit.star_process_callback_messages(hlogs);
+            //synccommit.star_process_callback_messages(hlogs);
         }
 
         /// <summary>

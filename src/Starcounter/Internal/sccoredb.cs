@@ -12,20 +12,6 @@ namespace Starcounter.Internal
 {
 
     /// <summary>
-    /// </summary>
-    [SuppressUnmanagedCodeSecurity]
-    internal static class synccommit {
-
-        /// <summary>
-        /// </summary>
-        [DllImport("synccommit.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_commit_sync(ulong handle, int free);
-
-        [DllImport("synccommit.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern void star_process_callback_messages(ulong hlogs);
-    }
-
-    /// <summary>
     /// Class sccoredb
     /// </summary>
     [SuppressUnmanagedCodeSecurity]
@@ -289,6 +275,10 @@ namespace Starcounter.Internal
         internal static extern uint star_create_transaction(
             uint flags, out ulong ptransaction_handle
             );
+
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static uint star_context_commit_async(ulong handle, int free, int wait_for_io, ulong user_key);
 
         /// <summary>
         /// Frees transaction.
