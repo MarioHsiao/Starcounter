@@ -270,11 +270,6 @@ namespace Starcounter.Internal {
                     // Register Uri Alias handlers
                     RegisterUriAliasHandlers(defaultSystemHttpPort);
                 }
-
-                // Checking if we need to register HTML compositions.
-                if (StarcounterEnvironment.RegisterHTMLCompositions) {
-                    //Starcounter.HTMLComposition.Register();
-                }
             }
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.

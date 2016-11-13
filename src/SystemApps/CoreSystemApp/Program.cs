@@ -5,7 +5,9 @@ using Starcounter.Internal;
 namespace CoreSystemApp {
     class Program {
         static void Main() {
-            Starcounter.HTMLComposition.Register();
+            if (StarcounterEnvironment.RegisterHTMLCompositions) {
+                Starcounter.HTMLComposition.Register();
+            }            
         } 
     }
 }
