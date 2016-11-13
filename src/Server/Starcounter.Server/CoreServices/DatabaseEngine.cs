@@ -24,6 +24,7 @@ using System.Text;
 using System.Threading;
 using Starcounter.Rest.ExtensionMethods;
 using Starcounter.Logging;
+using Newtonsoft.Json;
 
 namespace Starcounter.Server {
 
@@ -337,6 +338,41 @@ namespace Starcounter.Server {
             return true;
         }
 
+        public class SystemApp {
+            public Boolean AutoStart { get; set; }
+            public String StarExeParams { get; set; }
+            public String Description { get; set; }
+            public String Name { get; set; }
+        }
+
+        // Starts all system apps for this database,
+        // that are configured for autostart.
+        internal void AutostartApps(Database database) {
+
+            String pathToDatabaseConfig = Path.GetDirectoryName(database.Configuration.ConfigurationFilePath);
+            String pathToAutostartJson = Path.Combine(pathToDatabaseConfig, StarcounterConstants.AutostartAppsJson);
+            if (!File.Exists(pathToAutostartJson))
+                return;
+
+            String json = File.ReadAllText(pathToAutostartJson);
+            List<SystemApp> systemApps = JsonConvert.DeserializeObject<List<SystemApp>>(json);
+
+            // Starting all auto start processes.
+            foreach (SystemApp sa in systemApps) {
+                if (sa.AutoStart) {
+                    Process p = new Process();
+                    p.StartInfo.FileName = "star";
+
+                    // Starting for a specific database.
+                    p.StartInfo.Arguments = "--database=" + database.Name + " " + sa.StarExeParams;
+                    //p.StartInfo.CreateNoWindow = true;
+                    //p.StartInfo.UseShellExecute = false;
+                    p.Start();
+                    p.Close();
+                }
+            }
+        }
+
         internal void WaitUntilCodeHostOnline(Process codeHostProcess, Database database) {
             // Wait until either the host comes online or until the process
             // terminates, whichever comes first.
@@ -369,6 +405,9 @@ namespace Starcounter.Server {
             if (codeHostProcess.HasExited) {
                 throw CreateCodeHostTerminated(codeHostProcess, database);
             }
+
+            // Starting all system apps here.
+            AutostartApps(database);
         }
 
         internal bool StopCodeHostProcess(Database database) {

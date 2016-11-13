@@ -1,0 +1,9 @@
+[
+    {
+        "Name":"CoreSystemApp",
+        "Description":"Adds HTMLCompositions registration.",
+        "AutoStart":true,
+        "StarExeParams":"SystemApps/CoreSystemApp.exe"
+    },
+    
+]

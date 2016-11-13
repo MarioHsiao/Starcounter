@@ -58,6 +58,11 @@ namespace Starcounter.Internal
         public const string WebRootFolderName = "wwwroot";
 
         /// <summary>
+        /// Name of the apps autostart json.
+        /// </summary>
+        public const string AutostartAppsJson = "AutostartApps.json";
+
+        /// <summary>
         /// Network related constants.
         /// </summary>
         public static class NetworkConstants

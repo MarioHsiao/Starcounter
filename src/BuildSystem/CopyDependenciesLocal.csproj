@@ -7,7 +7,7 @@
     <OutputPath>..\..\bin\Debug\</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
-	  <OutputPath32>$(OutputPath)\32BitComponents</OutputPath32>
+    <OutputPath32>$(OutputPath)\32BitComponents</OutputPath32>
     <OutputPathConfig>$(OutputPath)\Configuration\</OutputPathConfig>
   </PropertyGroup>
   <PropertyGroup>
@@ -66,6 +66,7 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayXMLs)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PrologSQLParserBinary)" DestinationFolder="$(OutputPath32)" />
     <Copy Condition="!Exists('$(ServiceConfigTargetFile)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalServiceConfig)" DestinationFolder="$(OutputPathConfig)" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="AutostartApps.json" DestinationFolder="$(OutputPathConfig)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClientFiles)" DestinationFiles="@(ClientFiles->'$(OutputPath)\ClientFiles\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(Licenses)" DestinationFiles="@(Licenses->'$(OutputPath)\Licenses\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>

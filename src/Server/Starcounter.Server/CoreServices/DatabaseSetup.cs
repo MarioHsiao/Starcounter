@@ -11,6 +11,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using Starcounter.Advanced.Configuration;
+using System.Diagnostics;
+using Starcounter.Internal;
 
 namespace Starcounter.Server {
 
@@ -132,6 +134,14 @@ namespace Starcounter.Server {
         /// database.</returns>
         internal Database CreateDatabase() {
             var databaseConfigPath = CreateFiles();
+
+            // Copying apps autostart config.
+            String autostartJsonFile = Path.Combine("Configuration", StarcounterConstants.AutostartAppsJson);
+            if (File.Exists(autostartJsonFile)) {
+                File.Copy(autostartJsonFile,
+                    Path.Combine(Path.GetDirectoryName(databaseConfigPath), StarcounterConstants.AutostartAppsJson), true);
+            }
+
             var config = DatabaseConfiguration.Load(databaseConfigPath);
             return new Database(this.Engine, config);
         }

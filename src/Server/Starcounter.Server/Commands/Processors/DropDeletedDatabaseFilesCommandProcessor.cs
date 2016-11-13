@@ -1,9 +1,11 @@
 ﻿
 using Starcounter.Advanced.Configuration;
+using Starcounter.Internal;
 using Starcounter.Server.Commands.InternalCommands;
 using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -135,6 +137,13 @@ namespace Starcounter.Server.Commands {
                 if (storage.IsNamedKeyDirectory(config.Runtime.TempDirectory, file.DatabaseName)) {
                     SafeDeleteDirectoryIfEmpty(config.Runtime.TempDirectory);
                 }
+
+                // Deleting apps autostart config.
+                String pathToAppsAutostartJson =
+                    Path.Combine(Path.GetDirectoryName(config.ConfigurationFilePath), StarcounterConstants.AutostartAppsJson);
+
+                if (File.Exists(pathToAppsAutostartJson))
+                    File.Delete(pathToAppsAutostartJson);
             }
 
             // Delete Applications "Apps" configuration file
