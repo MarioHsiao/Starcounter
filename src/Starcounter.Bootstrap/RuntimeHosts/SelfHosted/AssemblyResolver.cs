@@ -24,13 +24,18 @@ namespace Starcounter.Bootstrap.RuntimeHosts.SelfHosted
         ApplicationDirectory IAssemblyResolver.RegisterApplication(string executablePath)
         {
             Trace.Assert(appDirectory == null);
-
+            
             var exe = new FileInfo(executablePath);
-            appDirectory = new ApplicationDirectory(exe.Directory);
+            var cachePath = Path.Combine(exe.Directory.FullName, ".starcounter", "cache");
+            var weaverCache = new DirectoryInfo(cachePath);
 
-            // Materialize a directory specific for self-hosted apps, that can load
-            // "special assemblies" from the cache, and schemas too.
+            // This is not a long-term solution and one we must eventually address.
+            // The only idea I have is to have MsBuild\Weave write some kind of reference
+            // to where the real cache directory exist, and we must consume that.
             // TODO:
+            Trace.Assert(weaverCache.Exists);
+
+            appDirectory = new ApplicationDirectory(exe.Directory, new[] { weaverCache });
 
             return appDirectory;
         }
