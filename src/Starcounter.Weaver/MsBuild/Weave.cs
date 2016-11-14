@@ -3,11 +3,9 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Starcounter.Internal.Weaver.Cache;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 
 namespace Starcounter.Weaver.MsBuild
 {
@@ -62,15 +60,6 @@ namespace Starcounter.Weaver.MsBuild
             {
                 Directory.CreateDirectory(ignoredOutputDirectory);
             }
-
-            // Bug: when doing CLEAN Simplified.Data.Model.dll and Starcounter.Extensions.dll
-            // is not deleted from the OUTPUT directory.
-            //
-            // And second bug: when that happens, and you then build the project, the weaver
-            // will fail ScErrAppDeplyedEditionLibrary, but the build report success (and the
-            // weaver cache is empty).
-            //
-            // TODO:
 
             setup = new WeaverSetup()
             {
