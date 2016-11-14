@@ -125,7 +125,7 @@ namespace Starcounter.Weaver.MsBuild
             
             foreach (var cachedFiles in files)
             {
-                cachedFiles.CopyTo(outputDirectory, true);
+                cachedFiles.CopyTo(outputDirectory, true, CachedAssemblyArtifact.Binaries);
             }
 
             return true;

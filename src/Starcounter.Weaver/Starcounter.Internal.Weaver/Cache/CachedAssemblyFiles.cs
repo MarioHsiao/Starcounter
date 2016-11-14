@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace Starcounter.Internal.Weaver.Cache
@@ -11,7 +13,7 @@ namespace Starcounter.Internal.Weaver.Cache
     {
         readonly List<string> artifacts;
         readonly string name;
-
+        
         /// <summary>
         /// Gets the full path of each artifact.
         /// </summary>
@@ -140,17 +142,53 @@ namespace Starcounter.Internal.Weaver.Cache
             }
         }
 
-        public void CopyTo(string targetDirectory, bool overwriteExistingArtifacts = false)
+        public void CopyTo(string targetDirectory, bool overwriteExistingArtifacts = false, CachedAssemblyArtifact filter = CachedAssemblyArtifact.All)
         {
             Guard.DirectoryExists(targetDirectory, nameof(targetDirectory));
 
             foreach (var artifact in artifacts)
             {
-                var fileName = Path.GetFileName(artifact);
-                var targetName = Path.Combine(targetDirectory, fileName);
+                if (IsIncludedInFilter(artifact, filter))
+                {
+                    var fileName = Path.GetFileName(artifact);
+                    var targetName = Path.Combine(targetDirectory, fileName);
 
-                File.Copy(artifact, targetName, overwriteExistingArtifacts);
+                    File.Copy(artifact, targetName, overwriteExistingArtifacts);
+                }
             }
+        }
+
+        bool IsIncludedInFilter(string artifact, CachedAssemblyArtifact filter)
+        {
+            if (IsSchemaFile(artifact))
+            {
+                return (filter & CachedAssemblyArtifact.Schema) != 0;
+            }
+
+            if (IsAssemblyFile(artifact))
+            {
+                return (filter & CachedAssemblyArtifact.Assembly) != 0;
+            }
+
+            Trace.Assert(IsSymbolFile(artifact));
+
+            return (filter & CachedAssemblyArtifact.Symbols) != 0;
+        }
+
+        bool IsSchemaFile(string filePath)
+        {
+            return Path.GetExtension(filePath).Equals(".schema", StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        bool IsAssemblyFile(string filePath)
+        {
+            return Path.GetExtension(filePath).Equals(".dll", StringComparison.InvariantCultureIgnoreCase) ||
+                Path.GetExtension(filePath).Equals(".exe", StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        bool IsSymbolFile(string filePath)
+        {
+            return Path.GetExtension(filePath).Equals(".pdb", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
