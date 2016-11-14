@@ -103,6 +103,7 @@
     <Compile Include="Starcounter.Internal.Weaver\BackingInfrastructure\AssemblySpecificationEmit.cs" />
     <Compile Include="Starcounter.Internal.Weaver\BackingInfrastructure\TypeSpecificationEmit.cs" />
     <Compile Include="Starcounter.Internal.Weaver\Cache\CachedAssembly.cs" />
+    <Compile Include="Starcounter.Internal.Weaver\Cache\CachedAssemblyArtifact.cs" />
     <Compile Include="Starcounter.Internal.Weaver\Cache\CachedAssemblyFiles.cs" />
     <Compile Include="Starcounter.Internal.Weaver\CastHelper.cs" />
     <Compile Include="Starcounter.Internal.Weaver\DatabaseTypeConfiguration.cs" />
