@@ -33,9 +33,12 @@ namespace Starcounter.Hosting
             var schemas = new Dictionary<string, FileInfo>();
 
             AddArtifactFilesFromDirectory(primaryDirectory, binaries, schemas);
-            foreach (var secondary in secondaryDirectories)
+            if (secondaryDirectories != null)
             {
-                AddArtifactFilesFromDirectory(secondary, binaries, schemas);
+                foreach (var secondary in secondaryDirectories)
+                {
+                    AddArtifactFilesFromDirectory(secondary, binaries, schemas);
+                }
             }
             
             Binaries = new PrivateBinaryFile[binaries.Count];
