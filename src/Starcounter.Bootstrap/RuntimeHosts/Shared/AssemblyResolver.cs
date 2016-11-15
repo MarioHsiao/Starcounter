@@ -1,4 +1,5 @@
-﻿using Starcounter.Internal;
+﻿using Sc.Server.Weaver.Schema;
+using Starcounter.Internal;
 using Starcounter.Logging;
 using System;
 using System.Collections.Generic;
@@ -31,10 +32,12 @@ namespace Starcounter.Hosting {
             PrivateAssemblies = store;
         }
 
-        ApplicationDirectory IAssemblyResolver.RegisterApplication(string executablePath)
+        ApplicationDirectory IAssemblyResolver.RegisterApplication(string executablePath, out DatabaseSchema schema)
         {
             var exe = new FileInfo(executablePath);
             var appDir = new ApplicationDirectory(exe.Directory);
+
+            schema = DatabaseSchema.DeserializeFrom(appDir.GetApplicationSchemaFiles());
 
             PrivateAssemblies.RegisterApplicationDirectory(appDir);
 

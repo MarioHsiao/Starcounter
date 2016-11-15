@@ -1,4 +1,5 @@
 ﻿
+using Sc.Server.Weaver.Schema;
 using Starcounter;
 using Starcounter.Hosting;
 using Starcounter.Internal;
@@ -102,9 +103,11 @@ namespace StarcounterInternal.Hosting
             OnLoaderStarted();
 
             var application = new Application(appBase, DefaultHost.Current);
-            var appDir = assemblyResolver.RegisterApplication(application.HostedFilePath);
 
-            var typeDefs = SchemaLoader.LoadAndConvertSchema(appDir.GetApplicationSchemaFiles());
+            DatabaseSchema schema;
+            var appDir = assemblyResolver.RegisterApplication(application.HostedFilePath, out schema);
+
+            var typeDefs = SchemaLoader.LoadAndConvertSchema(schema);
             OnSchemaVerifiedAndLoaded();
 
             var package = new Package(

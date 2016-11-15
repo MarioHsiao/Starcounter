@@ -1,8 +1,8 @@
 ﻿
+using Sc.Server.Weaver.Schema;
 using Starcounter.Hosting;
 using Starcounter.Internal;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,38 +14,37 @@ namespace Starcounter.Bootstrap.RuntimeHosts.SelfHosted
     {
         readonly string installationDirectory;
         ApplicationDirectory appDirectory;
+        Assembly appAssembly;
 
         public AssemblyResolver()
         {
             installationDirectory = StarcounterEnvironment.InstallationDirectory;
             appDirectory = null;
+            appAssembly = null;
         }
         
-        ApplicationDirectory IAssemblyResolver.RegisterApplication(string executablePath)
+        ApplicationDirectory IAssemblyResolver.RegisterApplication(string executablePath, out DatabaseSchema schema)
         {
             Trace.Assert(appDirectory == null);
-            
+            Trace.Assert(appAssembly == null);
+
             var exe = new FileInfo(executablePath);
-            var cachePath = Path.Combine(exe.Directory.FullName, ".starcounter", "cache");
-            var weaverCache = new DirectoryInfo(cachePath);
+            appDirectory = new ApplicationDirectory(exe.Directory);
 
-            // This is not a long-term solution and one we must eventually address.
-            // The only idea I have is to have MsBuild\Weave write some kind of reference
-            // to where the real cache directory exist, and we must consume that.
-            // TODO:
-            Trace.Assert(weaverCache.Exists);
+            appAssembly = Assembly.LoadFile(executablePath);
 
-            appDirectory = new ApplicationDirectory(exe.Directory, new[] { weaverCache });
+            var stream = appAssembly.GetManifestResourceStream(DatabaseSchema.EmbeddedResourceName);
+            stream.Seek(0, SeekOrigin.Begin);
 
+            schema = DatabaseSchema.DeserializeFrom(stream);
+            
             return appDirectory;
         }
 
         Assembly IAssemblyResolver.ResolveApplication(string executablePath)
         {
-            // Not really interesting for us. But we could assert the call
-            // just reach us once.
-
-            return Assembly.GetEntryAssembly();
+            Trace.Assert(appAssembly != null);
+            return appAssembly;
         }
 
         Assembly IAssemblyResolver.ResolveApplicationReference(ResolveEventArgs args)

@@ -1,4 +1,5 @@
 ﻿
+using Sc.Server.Weaver.Schema;
 using System;
 using System.Reflection;
 
@@ -13,9 +14,10 @@ namespace Starcounter.Hosting
         /// Register the given application executable with the resolver.
         /// </summary>
         /// <param name="executablePath">Path to the executable file.</param>
+        /// <param name="schema">The database schema of the application.</param>
         /// <returns>A virtual application directory that the host can use to resolve
         /// assemblies and schema files from.</returns>
-        ApplicationDirectory RegisterApplication(string executablePath);
+        ApplicationDirectory RegisterApplication(string executablePath, out DatabaseSchema schema);
 
         /// <summary>
         /// Resolves the application main assembly given a path.
