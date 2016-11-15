@@ -1,14 +1,10 @@
-// ***********************************************************************
-// <copyright file="DatabaseSchema.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
 
 using Starcounter;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Sc.Server.Weaver.Schema
 {
@@ -23,6 +19,12 @@ namespace Sc.Server.Weaver.Schema
         readonly Dictionary<String, DatabaseClass> databaseClassesByName = new Dictionary<String, DatabaseClass>(StringComparer.InvariantCultureIgnoreCase);
         readonly Dictionary<String, DatabaseClass> databaseClassesByShortname = new Dictionary<String, DatabaseClass>();
         readonly Dictionary<String, List<DatabaseIndex>> indexByDatabaseClassName = new Dictionary<String, List<DatabaseIndex>>();
+
+        /// <summary>
+        /// Name we use when embedding a serialized schema into an assembly
+        /// as part of weaving.
+        /// </summary>
+        public const string EmbeddedResourceName = "Starcounter.Weaver.Database.schema";
 
         /// <summary>
         /// Initializes a new <see cref="DatabaseSchema"/>.
@@ -327,6 +329,23 @@ namespace Sc.Server.Weaver.Schema
                 index.Add(databaseClass, null);
             }
         }
+
+        /// <summary>
+        /// Serialize the current instance into a new <c>MemoryStream</c>.
+        /// </summary>
+        /// <returns>A stream with the serialized schema.</returns>
+        public Stream Serialize()
+        {
+            var formatter = new BinaryFormatter();
+            var stream = new MemoryStream();
+
+            foreach (var assembly in assemblies)
+            {
+                formatter.Serialize(stream, assembly);
+            }
+
+            return stream;
+        }
         
         /// <summary>
         /// Produces a <see cref="DatabaseSchema"/> from a set of schema files.
@@ -348,6 +367,27 @@ namespace Sc.Server.Weaver.Schema
 
             return schema;
         }
+
+        /// <summary>
+        /// Deserialize an instance of a schema from a stream.
+        /// </summary>
+        /// <param name="stream">The stream in which the serialized schema is contained.</param>
+        /// <returns>A materialized schema.</returns>
+        public static DatabaseSchema DeserializeFrom(Stream stream)
+        {
+            var schema = new DatabaseSchema();
+
+            while (stream.Position < stream.Length)
+            {
+                var databaseAssembly = DatabaseAssembly.Deserialize(stream);
+                schema.Assemblies.Add(databaseAssembly);
+            }
+
+            schema.AfterDeserialization();
+
+            return schema;
+        }
+
         private static void RecursivePopulateOrderedEntityClasses(
         DatabaseEntityClass databaseClass,
         IList<DatabaseEntityClass> orderedClasses,
