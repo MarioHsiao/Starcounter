@@ -239,6 +239,27 @@ namespace Starcounter.Internal.Weaver {
             ScTransformTrace.Instance.WriteLine("Transforming assembly {0}.", _module.Name);
 
             Initialize();
+
+            var mainAssemblyName = Project.Properties["MainAssemblyName"];
+            
+            if (_module.Name.Equals(mainAssemblyName, StringComparison.InvariantCultureIgnoreCase))
+            {
+                var r = new ManifestResourceDeclaration()
+                {
+                    Name = DatabaseSchema.EmbeddedResourceName,
+                    IsPublic = true
+                };
+                
+                r.ContentStreamProvider = () =>
+                {
+                    var schema = ScAnalysisTask.DatabaseSchema.Serialize();
+                    schema.Seek(0, System.IO.SeekOrigin.Begin);
+                    return schema;
+                };
+
+                _module.AssemblyManifest.Resources.Add(r);
+            }
+            
             
             var assemblySpecification = new AssemblySpecificationEmit(_module);
             TypeSpecificationEmit typeSpecification = null;
