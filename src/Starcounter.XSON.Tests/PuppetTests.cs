@@ -416,6 +416,59 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestProcessInputForNonStatefulJson() {
+            TObject schema;
+
+            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            dynamic json = schema.CreateInstance();
+            bool handlerCalled = false;
+
+            TString tvalue1 = ((TString)schema.Properties[0]);
+            tvalue1.AddHandler(
+                Helper.CreateInput<string>,
+                (Json pup, Starcounter.Input<string> input) => {
+                    handlerCalled = true;
+                }
+            );
+            TString tvalue2 = ((TString)schema.Properties[1]);
+            tvalue2.AddHandler(
+                Helper.CreateInput<string>,
+                (Json pup, Starcounter.Input<string> input) => {
+                    handlerCalled = true;
+                    input.Cancel();
+                }
+            );
+
+            TString tvalue3 = ((TString)schema.Properties[2]);
+            tvalue3.AddHandler(
+                Helper.CreateInput<string>,
+                (Json pup, Starcounter.Input<string> input) => {
+                    handlerCalled = true;
+                    input.Value = "ChangedValue3";
+                }
+            );
+
+            tvalue1.Setter(json, "Value1");
+            tvalue2.Setter(json, "Value2");
+            tvalue3.Setter(json, "Value3");
+
+            handlerCalled = false;
+            tvalue1.ProcessInput(json, "InputValue1");
+            Assert.IsTrue(handlerCalled);
+            Assert.AreEqual("InputValue1", tvalue1.Getter(json));
+
+            handlerCalled = false;
+            tvalue2.ProcessInput(json, "InputValue2");
+            Assert.IsTrue(handlerCalled);
+            Assert.AreEqual("Value2", tvalue2.Getter(json)); // handler cancelled.
+
+            handlerCalled = false;
+            tvalue3.ProcessInput(json, "InputValue3");
+            Assert.IsTrue(handlerCalled);
+            Assert.AreEqual("ChangedValue3", tvalue3.Getter(json)); // value changed in handler
+        }
+
+        [Test]
         public static void TestUpgradeToViewmodelAddToSession() {
             dynamic json = new Json();
             json.Value = "A";
