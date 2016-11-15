@@ -78,6 +78,7 @@ namespace Starcounter.Hosting
         public AppHostBuilder UseApplication(string assemblyPath, EntrypointOptions entrypointOptions)
         {
             var start = AppStart.FromExecutable(assemblyPath);
+            start.EntrypointOptions = entrypointOptions;
             appStartProvider = () => { return start; };
             return this;
         }
