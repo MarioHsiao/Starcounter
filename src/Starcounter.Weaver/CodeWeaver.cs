@@ -221,7 +221,7 @@ namespace Starcounter.Weaver
                 postSharpSettings.OverwriteAssemblyNames = false;
                 postSharpSettings.DisableReflection = true;
                 postSharpSettings.SearchDirectories.Add(Setup.InputDirectory);
-
+                
                 if (!Setup.DisableEditionLibraries && Directory.Exists(this.EditionLibrariesDirectory)) {
                     postSharpSettings.SearchDirectories.Add(this.EditionLibrariesDirectory);
                 }
@@ -528,6 +528,7 @@ namespace Starcounter.Weaver
 
             // Apply all general, shared parameters
 
+            parameters.Properties["MainAssemblyName"] = Path.GetFileName(Setup.AssemblyFile);
             parameters.Properties["ScInputDirectory"] = Path.GetDirectoryName(file);
             parameters.Properties["ScCacheDirectory"] = Setup.CacheDirectory;
             parameters.Properties["CacheTimestamp"] =
