@@ -197,8 +197,9 @@ namespace Starcounter {
         /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
+        [Obsolete]
         public static void Transact<T>(Action<T> action, T arg, int maxRetries = 100) {
-            Transact<T>(action, arg, 0, new Advanced.TransactOptions() { maxRetries = maxRetries });
+            Transact(()=>action(arg), 0, new Advanced.TransactOptions() { maxRetries = maxRetries });
         }
 
         /// <summary>
@@ -229,8 +230,9 @@ namespace Starcounter {
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
         /// <returns>The return value of the func.</returns>
+        [Obsolete]
         public static TResult Transact<T, TResult>(Func<T, TResult> func, T arg, int maxRetries = 100) {
-            return Transact<T, TResult>(func, arg, 0, new Advanced.TransactOptions() { maxRetries = maxRetries });
+            return Transact(()=>func(arg), 0, new Advanced.TransactOptions() { maxRetries = maxRetries });
         }
         
         public static class Advanced {
@@ -301,18 +303,10 @@ namespace Starcounter {
             }
         }
 
-        internal static void Transact<T>(Action<T> action, T arg, uint flags, Advanced.TransactOptions opts) {
-            Transact(() => action(arg), flags, opts);
-        }
-
         internal static TResult Transact<TResult>(Func<TResult> func, uint flags, Advanced.TransactOptions opts) {
             TResult r = default(TResult);
             Transact(() => { r = func(); }, flags, opts);
             return r;
-        }
-
-        internal static TResult Transact<T, TResult>(Func<T, TResult> func, T arg, uint flags, Advanced.TransactOptions opts) {
-            return Transact(() => func(arg), flags, opts);
         }
 
         internal static void SystemTransact(Action action, int maxRetries = 100) {
@@ -367,14 +361,17 @@ namespace Starcounter {
             }
         }
 
+        [Obsolete]
         public static void Scope<T>(Action<T> action, T arg, bool isReadOnly = false) {
             Scope(() => action(arg), isReadOnly);
         }
 
+        [Obsolete]
         public static void Scope<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2, bool isReadOnly = false) {
             Scope(() => action(arg1, arg2), isReadOnly);
         }
 
+        [Obsolete]
         public static void Scope<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3, bool isReadOnly = false) {
             Scope(() => action(arg1, arg2, arg3), isReadOnly);
         }
@@ -385,10 +382,12 @@ namespace Starcounter {
             return r;
         }
 
+        [Obsolete]
         public static TResult Scope<T, TResult>(Func<T, TResult> func, T arg, bool isReadOnly = false) {
             return Scope(() => func(arg), isReadOnly);
         }
 
+        [Obsolete]
         public static TResult Scope<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2, bool isReadOnly = false) {
             return Scope(() => func(arg1, arg2), isReadOnly);
         }
