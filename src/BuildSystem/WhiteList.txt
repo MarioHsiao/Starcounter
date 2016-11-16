@@ -240,6 +240,8 @@ Starcounter.Apps.JsonPatch.dll
 Starcounter.Apps.JsonPatch.pdb
 Starcounter.Apps.JsonPatch.XML
 Starcounter.Apps.JsTemplateParser.XML
+Starcounter.Apps.Package.dll
+Starcounter.Apps.Package.pdb
 Starcounter.BitsAndBytes.dll
 Starcounter.BitsAndBytes.pdb
 Starcounter.BitsAndBytes.Unsafe.dll
@@ -314,6 +316,8 @@ Starcounter.XSON.JsTemplateParser.pdb
 Starcounter.XSON.PartialClassGenerator.dll
 Starcounter.XSON.PartialClassGenerator.pdb
 Starcounter-Setup.pdb
+StarPack.exe
+StarPack.pdb
 sunflower.dll
 sunflower.exp
 sunflower.lib
