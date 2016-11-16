@@ -19,9 +19,6 @@ Configuration\
 ItemTemplates\
 ProjectTemplates\
 
-# Libraries containing database classes.
-LibrariesWithDatabaseClasses\
-
 # Special edition libraries
 EditionLibraries\
 
