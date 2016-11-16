@@ -12,4 +12,11 @@ namespace Starcounter {
     /// <typeparam name="DataType"></typeparam>
     public interface IBound<out DataType> {
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IExplicitBound<T> : IBound<T> {
+    }
 }

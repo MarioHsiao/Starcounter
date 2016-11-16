@@ -25,6 +25,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
         internal void RunPrePhase(TValue prototype) {
             ProcessInstanceTypeAssignments(prototype, generator.CodeBehindMetadata);
+            ProcessBindAssignments(prototype, generator.CodeBehindMetadata);
         }
 
         /// <summary>
@@ -41,13 +42,78 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 }
             }
         }
-        
+
+        /// <summary>
+        /// Processes all typeassignments of 'InstanceType' that are in the metadata and makes sure 
+        /// that the specified conversions and reuses are valid as well as do the actual conversion.
+        /// </summary>
+        /// <param name="prototype"></param>
+        /// <param name="metadata"></param>
+        private void ProcessBindAssignments(TValue prototype, CodeBehindMetadata metadata) {
+            foreach (var classInfo in metadata.CodeBehindClasses) {
+                // TODO:
+                // Due to lack of time for testing, and to want to keep old stuff as is for the moment we
+                // will ignore all assignments of Bind if the ExplicitBound<T> interface is not used.
+                // These assignments are currently only needed to get correct compilation-errors for
+                // explicitly bound properties.
+                if (!classInfo.ExplicitlyBound)
+                    return;
+
+                TValue classRoot = generator.FindTemplate(classInfo, prototype);
+                foreach (var bindAssignment in classInfo.BindAssignments) {
+                    ProcessOneBindAssignment(classRoot, bindAssignment);
+                }
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="root"></param>
         /// <param name="typeAssignment"></param>
-        private void ProcessOneTypeAssignment(TValue root, CodeBehindTypeAssignmentInfo typeAssignment) {
+        private void ProcessOneBindAssignment(TValue root, CodeBehindAssignmentInfo bindAssignment) {
+            string[] parts = bindAssignment.TemplatePath.Split('.');
+            Template theTemplate;
+            Template currentTemplate;
+
+            if (!"DefaultTemplate".Equals(parts?[0])) {
+                generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDBINDASSIGNMENT,
+                                                     "Path does not start with field 'DefaultTemplate'",
+                                                     null,
+                                                     root.CodegenInfo.SourceInfo);
+            }
+
+            if (parts.Length == 1) {
+                root.Bind = bindAssignment.Value;
+            } else {
+                VerifyIsObjectOrArray(root.PropertyName, root, bindAssignment, root, Error.SCERRJSONINVALIDBINDASSIGNMENT);
+
+                currentTemplate = root;
+                for (int i = 1; i < parts.Length - 1; i++) {
+                    currentTemplate = GetChild(currentTemplate, parts[i], bindAssignment, root, Error.SCERRJSONINVALIDBINDASSIGNMENT);
+                    VerifyIsObjectOrArray(parts[i], currentTemplate, bindAssignment, root, Error.SCERRJSONINVALIDBINDASSIGNMENT);
+                }
+
+                theTemplate = GetChild(currentTemplate, parts[parts.Length - 1], bindAssignment, root, Error.SCERRJSONINVALIDBINDASSIGNMENT);
+                if (theTemplate == null) {
+                    generator.ThrowExceptionWithLineInfo(
+                        Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
+                        string.Format(MEMBER_NOT_FOUND, parts[parts.Length - 1], bindAssignment.TemplatePath, Error.SCERRJSONINVALIDBINDASSIGNMENT),
+                        null,
+                        root.CodegenInfo.SourceInfo
+                    );
+                }
+
+                ((TValue)theTemplate).Bind = bindAssignment.Value;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="typeAssignment"></param>
+        private void ProcessOneTypeAssignment(TValue root, CodeBehindAssignmentInfo typeAssignment) {
             string[] parts = typeAssignment.TemplatePath.Split('.');
             Template theTemplate;   
             Template currentTemplate;
@@ -60,17 +126,17 @@ namespace Starcounter.XSON.PartialClassGenerator {
             }
 
             if (parts.Length == 1) {
-                root.CodegenInfo.ReuseType = typeAssignment.TypeName;
+                root.CodegenInfo.ReuseType = typeAssignment.Value;
             } else {
-                VerifyIsObjectOrArray(root.PropertyName, root, typeAssignment, root);
+                VerifyIsObjectOrArray(root.PropertyName, root, typeAssignment, root, Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT);
 
                 currentTemplate = root;
                 for (int i = 1; i < parts.Length - 1; i++) {
-                    currentTemplate = GetChild(currentTemplate, parts[i], typeAssignment, root);
-                    VerifyIsObjectOrArray(parts[i], currentTemplate, typeAssignment, root);
+                    currentTemplate = GetChild(currentTemplate, parts[i], typeAssignment, root, Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT);
+                    VerifyIsObjectOrArray(parts[i], currentTemplate, typeAssignment, root, Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT);
                 }
                 
-                theTemplate = GetChild(currentTemplate, parts[parts.Length - 1], typeAssignment, root);
+                theTemplate = GetChild(currentTemplate, parts[parts.Length - 1], typeAssignment, root, Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT);
                 if (theTemplate == null) {
                     generator.ThrowExceptionWithLineInfo(
                         Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
@@ -93,20 +159,21 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// </summary>
         /// <param name="objOrArr"></param>
         /// <param name="name"></param>
-        /// <param name="typeAssignment"></param>
+        /// <param name="assignment"></param>
         /// <param name="root"></param>
         /// <returns></returns>
-        private Template GetChild(Template objOrArr, 
+        private Template GetChild(Template objOrArr,
                                   string name,
-                                  CodeBehindTypeAssignmentInfo typeAssignment,
-                                  Template root) {
+                                  CodeBehindAssignmentInfo assignment,
+                                  Template root,
+                                  uint errorCodeOnError) {
             if (objOrArr.TemplateTypeId == TemplateTypeEnum.Object) {
-               return ((TObject)objOrArr).Properties.GetTemplateByPropertyName(name);
+                return ((TObject)objOrArr).Properties.GetTemplateByPropertyName(name);
             } else {
                 if (!"ElementType".Equals(name)) {
                     generator.ThrowExceptionWithLineInfo(
-                           Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
-                           string.Format(MEMBER_NOT_ELEMENTTYPE, name, typeAssignment.TemplatePath),
+                           errorCodeOnError,
+                           string.Format(MEMBER_NOT_ELEMENTTYPE, name, assignment.TemplatePath),
                            null,
                            root.CodegenInfo.SourceInfo
                     );
@@ -114,7 +181,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 return ((TObjArr)objOrArr).ElementType;
             }
         }
-        
+
         /// <summary>
         /// Throws an exception if the template is null or not an object or array.
         /// </summary>
@@ -122,24 +189,25 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// <param name="toVerify"></param>
         /// <param name="typeAssignment"></param>
         /// <param name="root"></param>
-        private void VerifyIsObjectOrArray(string name, 
-                                           Template toVerify, 
-                                           CodeBehindTypeAssignmentInfo typeAssignment, 
-                                           Template root) {
+        private void VerifyIsObjectOrArray(string name,
+                                           Template toVerify,
+                                           CodeBehindAssignmentInfo typeAssignment,
+                                           Template root,
+                                           uint errorCodeOnError) {
             if (toVerify == null) {
-                generator.ThrowExceptionWithLineInfo(Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
+                generator.ThrowExceptionWithLineInfo(errorCodeOnError,
                                                      string.Format(MEMBER_NOT_FOUND, name, typeAssignment.TemplatePath),
                                                      null,
                                                      root.CodegenInfo.SourceInfo);
             } else if (!(toVerify is TContainer)) {
                 generator.ThrowExceptionWithLineInfo(
-                    Error.SCERRJSONINVALIDINSTANCETYPEASSIGNMENT,
+                    errorCodeOnError,
                     string.Format(MEMBER_NOT_OBJ_OR_ARR, name, typeAssignment.TemplatePath),
                     null,
                     root.CodegenInfo.SourceInfo);
             }
         }
-        
+
         /// <summary>
         /// Checks that a conversion is possible between the type specified and the type of the 
         /// template and process the actual conversion. 
@@ -153,9 +221,9 @@ namespace Starcounter.XSON.PartialClassGenerator {
         /// A new template if the conversion is for a primitive value, otherwise 
         /// null (even if the conversion was succesful)
         /// </returns>
-        private Template CheckAndProcessTypeConversion(Template template, CodeBehindTypeAssignmentInfo typeAssignment) {
+        private Template CheckAndProcessTypeConversion(Template template, CodeBehindAssignmentInfo typeAssignment) {
             Template newTemplate = null;
-            string typeName = typeAssignment.TypeName;
+            string typeName = typeAssignment.Value;
 
             switch (template.TemplateTypeId) {
                 case TemplateTypeEnum.Decimal:
