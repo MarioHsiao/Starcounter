@@ -1,5 +1,9 @@
 ## [Unreleased] - Unreleased
 
+### Added
+
+- Added interface `IExplicitBound<T>` which will generate compile-time errors on bound properties in TypedJSON [#262](https://github.com/Starcounter/Starcounter/issues/262)
+
 ### Fixed
 - Fixed a bug where pushing changes on websocket could cause versioning and patches to be messed up [#3844](https://github.com/Starcounter/Starcounter/issues/3844)
 - Fixed a bug in session management where more than one thread/scheduler got access to a session, leading to incorrect versioning for outgoing patches.
