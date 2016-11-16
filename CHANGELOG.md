@@ -12,6 +12,8 @@
 - Fixed retrieving long fields containing long.MinValue. [#3907](https://github.com/Starcounter/Starcounter/issues/3907)
 - Improved errormessage when an exception occurs in a binding between a TypedJSON object and a dataobject [#3760](https://github.com/Starcounter/Starcounter/issues/3760)
 - Fixed bug in X6Decimal where an exception was not raised in some cases leading to unhandled dataloss [#3892](https://github.com/Starcounter/Starcounter/issues/3892)
+- Fixed iOS 10 support in webcomponents Polyfill [#3871](https://github.com/Starcounter/Starcounter/issues/3871)
+- Fixed a NullReferenceException when calling `ProcessInput` for a property in a on a non-stateful TypedJSON instance [#3935](https://github.com/Starcounter/Starcounter/issues/3935)
 
 ### Changed
 - Changed the parser for Json-by-example from F# parser to NewtonSoft (nuget) [#3811](https://github.com/Starcounter/Starcounter/issues/3811)
@@ -20,6 +22,7 @@
 
 ### Changed
 - Upgraded Polymer to 1.7.0 [#3888](https://github.com/Starcounter/Starcounter/issues/3888)
+- Upgraded webcomponent.js to 0.7.23 [#3925](https://github.com/Starcounter/Starcounter/issues/3925)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 
