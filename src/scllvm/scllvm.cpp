@@ -27,9 +27,11 @@ extern "C" {
 
 	// Version of this SCLLVM.
 #ifdef _WIN32
-	const wchar_t* const ScllvmVersion = L"2.0";
+	std::wstring g_scllvm_diag_prefix;
+	const wchar_t* const ScllvmVersion = L"2.2.3";
 #else
-	const char* const ScllvmVersion = "2.0";
+	std::string g_scllvm_diag_prefix;
+	const char* const ScllvmVersion = "2.2.3";
 #endif
 
 #ifdef _WIN32
@@ -204,6 +206,9 @@ extern "C" {
 		}
 	};
 
+	// Is scllvm diagnostics on? 
+	bool g_diag_on = false;
+
 	class CodegenEngine
 	{
 		std::vector<llvm::ExecutionEngine*> exec_engines_;
@@ -334,16 +339,14 @@ extern "C" {
 					*p = 0;
 
 					// Making the directory.
-					// TODO: Fix correct mode permissions.
-					mkdir(tmp, 0777);
+					mkdir(tmp, 0700);
 
 					*p = '/';
 				}
 			}
 
 			// Creating final directory.
-			// TODO: Fix correct mode permissions.
-			mkdir(tmp, 0777);
+			mkdir(tmp, 0700);
 		}
 
 #endif
@@ -358,31 +361,6 @@ extern "C" {
 			}
 			return subject;
 		}
-
-		std::string RunCmdAndGetOutput(const char* cmd) {
-
-			char buffer[128];
-			std::string result = "";
-#ifdef _WIN32
-			FILE* pipe = _popen(cmd, "r");
-#else
-			FILE* pipe = popen(cmd, "r");
-#endif
-			assert(NULL != pipe);
-
-			while (!feof(pipe)) {
-				if (fgets(buffer, 128, pipe) != NULL)
-					result += buffer;
-			}
-
-#ifdef _WIN32
-			_pclose(pipe);
-#else
-			pclose(pipe);
-#endif
-			return result;
-		}
-
 
 		uint32_t ProduceModuleAndReturnPointers(
 #ifdef _WIN32
@@ -461,7 +439,7 @@ extern "C" {
 				file_name_no_ext = predefined_hash_str;
 			}
 
-			int32_t err_code;
+			uint32_t err_code = 1;
 
 #ifdef _WIN32
 			std::wstring path_to_cache_dir_versioned = path_to_cache_dir;
@@ -494,36 +472,87 @@ extern "C" {
 			// Checking if object file does not exist. 
 			if (!f.good()) {
 
+				// Printing diagnostics.
+				if (g_diag_on) {
+#ifdef _WIN32
+					std::wcout << g_scllvm_diag_prefix << "module is not cached, creating it: \"" << obj_file_path << "\"" << std::endl;
+#else
+					std::cout << g_scllvm_diag_prefix << "module is not cached, creating it: \"" << obj_file_path << "\"" << std::endl;
+#endif
+				}
+
 				// Saving source file to disk. 
 				std::ofstream temp_cpp_file(cpp_file_path);
-				temp_cpp_file << "#undef _MSC_VER\n";
 				temp_cpp_file << code_string;
 				temp_cpp_file.close();
 
+#ifndef _WIN32
+				chmod(cpp_file_path.c_str(), 0600);
+#endif
+
 #ifdef _WIN32
 				std::wstringstream clang_cmd_stream;
+				clang_cmd_stream << "clang++ ";
 #else
 				std::stringstream clang_cmd_stream;
+				clang_cmd_stream << "./clang++ ";
 #endif
 
 				// Checking if we have custom clang parameters from the user.
 				if ((NULL != predefined_clang_params) && ('\0' != predefined_clang_params)) {
-					clang_cmd_stream << "clang++ -c -mcmodel=large " << predefined_clang_params << " \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
+					clang_cmd_stream << "-c -mcmodel=large " << predefined_clang_params << " \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
 				}
 				else {
-					clang_cmd_stream << "clang++ -O3 -c -mcmodel=large \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
+					clang_cmd_stream << "-Wall -O3 -c -mcmodel=large \"" << cpp_file_path << "\" -o \"" << obj_file_path << "\"";
 				}
 
 				// Generating new object file.
 #ifdef _WIN32
 				std::wstring clang_cmd = clang_cmd_stream.str();
-				err_code = _wsystem(clang_cmd.c_str());
+				if (g_diag_on) {
+					std::wcout << g_scllvm_diag_prefix << "running clang tool: " << clang_cmd << std::endl;
+				}
+
+				PROCESS_INFORMATION proc_info = { 0 };
+				STARTUPINFOW startup_info = { 0 };
+				startup_info.cb = sizeof(startup_info);
+
+				// Create the clang process.
+				BOOL result = CreateProcessW(NULL, const_cast<LPWSTR>(clang_cmd.c_str()),
+					NULL, NULL, FALSE,
+					NORMAL_PRIORITY_CLASS,
+					NULL, NULL, &startup_info, &proc_info);
+
+				assert((TRUE == result) && "Error calling CreateProcessW for clang++.");
+
+				// Successfully created the process.  Wait for it to finish.
+				WaitForSingleObject(proc_info.hProcess, INFINITE);
+
+				// Get the exit code.
+				result = GetExitCodeProcess(proc_info.hProcess, (DWORD*)&err_code);
+				assert((TRUE == result) && "Error calling GetExitCodeProcess for clang++.");
+
+				// Close the handles.
+				result = CloseHandle(proc_info.hProcess);
+				assert((TRUE == result) && "Error closing process handle for clang++.");
+
+				result = CloseHandle(proc_info.hThread);
+				assert((TRUE == result) && "Error closing thread handle for clang++.");
+
 #else
 				std::string clang_cmd = clang_cmd_stream.str();
+				if (g_diag_on) {
+					std::cout << g_scllvm_diag_prefix << "running clang tool: " << clang_cmd << std::endl;
+				}
+				 
 				err_code = system(clang_cmd.c_str());
 #endif
 
 				assert((0 == err_code) && "clang++ returned an error while compiling generated code.");
+
+#ifndef _WIN32
+				chmod(obj_file_path.c_str(), 0600);
+#endif
 
 				// Deleting source file if necessary. 
 				if (delete_sources) {
@@ -594,18 +623,40 @@ extern "C" {
 		g_mutex = new llvm::sys::MutexImpl();
 		g_mutex->acquire();
 
+		// Creating diagnostics prefix.
+#ifdef _WIN32
+		g_scllvm_diag_prefix = L"[scllvm-";
+		g_scllvm_diag_prefix += ScllvmVersion;
+		g_scllvm_diag_prefix += L"]: ";
+#else
+		g_scllvm_diag_prefix = "[scllvm-";
+		g_scllvm_diag_prefix += ScllvmVersion;
+		g_scllvm_diag_prefix += "]: ";
+#endif
+
+		// Checking if we have diagnostics on.
+		char* scllvm_diag_var = getenv("SCLLVM_DIAG_ON");
+		if (nullptr != scllvm_diag_var) {
+
+			// Assuming if T is first letter than its True value.
+			if ((scllvm_diag_var[0] == 't') ||
+				(scllvm_diag_var[0] == 'T')) {
+				g_diag_on = true;
+			}			
+		}
+
 		llvm::InitializeNativeTarget();
 		llvm::InitializeNativeTargetAsmPrinter();
 
 		g_mutex->release();
 	}
 
-	MODULE_API void ScLLVMDeleteModule(CodegenEngine* const clang_engine, void** scllvm_module) {
+	MODULE_API void ScLLVMDeleteModule(CodegenEngine* const codegen_engine, void** scllvm_module) {
 
 		assert(nullptr != g_mutex);
 		g_mutex->acquire();
 
-		clang_engine->DestroyEngine((llvm::ExecutionEngine**) scllvm_module);
+		codegen_engine->DestroyEngine((llvm::ExecutionEngine**) scllvm_module);
 
 		g_mutex->release();
 	}
@@ -837,7 +888,7 @@ extern "C" {
 			"star cÖunter",
 #endif
 			nullptr,
-			"extern \"C\" int gen_function(int p) { return p + 555; }",
+			"extern \"C\" int gen_function(int p) { char x = p; return p + 555; }",
 			"gen_function",
 			nullptr,
 			false,
@@ -856,6 +907,8 @@ extern "C" {
 		int32_t res = gen_func(3);
 
 		assert(558 == res);
+
+		ScLLVMDeleteModule(out_codegen_engine, &out_exec_module);
 
 		std::cout << "Test succeeded. Result: " << res << std::endl;
 

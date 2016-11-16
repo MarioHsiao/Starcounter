@@ -69,11 +69,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Network data stream.
-        /// </summary>
-        NetworkDataStream dataStream_;
-
-        /// <summary>
         /// Reference to existing session if any.
         /// </summary>
         public IAppsSession Session {
@@ -240,14 +235,12 @@ namespace Starcounter
         /// Internal WebSocket creation.
         /// </summary>
         internal WebSocket(
-            NetworkDataStream dataStream,
             SocketStruct socketStruct,
             String message,
             Byte[] bytes,
             Boolean isText,
             WsHandlerType wsHandlerType)
         {
-            dataStream_ = dataStream;
             socketStruct_ = socketStruct;
             message_ = message;
             bytes_ = bytes;
@@ -287,10 +280,6 @@ namespace Starcounter
                 Session.ActiveWebSocket = null;
             }
 
-            if (dataStream_ != null) {
-                dataStream_.Destroy(isStarcounterThread);
-            }
-
             socketStruct_.Kill();
         }
        
@@ -307,37 +296,27 @@ namespace Starcounter
             if (IsDead())
                 return;
 
-            NetworkDataStream dataStream;
             UInt32 chunkIndex;
             Byte* chunkMem;
 
             // Checking if we still have the data stream with original chunk available.
-            if ((dataStream_ == null) || (dataStream_.IsDestroyed()))
-            {
-                UInt32 errCode = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
+            UInt32 errCode = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
 
-                if (0 != errCode) {
+            if (0 != errCode) {
 
-                    if (Error.SCERRACQUIRELINKEDCHUNKS == errCode) {
-                        // NOTE: If we can not obtain a chunk just returning because we can't do much.
-                        return;
-                    } else {
-                        throw ErrorCode.ToException(errCode);
-                    }
+                if (Error.SCERRACQUIRELINKEDCHUNKS == errCode) {
+                    // NOTE: If we can not obtain a chunk just returning because we can't do much.
+                    return;
+                } else {
+                    throw ErrorCode.ToException(errCode);
                 }
+            }
 
-                // Creating network data stream object.
-                dataStream = new NetworkDataStream(
-                    chunkIndex, 
-                    socketStruct_.GatewayWorkerId, 
-                    socketStruct_.SchedulerId);
-            }
-            else
-            {
-                dataStream = dataStream_;
-                chunkIndex = dataStream.ChunkIndex;
-                chunkMem = dataStream.GetChunkMemory();
-            }
+            // Creating network data stream object.
+            NetworkDataStream dataStream = new NetworkDataStream(
+                chunkIndex, 
+                socketStruct_.GatewayWorkerId, 
+                socketStruct_.SchedulerId);
 
             Byte* socketDataBegin = chunkMem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 
