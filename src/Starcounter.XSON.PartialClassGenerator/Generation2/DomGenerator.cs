@@ -63,6 +63,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
         public AstRoot GenerateDomTree(TValue at) {
+            var pre = new GeneratorPrePhase(this);
             var p1 = new GeneratorPhase1(this);
             var p2 = new GeneratorPhase2(this);
             var p3 = new GeneratorPhase3(this);
@@ -74,6 +75,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             AstJsonClass acn;
             AstSchemaClass tcn;
             AstMetadataClass mcn;
+
+            pre.RunPrePhase(at);
 
             this.Root = p1.RunPhase1(at, out acn, out tcn, out mcn);
             p2.RunPhase2(acn,tcn,mcn);
@@ -698,6 +701,61 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
             return ret;
         }
+
+        /// <summary>
+        /// Finds the correct template using the classpath specified in the the code-behind metadata.
+        /// </summary>
+        /// <param name="rootTemplate">The root template to the search from.</param>
+        /// <returns>A template, or null if no match is found.</returns>
+        internal TValue FindTemplate(CodeBehindClassInfo ci, TValue rootTemplate) {
+            TValue appTemplate;
+            string[] mapParts;
+            Template template;
+
+            appTemplate = rootTemplate;
+            mapParts = ci.ClassPath.Split('.');
+
+            // We skip the two first parts since the first one will always be "json" 
+            // and the second the rootTemplate.
+            for(Int32 i = 1; i < mapParts.Length; i++) {
+                if(!(appTemplate is TObject)) {
+                    throw new Exception(
+                            String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found.",
+                                ci.JsonMapAttribute,
+                                mapParts[i]
+                            ));
+                }
+
+                // We start with i=1. This means that we assume that the first part
+                // of the class path is the root class no matter what name is used.
+                // This makes it easier when user is refactoring his or her code.
+
+                template = ((TObject)appTemplate).Properties.GetTemplateByPropertyName(mapParts[i]);
+                if(template is TObjArr) {
+                    appTemplate = ((TObjArr)template).ElementType;
+                } else if(template != null) {
+                    appTemplate = (TValue)template;
+                } else {
+                    // TODO:
+                    // Change to starcounter errorcode.
+                    if(template == null) {
+                        throw new Exception(
+                            String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found.",
+                                ci.JsonMapAttribute,
+                                mapParts[i]
+                            ));
+                    }
+                    throw new Exception(
+                        String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} has the unsupported type {2}.",
+                            ci.JsonMapAttribute,
+                            mapParts[i],
+                            template.GetType().Name
+                        ));
+                }
+            }
+            return appTemplate;
+        }
+
 
         /// <summary>
         /// 

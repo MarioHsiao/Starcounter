@@ -69,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeBehindMetaData\CodeBehindAssignmentInfo.cs" />
     <Compile Include="CodeBehindMetaData\CodeBehindMetadata.cs" />
     <Compile Include="CodeBehindMetaData\InputBindingInfo.cs" />
     <Compile Include="CodeBehindMetaData\CodeBehindClassInfo.cs" />
@@ -113,6 +114,7 @@
     <Compile Include="Generation2\GeneratorPhase4.cs" />
     <Compile Include="Generation2\GeneratorPhase6.cs" />
     <Compile Include="Generation2\GeneratorPhase7.cs" />
+    <Compile Include="Generation2\GeneratorPrePhase.cs" />
     <Compile Include="PartialClassGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -4745,8 +4745,42 @@
         Input handler methods must have void return type.
       </message>
     </code>
+    <code hex="0022" severity="Error" name="ScErrJsonInvalidInstanceTypeAssignment">
+      <message>
+        Assignment of instancetype for a TypedJSON member must follow the pattern:
+        'DefaultTemplate.{memberpath}.InstanceType = typeof({type});'.
+      </message>
+    </code>
+    <code hex="0023" severity="Error" name="ScErrJsonUnsupportedInstanceTypeAssignment">
+      <message>
+        Unsupported assignment of instancetype.
+      </message>
+    </code>
+    <code hex="0024" severity="Error" name="ScErrJsonDuplicateReuse">
+      <message>
+        Reuse of a TypedJSON object is specified both in the json file and code-behind.
+        The value from code-behind will be used.
+      </message>
+    </code>
+    <code hex="0025" severity="Error" name="ScErrJsonDuplicateNamespace">
+      <message>
+        Namespace is specified both in the json file and code-behind.
+        The value from code-behind will be used.
+      </message>
+    </code>
+    <code hex="0026" severity="Error" name="ScErrJsonAmbiguousDatatypeIExplicitBound">
+      <message>
+        A datatype specified as a generic parameter for IExplicitBound interface is ambiguous. 
+        Please use the fully qualified name including namespace.
+      </message>
+    </code>
+    <code hex="0027" severity="Error" name="ScErrJsonInvalidBindAssignment">
+      <message>
+        Assignment of binding for a TypedJSON member must follow the pattern:
+        'DefaultTemplate.{memberpath}.Bind = "{binding-path}";'.
+      </message>
+    </code>
   </facility>
-
     <!-- Error codes related to network gateway -->
     <facility name="NetworkGateway" hex="000D">
         

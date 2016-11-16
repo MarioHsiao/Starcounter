@@ -175,6 +175,12 @@ namespace Starcounter.XSON.PartialClassGenerator {
             if (!isStatic) {
                 throw IllegalCodeBehindException(InvalidCodeBehindError.DefineInstanceConstructor, node);
             }
+
+            base.VisitConstructorDeclaration(node);
+        }
+
+        public override void VisitAssignmentExpression(AssignmentExpressionSyntax node) {
+            DiscoverTemplatePropertyAssignments(node);
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node) {
@@ -269,9 +275,11 @@ namespace Starcounter.XSON.PartialClassGenerator {
             // first (and possibly only) type is IBound<T>, such as
             // partial class Foo : IBound<Bar> { ... }.
             if (baseType.Type.Kind() == SyntaxKind.GenericName) {
+                bool explicitlyBound;
                 var genericName = (GenericNameSyntax)baseType.Type;
-                if (IsBindingName(genericName)) {
+                if (IsBindingName(genericName, out explicitlyBound)) {
                     codeBehindMetadata.BoundDataClass = genericName.TypeArgumentList.Arguments[0].ToString();
+                    codeBehindMetadata.ExplicitlyBound = explicitlyBound;
                     name = string.Empty;
                 }
             }
@@ -283,14 +291,83 @@ namespace Starcounter.XSON.PartialClassGenerator {
         }
 
         void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, GenericNameSyntax name) {
-            if (IsBindingName(name)) {
+            bool explicitlyBound;
+            if (IsBindingName(name, out explicitlyBound)) {
                 codeBehindMetadata.BoundDataClass = name.TypeArgumentList.Arguments[0].ToString();
+                codeBehindMetadata.ExplicitlyBound = explicitlyBound;
             }
         }
 
         void DiscoverSecondaryBaseType(BaseTypeSyntax baseType, QualifiedNameSyntax name) {
         }
 
+        /// <summary>
+        /// Finds and evaluates assignments to templates. Currenty assignments of 'Bind' is supported.
+        /// </summary>
+        /// <param name="node"></param>
+        private void DiscoverTemplatePropertyAssignments(AssignmentExpressionSyntax node) {
+            if(node.Kind() != SyntaxKind.SimpleAssignmentExpression)
+                return;
+
+            var propertySyntax = node.Left as MemberAccessExpressionSyntax;
+            if(propertySyntax == null)
+                return;
+
+            var templateSyntax = propertySyntax.Expression as MemberAccessExpressionSyntax;
+            if(templateSyntax == null)
+                return;
+
+            var propertyName = propertySyntax.Name.Identifier.ValueText;
+            if(propertyName == null)
+                return;
+
+            if(propertyName.Equals("Bind")) {
+                HandleTemplateBindAssignment(node, templateSyntax.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="templatePath"></param>
+        private void HandleTemplateBindAssignment(AssignmentExpressionSyntax node, string templatePath) {
+            // TODO:
+            // Due to lack of time for testing, and to want to keep old stuff as is for the moment we
+            // will ignore all assignments of Bind if the ExplicitBound<T> interface is not used.
+            // These assignments are currently only needed to get correct compilation-errors for
+            // explicitly bound properties.
+            if(!codeBehindMetadata.ExplicitlyBound)
+                return;
+
+            if(!templatePath.StartsWith("DefaultTemplate."))
+                throw IllegalCodeBehindException(InvalidCodeBehindError.TemplateBindInvalidAssignment, node);
+            
+            string bind;
+            SyntaxKind kind = node.Right.Kind();
+            if(kind == SyntaxKind.NullLiteralExpression) {
+                bind = null;
+            } else if(kind == SyntaxKind.StringLiteralExpression) {
+                bind = node.Right.ToString();
+                if(!string.IsNullOrEmpty(bind) && bind[0] == '"')
+                    bind = bind.Substring(1, bind.Length - 2);
+            } else {
+                // We treat all other assignments as null as well for now to not generate any code for 
+                // compile-time checking of bindings. What will happen is that the template will be considered
+                // unbound during codegeneration and later when it instantiated the correct binding will be set.
+
+                // What we probably should do (for a more correct approach) is to somehow mark these as custom 
+                // bindings already here.
+                bind = null;    
+            }
+
+            var assignmentInfo = new CodeBehindAssignmentInfo() {
+                TemplatePath = templatePath,
+                Value = bind
+            };
+            codeBehindMetadata.BindAssignments.Add(assignmentInfo);
+        }
+        
         bool IsNamedRootObject() {
             if (this.NestingClass != null) {
                 return false;
@@ -299,12 +376,23 @@ namespace Starcounter.XSON.PartialClassGenerator {
             return this.Node.Identifier.ValueText == this.CodeBehindAnalyzer.Root.Name;
         }
 
-        bool IsBindingName(GenericNameSyntax name) {
-            if (name.TypeArgumentList == null || name.TypeArgumentList.Arguments.Count != 1) {
+        bool IsBindingName(GenericNameSyntax name, out bool explicitlyBound) {
+            explicitlyBound = false;
+
+            // If ExplicitlyBound is already set to true, it means that we have both IBound<T> 
+            // and IExplicitBound<T> declared. IExplicitBound<T> will have  priority.
+            if(name.TypeArgumentList == null 
+                || name.TypeArgumentList.Arguments.Count != 1
+                || this.codeBehindMetadata.ExplicitlyBound == true) {
                 return false;
             }
 
             var generic = name.Identifier.Text;
+            if(generic.Equals("IExplicitBound") || generic.Equals("Starcounter.IExplicitBound")) {
+                explicitlyBound = true;
+                return true;
+            }
+            
             return generic.Equals("IBound") || generic.Equals("Starcounter.IBound");
         }
 
