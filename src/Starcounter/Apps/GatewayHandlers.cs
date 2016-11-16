@@ -305,6 +305,10 @@ namespace Starcounter
 
             try {
 
+                // Creating TCP socket object.
+                tcpSocket = new TcpSocket(dataStream);
+                Debug.Assert(null != tcpSocket);
+
                 // Allocate memory on the stack that can hold a few number of transactions that are fast 
                 // to allocate. The pointer to the memory will be kept on the thread. It is important that 
                 // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
@@ -316,9 +320,6 @@ namespace Starcounter
                 Action<TcpSocket, Byte[]> userCallback = tcpSocketHandlers_[managedHandlerId];
                 if (userCallback == null)
                     throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
-
-                tcpSocket = new TcpSocket(dataStream);
-                Debug.Assert(null != tcpSocket);
 
                 Byte[] dataBytes = null;
 
@@ -350,6 +351,9 @@ namespace Starcounter
                 if (Db.Environment.HasDatabase) {
                     TransactionManager.CreateImplicitAndSetCurrent(true);
                 }
+
+                // Destroying original chunk etc.
+                dataStream.Destroy(true);
 
                 // Calling user callback.
                 userCallback(tcpSocket, dataBytes);
@@ -680,6 +684,10 @@ namespace Starcounter
             
             try {
 
+                // Creating underlying socket.
+                SocketStruct socketStruct = new SocketStruct();
+                socketStruct.Init(dataStream);
+
                 // Allocate memory on the stack that can hold a few number of transactions that are fast 
                 // to allocate. The pointer to the memory will be kept on the thread. It is important that 
                 // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
@@ -694,9 +702,6 @@ namespace Starcounter
                     (MixedCodeConstants.WebSocketDataTypes) (*(Byte*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE));
 
                 UInt32 groupId = (*(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID));
-
-                SocketStruct socketStruct = new SocketStruct();
-                socketStruct.Init(dataStream);
 
                 Int32 numDataBytes = *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES);
                 Int32 chunkDataOffset = MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
@@ -733,7 +738,7 @@ namespace Starcounter
 
                         Marshal.Copy(new IntPtr(rawChunk + chunkDataOffset), dataBytes, 0, dataBytes.Length);
 
-                        ws = new WebSocket(dataStream, socketStruct, null, dataBytes, false, WebSocket.WsHandlerType.BinaryData);
+                        ws = new WebSocket(socketStruct, null, dataBytes, false, WebSocket.WsHandlerType.BinaryData);
 
                         break;
                     }
@@ -746,14 +751,14 @@ namespace Starcounter
                             numDataBytes,
                             Encoding.UTF8);
 
-                        ws = new WebSocket(dataStream, socketStruct, dataString, null, true, WebSocket.WsHandlerType.StringMessage);
+                        ws = new WebSocket(socketStruct, dataString, null, true, WebSocket.WsHandlerType.StringMessage);
 
                         break;
                     }
 
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_CLOSE:
                     {
-                        ws = new WebSocket(null, socketStruct, null, null, false, WebSocket.WsHandlerType.Disconnect);
+                        ws = new WebSocket(socketStruct, null, null, false, WebSocket.WsHandlerType.Disconnect);
 
                         break;
                     }
@@ -787,11 +792,13 @@ namespace Starcounter
                     TransactionManager.CreateImplicitAndSetCurrent(true);
                 }
 
+                // Destroying original chunk etc.
+                dataStream.Destroy(true);
+
                 // Adding session reference.
                 *isHandled = AllWsGroups.WsManager.RunHandler(managedHandlerId, groupId, ws);
 
             } catch (Exception exc) {
-
 
                 // On exceptions we have to disconnect the WebSocket with a message.
                 if (ws != null) {

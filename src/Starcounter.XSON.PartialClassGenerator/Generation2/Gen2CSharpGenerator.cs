@@ -61,6 +61,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             defaultUsings.Add("Starcounter");
             defaultUsings.Add("Starcounter.Internal");
             defaultUsings.Add("Starcounter.Templates");
+            defaultUsings.Add("Starcounter.XSON");
         }
         
         /// <summary>
@@ -415,6 +416,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         
             // Adding public accessors for the property.
             m.Prefix.Add(MARKASCODEGEN);
+            
+            AppendCompileTimeBindingCheckIfPossible(m);
             sb.Append("public ");
             sb.Append(memberTypeName);
             sb.Append(' ');
@@ -461,7 +464,24 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             AppendLineDirectiveIfDefined(m.Prefix, LINE_DEFAULT, 4);
         }
-    
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="m"></param>
+        private void AppendCompileTimeBindingCheckIfPossible(AstProperty m) {
+            string bind = ((TValue)m.Template).Bind;
+
+            if(string.IsNullOrEmpty(bind) || bind.Contains("."))
+                return;
+            
+            var jsonClass = m.Parent as AstJsonClass;
+            if(jsonClass?.CodebehindClass?.ExplicitlyBound == true) {
+                var dataType = jsonClass.CodebehindClass.BoundDataClass;
+                m.Prefix.Add("[Bound(nameof(" + dataType + "." + bind + "))]");
+            }
+        }
+        
         /// <summary>
         /// Generates code for a member of a schema class.
         /// </summary>

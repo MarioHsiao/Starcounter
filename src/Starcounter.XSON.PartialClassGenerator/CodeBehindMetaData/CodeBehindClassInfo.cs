@@ -14,6 +14,8 @@ namespace Starcounter.XSON.Metadata {
     /// a class in the codebehind file.
     /// </summary>
     public class CodeBehindClassInfo {
+        private bool explicitlyBound;
+
         /// <summary>
         /// The name of the class in the codebehind file.
         /// </summary>
@@ -46,7 +48,18 @@ namespace Starcounter.XSON.Metadata {
         /// 
         /// </summary>
         public BindingStrategy BindChildren = BindingStrategy.Auto;
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool ExplicitlyBound {
+            get { return explicitlyBound; }
+            set {
+                BindChildren = (value) ? BindingStrategy.Bound : BindingStrategy.Auto;
+                explicitlyBound = value;
+            }
+        }
+
         /// <summary>
         /// If the code-behind contains a partial class for this class, this property is true
         /// </summary>
@@ -82,6 +95,11 @@ namespace Starcounter.XSON.Metadata {
         /// A list of all properties that exists in the code-behind class.
         /// </summary>
         public List<CodeBehindFieldOrPropertyInfo> FieldOrPropertyList = new List<CodeBehindFieldOrPropertyInfo>();
+
+        /// <summary>
+        /// A list of assignments to the property Bind for a template. 
+        /// </summary>
+        public List<CodeBehindAssignmentInfo> BindAssignments = new List<CodeBehindAssignmentInfo>();
 
         /// <summary>
         /// 

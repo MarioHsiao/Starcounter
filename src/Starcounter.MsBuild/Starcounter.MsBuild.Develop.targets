@@ -4,7 +4,7 @@
       Keeping the codegen version directly here instead of reading it from the codegenerator
       to avoid that Starcounter.MsBuild.dll gets locked during compilation of Starcounter 
     -->
-    <CSharpCodegenVersion>2</CSharpCodegenVersion>
+    <CSharpCodegenVersion>3</CSharpCodegenVersion>
 
     <!--<PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetTypedJsonCSharpCodegenVersion</PrepareForBuildDependsOn>-->
     <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateTypedJsonCode</CoreCompileDependsOn>

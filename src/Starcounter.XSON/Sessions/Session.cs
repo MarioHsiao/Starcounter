@@ -473,6 +473,18 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// The URI identifier of the specific session.
+        /// For example, the contents of the `X-Referer` header to execute the server side handler in scope of a session.
+        /// </summary>
+        public String SessionUri
+        {
+            get
+            {
+                return ScSessionClass.DataLocationUriPrefix + SessionId;
+            }
+        }
+
         /// Returns True if session is being used now.
         /// </summary>
         /// <returns></returns>
