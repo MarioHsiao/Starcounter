@@ -261,9 +261,6 @@ Starcounter.Controls.WpfMessageBox.pdb
 Starcounter.Controls.WpfMessageBox.XML
 Starcounter.Errors.dll
 Starcounter.Errors.pdb
-Starcounter.Hosting.dll
-Starcounter.Hosting.pdb
-Starcounter.Hosting.XML
 Starcounter.Hypermedia.dll
 Starcounter.Hypermedia.pdb
 Starcounter.Hypermedia.XML

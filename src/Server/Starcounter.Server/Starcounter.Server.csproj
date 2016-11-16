@@ -180,10 +180,6 @@
     <Compile Include="ToolInvocationHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Hosting\Starcounter.Hosting\Starcounter.Hosting.csproj">
-      <Project>{b427c63b-c13f-47cc-b101-29ced68a68b8}</Project>
-      <Name>Starcounter.Hosting</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>

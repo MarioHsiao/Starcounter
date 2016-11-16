@@ -121,10 +121,6 @@
     </TypedJSON>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hosting\Starcounter.Hosting\Starcounter.Hosting.csproj">
-      <Project>{b427c63b-c13f-47cc-b101-29ced68a68b8}</Project>
-      <Name>Starcounter.Hosting</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Server\Starcounter.Server.Rest\Starcounter.Server.Rest.csproj">
       <Project>{60aae92e-e384-45ff-96f3-3d6b38462e3c}</Project>
       <Name>Starcounter.Server.Rest</Name>
