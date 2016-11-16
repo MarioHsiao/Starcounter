@@ -4893,6 +4893,9 @@
         The json is already connected to another session.
       </message>
     </code>
+    <code hex="000C" severity="Error" name="ScErrDataBindingForJsonException">
+      <message>An exception occurred when a databinding for a property in json was used.</message>
+    </code>
   </facility>
   
     <!-- Error codes related to meta-layer and type system -->

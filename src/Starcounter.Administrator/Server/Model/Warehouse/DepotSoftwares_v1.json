@@ -1,0 +1,14 @@
+﻿{
+  "$": { "Namespace": "Warehouse.Api.REST" },
+  "Softwares": [
+    {
+      "ID": "",
+      "Namespace": "",
+      "Type": "",
+      "Url": "",
+      "Name": "",
+      "Description": "",
+      "IconUrl": ""
+    }
+  ]
+}

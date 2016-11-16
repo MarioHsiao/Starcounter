@@ -25,7 +25,7 @@ namespace dbhistory
             string log_dir = System.IO.Path.GetDirectoryName(full_cfg_path);
 
 
-            var jser = new DataContractJsonSerializer(typeof(LogReadResult), new Type[] { typeof(TransactionData), typeof(reference), typeof(LogPosition) });
+            var jser = new DataContractJsonSerializer(typeof(LogReadResult), new Type[] { typeof(TransactionData), typeof(Reference), typeof(LogPosition) });
             var lm = new LogManager();
             using (var log_reader = lm.OpenLog(db_name, log_dir))
             {

@@ -76,7 +76,7 @@ namespace Starcounter.TransactionLog
             return new string(dst, 0, dst_len);
         }
 
-        internal static Starcounter.TransactionLog.column_update decode_column_update(IntPtr log_handle, LogReaderImports.column_update cu, MetadataCache meta_cache, decoder dec)
+        internal static Starcounter.TransactionLog.ColumnUpdate decode_column_update(IntPtr log_handle, LogReaderImports.column_update cu, MetadataCache meta_cache, decoder dec)
         {
             object column_value = null;
             switch (cu.column_type)
@@ -145,15 +145,15 @@ namespace Starcounter.TransactionLog
                 case Starcounter.Internal.sccoredb.STAR_TYPE_REFERENCE:
                     {
                         if (cu.value.long_value.is_initialized != 0)
-                            column_value = new reference { object_id = (ulong)cu.value.long_value.data };
+                            column_value = new Reference { ObjectID = (ulong)cu.value.long_value.data };
                         break;
                     }
             }
 
-            return new Starcounter.TransactionLog.column_update
+            return new Starcounter.TransactionLog.ColumnUpdate
             {
-                name = meta_cache[cu.column_name],
-                value = column_value
+                Name = meta_cache[cu.column_name],
+                Value = column_value
             };
         }
 
@@ -246,9 +246,9 @@ namespace Starcounter.TransactionLog
 
             TransactionData res = new TransactionData
             {
-                creates = new List<create_record_entry>((int)ti.insertupdate_entry_count),
-                updates = new List<update_record_entry>((int)ti.insertupdate_entry_count),
-                deletes = new List<delete_record_entry>((int)ti.delete_entry_count)
+                Creates = new List<CreateRecordEntry>((int)ti.insertupdate_entry_count),
+                Updates = new List<UpdateRecordEntry>((int)ti.insertupdate_entry_count),
+                Deletes = new List<DeleteRecordEntry>((int)ti.delete_entry_count)
             };
 
             for (int i = 0; i < ti.insertupdate_entry_count; ++i)
@@ -259,7 +259,7 @@ namespace Starcounter.TransactionLog
 
                     string table = meta_cache[e->table];
 
-                    var updates = new Starcounter.TransactionLog.column_update[e->columns_updates_count];
+                    var updates = new Starcounter.TransactionLog.ColumnUpdate[e->columns_updates_count];
 
                     for (int j = 0; j < e->columns_updates_count; ++j)
                     {
@@ -269,18 +269,18 @@ namespace Starcounter.TransactionLog
 
 
                     if (e->is_insert)
-                        res.creates.Add(new create_record_entry
+                        res.Creates.Add(new CreateRecordEntry
                         {
-                            table = table,
-                            key = new reference { object_id = e->object_id },
-                            columns = updates
+                            Table = table,
+                            Key = new Reference { ObjectID = e->object_id },
+                            Columns = updates
                         });
                     else
-                        res.updates.Add(new update_record_entry
+                        res.Updates.Add(new UpdateRecordEntry
                         {
-                            table = table,
-                            key = new reference { object_id = e->object_id },
-                            columns = updates
+                            Table = table,
+                            Key = new Reference { ObjectID = e->object_id },
+                            Columns = updates
                         });
                 }
 
@@ -294,7 +294,7 @@ namespace Starcounter.TransactionLog
 
                     string table = meta_cache[d->table];
 
-                    res.deletes.Add(new delete_record_entry { table = table, key = new reference { object_id = d->object_id } });
+                    res.Deletes.Add(new DeleteRecordEntry { Table = table, Key = new Reference { ObjectID = d->object_id } });
                 }
             }
 

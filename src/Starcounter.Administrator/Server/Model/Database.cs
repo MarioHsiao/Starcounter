@@ -738,6 +738,13 @@ namespace Administrator.Server.Model {
                         addList.Add(freshStore);
                     }
                     else {
+                        if (!string.Equals(store.DisplayName, freshStore.DisplayName)) {
+                            store.DisplayName = freshStore.DisplayName;
+                        }
+                        if (!string.Equals(store.Description, freshStore.Description)) {
+                            store.Description = freshStore.Description;
+                        }
+
                         this.UpdateAppStoreItems(store);
                     }
                 }
@@ -746,7 +753,6 @@ namespace Administrator.Server.Model {
                 //    freshStore.Database = this;
                 //    this.AppStoreStores.Add(freshStore);
                 //}
-
                 if (addList.Count > 0) {
                     this.AppStoreStores.InsertRange(addList);
                 }
@@ -790,6 +796,15 @@ namespace Administrator.Server.Model {
                     }
                     else {
                         // TODO: update app properties with freshApp properties
+                        if( !string.Equals(app.Description, freshApp.Description)) {
+                            // TODO: make nofify property
+                            app.Description = freshApp.Description;
+                        }
+
+                        if (!string.Equals(app.DisplayName, freshApp.DisplayName)) {
+                            // TODO: make nofify property
+                            app.DisplayName = freshApp.DisplayName;
+                        }
                     }
                 }
 
@@ -1234,7 +1249,8 @@ namespace Administrator.Server.Model {
 
             DatabaseInfo databaseInfo = Program.ServerInterface.GetDatabaseByName(this.ID);
             //DatabaseInfo databaseInfo = RootHandler.Host.Runtime.GetDatabase(this.Url);
-            return (databaseInfo != null && databaseInfo.Engine != null && databaseInfo.Engine.DatabaseProcessRunning && databaseInfo.Engine.HostProcessId != 0);
+//            return (databaseInfo != null && databaseInfo.Engine != null && databaseInfo.Engine.DatabaseProcessRunning && databaseInfo.Engine.HostProcessId != 0);
+            return (databaseInfo != null && databaseInfo.Engine != null && databaseInfo.Engine.DatabaseProcessRunning);
         }
 
         #region INotifyPropertyChanged Members

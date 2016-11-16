@@ -91,11 +91,6 @@ namespace Starcounter.Internal
         };
 
         /// <summary>
-        /// Flag indicating if llvm optimizations should be on/off.
-        /// </summary>
-        public const bool SCLLVM_OPT_FLAG = true;
-
-        /// <summary>
         /// Enum HTTP_METHODS
         /// </summary>
         public enum HTTP_METHODS

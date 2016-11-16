@@ -1,9 +1,9 @@
 bower check-new     Checking for new versions of the project dependencies...
-sys#1.0.0 C:\Users\joozek\dev\starcounter\src\BuildSystem\ClientFiles
-├─┬ PuppetJs#2.2.0 different
-│ ├── fast-json-patch#1.0.0
+sys#1.0.0 D:\repos\Starcounter\src\BuildSystem\ClientFiles
+├─┬ PuppetJs#2.2.1
+│ ├── fast-json-patch#1.1.0 (1.1.1 available)
 │ ├── json-patch-ot#73a40c7e4a
-│ ├─┬ json-patch-ot-agent#84fc4e4301
+│ ├─┬ json-patch-ot-agent#d59dcb5d01
 │ │ └── json-patch-queue#4e279479ca
 │ └── json-patch-queue#4e279479ca
 ├── array.observe#0.0.1 extraneous
@@ -14,25 +14,21 @@ sys#1.0.0 C:\Users\joozek\dev\starcounter\src\BuildSystem\ClientFiles
 │ └── juicy-html#1.1.0
 ├── juicy-redirect#0.4.2 extraneous
 ├── object.observe#0.2.6 extraneous
-├── polymer#1.6.1
+├── polymer#1.7.0
 ├─┬ puppet-client#3.2.0
-│ ├─┬ PuppetJs#2.2.0 different
-│ │ ├── fast-json-patch#1.0.0
-│ │ ├── json-patch-ot#73a40c7e4a
-│ │ ├─┬ json-patch-ot-agent#84fc4e4301
-│ │ │ └── json-patch-queue#4e279479ca
-│ │ └── json-patch-queue#4e279479ca
-│ └─┬ polymer#1.6.1
-│   └── webcomponentsjs#0.7.22
+│ ├── PuppetJs#2.2.1
+│ └─┬ polymer#1.7.0
+│   └── webcomponentsjs#0.7.23
 ├── puppet-redirect#0.4.3
 ├─┬ starcounter-debug-aid#2.0.7
 │ ├─┬ juicy-jsoneditor#1.1.0
-│ │ ├── fast-json-patch#1.0.0
-│ │ ├── jsoneditor#5.5.6 (5.5.7 available)
-│ │ └── polymer#1.6.1
-│ └── polymer#1.6.1
-└─┬ starcounter-include#24c9807118
-  ├─┬ imported-template#1.4.3
-  │ └── juicy-html#1.1.0
-  └─┬ juicy-composition#0.0.5
-    └── webcomponentsjs#0.7.22
+│ │ ├── fast-json-patch#1.1.0 incompatible with ~1.0.0 (1.0.1 available, latest is 1.1.1)
+│ │ ├── jsoneditor#5.5.6 (5.5.10 available)
+│ │ └── polymer#1.7.0
+│ └── polymer#1.7.0
+├─┬ starcounter-include#2.0.0
+│ ├─┬ imported-template#1.4.3
+│ │ └── juicy-html#1.1.0
+│ └─┬ juicy-composition#0.0.6
+│   └── webcomponentsjs#0.7.23
+└── webcomponentsjs#0.7.23

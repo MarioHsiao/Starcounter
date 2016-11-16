@@ -53,6 +53,7 @@
     <Compile Include="LogPosition.cs" />
     <Compile Include="LogReader.cs" />
     <Compile Include="LogReaderImports.cs" />
+    <Compile Include="MetadataCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TransactionData.cs" />
     <Compile Include="TransactionLogException.cs" />

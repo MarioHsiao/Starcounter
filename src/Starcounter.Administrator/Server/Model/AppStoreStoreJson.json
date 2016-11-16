@@ -1,12 +1,14 @@
 ﻿{
-	"$": { Namespace: "Administrator.Server.Model" },
-	"ID" : "",
+  "$": { "Namespace": "Administrator.Server.Model" },
+  "ID": "",
+  "DepotKey": "",
   "DisplayName": "",
   "Description": "",
-	"ShowCompatibleVersions" : true,
-	"Applications" :[{
-		"$" : { "Reuse" : "Administrator.Server.Model.AppStoreApplicationJson" }
-	}],
-	"RefreshApplications$" : 0
+  "ShowCompatibleVersions": true,
+  "Applications": [
+    {
+      "$": { "Reuse": "Administrator.Server.Model.AppStoreApplicationJson" }
+    }
+  ],
+  "RefreshApplications$": 0
 }
-

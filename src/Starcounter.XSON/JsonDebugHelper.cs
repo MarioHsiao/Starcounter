@@ -1,11 +1,18 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Text;
 using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
+using Starcounter.Internal;
 using Starcounter.Templates;
 
 namespace Starcounter.XSON {
     internal static class JsonDebugHelper {
+        internal static Exception WrapExceptionWithJsonInfo(Json parent, string templateName, Exception inner) {
+            string str = string.Format("Property '{0}' in '{1}'.", templateName, GetFullName(parent));
+            return ErrorCode.ToException(Error.SCERRDATABINDINGFORJSONEXCEPTION, inner, str);
+        }
+
         /// <summary>
         /// Returns the classname for the specified template.
         /// </summary>
@@ -22,6 +29,18 @@ namespace Starcounter.XSON {
             if (className == null)
                 className = "<noname>";
             return className;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="template"></param>
+        /// <returns></returns>
+        internal static string GetTemplateOrClassName(Template template) {
+            string name = template.TemplateName;
+            if(string.IsNullOrEmpty(name))
+                name = GetClassName(template);
+            return name;
         }
         
         /// <summary>
@@ -86,7 +105,7 @@ namespace Starcounter.XSON {
             if (json.Parent != null) {
                 WriteFullName(json.Parent, sb);
                 sb.Append('.');
-                sb.Append(json.Template.TemplateName);
+                sb.Append(GetTemplateOrClassName(json.Template));
             } else {
                 sb.Append(GetClassName(json.Template));
             }

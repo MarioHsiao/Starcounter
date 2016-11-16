@@ -12,16 +12,16 @@ namespace Starcounter.TransactionLog
     {
         private const int PollTimeoutMs = 100;
 
-        public LogReader(string db_name, string log_dir, LogPosition position, Func<string, bool> table_predicate)
+        public LogReader(string dbName, string logDir, LogPosition position, Func<string, bool> tablePredicate)
         {
-            CreateDelegate(table_predicate);
-            _log_handle = LogReaderImports.TransactionLogOpenAndSeek(db_name, log_dir, position, _table_predicate);
+            CreateDelegate(tablePredicate);
+            _log_handle = LogReaderImports.TransactionLogOpenAndSeek(dbName, logDir, position, _table_predicate);
         }
 
-        public LogReader(string db_name, string log_dir, Func<string, bool> table_predicate)
+        public LogReader(string dbName, string logDir, Func<string, bool> tablePredicate)
         {
-            CreateDelegate(table_predicate);
-            _log_handle = LogReaderImports.TransactionLogOpen(db_name, log_dir, _table_predicate);
+            CreateDelegate(tablePredicate);
+            _log_handle = LogReaderImports.TransactionLogOpen(dbName, logDir, _table_predicate);
         }
 
         private void CreateDelegate(Func<string, bool> table_predicate)
@@ -50,12 +50,12 @@ namespace Starcounter.TransactionLog
 
             //read transaction
             LogReadResult res = new LogReadResult();
-            res.transaction_data = LogReaderImports.TransactionLogGetCurrentTransactionInfoExtended(_log_handle, _meta_cache);
+            res.TransactionData = LogReaderImports.TransactionLogGetCurrentTransactionInfoExtended(_log_handle, _meta_cache);
 
             //move to next record to get continuatin position. 
             LogReaderImports.TransactionLogMoveNext(_log_handle);
 
-            res.continuation_position = LogReaderImports.TransactionLogGetPosition(_log_handle);
+            res.ContinuationPosition = LogReaderImports.TransactionLogGetPosition(_log_handle);
 
             return res;
         }

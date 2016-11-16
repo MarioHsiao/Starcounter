@@ -8,14 +8,14 @@ namespace Starcounter.TransactionLog
 {
     public class TransactionLogException : System.Exception
     {
-        public TransactionLogException(int code)
+        internal TransactionLogException(int code)
         {
             Code = code;
         }
 
         public int Code { get; private set; }
 
-        public static void Test(int code)
+        internal static void Test(int code)
         {
             if (code != 0)
                 throw new TransactionLogException(code);

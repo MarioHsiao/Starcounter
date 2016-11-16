@@ -33,6 +33,15 @@ namespace QueryProcessingTest {
             TestSearchByObject();
             OuterJoinBugs();
             TestDelimitedIdentifier();
+            NotLikeBug();
+        }
+
+        public static void NotLikeBug() {
+            HelpMethods.LogEvent("Test queries with not like");
+            Db.SlowSQL("select u from user u where firstname not like 'Dav%'");
+            Db.SlowSQL("select u from user u where firstname not like ?", "Dav%");
+            Db.SQL("select u from user u where firstname not like ?", "Dav%");
+            HelpMethods.LogEvent("Finished test query with not like");
         }
 
         public static void TestFetchOrderBy() {

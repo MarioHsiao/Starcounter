@@ -1,89 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Starcounter.TransactionLog
 {
-    public struct reference
+    public struct Reference
     {
-        public ulong object_id;
+        public ulong ObjectID;
     }
 
-    public struct column_update
+    public struct ColumnUpdate
     {
-        public string name;
+        public string Name;
         private object value_;
-        public object value //reference, sring, long, ulong, decimal, float, double, byte[]
+        public object Value //reference, sring, long, ulong, decimal, float, double, byte[]
         {
             get { return (value_ as Lazy<string>)?.Value ?? value_; }
             set { value_ = value; }
         }
     };
 
-    public struct create_record_entry
+    public struct CreateRecordEntry
     {
-        public string table;
-        public reference key;
-        public column_update[] columns;
+        public string Table;
+        public Reference Key;
+        public ColumnUpdate[] Columns;
     };
 
-    public struct update_record_entry
+    public struct UpdateRecordEntry
     {
-        public string table;
-        public reference key;
-        public column_update[] columns;
+        public string Table;
+        public Reference Key;
+        public ColumnUpdate[] Columns;
     };
 
-    public struct delete_record_entry
+    public struct DeleteRecordEntry
     {
-        public string table;
-        public reference key;
+        public string Table;
+        public Reference Key;
     };
 
     public class TransactionData
     {
-        public List<create_record_entry> creates;
-        public List<update_record_entry> updates;
-        public List<delete_record_entry> deletes;
+        public List<CreateRecordEntry> Creates;
+        public List<UpdateRecordEntry> Updates;
+        public List<DeleteRecordEntry> Deletes;
     }
-
-    class MetadataCache
-    {
-        public void notify_on_new_generation(ulong gen)
-        {
-            if ( generation < gen )
-            {
-                names.Clear();
-                generation = gen;
-            }
-        }
-
-        public string this[IntPtr ptr]
-        {
-            get
-            {
-                string name;
-
-                if (!names.TryGetValue(ptr.ToInt64(), out name))
-                {
-                    name = Marshal.PtrToStringUni(ptr);
-                    names[ptr.ToInt64()] = name;
-
-                    if ( name.Where(c=>c>255).Any() )
-                    {
-                        System.Diagnostics.Debugger.Launch();
-                    }
-                }
-
-                return name;
-            }
-        }
-
-        private Dictionary<long, string> names = new Dictionary<long, string>();
-        private ulong generation;
-    }
-
 }

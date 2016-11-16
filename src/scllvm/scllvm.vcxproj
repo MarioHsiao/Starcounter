@@ -60,6 +60,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalOptions> /EHs-c- -w14062 %(AdditionalOptions)</AdditionalOptions>
@@ -97,7 +101,7 @@
     </Midl>
     <Link>
       <AdditionalOptions> /machine:x64 /debug %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>version.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;$(LLVMClangOutDir)\Debug\lib\clangAST.lib;$(LLVMClangOutDir)\Debug\lib\clangBasic.lib;$(LLVMClangOutDir)\Debug\lib\clangFrontend.lib;$(LLVMClangOutDir)\Debug\lib\LLVMCore.lib;$(LLVMClangOutDir)\Debug\lib\LLVMExecutionEngine.lib;$(LLVMClangOutDir)\Debug\lib\LLVMInterpreter.lib;$(LLVMClangOutDir)\Debug\lib\LLVMMC.lib;$(LLVMClangOutDir)\Debug\lib\LLVMSupport.lib;$(LLVMClangOutDir)\Debug\lib\LLVMX86CodeGen.lib;$(LLVMClangOutDir)\Debug\lib\LLVMX86Desc.lib;$(LLVMClangOutDir)\Debug\lib\LLVMX86Info.lib;$(LLVMClangOutDir)\Debug\lib\LLVMRuntimeDyld.lib;$(LLVMClangOutDir)\Debug\lib\LLVMMCDisassembler.lib;$(LLVMClangOutDir)\Debug\lib\LLVMAsmPrinter.lib;$(LLVMClangOutDir)\Debug\lib\LLVMSelectionDAG.lib;$(LLVMClangOutDir)\Debug\lib\LLVMCodeGen.lib;$(LLVMClangOutDir)\Debug\lib\LLVMTarget.lib;$(LLVMClangOutDir)\Debug\lib\LLVMInstrumentation.lib;$(LLVMClangOutDir)\Debug\lib\LLVMScalarOpts.lib;$(LLVMClangOutDir)\Debug\lib\LLVMInstCombine.lib;$(LLVMClangOutDir)\Debug\lib\LLVMProfileData.lib;$(LLVMClangOutDir)\Debug\lib\LLVMObject.lib;$(LLVMClangOutDir)\Debug\lib\LLVMBitReader.lib;$(LLVMClangOutDir)\Debug\lib\LLVMMCParser.lib;$(LLVMClangOutDir)\Debug\lib\LLVMTransformUtils.lib;$(LLVMClangOutDir)\Debug\lib\LLVMAnalysis.lib;$(LLVMClangOutDir)\Debug\lib\LLVMX86AsmPrinter.lib;$(LLVMClangOutDir)\Debug\lib\LLVMX86Utils.lib;$(LLVMClangOutDir)\Debug\lib\LLVMMCJIT.lib;$(LLVMClangOutDir)\Debug\lib\LLVMX86AsmParser.lib;$(LLVMClangOutDir)\Debug\lib\clangDriver.lib;$(LLVMClangOutDir)\Debug\lib\clangCodeGen.lib;$(LLVMClangOutDir)\Debug\lib\clangSema.lib;$(LLVMClangOutDir)\Debug\lib\clangAnalysis.lib;$(LLVMClangOutDir)\Debug\lib\clangEdit.lib;$(LLVMClangOutDir)\Debug\lib\clangLex.lib;$(LLVMClangOutDir)\Debug\lib\clangSerialization.lib;$(LLVMClangOutDir)\Debug\lib\llvmOption.lib;$(LLVMClangOutDir)\Debug\lib\clangParse.lib;$(LLVMClangOutDir)\Debug\lib\LLVMipo.lib;$(LLVMClangOutDir)\Debug\lib\LLVMVectorize.lib;$(LLVMClangOutDir)\Debug\lib\LLVMLinker.lib;$(LLVMClangOutDir)\Debug\lib\LLVMIRReader.lib;$(LLVMClangOutDir)\Debug\lib\LLVMAsmParser.lib;$(LLVMClangOutDir)\Debug\lib\LLVMCoverage.lib;$(LLVMClangOutDir)\Debug\lib\LLVMDebugInfoCodeView.lib</AdditionalDependencies>
+      <AdditionalDependencies>version.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;;$(LLVMClangOutDir)\Debug\lib\LLVMCore.lib;$(LLVMClangOutDir)\Debug\lib\LLVMExecutionEngine.lib;;$(LLVMClangOutDir)\Debug\lib\LLVMMC.lib;$(LLVMClangOutDir)\Debug\lib\LLVMSupport.lib;$(LLVMClangOutDir)\Debug\lib\LLVMX86CodeGen.lib;$(LLVMClangOutDir)\Debug\lib\LLVMX86Desc.lib;$(LLVMClangOutDir)\Debug\lib\LLVMX86Info.lib;$(LLVMClangOutDir)\Debug\lib\LLVMRuntimeDyld.lib;$(LLVMClangOutDir)\Debug\lib\LLVMMCDisassembler.lib;$(LLVMClangOutDir)\Debug\lib\LLVMAsmPrinter.lib;$(LLVMClangOutDir)\Debug\lib\LLVMSelectionDAG.lib;$(LLVMClangOutDir)\Debug\lib\LLVMCodeGen.lib;$(LLVMClangOutDir)\Debug\lib\LLVMTarget.lib;$(LLVMClangOutDir)\Debug\lib\LLVMScalarOpts.lib;;$(LLVMClangOutDir)\Debug\lib\LLVMObject.lib;$(LLVMClangOutDir)\Debug\lib\LLVMBitReader.lib;$(LLVMClangOutDir)\Debug\lib\LLVMMCParser.lib;$(LLVMClangOutDir)\Debug\lib\LLVMTransformUtils.lib;$(LLVMClangOutDir)\Debug\lib\LLVMAnalysis.lib;$(LLVMClangOutDir)\Debug\lib\LLVMX86AsmPrinter.lib;$(LLVMClangOutDir)\Debug\lib\LLVMX86Utils.lib;$(LLVMClangOutDir)\Debug\lib\LLVMMCJIT.lib;$(LLVMClangOutDir)\Debug\lib\LLVMDebugInfoCodeView.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <StackReserveSize>10000000</StackReserveSize>
@@ -146,7 +150,7 @@
     </Midl>
     <Link>
       <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>version.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;$(LLVMClangOutDir)\MinSizeRel\lib\clangAST.lib;$(LLVMClangOutDir)\MinSizeRel\lib\clangBasic.lib;$(LLVMClangOutDir)\MinSizeRel\lib\clangFrontend.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMCore.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMExecutionEngine.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMInterpreter.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMMC.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMSupport.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMX86CodeGen.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMX86Desc.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMX86Info.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMRuntimeDyld.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMMCDisassembler.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMAsmPrinter.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMSelectionDAG.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMCodeGen.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMTarget.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMInstrumentation.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMScalarOpts.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMInstCombine.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMProfileData.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMObject.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMBitReader.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMMCParser.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMTransformUtils.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMAnalysis.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMX86AsmPrinter.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMX86Utils.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMMCJIT.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMX86AsmParser.lib;$(LLVMClangOutDir)\MinSizeRel\lib\clangDriver.lib;$(LLVMClangOutDir)\MinSizeRel\lib\clangCodeGen.lib;$(LLVMClangOutDir)\MinSizeRel\lib\clangSema.lib;$(LLVMClangOutDir)\MinSizeRel\lib\clangAnalysis.lib;$(LLVMClangOutDir)\MinSizeRel\lib\clangEdit.lib;$(LLVMClangOutDir)\MinSizeRel\lib\clangLex.lib;$(LLVMClangOutDir)\MinSizeRel\lib\clangSerialization.lib;$(LLVMClangOutDir)\MinSizeRel\lib\llvmOption.lib;$(LLVMClangOutDir)\MinSizeRel\lib\clangParse.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMipo.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMVectorize.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMLinker.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMIRReader.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMAsmParser.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMCoverage.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMDebugInfoCodeView.lib</AdditionalDependencies>
+      <AdditionalDependencies>version.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMCore.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMExecutionEngine.lib;;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMMC.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMSupport.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMX86CodeGen.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMX86Desc.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMX86Info.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMRuntimeDyld.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMMCDisassembler.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMAsmPrinter.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMSelectionDAG.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMCodeGen.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMTarget.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMScalarOpts.lib;;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMObject.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMBitReader.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMMCParser.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMTransformUtils.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMAnalysis.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMX86AsmPrinter.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMX86Utils.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMMCJIT.lib;$(LLVMClangOutDir)\MinSizeRel\lib\LLVMDebugInfoCodeView.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -154,57 +158,6 @@
       <SubSystem>Console</SubSystem>
       <Version>
       </Version>
-    </Link>
-    <ProjectReference>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
-    <ClCompile>
-      <AdditionalOptions> -w14062 /Zc:sizedDealloc- /EHs-c- %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(LLVMClangOutDir)\tools\clang\tools\clang-check;$(LLVMClangSrcDir)\tools\clang\tools\clang-check;$(LLVMClangSrcDir)\tools\clang\include;$(LLVMClangOutDir)\tools\clang\include;$(LLVMClangOutDir)\include;$(LLVMClangSrcDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AssemblerListingLocation>Release/</AssemblerListingLocation>
-      <CompileAs>CompileAsCpp</CompileAs>
-      <DisableSpecificWarnings>4577;4146;4180;4244;4258;4267;4291;4345;4351;4355;4456;4457;4458;4459;4503;4624;4722;4800;4100;4127;4512;4505;4610;4510;4702;4245;4706;4310;4701;4703;4389;4611;4805;4204;4324</DisableSpecificWarnings>
-      <ExceptionHandling>
-      </ExceptionHandling>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <Optimization>MaxSpeed</Optimization>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <TreatSpecificWarningsAsErrors>4238</TreatSpecificWarningsAsErrors>
-      <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_HAS_EXCEPTIONS=0;GTEST_HAS_RTTI=0;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <TreatWarningAsError>true</TreatWarningAsError>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_HAS_EXCEPTIONS=0;GTEST_HAS_RTTI=0;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;_SCL_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;__STDC_LIMIT_MACROS;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(LLVMClangOutDir)\tools\clang\tools\clang-check;$(LLVMClangSrcDir)\tools\clang\tools\clang-check;$(LLVMClangSrcDir)\tools\clang\include;$(LLVMClangOutDir)\tools\clang\include;$(LLVMClangOutDir)\include;$(LLVMClangSrcDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <Midl>
-      <AdditionalIncludeDirectories>$(LLVMClangOutDir)\tools\clang\tools\clang-check;$(LLVMClangSrcDir)\tools\clang\tools\clang-check;$(LLVMClangSrcDir)\tools\clang\include;$(LLVMClangOutDir)\tools\clang\include;$(LLVMClangOutDir)\include;$(LLVMClangSrcDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
-      <HeaderFileName>%(Filename).h</HeaderFileName>
-      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
-      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
-      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
-    </Midl>
-    <Link>
-      <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\clangAST.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\clangBasic.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\clangFrontend.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMCore.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMExecutionEngine.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMInterpreter.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMMC.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMSupport.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMX86CodeGen.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMX86Desc.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMX86Info.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMRuntimeDyld.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMMCDisassembler.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMAsmPrinter.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMSelectionDAG.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMCodeGen.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMTarget.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMInstrumentation.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMScalarOpts.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMInstCombine.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMProfileData.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMObject.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMBitReader.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMMCParser.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMTransformUtils.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMAnalysis.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMX86AsmPrinter.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMX86Utils.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMMCJIT.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMX86AsmParser.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\clangDriver.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\clangCodeGen.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\clangSema.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\clangAnalysis.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\clangEdit.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\clangLex.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\clangSerialization.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\llvmOption.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\clangParse.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMipo.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMVectorize.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMLinker.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMIRReader.lib;$(LLVMClangOutDir)\RelWithDebInfo\lib\LLVMAsmParser.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>Debug</GenerateDebugInformation>
-      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <StackReserveSize>10000000</StackReserveSize>
-      <SubSystem>Console</SubSystem>
-      <Version>
-      </Version>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>

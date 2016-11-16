@@ -127,20 +127,20 @@ namespace TransactionLogTest
             {
                 // ACT. find the record
 
-                create_record_entry create_entry = optlog_reader.Records.Where(r => r.record.key.object_id == oid_in_optimized_log).Single().record;
+                CreateRecordEntry create_entry = optlog_reader.Records.Where(r => r.record.Key.ObjectID == oid_in_optimized_log).Single().record;
 
                 //CHECK
-                Trace.Assert(create_entry.table == typeof(TestClass).FullName);
+                Trace.Assert(create_entry.Table == typeof(TestClass).FullName);
 
-                Trace.Assert((string)(create_entry.columns.Where(c => c.name == "base_string").Single().value) == "Str0");
-                Trace.Assert((create_entry.columns.Where(c => c.name == "bin_field").Single().value as byte[]).SequenceEqual(new byte[1] { 42 }));
-                Trace.Assert((decimal)(create_entry.columns.Where(c => c.name == "dec_field").Single().value) == 42.24m);
-                Trace.Assert((double)(create_entry.columns.Where(c => c.name == "double_field").Single().value) == -42.42);
-                Trace.Assert((float)(create_entry.columns.Where(c => c.name == "float_field").Single().value) == 42.42f);
-                Trace.Assert((long)(create_entry.columns.Where(c => c.name == "long_field").Single().value) == -42);
-                Trace.Assert((string)(create_entry.columns.Where(c => c.name == "str_field").Single().value) == "Str");
-                Trace.Assert((ulong)(create_entry.columns.Where(c => c.name == "ulong_field").Single().value) == ulong.MaxValue);
-                Trace.Assert(((reference)(create_entry.columns.Where(c => c.name == "ref_field").Single().value)).object_id == oid_in_optimized_log);
+                Trace.Assert((string)(create_entry.Columns.Where(c => c.Name == "base_string").Single().Value) == "Str0");
+                Trace.Assert((create_entry.Columns.Where(c => c.Name == "bin_field").Single().Value as byte[]).SequenceEqual(new byte[1] { 42 }));
+                Trace.Assert((decimal)(create_entry.Columns.Where(c => c.Name == "dec_field").Single().Value) == 42.24m);
+                Trace.Assert((double)(create_entry.Columns.Where(c => c.Name == "double_field").Single().Value) == -42.42);
+                Trace.Assert((float)(create_entry.Columns.Where(c => c.Name == "float_field").Single().Value) == 42.42f);
+                Trace.Assert((long)(create_entry.Columns.Where(c => c.Name == "long_field").Single().Value) == -42);
+                Trace.Assert((string)(create_entry.Columns.Where(c => c.Name == "str_field").Single().Value) == "Str");
+                Trace.Assert((ulong)(create_entry.Columns.Where(c => c.Name == "ulong_field").Single().Value) == ulong.MaxValue);
+                Trace.Assert(((Reference)(create_entry.Columns.Where(c => c.Name == "ref_field").Single().Value)).ObjectID == oid_in_optimized_log);
             }
         }
 
@@ -157,21 +157,21 @@ namespace TransactionLogTest
                 using (ILogReader log_reader = new LogManager().OpenLog(Starcounter.Db.Environment.DatabaseName, Starcounter.Db.Environment.DatabaseLogDir, continuation_position))
                 {
 
-                    create_record_entry create_entry = log_reader.ReadAsync(new CancellationTokenSource().Token).Result.transaction_data.creates.Single();
+                    CreateRecordEntry create_entry = log_reader.ReadAsync(new CancellationTokenSource().Token).Result.TransactionData.Creates.Single();
 
                     //CHECK
-                    Trace.Assert(create_entry.table == typeof(TestClass).FullName);
-                    Trace.Assert(create_entry.key.object_id == oid_in_transaction_log);
+                    Trace.Assert(create_entry.Table == typeof(TestClass).FullName);
+                    Trace.Assert(create_entry.Key.ObjectID == oid_in_transaction_log);
 
-                    Trace.Assert((string)(create_entry.columns.Where(c => c.name == "base_string").Single().value) == "Str0");
-                    Trace.Assert((create_entry.columns.Where(c => c.name == "bin_field").Single().value as byte[]).SequenceEqual(new byte[1] { 42 }));
-                    Trace.Assert((decimal)(create_entry.columns.Where(c => c.name == "dec_field").Single().value) == 42.24m);
-                    Trace.Assert((double)(create_entry.columns.Where(c => c.name == "double_field").Single().value) == -42.42);
-                    Trace.Assert((float)(create_entry.columns.Where(c => c.name == "float_field").Single().value) == 42.42f);
-                    Trace.Assert((long)(create_entry.columns.Where(c => c.name == "long_field").Single().value) == -42);
-                    Trace.Assert((string)(create_entry.columns.Where(c => c.name == "str_field").Single().value) == "Str");
-                    Trace.Assert((ulong)(create_entry.columns.Where(c => c.name == "ulong_field").Single().value) == ulong.MaxValue);
-                    Trace.Assert(((reference)(create_entry.columns.Where(c => c.name == "ref_field").Single().value)).object_id == oid_in_transaction_log);
+                    Trace.Assert((string)(create_entry.Columns.Where(c => c.Name == "base_string").Single().Value) == "Str0");
+                    Trace.Assert((create_entry.Columns.Where(c => c.Name == "bin_field").Single().Value as byte[]).SequenceEqual(new byte[1] { 42 }));
+                    Trace.Assert((decimal)(create_entry.Columns.Where(c => c.Name == "dec_field").Single().Value) == 42.24m);
+                    Trace.Assert((double)(create_entry.Columns.Where(c => c.Name == "double_field").Single().Value) == -42.42);
+                    Trace.Assert((float)(create_entry.Columns.Where(c => c.Name == "float_field").Single().Value) == 42.42f);
+                    Trace.Assert((long)(create_entry.Columns.Where(c => c.Name == "long_field").Single().Value) == -42);
+                    Trace.Assert((string)(create_entry.Columns.Where(c => c.Name == "str_field").Single().Value) == "Str");
+                    Trace.Assert((ulong)(create_entry.Columns.Where(c => c.Name == "ulong_field").Single().Value) == ulong.MaxValue);
+                    Trace.Assert(((Reference)(create_entry.Columns.Where(c => c.Name == "ref_field").Single().Value)).ObjectID == oid_in_transaction_log);
                 }
             }
         }
@@ -186,8 +186,8 @@ namespace TransactionLogTest
                 using (IOptimizedLogReader optlog_reader2 = optlog_manager.OpenLog(Starcounter.Db.Environment.DatabaseName, Starcounter.Db.Environment.DatabaseLogDir, t=>false))
                 {
                     //CHECK
-                    Trace.Assert(optlog_reader.Records.Where(r => r.record.key.object_id == oid_in_optimized_log).Count() == 1);
-                    Trace.Assert(optlog_reader2.Records.Where(r => r.record.key.object_id == oid_in_optimized_log).Count() == 0);
+                    Trace.Assert(optlog_reader.Records.Where(r => r.record.Key.ObjectID == oid_in_optimized_log).Count() == 1);
+                    Trace.Assert(optlog_reader2.Records.Where(r => r.record.Key.ObjectID == oid_in_optimized_log).Count() == 0);
                 }
             }
         }

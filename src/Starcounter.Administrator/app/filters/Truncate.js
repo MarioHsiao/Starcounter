@@ -121,6 +121,64 @@ adminModule.filter('semver', function () {
     };
 });
 
+
+adminModule.filter('storefilter', function () {
+    return function (items, showWarehouse) {
+        var filtered = [];
+
+        angular.forEach(items, function (item) {
+
+            if( showWarehouse == true ) {
+                if (item.DepotKey ) {
+                    filtered.push(item);
+                }
+            }
+            else {
+                if (!item.DepotKey ) {
+                    filtered.push(item);
+                }
+            }
+        });
+        return filtered;
+    };
+});
+
+
+
+adminModule.filter('appstorefilter', function () {
+    return function (items, scversion, showCompatibleVersions) {
+        var filtered = [];
+
+        if (showCompatibleVersions == false) return items;
+
+        angular.forEach(items, function (item) {
+
+            angular.forEach(item.Dependencies, function (dep) {
+
+                if (dep.Key == "Starcounter") {
+                    var starcounterVersion = scversion;
+                    var appCompability = dep.Value;
+                    var scFormat = (scversion.split(".").length - 1);
+                    var appFormat = (appCompability.split(".").length - 1);
+                    if (scFormat == appFormat) {
+                        var dots = (scversion.split(".").length - 1);
+                        if (dots >= 3) {
+                            var p1 = scversion.indexOf(".");
+                            var p2 = appCompability.indexOf(".");
+                            starcounterVersion = scversion.slice(0, p1) + scversion.slice(p1 + 1);
+                            appCompability = appCompability.slice(0, p2) + appCompability.slice(p2 + 1);
+                        }
+                        if (semver.satisfies(starcounterVersion, appCompability)) {
+                            filtered.push(item);
+                        }
+                    }
+                }
+            });
+        });
+        return filtered;
+    };
+});
+
 adminModule.filter('visibleStores', function () {
     return function (items, visibleStores) {
         var filtered = [];

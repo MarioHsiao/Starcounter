@@ -47,6 +47,12 @@ namespace TransactionLogTest
     {
     }
 
+    [Database]
+    public class IntTest
+    {
+        public long val;
+    }
+
 
     class Program
     {
@@ -84,21 +90,21 @@ namespace TransactionLogTest
                 LogReadResult lr = log_reader.ReadAsync(cts.Token).Result;
 
                 //CHECK
-                Trace.Assert(lr.transaction_data.creates.Count() == 1);
+                Trace.Assert(lr.TransactionData.Creates.Count() == 1);
 
-                var create_entry = lr.transaction_data.creates.First();
-                Trace.Assert(create_entry.table == typeof(TestClass).FullName);
-                Trace.Assert(create_entry.key.object_id == t_record_key);
+                var create_entry = lr.TransactionData.Creates.First();
+                Trace.Assert(create_entry.Table == typeof(TestClass).FullName);
+                Trace.Assert(create_entry.Key.ObjectID == t_record_key);
 
-                Trace.Assert((string)(create_entry.columns.Where(c => c.name == "base_string").Single().value) == "Str0");
-                Trace.Assert((create_entry.columns.Where(c => c.name == "bin_field").Single().value as byte[]).SequenceEqual(new byte[1] { 42 }));
-                Trace.Assert((decimal)(create_entry.columns.Where(c => c.name == "dec_field").Single().value) == 42.24m);
-                Trace.Assert((double)(create_entry.columns.Where(c => c.name == "double_field").Single().value) == -42.42);
-                Trace.Assert((float)(create_entry.columns.Where(c => c.name == "float_field").Single().value) == 42.42f);
-                Trace.Assert((long)(create_entry.columns.Where(c => c.name == "long_field").Single().value) == -42);
-                Trace.Assert((string)(create_entry.columns.Where(c => c.name == "str_field").Single().value) == "Str");
-                Trace.Assert((ulong)(create_entry.columns.Where(c => c.name == "ulong_field").Single().value) == ulong.MaxValue);
-                Trace.Assert(((reference)(create_entry.columns.Where(c => c.name == "ref_field").Single().value)).object_id == t_record_key);
+                Trace.Assert((string)(create_entry.Columns.Where(c => c.Name == "base_string").Single().Value) == "Str0");
+                Trace.Assert((create_entry.Columns.Where(c => c.Name == "bin_field").Single().Value as byte[]).SequenceEqual(new byte[1] { 42 }));
+                Trace.Assert((decimal)(create_entry.Columns.Where(c => c.Name == "dec_field").Single().Value) == 42.24m);
+                Trace.Assert((double)(create_entry.Columns.Where(c => c.Name == "double_field").Single().Value) == -42.42);
+                Trace.Assert((float)(create_entry.Columns.Where(c => c.Name == "float_field").Single().Value) == 42.42f);
+                Trace.Assert((long)(create_entry.Columns.Where(c => c.Name == "long_field").Single().Value) == -42);
+                Trace.Assert((string)(create_entry.Columns.Where(c => c.Name == "str_field").Single().Value) == "Str");
+                Trace.Assert((ulong)(create_entry.Columns.Where(c => c.Name == "ulong_field").Single().Value) == ulong.MaxValue);
+                Trace.Assert(((Reference)(create_entry.Columns.Where(c => c.Name == "ref_field").Single().Value)).ObjectID == t_record_key);
             }
 
         }
@@ -123,8 +129,8 @@ namespace TransactionLogTest
                 LogReadResult lr = log_reader.ReadAsync(cts.Token).Result;
 
                 //CHECK
-                Trace.Assert(lr.transaction_data.creates.Count() == 1);
-                Trace.Assert(lr.transaction_data.creates.First().table == typeof(T).FullName);
+                Trace.Assert(lr.TransactionData.Creates.Count() == 1);
+                Trace.Assert(lr.TransactionData.Creates.First().Table == typeof(T).FullName);
             }
         }
 
@@ -170,12 +176,12 @@ namespace TransactionLogTest
 
 
                 //CHECK
-                var update_entry = lr.transaction_data.updates.Single();
-                Trace.Assert(update_entry.table == typeof(TestClass).FullName);
-                Trace.Assert(update_entry.key.object_id == t.GetObjectNo());
+                var update_entry = lr.TransactionData.Updates.Single();
+                Trace.Assert(update_entry.Table == typeof(TestClass).FullName);
+                Trace.Assert(update_entry.Key.ObjectID == t.GetObjectNo());
 
-                Trace.Assert(update_entry.columns.Where(c => c.name == "null_str_field").Single().value == null);
-                Trace.Assert(update_entry.columns.Where(c => c.name == "null_long_field").Single().value == null);
+                Trace.Assert(update_entry.Columns.Where(c => c.Name == "null_str_field").Single().Value == null);
+                Trace.Assert(update_entry.Columns.Where(c => c.Name == "null_long_field").Single().Value == null);
 
             }
 
@@ -200,7 +206,7 @@ namespace TransactionLogTest
                 {
                     lr = log_reader.ReadAsync(cts.Token, false).Result;
                     if ( lr != null)
-                        new_record_position = lr.continuation_position;
+                        new_record_position = lr.ContinuationPosition;
                 }
                 while (lr != null);
             }
@@ -221,8 +227,8 @@ namespace TransactionLogTest
                 LogReadResult lr;
                 lr = log_reader.ReadAsync(cts.Token).Result;
 
-                Trace.Assert(lr.transaction_data.creates.First().key.object_id == t_record_key);
-                Trace.Assert(lr.continuation_position.commit_id > new_record_position.commit_id);
+                Trace.Assert(lr.TransactionData.Creates.First().Key.ObjectID == t_record_key);
+                Trace.Assert(lr.ContinuationPosition.CommitID > new_record_position.CommitID);
             }
         }
 
@@ -260,13 +266,13 @@ namespace TransactionLogTest
                         var lr3 = log_reader3.ReadAsync(cts.Token).Result;
 
                         //CHECK
-                        Trace.Assert(lr.transaction_data.creates.Count() == 1);
-                        Trace.Assert(lr.transaction_data.creates.Single().key.object_id == key1);
+                        Trace.Assert(lr.TransactionData.Creates.Count() == 1);
+                        Trace.Assert(lr.TransactionData.Creates.Single().Key.ObjectID == key1);
 
-                        Trace.Assert(lr2.transaction_data.creates.Count() == 1);
-                        Trace.Assert(lr2.transaction_data.creates.Single().key.object_id == key2);
+                        Trace.Assert(lr2.TransactionData.Creates.Count() == 1);
+                        Trace.Assert(lr2.TransactionData.Creates.Single().Key.ObjectID == key2);
 
-                        Trace.Assert(lr3.transaction_data.creates.Count() == 0);
+                        Trace.Assert(lr3.TransactionData.Creates.Count() == 0);
                     }
                 }
             }
@@ -292,22 +298,22 @@ namespace TransactionLogTest
             ulong new_record_key = last_key + 1;
 
             TransactionData td = new TransactionData {
-                                    updates = new List<update_record_entry>(),
-                                    deletes = new List<delete_record_entry>(),
-                                    creates = new List<create_record_entry> {
-                                        new create_record_entry {
-                                            table = typeof(TestClass).FullName,
-                                            key = new reference { object_id=new_record_key },
-                                            columns = new column_update[]{
-                                                new column_update { name="base_string", value="Str" },
-                                                new column_update { name="bin_field", value=new byte[1] { 42 } },
-                                                new column_update { name="dec_field", value=42.24m },
-                                                new column_update { name="double_field", value=-42.42 },
-                                                new column_update { name="float_field", value=42.42f },
-                                                new column_update { name="long_field", value=-42L },
-                                                new column_update { name="str_field", value=null },
-                                                new column_update { name="ulong_field", value=ulong.MaxValue },
-                                                new column_update { name="ref_field", value=new reference { object_id = last_key } }
+                                    Updates = new List<UpdateRecordEntry>(),
+                                    Deletes = new List<DeleteRecordEntry>(),
+                                    Creates = new List<CreateRecordEntry> {
+                                        new CreateRecordEntry {
+                                            Table = typeof(TestClass).FullName,
+                                            Key = new Reference { ObjectID=new_record_key },
+                                            Columns = new ColumnUpdate[]{
+                                                new ColumnUpdate { Name="base_string", Value="Str" },
+                                                new ColumnUpdate { Name="bin_field", Value=new byte[1] { 42 } },
+                                                new ColumnUpdate { Name="dec_field", Value=42.24m },
+                                                new ColumnUpdate { Name="double_field", Value=-42.42 },
+                                                new ColumnUpdate { Name="float_field", Value=42.42f },
+                                                new ColumnUpdate { Name="long_field", Value=-42L },
+                                                new ColumnUpdate { Name="str_field", Value=null },
+                                                new ColumnUpdate { Name="ulong_field", Value=ulong.MaxValue },
+                                                new ColumnUpdate { Name="ref_field", Value=new Reference { ObjectID = last_key } }
                                             } } } };
 
             //act
@@ -339,14 +345,14 @@ namespace TransactionLogTest
 
             TransactionData td = new TransactionData
             {
-                creates = new List<create_record_entry>(){
-                                    new create_record_entry {
-                                        table = "NoSuchTable.768C17AE_65F1_4E6B_97BD_B6A98E427848",
-                                        key = new reference {object_id=1},
-                                        columns = new column_update[] { }
+                Creates = new List<CreateRecordEntry>(){
+                                    new CreateRecordEntry {
+                                        Table = "NoSuchTable.768C17AE_65F1_4E6B_97BD_B6A98E427848",
+                                        Key = new Reference {ObjectID=1},
+                                        Columns = new ColumnUpdate[] { }
                                     } },
-                deletes = new List<delete_record_entry>(),
-                updates = new List<update_record_entry>()
+                Deletes = new List<DeleteRecordEntry>(),
+                Updates = new List<UpdateRecordEntry>()
             };
 
             //act
@@ -380,16 +386,16 @@ namespace TransactionLogTest
 
             TransactionData td = new TransactionData
             {
-                creates = new List<create_record_entry>(){
-                                    new create_record_entry {
-                                        table = typeof(TestClass).FullName,
-                                        key = new reference {object_id=new_record_key},
-                                        columns = new column_update[] {
-                                            new column_update { name="NoSuchColumn768C17AE_65F1_4E6B_97BD_B6A98E427848", value="Str" }
+                Creates = new List<CreateRecordEntry>(){
+                                    new CreateRecordEntry {
+                                        Table = typeof(TestClass).FullName,
+                                        Key = new Reference {ObjectID=new_record_key},
+                                        Columns = new ColumnUpdate[] {
+                                            new ColumnUpdate { Name="NoSuchColumn768C17AE_65F1_4E6B_97BD_B6A98E427848", Value="Str" }
                                         }
                                     } },
-                deletes = new List<delete_record_entry>(),
-                updates = new List<update_record_entry>()
+                Deletes = new List<DeleteRecordEntry>(),
+                Updates = new List<UpdateRecordEntry>()
             };
 
             //act
@@ -421,14 +427,14 @@ namespace TransactionLogTest
 
             TransactionData td = new TransactionData
             {
-                creates = new List<create_record_entry>(),
-                deletes = new List<delete_record_entry>(),
-                updates = new List<update_record_entry> {
-                                        new update_record_entry {
-                                            table = typeof(TestClass).FullName,
-                                            key = new reference { object_id=key },
-                                            columns = new column_update[]{
-                                                new column_update { name="base_string", value="Str" }
+                Creates = new List<CreateRecordEntry>(),
+                Deletes = new List<DeleteRecordEntry>(),
+                Updates = new List<UpdateRecordEntry> {
+                                        new UpdateRecordEntry {
+                                            Table = typeof(TestClass).FullName,
+                                            Key = new Reference { ObjectID=key },
+                                            Columns = new ColumnUpdate[]{
+                                                new ColumnUpdate { Name="base_string", Value="Str" }
                                             } } }
             };
 
@@ -460,13 +466,13 @@ namespace TransactionLogTest
 
             TransactionData td = new TransactionData
             {
-                creates = new List<create_record_entry>(),
-                deletes = new List<delete_record_entry>(),
-                updates = new List<update_record_entry> {
-                                        new update_record_entry {
-                                            table = typeof(TestClass).FullName,
-                                            key = new reference { object_id=key+1 },
-                                            columns = new column_update[]{
+                Creates = new List<CreateRecordEntry>(),
+                Deletes = new List<DeleteRecordEntry>(),
+                Updates = new List<UpdateRecordEntry> {
+                                        new UpdateRecordEntry {
+                                            Table = typeof(TestClass).FullName,
+                                            Key = new Reference { ObjectID=key+1 },
+                                            Columns = new ColumnUpdate[]{
                                             } } }
             };
 
@@ -500,12 +506,12 @@ namespace TransactionLogTest
 
             TransactionData td = new TransactionData
             {
-                creates = new List<create_record_entry>(),
-                updates = new List<update_record_entry>(),
-                deletes = new List<delete_record_entry>(){
-                                    new delete_record_entry {
-                                              table = typeof(TestClass).FullName,
-                                              key = new reference { object_id=key }
+                Creates = new List<CreateRecordEntry>(),
+                Updates = new List<UpdateRecordEntry>(),
+                Deletes = new List<DeleteRecordEntry>(){
+                                    new DeleteRecordEntry {
+                                              Table = typeof(TestClass).FullName,
+                                              Key = new Reference { ObjectID=key }
                                     } }
             };
 
@@ -537,12 +543,12 @@ namespace TransactionLogTest
 
             TransactionData td = new TransactionData
             {
-                creates = new List<create_record_entry>(),
-                updates = new List<update_record_entry>(),
-                deletes = new List<delete_record_entry>(){
-                                    new delete_record_entry {
-                                              table = typeof(TestClass).FullName,
-                                              key = new reference { object_id=key+1 }
+                Creates = new List<CreateRecordEntry>(),
+                Updates = new List<UpdateRecordEntry>(),
+                Deletes = new List<DeleteRecordEntry>(){
+                                    new DeleteRecordEntry {
+                                              Table = typeof(TestClass).FullName,
+                                              Key = new Reference { ObjectID=key+1 }
                                     } }
             };
 
@@ -581,4 +587,5 @@ namespace TransactionLogTest
         }
     }
 }
+
 
