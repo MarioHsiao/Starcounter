@@ -24,7 +24,6 @@ namespace Starcounter.CLI
             var name = Path.GetFileNameWithoutExtension(sourceCode);
             var compiler = new AppCompiler(name)
                 .WithDefaultReferences()
-                .WithLibrariesWithDatabaseReferences()
                 .WithStarcounterAssemblyInfo()
                 .WithSourceCodeFile(sourceCode);
 

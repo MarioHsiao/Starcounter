@@ -50,13 +50,7 @@ namespace Starcounter.Weaver
                 return Path.Combine(Setup.WeaverRuntimeDirectory, "EditionLibraries");
             }
         }
-
-        public string LibrariesWithDatabaseClassesDirectory {
-            get {
-                return StarcounterEnvironment.LibrariesWithDatabaseClassesDirectory;
-            }
-        }
-
+        
         /// <summary>
         /// Gets a value that indicates the weaver will only include those
         /// edition libraries that are referenced by the application being
@@ -225,10 +219,6 @@ namespace Starcounter.Weaver
                 if (!Setup.DisableEditionLibraries && Directory.Exists(this.EditionLibrariesDirectory)) {
                     postSharpSettings.SearchDirectories.Add(this.EditionLibrariesDirectory);
                 }
-
-                if (Directory.Exists(this.LibrariesWithDatabaseClassesDirectory)) {
-                    postSharpSettings.SearchDirectories.Add(this.LibrariesWithDatabaseClassesDirectory);
-                }
                 
                 postSharpSettings.LocalHostImplementation = typeof(CodeWeaverInsidePostSharpDomain).AssemblyQualifiedName;
 
@@ -367,11 +357,7 @@ namespace Starcounter.Weaver
             this.Cache.AssemblySearchDirectories.Add(Setup.InputDirectory);
             this.Cache.AssemblySearchDirectories.Add(Setup.WeaverRuntimeDirectory);
             this.Cache.AssemblySearchDirectories.Add(EditionLibrariesDirectory);
-
-            if (Directory.Exists(this.LibrariesWithDatabaseClassesDirectory)) {
-                this.Cache.AssemblySearchDirectories.Add(LibrariesWithDatabaseClassesDirectory);
-            }
-
+            
             return true;
         }
 

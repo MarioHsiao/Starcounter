@@ -47,14 +47,7 @@ namespace Starcounter.Server.Compiler
         {
             throw new NotImplementedException();
         }
-
-        public static AppCompiler WithLibrariesWithDatabaseReferences(this AppCompiler compiler, string databaseLibrariesDirectory = null)
-        {
-            databaseLibrariesDirectory = databaseLibrariesDirectory ?? StarcounterEnvironment.LibrariesWithDatabaseClassesDirectory;
-            compiler.AddReferencesToAllAssembliesInDirectory(databaseLibrariesDirectory);
-            return compiler;
-        }
-
+        
         public static AppCompiler WithSourceCode(this AppCompiler compiler, string sourceCode)
         {
             if (sourceCode == null)

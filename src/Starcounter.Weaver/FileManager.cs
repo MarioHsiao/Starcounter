@@ -175,14 +175,6 @@ namespace Starcounter.Weaver
                 var libs = Directory.GetFiles(editionLibraries, "*.dll");
                 AddEditionLibraries(libs, sourceFiles);
             }
-
-            // Adding libraries from database classes libraries directory.
-            var librariesWithDbClasses = CodeWeaver.Current.LibrariesWithDatabaseClassesDirectory;
-
-            if (Directory.Exists(librariesWithDbClasses)) {
-                var libs = Directory.GetFiles(librariesWithDbClasses, "*.dll");
-                AddEditionLibraries(libs, sourceFiles);
-            }
             
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.dll"));
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.exe"));

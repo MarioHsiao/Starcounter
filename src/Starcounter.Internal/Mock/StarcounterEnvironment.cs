@@ -1,20 +1,10 @@
-﻿// ***********************************************************************
-// <copyright file="StarcounterEnvironment.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using Starcounter.Internal;
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Text.RegularExpressions;
-using System.Xml;
 
 namespace Starcounter.Internal
 {
@@ -331,18 +321,7 @@ namespace Starcounter.Internal
                 return path;
             }
         }
-
-        /// <summary>
-        /// Gets the full path of the directory containing preinstalled Starcounter
-        /// database classes.
-        /// </summary>
-        public static string LibrariesWithDatabaseClassesDirectory {
-            get {
-                var installDir = InstallationDirectory;
-                return Path.Combine(installDir, "LibrariesWithDatabaseClasses");
-            }
-        }
-
+        
         /// <summary>
         /// Assigns the Starcounter installation directory for the current process
         /// based on the calling assembly. Designed to be invoked first/early in
