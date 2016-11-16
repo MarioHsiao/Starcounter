@@ -174,7 +174,6 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DefaultSessionTimeoutMinutes, "Specifies the default session timeout in minutes.");
 
-            commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.LoadEditionLibraries), "Load edition libraries.");
             commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.WrapJsonInNamespaces), "Should JSON responses be wrapped in application name.");
             commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.EnforceURINamespaces), "Enforces URI namespaces when registering handlers.");
             commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.MergeJsonSiblings), "Should mutliple JSON responses be merged.");

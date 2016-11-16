@@ -197,7 +197,6 @@ namespace Starcounter.Weaver
             setup.DisableWeaverCache = arguments.ContainsFlag("nocache");
             setup.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
             setup.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
-            setup.DisableEditionLibraries = arguments.ContainsFlag("DisableEditionLibraries".ToLower());
             setup.EmitBootAndFinalizationDiagnostics = host.OutputVerbosity == Verbosity.Diagnostic;
             setup.IncludeLocationInErrorMessages = host.ShouldCreateParceledErrors;
             setup.EnableTracing = host.OutputVerbosity == Verbosity.Diagnostic;
@@ -416,9 +415,6 @@ namespace Starcounter.Weaver
             commandDefinition.DefineFlag(
                 "tocache", 
                 "Instructs the weaver to leave the input intact and weave only to the weaver cache.");
-
-            commandDefinition.DefineFlag("DisableEditionLibraries".ToLower(),
-                "Instructs the weaver to ignore any edition libraries part of the installation.");
 
             // Define the "Verify" command, used to analyze and verify user code.
 

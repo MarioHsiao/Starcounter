@@ -98,8 +98,7 @@ namespace Starcounter.Server.Commands {
                 } else {
                     weavedExecutable = weaver.Weave(
                         command.Application.BinaryFilePath,
-                        appRuntimeDirectory,
-                        !database.Configuration.Runtime.LoadEditionLibraries);
+                        appRuntimeDirectory);
 
                     OnWeavingCompleted();
                 }

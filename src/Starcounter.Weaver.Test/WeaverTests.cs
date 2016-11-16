@@ -121,7 +121,6 @@ namespace Starcounter.Weaver.Test
                 resourceGuard.Add(result);
 
                 var setup = CreateDefaultWeaverSetupFromCompiler(result);
-                setup.DisableEditionLibraries = true;
 
                 resourceGuard.Add(setup);
 
@@ -146,8 +145,7 @@ namespace Starcounter.Weaver.Test
                 resourceGuard.Add(result);
 
                 var setup = CreateDefaultWeaverSetupFromCompiler(result);
-                setup.DisableEditionLibraries = true;
-
+                
                 resourceGuard.Add(setup);
 
                 var weaver = WeaverFactory.CreateWeaver(setup, typeof(DefaultTestWeaverHost));
@@ -172,7 +170,6 @@ namespace Starcounter.Weaver.Test
 
                 var errorLogPath = Path.Combine(result.OutputDirectory, "weavererrors.log");
                 var setup = CreateDefaultWeaverSetupFromCompiler(result);
-                setup.DisableEditionLibraries = true;
                 setup.HostProperties.Add(WeaverHostLoggingErrors.FilePropertyKey, errorLogPath);
 
                 resourceGuard.Add(setup);

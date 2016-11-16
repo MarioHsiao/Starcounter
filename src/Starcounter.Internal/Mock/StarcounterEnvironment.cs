@@ -48,12 +48,7 @@ namespace Starcounter.Internal
         /// Flag to enforce URI namespaces.
         /// </summary>
         public static Boolean EnforceURINamespaces = false;
-
-        /// <summary>
-        /// Flag to load edition libraries.
-        /// </summary>
-        public static Boolean LoadEditionLibraries = true;
-
+        
         /// <summary>
         /// Merge Json siblings.
         /// </summary>

@@ -74,13 +74,7 @@ namespace Starcounter.Weaver
         /// weaver to emit a redirection layer over CRUD calls.
         /// </summary>
         public bool UseStateRedirect { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating if the current weaver should
-        /// exclude any possible edition libraries found when running.
-        /// </summary>
-        public bool DisableEditionLibraries { get; set; }
-
+        
         /// <summary>
         /// Can be used by hosts that want to enable maximum tracing
         /// and diagnostic output.

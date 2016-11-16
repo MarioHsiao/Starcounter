@@ -42,11 +42,6 @@ namespace Starcounter.Server.Compiler
 
             return compiler;
         }
-
-        public static AppCompiler WithExtensionReferences(this AppCompiler compiler, string editionLibrariesDirectory = null)
-        {
-            throw new NotImplementedException();
-        }
         
         public static AppCompiler WithSourceCode(this AppCompiler compiler, string sourceCode)
         {

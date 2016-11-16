@@ -21,12 +21,6 @@ namespace Starcounter.Weaver
         List<string> filesToCopy;
         List<string> presentTargetFiles;
 
-        /// <summary>
-        /// Index of the first edition library file, if any. The
-        /// index is based on the <see cref="sourceFiles"/> list.
-        /// </summary>
-        int editionLibriesIndex;
-
         public string SourceDirectory {
             get {
                 return setup.InputDirectory;
@@ -60,7 +54,6 @@ namespace Starcounter.Weaver
             filesToCopy = new List<string>();
             exclusionPolicy = new FileExclusionPolicy(weaverHost, setup.InputDirectory);
             presentTargetFiles = new List<string>();
-            editionLibriesIndex = -1;
         }
 
         /// <summary>
@@ -117,14 +110,6 @@ namespace Starcounter.Weaver
             return outdatedAssemblies.ContainsKey(file);
         }
 
-        public bool IsEditionLibrary(string file) {
-            var result = false;
-            if (editionLibriesIndex != -1) {
-                result = sourceFiles.IndexOf(file, editionLibriesIndex) != -1;
-            }
-            return result;
-        }
-
         /// <summary>
         /// Synchronize the two directories, removing all files
         /// considered obsolete from the target directory and copying
@@ -166,15 +151,6 @@ namespace Starcounter.Weaver
 
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.dll"));
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.exe"));
-
-            // Assure we always add edition libraries LAST - this is what we depend
-            // on to avoid having to weave them when they are not referenced
-            var editionLibraries = CodeWeaver.Current.EditionLibrariesDirectory;
-
-            if (Directory.Exists(editionLibraries) && (!setup.DisableEditionLibraries)) {
-                var libs = Directory.GetFiles(editionLibraries, "*.dll");
-                AddEditionLibraries(libs, sourceFiles);
-            }
             
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.dll"));
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.exe"));
@@ -248,32 +224,7 @@ namespace Starcounter.Weaver
                 }
             });
         }
-
-        void AddEditionLibraries(string[] editionLibraries, List<string> sourceFiles) {
-            if (editionLibraries.Length > 0) {
-                // Detect any duplicate before adding
-                // TODO:
-
-                var duplicates = sourceFiles.FindAll((s) => {
-                    var duplicate = editionLibraries.FirstOrDefault(
-                        e => Path.GetFileName(e).Equals(Path.GetFileName(s), System.StringComparison.InvariantCultureIgnoreCase));
-                    return duplicate != null;
-                });
-
-                if (duplicates.Count > 0) {
-                    // We found at least one duplicate. Convert full path
-                    // names to simple file name and add them to the error
-                    // message.
-                    duplicates = duplicates.ConvertAll<string>(f => Path.GetFileName(f));
-                    var msg = string.Format("{0} duplicate(s): {1}", duplicates.Count, string.Join(";", duplicates));
-                    throw ErrorCode.ToException(Error.SCERRAPPDEPLOYEDEDITIONLIBRARY, msg);
-                }
-
-                editionLibriesIndex = sourceFiles.Count;
-                sourceFiles.AddRange(editionLibraries);
-            }
-        }
-
+        
         void WriteInfo(string message, params object[] parameters) {
             host.WriteInformation(message, parameters);
         }

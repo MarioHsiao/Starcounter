@@ -19,9 +19,6 @@ Configuration\
 ItemTemplates\
 ProjectTemplates\
 
-# Special edition libraries
-EditionLibraries\
-
 # Public assemblies
 Public Assemblies\
 

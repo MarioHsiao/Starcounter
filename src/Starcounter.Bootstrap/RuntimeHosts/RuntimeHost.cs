@@ -483,12 +483,6 @@ namespace Starcounter.Bootstrap.RuntimeHosts
                 return;
             }
             
-            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.LoadEditionLibraries);
-            if (args.TryGetProperty(propName, out s))
-            {
-                StarcounterEnvironment.LoadEditionLibraries = Boolean.Parse(s);
-            }
-
             propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.WrapJsonInNamespaces);
             if (args.TryGetProperty(propName, out s))
             {

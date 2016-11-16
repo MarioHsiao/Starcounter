@@ -127,8 +127,7 @@ namespace Starcounter.Advanced.Configuration {
             }
         }
         private UInt32 _DefaultSessionTimeoutMinutes = StarcounterConstants.NetworkPorts.DefaultSessionTimeoutMinutes;
-
-        public Boolean LoadEditionLibraries = StarcounterEnvironment.LoadEditionLibraries;
+        
         public Boolean WrapJsonInNamespaces = StarcounterEnvironment.WrapJsonInNamespaces;
         public Boolean EnforceURINamespaces = StarcounterEnvironment.EnforceURINamespaces;
         public Boolean MergeJsonSiblings = StarcounterEnvironment.MergeJsonSiblings;

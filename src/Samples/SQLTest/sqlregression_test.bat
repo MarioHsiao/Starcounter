@@ -19,7 +19,7 @@ MKDIR .db.output
 CMD /C sccreatedb.exe -ip .db -uuid "def000db-dfdb-dfdb-dfdb-def0db0df0db" SqlTest
 
 :: weave the application
-CMD /C scweaver.exe --FLAG:disableeditionlibraries s\SQLTest\SQLTest.exe
+CMD /C scweaver.exe s\SQLTest\SQLTest.exe
 
 IF %ERRORLEVEL% NEQ 0 (
     ECHO Error: SQL regression test is failed!

@@ -89,13 +89,6 @@
     </ItemGroup>
     <Delete Files="@(OutputSchemaFiles)" />
 
-    <!-- Non generic hack that need to be resolved eventually -->
-    <ItemGroup>
-      <OutputSpecialFiles Include="$(FullOutputPath)\Simplified.Data.Model.*" />
-      <OutputSpecialFiles Include="$(FullOutputPath)\Starcounter.Extensions.*" />
-    </ItemGroup>
-    <Delete Files="@(OutputSpecialFiles)" />
-
     <Message Text="Successfully cleaned weaver artifacts in $(FullOutputPath) and $(WeaverCacheDirectory)" />
     
   </Target>

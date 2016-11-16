@@ -207,7 +207,7 @@ namespace Starcounter.Hosting
                     // Checking if we already have exported schemas for this app.
                     if (!exportedSchemas_.ContainsKey(fullAppId)) {
 
-                        // Adding user type definitions (+EditionLibraries) to this database.
+                        // Adding user type definitions to this database.
                         QueryModule.UpdateSchemaInfo(fullAppId, typeDefinitions, false);
 
                         // Adding this app as processed.
@@ -390,7 +390,7 @@ namespace Starcounter.Hosting
                 // Checking if we already have exported schemas for this app.
                 if (!exportedSchemas_.ContainsKey(fullAppId)) {
 
-                    // Adding user type definitions (+EditionLibraries) to this database.
+                    // Adding user type definitions to this database.
                     QueryModule.UpdateSchemaInfo(fullAppId, allTypeDefs, false);
 
                     // Adding this app as processed.

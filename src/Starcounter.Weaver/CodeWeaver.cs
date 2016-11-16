@@ -45,22 +45,6 @@ namespace Starcounter.Weaver
         /// </summary>
         public IWeaverHost Host { get; private set; }
         
-        public string EditionLibrariesDirectory {
-            get {
-                return Path.Combine(Setup.WeaverRuntimeDirectory, "EditionLibraries");
-            }
-        }
-        
-        /// <summary>
-        /// Gets a value that indicates the weaver will only include those
-        /// edition libraries that are referenced by the application being
-        /// weaved. The alternative is to always include edition librares
-        /// as part of every application built on a certain edition.
-        /// </summary>
-        public bool OnlyIncludeEditionLibrariesReferenced {
-            get { return false; }
-        }
-        
         /// <summary>
         /// Gets the file manager used by the current weaver.
         /// </summary>
@@ -131,7 +115,6 @@ namespace Starcounter.Weaver
             props["Input directory"] = Setup.InputDirectory;
             props["Output directory"] = Setup.OutputDirectory;
             props["Application file"] = Setup.AssemblyFile;
-            props["Disable edition libraries"] = setup.DisableEditionLibraries.ToString();
             props["Disable cache"] = setup.DisableWeaverCache.ToString();
             props["Weave only to cache"] = setup.WeaveToCacheOnly.ToString();
 
@@ -215,10 +198,6 @@ namespace Starcounter.Weaver
                 postSharpSettings.OverwriteAssemblyNames = false;
                 postSharpSettings.DisableReflection = true;
                 postSharpSettings.SearchDirectories.Add(Setup.InputDirectory);
-                
-                if (!Setup.DisableEditionLibraries && Directory.Exists(this.EditionLibrariesDirectory)) {
-                    postSharpSettings.SearchDirectories.Add(this.EditionLibrariesDirectory);
-                }
                 
                 postSharpSettings.LocalHostImplementation = typeof(CodeWeaverInsidePostSharpDomain).AssemblyQualifiedName;
 
@@ -356,7 +335,6 @@ namespace Starcounter.Weaver
             this.Cache.Disabled = Setup.DisableWeaverCache;
             this.Cache.AssemblySearchDirectories.Add(Setup.InputDirectory);
             this.Cache.AssemblySearchDirectories.Add(Setup.WeaverRuntimeDirectory);
-            this.Cache.AssemblySearchDirectories.Add(EditionLibrariesDirectory);
             
             return true;
         }
@@ -481,19 +459,8 @@ namespace Starcounter.Weaver
                 Diagnose("Not analyzing/weaving {0}: not part of inclusion set.", file);
                 return null;
             }
-
-            // Check if the file is one of the edition libraries. If
-            // it is, we just analyze it if it has not been actively
-            // referenced, in case we are not always including edition
-            // libraries
             
             var runWeaver = !Setup.AnalyzeOnly;
-            if (OnlyIncludeEditionLibrariesReferenced) {
-                if (FileManager.IsEditionLibrary(file)) {
-                    runWeaver = HasBeenReferenced(module);
-                }
-            }
-
             if (runWeaver) {
                 weaverProjectFile = this.WeaverProjectFile;
                 parameters = new ProjectInvocationParameters(weaverProjectFile);

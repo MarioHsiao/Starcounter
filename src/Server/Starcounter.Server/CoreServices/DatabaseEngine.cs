@@ -615,7 +615,6 @@ namespace Starcounter.Server {
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.ChunksNumber + "={0}", database.Configuration.Runtime.ChunksNumber);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSessionTimeoutMinutes + "={0}", database.Configuration.Runtime.DefaultSessionTimeoutMinutes);
 
-            args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.LoadEditionLibraries) + "={0}", database.Configuration.Runtime.LoadEditionLibraries);
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.WrapJsonInNamespaces) + "={0}", database.Configuration.Runtime.WrapJsonInNamespaces);
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.EnforceURINamespaces) + "={0}", database.Configuration.Runtime.EnforceURINamespaces);
             args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.MergeJsonSiblings) + "={0}", database.Configuration.Runtime.MergeJsonSiblings);

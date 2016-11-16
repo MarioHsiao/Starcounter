@@ -26,7 +26,7 @@ IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 sccreatedb.exe -ip %DB_DIR% -uuid "def000db-dfdb-dfdb-dfdb-def0db0df0db" %DB_NAME%
 
 :: Weaving the test.
-CALL scweaver.exe --FLAG:disableeditionlibraries "s\%TEST_NAME%\%TEST_NAME%.exe"
+CALL scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
 IF %ERRORLEVEL% NEQ 0 (
 
     ECHO Error: The query processing regression test failed!
