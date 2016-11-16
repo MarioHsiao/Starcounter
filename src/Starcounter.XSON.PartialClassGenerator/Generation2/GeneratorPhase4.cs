@@ -51,7 +51,18 @@ namespace Starcounter.XSON.PartialClassGenerator {
 
                 if (mapInfo.IsMapped) {
                     appTemplate = generator.FindTemplate(mapInfo, rootTemplate);
-
+                    
+                    if(mapInfo.ExplicitlyBound == true) {
+                        // If we have an explicitly bound object (which means that we want compilation errors)
+                        // we need to make sure the bound type is not ambigious with any properties added above,
+                        // i.e. a property have the same name as the type.
+                        if (PropertyExists(mapInfo.BoundDataClass, rootTemplate))
+                            generator.ThrowExceptionWithLineInfo(Error.SCERRJSONAMBIGUOUSDATATYPEIEXPLICITBOUND, 
+                                                                 "Name: " + mapInfo.BoundDataClass, 
+                                                                 null, 
+                                                                 appTemplate.CodegenInfo.SourceInfo);
+                    }
+                    
                     if (appTemplate.CodegenInfo.BoundToType != null) {
                         generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON,
                                                              "", 
@@ -214,6 +225,24 @@ namespace Starcounter.XSON.PartialClassGenerator {
                     return true;
                 return false;
             });
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="rootTemplate"></param>
+        /// <returns></returns>
+        private bool PropertyExists(string name, TValue rootTemplate) {
+            if(name.Equals(rootTemplate.PropertyName))
+                return true;
+
+            TObject objTemplate = rootTemplate as TObject;
+            if(objTemplate != null) {
+                if(objTemplate.Properties[name] != null)
+                    return true;
+            }
+            return false;
         }
         
         /// <summary>
