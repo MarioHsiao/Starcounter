@@ -36,12 +36,7 @@ namespace Starcounter.Internal
         /// Number of retries to schedule a task if the input queue is full.
         /// </summary>
         public const Byte ScheduleTaskFullInputQueueRetries = 10;
-
-        /// <summary>
-        /// Society objects name.
-        /// </summary>
-        public const string SocietyObjectsPrefix = "SocietyObjects";
-
+        
         /// <summary>
         /// Internal system handlers prefix.
         /// </summary>
