@@ -302,132 +302,17 @@ namespace Starcounter {
         }
 
         internal static void Transact<T>(Action<T> action, T arg, uint flags, Advanced.TransactOptions opts) {
-            int retries = 0;
-            uint r;
-            ulong handle;
-
-            VerifyTransactOptions(opts);
-
-            if (ThreadData.inTransactionScope_ == 0) {
-                for (;;) {
-                    r = sccoredb.star_create_transaction(flags, out handle);
-                    if (r == 0) {
-                        var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
-
-                        try {
-                            ThreadData.inTransactionScope_ = 1;
-                            ThreadData.applyHooks_ = opts.applyHooks;
-                            sccoredb.star_context_set_transaction(ThreadData.ContextHandle, handle);
-                            action(arg);
-                            TransactionManager.Commit(1);
-                            return;
-                        } catch (Exception ex) {
-                            if (!HandleTransactException(ex, handle, ++retries, opts.maxRetries))
-                                throw;
-                            continue;
-                        } finally {
-                            Debug.Assert(ThreadData.inTransactionScope_ == 1);
-                            ThreadData.inTransactionScope_ = 0;
-                            ThreadData.applyHooks_ = false;
-                            TransactionManager.SetCurrentTransaction(currentTransaction);
-                        }
-                    }
-                    throw ErrorCode.ToException(r);
-                }
-            }
-            
-            try {
-                action(arg);
-            } catch {
-                sccoredb.star_context_external_abort(ThreadData.ContextHandle);
-                throw;
-            }
+            Transact(() => action(arg), flags, opts);
         }
 
         internal static TResult Transact<TResult>(Func<TResult> func, uint flags, Advanced.TransactOptions opts) {
-            int retries = 0;
-            uint r;
-            ulong handle;
-
-            VerifyTransactOptions(opts);
-
-            if (ThreadData.inTransactionScope_ == 0) {
-                for (;;) {
-                    r = sccoredb.star_create_transaction(flags, out handle);
-                    if (r == 0) {
-                        var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
-
-                        try {
-                            ThreadData.inTransactionScope_ = 1;
-                            ThreadData.applyHooks_ = opts.applyHooks;
-                            sccoredb.star_context_set_transaction(ThreadData.ContextHandle, handle);
-                            TResult retValue = func();
-                            TransactionManager.Commit(1);
-                            return retValue;
-                        } catch (Exception ex) {
-                            if (!HandleTransactException(ex, handle, ++retries, opts.maxRetries))
-                                throw;
-                            continue;
-                        } finally {
-                            Debug.Assert(ThreadData.inTransactionScope_ == 1);
-                            ThreadData.inTransactionScope_ = 0;
-                            ThreadData.applyHooks_ = false;
-                            TransactionManager.SetCurrentTransaction(currentTransaction);
-                        }
-                    }
-                    throw ErrorCode.ToException(r);
-                }
-            }
-            
-            try {
-                return func();
-            } catch {
-                sccoredb.star_context_external_abort(ThreadData.ContextHandle);
-                throw;
-            }
+            TResult r = default(TResult);
+            Transact(() => { r = func(); }, flags, opts);
+            return r;
         }
 
         internal static TResult Transact<T, TResult>(Func<T, TResult> func, T arg, uint flags, Advanced.TransactOptions opts) {
-            int retries = 0;
-            uint r;
-            ulong handle;
-
-            VerifyTransactOptions(opts);
-
-            if (ThreadData.inTransactionScope_ == 0) {
-                for (;;) {
-                    r = sccoredb.star_create_transaction(flags, out handle);
-                    if (r == 0) {
-                        var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
-
-                        try {
-                            ThreadData.inTransactionScope_ = 1;
-                            ThreadData.applyHooks_ = opts.applyHooks;
-                            sccoredb.star_context_set_transaction(ThreadData.ContextHandle, handle);
-                            TResult retValue = func(arg);
-                            TransactionManager.Commit(1);
-                            return retValue;
-                        } catch (Exception ex) {
-                            if (!HandleTransactException(ex, handle, ++retries, opts.maxRetries))
-                                throw;
-                            continue;
-                        } finally {
-                            Debug.Assert(ThreadData.inTransactionScope_ == 1);
-                            ThreadData.inTransactionScope_ = 0;
-                            ThreadData.applyHooks_ = false;
-                            TransactionManager.SetCurrentTransaction(currentTransaction);
-                        }
-                    }
-                    throw ErrorCode.ToException(r);
-                }
-            }
-
-            try {
-                return func(arg);
-            } catch {
-                sccoredb.star_context_external_abort(ThreadData.ContextHandle);
-                throw;
-            }
+            return Transact(() => func(arg), flags, opts);
         }
 
         internal static void SystemTransact(Action action, int maxRetries = 100) {
@@ -483,93 +368,29 @@ namespace Starcounter {
         }
 
         public static void Scope<T>(Action<T> action, T arg, bool isReadOnly = false) {
-            TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
-            bool create = (old.handle == 0 || old.IsImplicit);
-            try {
-                if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
-                action(arg);
-            } finally {
-                TransactionManager.SetCurrentTransaction(old);
-                if (create)
-                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
-            }
+            Scope(() => action(arg), isReadOnly);
         }
 
         public static void Scope<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2, bool isReadOnly = false) {
-            TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
-            bool create = (old.handle == 0 || old.IsImplicit);
-            try {
-                if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
-                action(arg1, arg2);
-            } finally {
-                TransactionManager.SetCurrentTransaction(old);
-                if (create)
-                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
-            }
+            Scope(() => action(arg1, arg2), isReadOnly);
         }
 
         public static void Scope<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3, bool isReadOnly = false) {
-            TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
-            bool create = (old.handle == 0 || old.IsImplicit);
-            try {
-                if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
-                action(arg1, arg2, arg3);
-            } finally {
-                TransactionManager.SetCurrentTransaction(old);
-                if (create)
-                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
-            }
+            Scope(() => action(arg1, arg2, arg3), isReadOnly);
         }
 
         public static TResult Scope<TResult>(Func<TResult> func, bool isReadOnly = false) {
-            TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
-            bool create = (old.handle == 0 || old.IsImplicit);
-            try {
-                if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
-                return func();
-            } finally {
-                TransactionManager.SetCurrentTransaction(old);
-                if (create)
-                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
-            }
+            TResult r = default(TResult);
+            Scope(() => { r = func(); }, isReadOnly);
+            return r;
         }
 
         public static TResult Scope<T, TResult>(Func<T, TResult> func, T arg, bool isReadOnly = false) {
-            TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
-            bool create = (old.handle == 0 || old.IsImplicit);
-            try {
-                if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
-                return func(arg);
-            } finally {
-                TransactionManager.SetCurrentTransaction(old);
-                if (create)
-                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
-            }
+            return Scope(() => func(arg), isReadOnly);
         }
 
         public static TResult Scope<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2, bool isReadOnly = false) {
-            TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
-            bool create = (old.handle == 0 || old.IsImplicit);
-            try {
-                if (create)
-                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly);
-                return func(arg1, arg2);
-            } finally {
-                TransactionManager.SetCurrentTransaction(old);
-                if (create)
-                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
-            }
+            return Scope(() => func(arg1, arg2), isReadOnly);
         }
 
         /// <summary>
