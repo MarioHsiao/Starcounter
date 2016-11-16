@@ -13,7 +13,7 @@ class Program {
 	// Protocol: "WEAVERTEST", inputDirectory, fileName, outputDirectory
 	static void Main(string[] args) {
 		Console.WriteLine("TestSchemaProduction regression test starting");
-		var schema = DatabaseSchema.DeserializeFrom(new DirectoryInfo(args[3]));
+		var schema = DatabaseSchema.DeserializeFrom(new DirectoryInfo(args[3]).GetFiles("*.schema"));
 		Assert(schema != null);
 		Assert(schema.FindDatabaseClass("Foo") != null);
 	}
