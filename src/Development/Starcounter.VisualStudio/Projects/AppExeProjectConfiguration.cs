@@ -3,34 +3,26 @@ using EnvDTE;
 using EnvDTE90;
 using Microsoft.VisualStudio.Shell.Interop;
 using Starcounter.CLI;
+using Starcounter.CommandLine;
+using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
+using Starcounter.Rest.ExtensionMethods;
+using Starcounter.Server;
+using Starcounter.Server.Rest;
+using Starcounter.Server.Rest.Representations.JSON;
+using Starcounter.VisualStudio.PInvoke;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
-namespace Starcounter.VisualStudio.Projects {
-    using Starcounter.Advanced;
-    using Starcounter.CommandLine;
-    using Starcounter.CommandLine.Syntax;
-    using Starcounter.Rest.ExtensionMethods;
-    using Starcounter.Server;
-    using Starcounter.Server.Rest;
-    using Starcounter.Server.Rest.Representations.JSON;
-    using System.Net.Sockets;
+namespace Starcounter.VisualStudio.Projects
+{
     using EngineReference = Starcounter.Server.Rest.Representations.JSON.EngineCollection.EnginesElementJson;
     using ExecutableReference = Starcounter.Server.Rest.Representations.JSON.Engine.ExecutablesJson.ExecutingElementJson;
     using Option = Starcounter.CLI.SharedCLI.Option;
-
-    /// <summary>
-    /// Provides a set of methods that governs the handling category
-    /// of errors occuring in the HTTP traffic when running the debug
-    /// sequence.
-    /// </summary>
-    static class HTTPHelp {
-        public const string CRLF = "\r\n";
-    }
-
+    
     [ComVisible(false)]
     internal class AppExeProjectConfiguration : StarcounterProjectConfiguration {
         static IApplicationSyntax commandLineSyntax;
@@ -160,14 +152,34 @@ namespace Starcounter.VisualStudio.Projects {
         bool DoBeginDebugSelfHosted(AssemblyDebugConfiguration debugConfig, __VSDBGLAUNCHFLAGS flags, ApplicationArguments args)
         {
             bool attachDebugger = (flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0;
-            if (attachDebugger)
+            
+            var startInfo = new STARTUPINFO();
+            var procInfo = new PROCESS_INFORMATION();
+            var sec1 = new SECURITY_ATTRIBUTES();
+            var sec2 = new SECURITY_ATTRIBUTES();
+
+            uint createFlags = attachDebugger ? (uint)ProcessCreationFlags.CREATE_SUSPENDED : 0;
+            var created = Kernel32.CreateProcess(
+                debugConfig.AssemblyPath,
+                null,
+                ref sec1,
+                ref sec2,
+                false,
+                createFlags,
+                IntPtr.Zero,
+                debugConfig.WorkingDirectory,
+                ref startInfo,
+                out procInfo
+            );
+
+            if (!created)
             {
-                ReportError("Currently can't support attaching debugger to self-hosted applications. Use Shift+F5 and Debugger.Launch() until fixed.");
+                var error = Marshal.GetLastWin32Error();
+                ReportError($"Failed creating self-hosted process: Error: {error}, Exe: {debugConfig.AssemblyPath}, Flags: {createFlags}");
                 return false;
             }
-
-            var p = System.Diagnostics.Process.Start(debugConfig.AssemblyPath);
-            return attachDebugger ? AttachSelfHostedDebugger(p) : true;
+            
+            return attachDebugger ? AttachSelfHostedDebuggerAndResumeMainThread(procInfo) : true;
         }
         
         bool DoBeginDebug(AssemblyDebugConfiguration debugConfig, __VSDBGLAUNCHFLAGS flags, ApplicationArguments args) {
@@ -364,36 +376,46 @@ namespace Starcounter.VisualStudio.Projects {
             return true;
         }
 
-        bool AttachSelfHostedDebugger(System.Diagnostics.Process p)
+        bool AttachSelfHostedDebuggerAndResumeMainThread(PROCESS_INFORMATION procInfo)
         {
-            // This don't work as desired, and we must try to find an alternative
-            // to it.
-            // TODO:
+            var attached = AttachSelfHostedDebugger(procInfo.dwProcessId);
+            if (attached)
+            {
+                var resumed = Kernel32.ResumeThread(procInfo.hThread);
+                if (resumed == unchecked((uint)-1))
+                {
+                    var error = Marshal.GetLastWin32Error();
+                    ReportError($"Unable to resume self-hosted main thread for process {procInfo.dwProcessId}. Error: {error}");
+                    attached = false;
+                }
+            }
+            return attached;
+        }
+
+        bool AttachSelfHostedDebugger(int processId)
+        {
+            var dte = this.package.DTE;
+            var debugger = (Debugger3)dte.Debugger;
+            var attached = false;
             
-            return true;
+            foreach (Process3 process in debugger.LocalProcesses)
+            {
+                if (process.ProcessID == processId)
+                {
+                    process.Attach2("managed");
+                    attached = true;
+                    break;
+                }
+            }
 
-            //var dte = this.package.DTE;
-            //var debugger = (Debugger3)dte.Debugger;
-            //var attached = false;
+            if (attached == false)
+            {
+                this.ReportError(
+                    (ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGNODBPROCESS,
+                    $"Self-hosted process {processId}"));
+            }
 
-            //foreach (Process3 process in debugger.LocalProcesses)
-            //{
-            //    if (process.ProcessID == p.Id)
-            //    {
-            //        process.Attach();
-            //        attached = true;
-            //        break;
-            //    }
-            //}
-
-            //if (attached == false)
-            //{
-            //    this.ReportError(
-            //        (ErrorMessage)ErrorCode.ToMessage(Error.SCERRDEBUGNODBPROCESS,
-            //        $"Self-hosted process {p.Id}"));
-            //}
-
-            //return attached;
+            return attached;
         }
 
         bool AttachDebugger(Engine engine) {
