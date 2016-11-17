@@ -75,7 +75,6 @@ namespace Starcounter.Apps.Package {
             }
         }
 
-
         private static async Task UploadFile(string uri, string file) {
 
             ClientWebSocket webSocket = null;
