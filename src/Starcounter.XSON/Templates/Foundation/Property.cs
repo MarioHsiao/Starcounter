@@ -288,21 +288,22 @@ namespace Starcounter.Templates {
                     Setter(parent, input.Value);
 
                     // Check if incoming value is set without change. If so remove the dirtyflag.
-                    if (!input.ValueChanged && this.ValueEquals(input.Value, Getter(parent))) 
+                    if (parent.IsTrackingChanges && !input.ValueChanged && this.ValueEquals(input.Value, Getter(parent)))
                         this.Checkpoint(parent);
                 } else {
                     Debug.WriteLine("Handler cancelled: " + value);
                     // Incoming value was cancelled. Mark as dirty so client gets the correct value.
-                    parent.MarkAsDirty(this);
+                    if (parent.IsTrackingChanges)
+                        parent.MarkAsDirty(this);
                 }
             } else {
                 if (BasedOn == null) {
                     Debug.WriteLine("Setting value after no handler: " + value);
                     Setter(parent, value);
-                    
+
                     // Check if incoming value is set without change. If so remove the dirtyflag.
-                    if (this.ValueEquals(value, Getter(parent)))
-                        this.Checkpoint(parent); 
+                    if (parent.IsTrackingChanges && this.ValueEquals(value, Getter(parent)))
+                        this.Checkpoint(parent);
                 } else {
                     // This is an inherited template with no inputhandler, lets 
                     // see if the base-template has a registered handler.

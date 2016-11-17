@@ -4768,8 +4768,19 @@
         The value from code-behind will be used.
       </message>
     </code>
+    <code hex="0026" severity="Error" name="ScErrJsonAmbiguousDatatypeIExplicitBound">
+      <message>
+        A datatype specified as a generic parameter for IExplicitBound interface is ambiguous. 
+        Please use the fully qualified name including namespace.
+      </message>
+    </code>
+    <code hex="0027" severity="Error" name="ScErrJsonInvalidBindAssignment">
+      <message>
+        Assignment of binding for a TypedJSON member must follow the pattern:
+        'DefaultTemplate.{memberpath}.Bind = "{binding-path}";'.
+      </message>
+    </code>
   </facility>
-
     <!-- Error codes related to network gateway -->
     <facility name="NetworkGateway" hex="000D">
         

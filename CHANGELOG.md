@@ -1,5 +1,9 @@
 ## [Unreleased] - Unreleased
 
+### Added
+
+- Added interface `IExplicitBound<T>` which will generate compile-time errors on bound properties in TypedJSON [#262](https://github.com/Starcounter/Starcounter/issues/262)
+
 ### Fixed
 - Fixed a bug where pushing changes on websocket could cause versioning and patches to be messed up [#3844](https://github.com/Starcounter/Starcounter/issues/3844)
 - Fixed a bug in session management where more than one thread/scheduler got access to a session, leading to incorrect versioning for outgoing patches.
@@ -13,6 +17,7 @@
 - Improved errormessage when an exception occurs in a binding between a TypedJSON object and a dataobject [#3760](https://github.com/Starcounter/Starcounter/issues/3760)
 - Fixed bug in X6Decimal where an exception was not raised in some cases leading to unhandled dataloss [#3892](https://github.com/Starcounter/Starcounter/issues/3892)
 - Fixed iOS 10 support in webcomponents Polyfill [#3871](https://github.com/Starcounter/Starcounter/issues/3871)
+- Fixed a NullReferenceException when calling `ProcessInput` for a property in a on a non-stateful TypedJSON instance [#3935](https://github.com/Starcounter/Starcounter/issues/3935)
 
 ### Changed
 - Changed the parser for Json-by-example from F# parser to NewtonSoft (nuget) [#3811](https://github.com/Starcounter/Starcounter/issues/3811)
