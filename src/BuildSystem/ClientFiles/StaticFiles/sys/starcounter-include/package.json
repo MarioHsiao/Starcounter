@@ -1,6 +1,6 @@
 {
   "name": "starcounter-include",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Custom Element to include HTML partials/templates from Starcounter",
   "main": "starcounter-include.html",
   "directories": {
@@ -13,7 +13,8 @@
     "grunt-contrib-watch": "^0.6.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "wct",
+    "wct:sauce-only": "echo \"Once SauceLabs will update OSX and Win 10 run: wct --skip-plugin local --plugin sauce\" && exit 0"
   },
   "repository": {
     "type": "git",
