@@ -96,7 +96,16 @@ namespace Starcounter.Internal
               out Guid db_uuid, out ulong first_user_record_id, out ulong last_user_record_id
         );
 
-        
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct STAR_COMMIT_RESULT
+        {
+            public uint result_code;
+            public ulong cookie;
+        };
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern STAR_COMMIT_RESULT star_run_message_loop();
+
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]

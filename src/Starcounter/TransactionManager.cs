@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Starcounter.Binding;
 using Starcounter.Logging;
 
@@ -31,6 +33,9 @@ namespace Starcounter.Internal {
 
         [ThreadStatic]
         private static TransactionHandle CurrentHandle;
+
+        private static ConcurrentDictionary<long, TaskCompletionSource<uint>> completions_ = new ConcurrentDictionary<long, TaskCompletionSource<uint>>();
+        private static long max_completion_cookie;
 
         internal unsafe static void Init(TransactionHandle* shortListPtr) {
             Refs = shortListPtr;
@@ -633,7 +638,7 @@ namespace Starcounter.Internal {
 
         public void Commit(TransactionHandle handle) {
             Scope(handle, () => {
-                Commit(0);
+                Commit(0).Wait();
 
                 // Note that transaction is no longer current. We need to restore the scope but
                 // again setting it as the current transaction on context.
@@ -649,13 +654,35 @@ namespace Starcounter.Internal {
         /// <summary>
         /// Commits current transaction.
         /// </summary>
-        internal static void Commit(int free) {
-
+        internal static async Task<uint> Commit(int free) {
             if (ThreadData.applyHooks_)
                 InvokeHooks();
 
-            uint r = sccoredb.star_context_commit_async(ThreadData.ContextHandle, free, 0, 0);
+            long current_cookie = System.Threading.Interlocked.Increment(ref max_completion_cookie);
+            var tcs = new TaskCompletionSource<uint>();
+            completions_[current_cookie] = tcs;
+
+            uint r = sccoredb.star_context_commit_async(ThreadData.ContextHandle, free, 1, (ulong)current_cookie);
+
+            if (r != Error.SCERROPERATIONPENDING)
+            {
+                TaskCompletionSource<uint> dummy;
+                completions_.TryRemove(current_cookie, out dummy);
+            }
+
             if ((r != 0) && (r != Error.SCERROPERATIONPENDING)) throw ErrorCode.ToException(r);
+
+            if (r == 0)
+                return 0;
+
+            return await tcs.Task;
+        }
+
+        internal static void CompleteCommit(long cookie, uint result)
+        {
+            TaskCompletionSource<uint> tcs;
+            completions_.TryRemove(cookie, out tcs);
+            tcs.SetResult(result);
         }
 
         internal static void InvokeHooks()

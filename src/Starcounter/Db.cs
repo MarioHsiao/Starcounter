@@ -273,7 +273,7 @@ namespace Starcounter {
                                 );
 
                             action();
-                            TransactionManager.Commit(1);
+                            TransactionManager.Commit(1).Wait();
                             return;
                         } catch (Exception ex) {
                             if (!HandleTransactException(ex, handle, ++retries, opts.maxRetries))
