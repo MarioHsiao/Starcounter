@@ -19,6 +19,8 @@
 - Fixed bug in X6Decimal where an exception was not raised in some cases leading to unhandled dataloss [#3892](https://github.com/Starcounter/Starcounter/issues/3892)
 - Fixed iOS 10 support in webcomponents Polyfill [#3871](https://github.com/Starcounter/Starcounter/issues/3871)
 - Fixed a NullReferenceException when calling `ProcessInput` for a property in a on a non-stateful TypedJSON instance [#3935](https://github.com/Starcounter/Starcounter/issues/3935)
+- Fixed scoping in auto-assigned slots for stamped `HTMLCompositions` [#3859](https://github.com/Starcounter/Starcounter/issues/3859)
+- Fixed workaround for webcomponents polyfill bug that result in erasing `starcounter-composition`s in some cases [StarcounterSamples/People#49](https://github.com/StarcounterSamples/People/issues/49)
 
 ### Improved
 - Improved subsequent startup time for the server/applications. Initial startup is still taking approximately the same time.
@@ -26,6 +28,9 @@
 ### Changed
 - Upgraded Polymer to 1.7.0 [#3888](https://github.com/Starcounter/Starcounter/issues/3888)
 - Upgraded webcomponent.js to 0.7.23 [#3925](https://github.com/Starcounter/Starcounter/issues/3925)
+- Upgraded Starcounter/starcounter-include from 2.0.0 to 2.0.1 (https://github.com/Starcounter/starcounter-include/releases)
+- Upgraded Juicy/imported-template from 1.4.3 to 1.4.4 (https://github.com/Juicy/imported-template/releases)
+- Upgraded Juicy/juicy-composition from 0.0.5 to 0.0.7 (https://github.com/Juicy/juicy-composition/releases)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 
