@@ -6,6 +6,12 @@
 - [`<imported-template>`](https://github.com/Juicy/imported-template) - You can take full control over loaded `<script>`s and `<link rel="import">`s. Thanks to HTML Imports - caching, script execution, etc. is completely native.
 - [`<juicy-composition>`](https://github.com/Juicy/juicy-composition) - You can use Shadow DOM v1 features to apply Document Fragment with custom HTML composition and slots to tune the layout of HTML Elements given by partial. It lets you blend and apply your desired look & feel to elements given by your and even other apps - which were mixed due to Starcounter mappings.
 
+For more details see articles:
+- ["HTML partials/includes WebComponents-way"](http://starcounter.io/html-partialsincludes-webcomponents-way/) - How partials work,
+- ["Unobtrusive styling and composing 3rd party HTML content"](http://starcounter.io/unobtrusive-styling-composing-3rd-party-html-content/) - How to style them with Shadow DOM,
+- ["Layout compositions for HTML partials"](http://starcounter.io/layout-compositions-html-partials/) - How to use styles in Starcounter
+
+
 ### Small sample
 
 If you have **/app/sub/page/path.html**:
@@ -53,8 +59,15 @@ To produce
   - Sends request for template only once (HTML Import's caching),
   - Supports `<script>, <link>, <style>` tags to be executed once,
   - Supports `<script>, <style>` tags per template instance.
+ - Easy way to attach composed Shadow DOM layouts
 
-## Related wiki articles:
+
+## Related articles:
+ - ["HTML partials/includes WebComponents-way"](http://starcounter.io/html-partialsincludes-webcomponents-way/) - How partials work,
+ - ["Unobtrusive styling and composing 3rd party HTML content"](http://starcounter.io/unobtrusive-styling-composing-3rd-party-html-content/) - How to style them with Shadow DOM,
+ - ["Layout compositions for HTML partials"](http://starcounter.io/layout-compositions-html-partials/) - How to use styles in Starcounter
+
+### wiki
  - https://github.com/StarcounterPrefabs/Launcher/wiki/Partials
  - https://github.com/StarcounterPrefabs/Launcher/wiki/Layout-setup
  - https://github.com/StarcounterPrefabs/Launcher/wiki/include-template-in-Polyjuice
@@ -75,10 +88,10 @@ Starcounter has it already pre-installed, under `/sys/starcounter-include/starco
 Install the component using [Bower](http://bower.io/):
 
 ```sh
-$ bower install Starcounter/starcounter-include --save
+$ bower install starcounter-include --save
 ```
 
-Or [download as ZIP](https://github.com/Starcounter/starcounter-include/archive/master.zip).
+Or [download as ZIP](https://github.com/Starcounter/starcounter-include/archive/gh-pages.zip).
 
 ## Usage
 
