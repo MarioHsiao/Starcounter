@@ -48,6 +48,8 @@ namespace Starcounter.Apps.Package {
         /// </summary>
         public IConfig Config { get; private set; }
 
+        public DateTime AssemblyInfoDate { get; private set; }
+
         #endregion
 
         /// <summary>
@@ -105,6 +107,7 @@ namespace Starcounter.Apps.Package {
             }
             Project project = ProjectCollection.GlobalProjectCollection.LoadProject(file, globalProps, null);
 
+
             //            ProjectCollection.GlobalProjectCollection.SetGlobalProperty("Configuration", "Release");
             //            globalProps.Add("Configuration", "Release");
             //globalProps.Add("Configuration", "Debug");
@@ -117,11 +120,16 @@ namespace Starcounter.Apps.Package {
             //var outputPat2h = project.GetPropertyValue("OutputPath");
             //            Project project = ProjectCollection.GlobalProjectCollection.LoadProject(file);
 
+            //List<ILogger> loggers = new List<ILogger>();
+            //loggers.Add(new ConsoleLogger());
             // Build
+            //if (build && !project.Build("Build", loggers)) {
+            //    throw new InputErrorException("Build error.");
+            //}
+
             if (build && !project.Build(new ConsoleLogger())) {
                 throw new InputErrorException("Build error.");
             }
-
             Archive archive = new Archive();
             archive.ProjectFile = project.FullPath;
             archive.ResourceFolder = archive.GetResourceFolder(resourceFolder, project);
@@ -133,6 +141,13 @@ namespace Starcounter.Apps.Package {
             archive.Icon = archive.GetIcon(project);
 
             archive.Config = archive.CreatePackageConfig();
+
+            // Get assemblyinfo.cs date so we can warn if it has been change after executable has been built
+            string assemblyInfo = Path.Combine(Path.Combine(project.DirectoryPath, "Properties"), "AssemblyInfo.cs");
+
+            if (File.Exists(assemblyInfo)) {
+                archive.AssemblyInfoDate = File.GetLastWriteTimeUtc(assemblyInfo);
+            }
 
             return archive;
         }
@@ -288,14 +303,24 @@ namespace Starcounter.Apps.Package {
 
             string[] files = Directory.GetFiles(project.DirectoryPath, projectName + ".*");
 
-            foreach (string file in files) {
-                string fileExt = Path.GetExtension(file).ToLower();
-                foreach (string ext in exts) {
+            foreach (string ext in exts) {
+                foreach (string file in files) {
+                    string fileExt = Path.GetExtension(file).ToLower();
                     if (ext == fileExt) {
                         return file;
                     }
                 }
             }
+
+
+            //foreach (string file in files) {
+            //    string fileExt = Path.GetExtension(file).ToLower();
+            //    foreach (string ext in exts) {
+            //        if (ext == fileExt) {
+            //            return file;
+            //        }
+            //    }
+            //}
             return null;
         }
 
@@ -370,16 +395,19 @@ namespace Starcounter.Apps.Package {
             config.ResourceFolder = ArchiveResourceFolder;
             config.AppName = Path.GetFileNameWithoutExtension(this.Executable);
             config.VersionDate = DateTime.MinValue;
-
             string starcounterVersion = Archive.GetStarcounterDependency();
             if (!string.IsNullOrEmpty(starcounterVersion)) {
                 config.Dependencies = new[] { new Dependency() { Name = "Starcounter", Value = "~" + starcounterVersion } };
             }
             string version;
             string channel;
-            this.ReadAssemblyFile(this.Executable, out config.Namespace, out config.DisplayName, out version, out config.Company, out config.Description, out config.VersionDate, out channel);
+            string displayName;
+            DateTime versionDate;
+            this.ReadAssemblyFile(this.Executable, out config.Namespace, out displayName, out version, out config.Company, out config.Description, out versionDate, out channel);
+            config.DisplayName = displayName;
             config.Version = version;
             config.Channel = channel;
+            config.VersionDate = versionDate;
 
             return config;
         }
@@ -430,9 +458,10 @@ namespace Starcounter.Apps.Package {
             }
             id = null;
             channel = null;
-            title = fvi.ProductName;
-            company = fvi.CompanyName;
-            description = fvi.Comments;
+            title = fvi.FileDescription;    // AssemblyTitle
+            //title = fvi.ProductName;        // AssemblyProduct
+            company = fvi.CompanyName;      // AssemblyCompany
+            description = fvi.Comments;     // AssemblyDescription
             buildDate = File.GetLastWriteTimeUtc(file);
             System.Reflection.Assembly assembly = Assembly.LoadFile(file);
 
