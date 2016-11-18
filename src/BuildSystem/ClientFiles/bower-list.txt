@@ -10,7 +10,7 @@ sys#1.0.0 D:\repos\Starcounter\src\BuildSystem\ClientFiles
 ├─┬ bootswatch#3.3.6+2 (3.3.7 available)
 │ └── bootstrap not installed
 ├── dom-bind-notifier#9a0a4d20a1
-├─┬ imported-template#1.4.3
+├─┬ imported-template#1.4.4
 │ └── juicy-html#1.1.0
 ├── juicy-redirect#0.4.2 extraneous
 ├── object.observe#0.2.6 extraneous
@@ -26,9 +26,9 @@ sys#1.0.0 D:\repos\Starcounter\src\BuildSystem\ClientFiles
 │ │ ├── jsoneditor#5.5.6 (5.5.10 available)
 │ │ └── polymer#1.7.0
 │ └── polymer#1.7.0
-├─┬ starcounter-include#2.0.0
-│ ├─┬ imported-template#1.4.3
+├─┬ starcounter-include#2.0.1
+│ ├─┬ imported-template#1.4.4
 │ │ └── juicy-html#1.1.0
-│ └─┬ juicy-composition#0.0.6
+│ └─┬ juicy-composition#0.0.7
 │   └── webcomponentsjs#0.7.23
 └── webcomponentsjs#0.7.23
