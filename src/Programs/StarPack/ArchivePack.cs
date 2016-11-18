@@ -7,6 +7,7 @@ namespace StarPack {
 
         public static void Execute(PackOptions options) {
 
+            int warnings = 0;
             Archive archive = Archive.Create(options.File, options.Build, options.Projectconfiguration, options.Executable, options.ResourceFolder);
 
             options.Output = UpdateOutputPath(options.Output, archive);
@@ -16,23 +17,43 @@ namespace StarPack {
             Console.WriteLine("Creating archive:");
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine(" Executable: {0}", archive.Executable);
+
             if (archive.ResourceFolder == null) {
-                Program.PrintError(" Resource folder: *Warning* unset resource folder");
+                warnings++;
+                Program.PrintWarning(" Resource folder: unset resource folder");
                 Console.ForegroundColor = ConsoleColor.DarkGray;
             }
             else {
                 Console.WriteLine(" Resource folder: {0}", archive.ResourceFolder);
             }
-            Console.WriteLine(" Icon: {0}", archive.Icon ?? "N/A");
+
+            if (string.IsNullOrEmpty(archive.Icon)) {
+                warnings++;
+                Program.PrintWarning(" Icon: N/A");
+            }
+            else {
+                Console.WriteLine(" Icon: {0}", archive.Icon ?? "N/A");
+
+            }
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("Manifest:");
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine(" ID: {0}", archive.Config.ID ?? "N/A");
-            Console.WriteLine(" Channel: {0}", archive.Config.Channel ?? "N/A");
+            Console.WriteLine(" Name: {0}", archive.Config.DisplayName ?? "N/A");
+            //Console.WriteLine(" Channel: {0}", archive.Config.Channel ?? "N/A");
             Console.WriteLine(" Version: {0}", archive.Config.Version ?? "N/A");
+            Console.WriteLine(" VersionDate: {0} (local)", archive.Config.VersionDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss"));
             Console.WriteLine();
+
+            if (archive.AssemblyInfoDate != DateTime.MinValue && archive.AssemblyInfoDate > archive.Config.VersionDate) {
+                warnings++;
+                Program.PrintWarning(" AssemblyInfo.cs has been modified, executable outofdate.");
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+            }
+
 
             archive.Save(options.Output, true);
 
@@ -41,7 +62,7 @@ namespace StarPack {
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine();
-            Console.WriteLine("Package succeeded.");
+            Console.WriteLine("Package succeeded, {0} warnings.", warnings);
             Console.ResetColor();
         }
 
