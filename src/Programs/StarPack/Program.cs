@@ -1,5 +1,6 @@
 ﻿using Starcounter.Apps.Package;
 using System;
+using System.Reflection;
 
 namespace StarPack {
 
@@ -8,6 +9,8 @@ namespace StarPack {
 
             try {
 
+
+//                Assembly assembly = Assembly.LoadFrom(@"c:\github\Level1\bin\Debug\Public Assemblies\Starcounter.dll");
 
                 PackOptions packOptions;
                 InstallOptions installOptions;
@@ -42,6 +45,13 @@ namespace StarPack {
         public static void PrintError(string txt) {
 
             Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(txt);
+            Console.ResetColor();
+        }
+
+        public static void PrintWarning(string txt) {
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine(txt);
             Console.ResetColor();
         }
