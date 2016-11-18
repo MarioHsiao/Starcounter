@@ -21,6 +21,7 @@
 - Fixed a NullReferenceException when calling `ProcessInput` for a property in a on a non-stateful TypedJSON instance [#3935](https://github.com/Starcounter/Starcounter/issues/3935)
 - Fixed scoping in auto-assigned slots for stamped `HTMLCompositions` [#3859](https://github.com/Starcounter/Starcounter/issues/3859)
 - Fixed workaround for webcomponents polyfill bug that result in erasing `starcounter-composition`s in some cases [StarcounterSamples/People#49](https://github.com/StarcounterSamples/People/issues/49)
+- Fixed a bug in codegen for TypedJSON where a loop was terminated instead of current item skipped, which lead to using IExplicitBound<> sometimes added compile-time checks for properties that should not be bound [#262](https://github.com/Starcounter/Starcounter/issues/262)
 
 ### Improved
 - Improved subsequent startup time for the server/applications. Initial startup is still taking approximately the same time.
