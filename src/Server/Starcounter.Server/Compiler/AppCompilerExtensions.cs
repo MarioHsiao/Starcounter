@@ -14,18 +14,10 @@ namespace Starcounter.Server.Compiler
         {
             starcounterBinDirectory = starcounterBinDirectory ?? StarcounterEnvironment.InstallationDirectory;
 
-            var defaultStarcounterReferences = new[]
-            {
-                "Starcounter",
-                "Starcounter.Apps.JsonPatch",
-                "Starcounter.Bootstrap",
-                "Starcounter.HyperMedia",
-                "Starcounter.Internal",
-                "Starcounter.Logging",
-                "Starcounter.XSON"
-            };
-
-            compiler.AddReferencesFromDirectory(starcounterBinDirectory, defaultStarcounterReferences);
+            var publicAssemblies = Path.Combine(starcounterBinDirectory, "Public Assemblies");
+            var defaultStarcounterReferences = Directory.GetFiles(publicAssemblies, "*.dll");
+            
+            compiler.AddReferencesFromDirectory(publicAssemblies, defaultStarcounterReferences);
 
             var defaultGACAssemblies = new[]
             {
