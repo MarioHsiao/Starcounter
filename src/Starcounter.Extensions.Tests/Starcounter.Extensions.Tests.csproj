@@ -62,7 +62,7 @@
     <ProjectReference Include="..\Starcounter.Extensions\Starcounter.Extensions.csproj">
       <Project>{1985666e-ac62-4ace-a8b8-fd11f78cb37e}</Project>
       <Name>Starcounter.Extensions</Name>
-      <Private>False</Private>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
