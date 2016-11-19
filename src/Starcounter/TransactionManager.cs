@@ -654,7 +654,7 @@ namespace Starcounter.Internal {
         /// <summary>
         /// Commits current transaction.
         /// </summary>
-        internal static async Task<uint> Commit(int free) {
+        internal static async System.Threading.Tasks.Task Commit(int free) {
             if (ThreadData.applyHooks_)
                 InvokeHooks();
 
@@ -672,10 +672,12 @@ namespace Starcounter.Internal {
 
             if ((r != 0) && (r != Error.SCERROPERATIONPENDING)) throw ErrorCode.ToException(r);
 
-            if (r == 0)
-                return 0;
-
-            return await tcs.Task;
+            if (r != 0)
+            {
+                r = await tcs.Task;
+                if (r != 0)
+                    throw ErrorCode.ToException(r);
+            }
         }
 
         internal static void CompleteCommit(long cookie, uint result)
