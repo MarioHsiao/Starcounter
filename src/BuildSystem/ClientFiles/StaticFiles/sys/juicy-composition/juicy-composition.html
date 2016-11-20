@@ -1,4 +1,4 @@
-<!-- juicy-composition @version: 0.0.6 @license: MIT -->
+<!-- juicy-composition @version: 0.0.7 @license: MIT -->
 <script>
 (function() {
     // Creates an object based in the HTML Element prototype
@@ -10,11 +10,11 @@
      * @type {Object}
      */
     JuicyCompositionPrototype.elementsMap = null;
-    /**
-     * Document Fragment withdecorators for elements that were not specified in composition
-     * @type {DocumentFragment}
+    /*---*
+     * Map with decorators for elements that were not specified in composition
+     * @type {Object}
      */
-    JuicyCompositionPrototype.remainingDecorators = null;
+    // JuicyCompositionPrototype.remainingDecorators = null;
     // </V1 assignedSlot shim>
 
     /**
@@ -31,10 +31,10 @@
      * Creates a juicy-composer, runs #stamp method, and attaches mutation observer.
      */
     JuicyCompositionPrototype.createdCallback = function() {
-        var that = this,
+        var element = this,
             composition;
-        this.attributeChangedCallback('composition', this.composition, this.getAttribute('composition'));
-        composition = this.composition;
+        // set/getAttribute should be removed from constructor in V1
+        composition = this.getAttribute('composition') || this.composition || null;;
         this.autoStamp = this.hasAttribute('auto-stamp');
         Object.defineProperty(this, 'composition', {
             get: function(){
@@ -52,18 +52,21 @@
             }
         });
         this.elementsMap = {};
-        this.remainingDecorators = document.createDocumentFragment();
 
         this.autoStamp && this.stamp();
 
-
+        var updateElement = function(mutation){
+            return update(mutation, element);
+        };
         this.observer = new MutationObserver(function (mutations) {
             // do nothing if it's not yet attached
-            if(!that.isStamped){
+            if(!element.isStamped){
               return;
             }
+            element.observer.disconnect();
             // update / distribute slots on each mutation
-            mutations.forEach(that.update);
+            mutations.forEach(updateElement);
+            element.observer.observe(element, { childList: true });
 
         });
         // IDEA: make it cofigurable?
@@ -86,11 +89,12 @@
 
             // <V1 slot shim>
             // adding it to a this.shadowContainer manually
-            decorateFilteredElements(this.composition, this.elementsMap, filterElements(this.children), this.remainingDecorators, '');
+            let remainingDecorators = decorateFilteredElements(this.composition, this.elementsMap, filterElements(this.children), '');
             // </V1 slot shim>
             // add remaining decorators
-            givenComposition.appendChild(this.remainingDecorators);
-
+            if(remainingDecorators){
+                givenComposition.appendChild(remainingDecorators);
+            }
             shadowRoot.appendChild(givenComposition);
             this.isStamped = true;
         }
@@ -110,12 +114,8 @@
      * Applies composition, and distribution to added nodes, cleans and undistributes removed nodes.
      * @param  {MutationRecord} mutation mutation of an element
      */
-    JuicyCompositionPrototype.update = function(mutation){
+    function update(mutation, element){
         if (mutation.addedNodes.length) {
-            var element = mutation.target || this;
-            // TODO: make it cleaner
-            element.observer.disconnect();
-
 
             if(mutation.addedNodes.length){
                 var previousElementSibling = mutation.previousSibling && !(mutation.previousSibling instanceof HTMLElement) ?
@@ -129,14 +129,14 @@
 
                 // <V1 slot shim>
                 // adding it to a this.shadowContainer manually
-                decorateFilteredElements(element.shadowRoot, element.elementsMap, nodesToDistribute, element.remainingDecorators, '', scopePrefix, scopedIndex);
+                let remainingDecorators = decorateFilteredElements(element.shadowRoot, element.elementsMap, nodesToDistribute, '', scopePrefix, scopedIndex);
                 // </V1 slot shim>
                 // add remaining decorators
-                element.shadowRoot.appendChild(element.remainingDecorators);
+                if(remainingDecorators){
+                    element.shadowRoot.appendChild(remainingDecorators);
+                }
             }
 
-            // TODO: make it cleaner
-            element.observer.observe(element, { childList: true });
         }
     }
 
@@ -174,13 +174,17 @@
      * @param  {DocumentFragment} composition composition to which we are supposed to add missing slots
      * @param  {Object} elementsMap map of decorated elements, will be modified
      * @param  {NodeList|Array} nodesList   list of nodes to be decorated
-     * @param  {DocumentFragment} fragment    where slots should be aadded, will be modified
      * @param  {String} prefix    prefix for all ids
-     * --@return {Object<HTMLElement>}   map of unattached decoretors
+     * @return {DocumentFragment|null}   DocumentFragment with unattached decorators/slots or null if none
      */
-    function decorateFilteredElements(composition, elementsMap, nodesList, fragment, prefix, scopePrefix, scopedIndex){
+    function decorateFilteredElements(composition, elementsMap, nodesList, prefix, scopePrefix, scopedIndex){
         var tiles = [], tile, child,
             id;
+        var remainingDecorators = document.createDocumentFragment();
+        // --
+        // workaround for https://github.com/webcomponents/webcomponentsjs/issues/648
+        // remainingDecorators.appendChild(document.createTextNode(""));
+        // ---
         scopePrefix = scopePrefix || '';
         scopedIndex = scopedIndex || 0;
         for (var nodeNo = 0, len = nodesList.length; nodeNo < len; nodeNo++) {
@@ -205,10 +209,11 @@
             // check if we need to create a missing slot
             // TODO: check the performance impac of those selectors (at least once V1 is released)
             // consider .getDestinationInsertionPoints()
+            // XXX: V0 polyfill may have some problems with querySelector, if so try to use querySelectorAll()
             tile = composition.querySelector('content[select="[slot=\'' + id + '\']"], content[select="[slot=\\"' + id + '\\"]"]');
             if (!tile) {
                 tile = createSlot(id);
-                fragment.appendChild(tile);
+                remainingDecorators.appendChild(tile);
             }
             // <V1 assignedSlot shim>
             // https://www.w3.org/TR/shadow-dom/#extensions-to-nondocumenttypechildnode-interface
@@ -225,7 +230,9 @@
             child.hasAttribute('slot') || child.setAttribute('slot', id);
         }
         // <V1 slot shim>
-        // return fragment;
+        // workaround for https://github.com/webcomponents/webcomponentsjs/issues/648
+        // return nothing if document fragment is empty
+        return remainingDecorators.firstChild && remainingDecorators || null;
         // </V1 slot shim>
 
     }

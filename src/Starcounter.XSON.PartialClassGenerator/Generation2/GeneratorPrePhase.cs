@@ -57,7 +57,7 @@ namespace Starcounter.XSON.PartialClassGenerator {
                 // These assignments are currently only needed to get correct compilation-errors for
                 // explicitly bound properties.
                 if (!classInfo.ExplicitlyBound)
-                    return;
+                    continue;
 
                 TValue classRoot = generator.FindTemplate(classInfo, prototype);
                 foreach (var bindAssignment in classInfo.BindAssignments) {
