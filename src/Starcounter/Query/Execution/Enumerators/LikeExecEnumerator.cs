@@ -131,10 +131,7 @@ namespace Starcounter.Query.Execution
                 try {
                     tempExecEnums[i] = Scheduler.GetInstance().SqlEnumCache.GetCachedEnumerator<T>(convertedQueries[i], slowSql, values);
                     nrTemps++;
-                } catch (SqlException e) {
-                    if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLINCORRECTSYNTAX)
-                        throw;
-                }
+                } catch {}
             }
             combNum = nrTemps;
             subExecEnums = new IExecutionEnumerator[combNum];
