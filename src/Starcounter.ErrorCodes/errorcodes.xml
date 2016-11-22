@@ -4939,6 +4939,11 @@
         Column definitions aren't unique.
       </message>
     </code>
+    <code hex="0009" severity="Error" name="ScErrSchemasDoNotMatch">
+      <message>
+        Schema of given type does not match with schema of the existing type.
+      </message>
+    </code>
   </facility>
 
 <!--
