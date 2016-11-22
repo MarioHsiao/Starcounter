@@ -31,11 +31,11 @@ namespace tpcc.Transactions
     {
     }
 
-    public static OutputData Execute(InputData input)
+    public static async Task<OutputData> Execute(InputData input)
     {
       var ret = new OutputData();
 
-      DbWrap.RetriableTransact("Delivery", () =>
+      await DbWrap.RetriableTransact("Delivery", () =>
       {
         int d_id = input.D_ID;
 

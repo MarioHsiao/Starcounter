@@ -157,9 +157,20 @@ namespace tpcc
                 return LoadEmulation.CreateDeliveryTransaction(gen, w_id, d_id).body;
             });
 
-            Handle.POST("/do/delivery", (Delivery_Input d) =>
+            Handle.POST("/do/delivery", (Request r) =>
             {
-                return new Delivery_Output() { Data = tpcc.Transactions.DeliveryTransaction.Execute(d.ToCLR()) };
+                var d = new Delivery_Input();
+                d.PopulateFromJson(r.Body);
+
+                var s = Starcounter.Internal.StarcounterEnvironment.CurrentSchedulerId;
+
+                tpcc.Transactions.DeliveryTransaction.Execute(d.ToCLR()).ContinueWith(
+                    (o)=>Starcounter.Scheduling.ScheduleTask(
+                    () =>
+                    r.SendResponse(new Response { BodyBytes = new Delivery_Output { Data = o.Result }.ToJsonUtf8() }, null), false, s)
+                );
+
+                return HandlerStatus.Handled;
             });
 
             Handle.GET("/gen/neworder?W_ID={?}", (int w_id) =>
@@ -167,9 +178,20 @@ namespace tpcc
                 return LoadEmulation.CreateNewOrderTransaction(gen, w_id).body;
             });
 
-            Handle.POST("/do/neworder", (NewOrder_Input d) =>
+            Handle.POST("/do/neworder", (Request r) =>
             {
-                return new NewOrder_Output() { Data = tpcc.Transactions.NewOrderTransaction.Execute(d.ToCLR()) };
+                var d = new NewOrder_Input();
+                d.PopulateFromJson(r.Body);
+
+                var s = Starcounter.Internal.StarcounterEnvironment.CurrentSchedulerId;
+
+                tpcc.Transactions.NewOrderTransaction.Execute(d.ToCLR()).ContinueWith(
+                    (o) => Starcounter.Scheduling.ScheduleTask(
+                    () =>
+                    r.SendResponse(new Response { BodyBytes = new NewOrder_Output { Data = o.Result }.ToJsonUtf8() }, null), false, s)
+                );
+
+                return HandlerStatus.Handled;
             });
 
             Handle.GET("/gen/orderstatus?W_ID={?}", (int w_id) =>
@@ -179,7 +201,7 @@ namespace tpcc
 
             Handle.POST("/do/orderstatus", (OrderStatus_Input d) =>
             {
-                return new OrderStatus_Output() { Data = tpcc.Transactions.OrderStatusTransaction.Execute(d.ToCLR()) };
+                return new OrderStatus_Output() { Data = tpcc.Transactions.OrderStatusTransaction.Execute(d.ToCLR()).Result };
             });
 
             Handle.GET("/gen/payment?W_ID={?}", (int w_id) =>
@@ -187,9 +209,20 @@ namespace tpcc
                 return LoadEmulation.CreatePaymentTransaction(gen, w_id).body;
             });
 
-            Handle.POST("/do/payment", (Payment_Input d) =>
+            Handle.POST("/do/payment", (Request r) =>
             {
-                return new Payment_Output() { Data = tpcc.Transactions.PaymentTransaction.Execute(d.ToCLR()) };
+                var d = new Payment_Input();
+                d.PopulateFromJson(r.Body);
+
+                var s = Starcounter.Internal.StarcounterEnvironment.CurrentSchedulerId;
+
+                tpcc.Transactions.PaymentTransaction.Execute(d.ToCLR()).ContinueWith(
+                        (o) => Starcounter.Scheduling.ScheduleTask(
+                       ()=>
+                       r.SendResponse(new Response { BodyBytes = new Payment_Output { Data = o.Result }.ToJsonUtf8() }, null), false, s)
+                );
+
+                return HandlerStatus.Handled;
             });
 
             Handle.GET("/gen/stocklevel?W_ID={?}&D_ID={?}", (int w_id, int d_id) =>
@@ -199,7 +232,7 @@ namespace tpcc
 
             Handle.POST("/do/stocklevel", (StockLevel_Input d) =>
             {
-                return new StockLevel_Output() { Data = tpcc.Transactions.StockLevelTransaction.Execute(d.ToCLR()) };
+                return new StockLevel_Output() { Data = tpcc.Transactions.StockLevelTransaction.Execute(d.ToCLR()).Result };
             });
 
             Handle.POST("/all_no_io?load_factor={?}", (int load_factor) =>

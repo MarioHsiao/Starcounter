@@ -49,11 +49,11 @@ namespace tpcc.Transactions
       public List<ItemData> items = new List<ItemData>();
     }
 
-    public static OutputData Execute(InputData input)
+    public static async Task<OutputData> Execute(InputData input)
     {
       var ret = new OutputData();
 
-      DbWrap.RetriableTransact("OrderStatus", () =>
+      await DbWrap.RetriableTransact("OrderStatus", () =>
       {
         Warehouse w = Db.SQL<Warehouse>("SELECT w FROM Warehouse w WHERE W_ID=?", input.W_ID).Single();
 
