@@ -234,7 +234,85 @@ namespace Starcounter {
         public static TResult Transact<T, TResult>(Func<T, TResult> func, T arg, int maxRetries = 100) {
             return Transact(()=>func(arg), 0, new Advanced.TransactOptions() { maxRetries = maxRetries });
         }
-        
+
+        public static System.Threading.Tasks.Task TransactAsync(Action action, uint flags = 0)
+        {
+            return TransactAsync(action, flags, new Advanced.TransactOptions());
+        }
+
+        public static System.Threading.Tasks.Task TransactAsync(Action action, uint flags, Advanced.TransactOptions opts)
+        {
+            int retries = 0;
+            uint r;
+            ulong handle;
+
+            VerifyTransactOptions(opts);
+
+            if (ThreadData.inTransactionScope_ == 0)
+            {
+                System.Threading.Tasks.Task t;
+
+                for (;;)
+                {
+                    r = sccoredb.star_create_transaction(flags, out handle);
+                    if (r == 0)
+                    {
+                        var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+
+                        try
+                        {
+                            ThreadData.inTransactionScope_ = 1;
+                            ThreadData.applyHooks_ = opts.applyHooks;
+
+                            sccoredb.star_context_set_transaction( // Can not fail.
+                                ThreadData.ContextHandle, handle
+                                );
+
+                            action();
+                            t = TransactionManager.Commit(1);
+                            if (t.IsCompleted)
+                                t.GetAwaiter().GetResult();
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!HandleTransactException(ex, handle, ++retries, opts.maxRetries))
+                                throw;
+                            continue;
+                        }
+                        finally
+                        {
+                            Debug.Assert(ThreadData.inTransactionScope_ == 1);
+                            ThreadData.inTransactionScope_ = 0;
+                            ThreadData.applyHooks_ = false;
+                            TransactionManager.SetCurrentTransaction(currentTransaction);
+                        }
+                    }
+                    throw ErrorCode.ToException(r);
+                }
+
+                return t;
+            }
+
+            // We already have a transaction locked on thread so we're already in a transaction
+            // scope (possibly an implicit one if for example in the context of a trigger): Just
+            // invoke the callback and exit.
+            try
+            {
+                action();
+            }
+            catch
+            {
+                // Operation will fail only if transaction is already aborted (in which case we need
+                // not abort it).
+                sccoredb.star_context_external_abort(ThreadData.ContextHandle);
+                throw;
+            }
+
+            return System.Threading.Tasks.Task.FromResult(0);
+
+        }
+
         public static class Advanced {
             public class TransactOptions {
                 public int maxRetries {
@@ -252,55 +330,7 @@ namespace Starcounter {
         }
 
         internal static void Transact(Action action, uint flags, Advanced.TransactOptions opts) {
-            int retries = 0;
-            uint r;
-            ulong handle;
-
-            VerifyTransactOptions(opts);
-            
-            if (ThreadData.inTransactionScope_ == 0) {
-                for (;;) {
-                    r = sccoredb.star_create_transaction(flags, out handle);
-                    if (r == 0) {
-                        var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
-
-                        try {
-                            ThreadData.inTransactionScope_ = 1;
-                            ThreadData.applyHooks_ = opts.applyHooks;
-
-                            sccoredb.star_context_set_transaction( // Can not fail.
-                                ThreadData.ContextHandle, handle
-                                );
-
-                            action();
-                            TransactionManager.Commit(1);
-                            return;
-                        } catch (Exception ex) {
-                            if (!HandleTransactException(ex, handle, ++retries, opts.maxRetries))
-                                throw;
-                            continue;
-                        } finally {
-                            Debug.Assert(ThreadData.inTransactionScope_ == 1);
-                            ThreadData.inTransactionScope_ = 0;
-                            ThreadData.applyHooks_ = false;
-                            TransactionManager.SetCurrentTransaction(currentTransaction);
-                        }
-                    }
-                    throw ErrorCode.ToException(r);
-                }
-            }
-
-            // We already have a transaction locked on thread so we're already in a transaction
-            // scope (possibly an implicit one if for example in the context of a trigger): Just
-            // invoke the callback and exit.
-            try {
-                action();
-            } catch {
-                // Operation will fail only if transaction is already aborted (in which case we need
-                // not abort it).
-                sccoredb.star_context_external_abort(ThreadData.ContextHandle);
-                throw;
-            }
+            TransactAsync(action, flags, opts).GetAwaiter().GetResult();
         }
 
         internal static TResult Transact<TResult>(Func<TResult> func, uint flags, Advanced.TransactOptions opts) {

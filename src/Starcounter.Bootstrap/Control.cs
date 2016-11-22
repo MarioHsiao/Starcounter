@@ -506,9 +506,12 @@ namespace StarcounterInternal.Bootstrap {
             if (e != 0) throw ErrorCode.ToException(e);
         }
 
-        private static void ProcessCallbackMessagesThread(Object parameters) {
-            ulong hlogs = (ulong)parameters;
-            synccommit.star_process_callback_messages(hlogs);
+        private static void ProcessCallbackMessagesThread() {
+            while (true)
+            {
+                var r = sccoredb.star_run_message_loop();
+                TransactionManager.CompleteCommit((long)r.cookie, r.result_code);
+            }
         }
 
         /// <summary>
@@ -523,7 +526,7 @@ namespace StarcounterInternal.Bootstrap {
 
             var t = new System.Threading.Thread(ProcessCallbackMessagesThread);
             t.IsBackground = true;
-            t.Start(hlogs);
+            t.Start();
         }
 
         private long ticksElapsedBetweenProcessStartAndMain_;

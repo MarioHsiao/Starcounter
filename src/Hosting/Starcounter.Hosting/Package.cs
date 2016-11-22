@@ -362,7 +362,15 @@ namespace Starcounter.Hosting {
                         tableDef, tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
                         );
                 }
-                SqlProcessor.SqlProcessor.star_update_reference_columns_types(ThreadData.ContextHandle);
+                using (var tran = new Transaction(false,false))
+                {
+                    tran.Scope(() =>
+                    {
+                        SqlProcessor.SqlProcessor.star_update_reference_columns_types(ThreadData.ContextHandle);
+                        tran.Commit();
+                    });
+                }
+
                 OnTypesCheckedAndUpdated();
 
                 Db.Scope(() => {

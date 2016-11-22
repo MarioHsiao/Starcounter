@@ -75,7 +75,7 @@ namespace tpcc.Transactions
     {
     }
 
-    public static OutputData Execute(InputData input)
+    public static async Task<OutputData> Execute(InputData input)
     {
       var ret = new OutputData()
       {
@@ -84,7 +84,7 @@ namespace tpcc.Transactions
 
       try
       {
-        DbWrap.RetriableTransact("NewOrder", () =>
+        await DbWrap.RetriableTransact("NewOrder", () =>
         {
           Warehouse w = Db.SQL<Warehouse>("SELECT w FROM Warehouse w WHERE W_ID=?", input.W_ID).Single();
 

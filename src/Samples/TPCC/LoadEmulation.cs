@@ -7,7 +7,7 @@ namespace tpcc
 {
     public struct TransactionDefinition
     {
-        public Action self_execute;
+        public Func<Task> self_execute;
         public string uri;
         public string body;
         public bool serialization_required;
@@ -38,7 +38,7 @@ namespace tpcc
             var input = tpcc.Transactions.NewOrderTransaction.InputData.Generate(gen, w_id);
             return new TransactionDefinition
             {
-                self_execute = () => { tpcc.Transactions.NewOrderTransaction.Execute(input); },
+                self_execute = async () => { await tpcc.Transactions.NewOrderTransaction.Execute(input); },
                 uri = "/do/neworder",
                 body = new NewOrder_Input { Data = input }.ToJson(),
                 serialization_required = true
@@ -50,7 +50,7 @@ namespace tpcc
             var input = tpcc.Transactions.PaymentTransaction.InputData.Generate(gen, w_id);
             return new TransactionDefinition
             {
-                self_execute = () => { tpcc.Transactions.PaymentTransaction.Execute(input); },
+                self_execute = async () => { await tpcc.Transactions.PaymentTransaction.Execute(input); },
                 uri = "/do/payment",
                 body = new Payment_Input { Data = input }.ToJson(),
                 serialization_required = true
@@ -62,7 +62,7 @@ namespace tpcc
             var input = tpcc.Transactions.OrderStatusTransaction.InputData.Generate(gen, w_id);
             return new TransactionDefinition
             {
-                self_execute = () => { tpcc.Transactions.OrderStatusTransaction.Execute(input); },
+                self_execute = async () => { await tpcc.Transactions.OrderStatusTransaction.Execute(input); },
                 uri = "/do/orderstatus",
                 body = new OrderStatus_Input { Data = input }.ToJson(),
                 serialization_required = true
@@ -74,7 +74,7 @@ namespace tpcc
             var input = tpcc.Transactions.DeliveryTransaction.InputData.Generate(gen, w_id, d_id);
             return new TransactionDefinition
             {
-                self_execute = () => { tpcc.Transactions.DeliveryTransaction.Execute(input); },
+                self_execute = async ()  => { await tpcc.Transactions.DeliveryTransaction.Execute(input); },
                 uri = "/do/delivery",
                 body = new Delivery_Input { Data = input }.ToJson(),
                 serialization_required = false
@@ -86,7 +86,7 @@ namespace tpcc
             var input = tpcc.Transactions.StockLevelTransaction.InputData.Generate(gen, w_id, d_id);
             return new TransactionDefinition
             {
-                self_execute = () => { tpcc.Transactions.StockLevelTransaction.Execute(input); },
+                self_execute = async () => { await tpcc.Transactions.StockLevelTransaction.Execute(input); },
                 uri = "/do/stocklevel",
                 body = new StockLevel_Input{ Data = input }.ToJson(),
                 serialization_required = true
