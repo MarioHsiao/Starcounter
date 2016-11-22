@@ -14,3 +14,4 @@ https://github.com/starcountersamples/skyper.git master %sc_run_store_apps_test%
 https://github.com/starcountersamples/images.git master %sc_run_store_apps_test%
 https://github.com/starcountersamples/signin.git master %sc_run_store_apps_test%
 https://github.com/starcounter/tpc-a.git master %run_tpca_test%
+https://github.com/Starcounter/RetailDemo.git master %SC_RUN_RETAILDEMO_TEST%
