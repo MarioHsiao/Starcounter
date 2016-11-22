@@ -4,7 +4,7 @@ Custom Element (w/ Polymer's TempalteBinding)
 with predefined template content, which should be used to include partials.
 It's just <template is="imported-template"> wrapped within <juicy-composition> bindable by layout editor.
 Uses juicy-composition.composition given from DB as `Starcounter.MergedPartial.Composition$`.
-version: 2.0.0
+version: 2.0.1
 
 -->
 <!-- Import dependencies -->
@@ -54,6 +54,9 @@ version: 2.0.0
             //   return ;
             // }
             var partial = partialAttributeToProperty(this);
+            if(partial === undefined && this.partial){
+                partial = this.partial;
+            }
             var html = buildURL(partial, this.mergedHtmlPrefix, this.defaultHtml);
             var starcounterInclude = this;
             var partialId = this.partialId;

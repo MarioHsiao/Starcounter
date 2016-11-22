@@ -4,7 +4,7 @@
       Keeping the codegen version directly here instead of reading it from the codegenerator
       to avoid that Starcounter.MsBuild.dll gets locked during compilation of Starcounter 
     -->
-    <CSharpCodegenVersion>3</CSharpCodegenVersion>
+    <CSharpCodegenVersion>1004</CSharpCodegenVersion>
 
     <!--<PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetTypedJsonCSharpCodegenVersion</PrepareForBuildDependsOn>-->
     <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateTypedJsonCode</CoreCompileDependsOn>
@@ -18,6 +18,14 @@
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\Starcounter.MsBuild\Starcounter.MsBuild.csproj">
       <Project>{B1EC8976-B515-4308-89C3-319543A0C7A9}</Project>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\Starcounter.XSON.csproj">
+      <Project>{3EC74B8E-3599-41FD-B336-384861C8971A}</Project>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\Starcounter.XSON.PartialClassGenerator.csproj">
+      <Project>{7824B013-943C-4CF5-B0B9-953A6D828EB6}</Project>
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>

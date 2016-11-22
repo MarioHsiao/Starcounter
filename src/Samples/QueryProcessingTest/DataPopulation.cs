@@ -1,5 +1,6 @@
 ﻿using System;
 using Starcounter;
+using System.Collections.Generic;
 
 namespace QueryProcessingTest {
     public static class DataPopulation {
@@ -45,9 +46,13 @@ namespace QueryProcessingTest {
         public static void PopulateUsers(Int64 nrUsers, Int64 nrAccountPerUser) {
             DeleteAccounts();
             Random rnd = new Random(1);
+            var tl = new List<System.Threading.Tasks.Task>();
             for (int i = 0; i < nrUsers; i++)
-                Db.Transact(delegate {
-                    User newUser = new User {
+            {
+                tl.Add(Db.TransactAsync(delegate
+                {
+                    User newUser = new User
+                    {
                         UserId = FakeUserId(i),
                         UserIdNr = i,
                         FirstName = "Fn" + i,
@@ -56,7 +61,8 @@ namespace QueryProcessingTest {
                         BirthDay = new DateTime(rnd.Next(1950, 1985), rnd.Next(1, 12), rnd.Next(1, 28))
                     };
                     for (int j = 0; j < nrAccountPerUser; j++)
-                        new Account {
+                        new Account
+                        {
                             AccountId = i * nrAccountPerUser + j,
                             Amount = 100.0m * j,
                             Client = newUser,
@@ -64,7 +70,10 @@ namespace QueryProcessingTest {
                             AccountType = j < 3 ? DAILYACCOUNT : SAVINGACCOUNT,
                             NotActive = false
                         };
-                });
+                }));
+            }
+
+            System.Threading.Tasks.Task.WaitAll(tl.ToArray());
         }
 
         public static void DeleteAccounts() {

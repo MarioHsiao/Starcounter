@@ -17,12 +17,12 @@ namespace Starcounter.Apps.Package.Config {
 
         public string AppName;          // AppName (name of the app running in starcounter)
 
-        public string DisplayName;      // Displayname
+        public string DisplayName { get; set; }      // Displayname
         public string Company;          // Company name
         public string Description;      // Description
         public string Heading;          // Heading
         public string ImageUri;         // Image
-        public DateTime VersionDate;    // Version date
+        public DateTime VersionDate { get; set; }    // Version date
         [XmlElement("Dependency")]
         public Dependency[] Dependencies { get; set; }
 

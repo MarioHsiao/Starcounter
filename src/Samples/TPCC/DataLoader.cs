@@ -25,9 +25,17 @@ namespace tpcc
       PopulateHistory(gen);
       PopulateOrdersAndOrderLines(gen);
       PopulateNewOrders(gen);
+
+      //create write transaction to ensure all logs are on disk
+      Starcounter.Db.Transact(() =>
+      {
+          var item = Db.SQL<Item>("select i from item i").First();
+          var p = item.I_PRICE;
+          item.I_PRICE = p;
+      });
     }
 
-    private static void LoadAll<T>(this IEnumerable<T> c, Action<T> a)
+        private static void LoadAll<T>(this IEnumerable<T> c, Action<T> a)
     {
       //c.AsParallel().ForAll(a);
       c.ToList().ForEach(a);
@@ -39,7 +47,7 @@ namespace tpcc
        select new { i_id = i_id }).LoadAll(
             x =>
             {
-              Starcounter.Db.Transact(() =>
+              Starcounter.Db.TransactAsync(() =>
               {
                 new Item()
                 {
@@ -56,7 +64,7 @@ namespace tpcc
 
     private static void PopulateWarehouses(TpccValuesGenerator gen)
     {
-      Starcounter.Db.Transact(() =>
+      Starcounter.Db.TransactAsync(() =>
       {
         for (int i = 1; i <= W_ID_limit; ++i)
         {
@@ -82,7 +90,7 @@ namespace tpcc
        select new { w_id = w_id, i_id = i_id }).LoadAll(
             x =>
             {
-              Starcounter.Db.Transact(() =>
+              Starcounter.Db.TransactAsync(() =>
               {
                 new Stock()
                 {
@@ -111,7 +119,7 @@ namespace tpcc
 
     private static void PopulateDisctricts(TpccValuesGenerator gen)
     {
-      Starcounter.Db.Transact(() =>
+      Starcounter.Db.TransactAsync(() =>
       {
         for (int w_id = 1; w_id <= W_ID_limit; ++w_id)
         {
@@ -142,7 +150,7 @@ namespace tpcc
        select new { w_id = w_id, d_id = d_id, c_id = c_id }).LoadAll(
             x =>
             {
-              Starcounter.Db.Transact(() =>
+              Starcounter.Db.TransactAsync(() =>
               {
                 new Customer()
                 {
@@ -181,7 +189,7 @@ namespace tpcc
        select new { w_id = w_id, d_id = d_id, c_id = c_id }).LoadAll(
             x =>
             {
-              Starcounter.Db.Transact(() =>
+              Starcounter.Db.TransactAsync(() =>
               {
                 new History()
                 {
@@ -206,7 +214,7 @@ namespace tpcc
        select new { w_id = w_id, d_id = d_id }).LoadAll(
             y =>
             {
-              Starcounter.Db.Transact(() =>
+              Starcounter.Db.TransactAsync(() =>
               {
                 foreach (var x in gen.permutate(1, C_ID_limit).Select((c_id, id) => new { c_id = c_id, o_id = (ulong)id + 1 }))
                 {
@@ -253,7 +261,7 @@ namespace tpcc
        select new { w_id = w_id, d_id = d_id }).LoadAll(
             x =>
             {
-              Starcounter.Db.Transact(() =>
+              Starcounter.Db.TransactAsync(() =>
               {
                 for (ulong o_id = 2101; o_id <= C_ID_limit; ++o_id)
                 {

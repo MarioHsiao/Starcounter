@@ -26,7 +26,14 @@ namespace Starcounter.SqlProcessor {
         [DllImport("scsqlprocessor.dll")]
         public static extern uint scsql_dump_memory_leaks();
         [DllImport("scdbmetalayer.dll")]
-        private static extern uint star_prepare_system_tables(ulong context);
+        private static extern uint star_prepare_system_tables(ulong context, out IntPtr continuation, [MarshalAs(UnmanagedType.I1)] out bool commit_required);
+
+        [DllImport("scdbmetalayer.dll")]
+        private static extern uint run_continuation(IntPtr current_continuation, out IntPtr next_continuation, [MarshalAs(UnmanagedType.I1)] out bool commit_required);
+
+        [DllImport("scdbmetalayer.dll")]
+        private static extern void free_continuation_handle(IntPtr continuation);
+
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         private static unsafe extern uint star_get_token(ulong context_handle, string spelling, ulong* token_id);
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -50,9 +57,12 @@ namespace Starcounter.SqlProcessor {
             short* column_indexes, uint attribute_flags);
         internal static unsafe void CreateIndex(ulong table_oid, ulong table_ref,
             string name, ushort sort_mask, short* column_indexes, uint attribute_flags) {
-            MetalayerThrowIfError(star_create_index(ThreadData.ContextHandle,
-                table_oid, table_ref, name, sort_mask, column_indexes,
-                attribute_flags));
+            NewTransaction(() =>
+            {
+                MetalayerThrowIfError(star_create_index(ThreadData.ContextHandle,
+                    table_oid, table_ref, name, sort_mask, column_indexes,
+                    attribute_flags));
+            });
         }
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -61,8 +71,11 @@ namespace Starcounter.SqlProcessor {
             uint attribute_flags);
         internal static unsafe void CreateIndexByIds(ushort layout_id, string name, 
             ushort sort_mask, short* column_indexes, uint attribute_flags) {
-            MetalayerThrowIfError(star_create_index_ids(ThreadData.ContextHandle,
-                layout_id, name, sort_mask, column_indexes,attribute_flags));
+            NewTransaction(() =>
+            {
+                MetalayerThrowIfError(star_create_index_ids(ThreadData.ContextHandle,
+                    layout_id, name, sort_mask, column_indexes, attribute_flags));
+            });
         }
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -86,8 +99,13 @@ namespace Starcounter.SqlProcessor {
         internal static unsafe void CreatTableByNames(string name,
             string base_table_name, SqlProcessor.STAR_COLUMN_DEFINITION_WITH_NAMES* column_definitions,
             out ushort layout_id) {
-            MetalayerThrowIfError(star_create_table_by_names(ThreadData.ContextHandle,
-                name, base_table_name, column_definitions, out layout_id));
+            ushort x = 0;
+            NewTransaction(() =>
+            {
+                MetalayerThrowIfError(star_create_table_by_names(ThreadData.ContextHandle,
+                    name, base_table_name, column_definitions, out x));
+            });
+            layout_id = x;
         }
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -111,8 +129,11 @@ namespace Starcounter.SqlProcessor {
             string table_full_name, string index_name);
         internal static void DropIndexByTableAndIndexName(string table_full_name, 
             string index_name) {
-            MetalayerThrowIfError(star_drop_index_by_table_and_name(ThreadData.ContextHandle,
-                table_full_name, index_name));
+            NewTransaction(() =>
+            {
+                MetalayerThrowIfError(star_drop_index_by_table_and_name(ThreadData.ContextHandle,
+                    table_full_name, index_name));
+            });
         }
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -128,8 +149,14 @@ namespace Starcounter.SqlProcessor {
             out ulong new_layout_handle);
         internal static unsafe void AlterTableAddColumns(string full_table_name, 
             STAR_COLUMN_DEFINITION_WITH_NAMES* added_columns, out ulong new_layout_handle) {
-            MetalayerThrowIfError(star_alter_table_add_columns(ThreadData.ContextHandle,
-                full_table_name, added_columns, out new_layout_handle));
+
+            ulong x=0;
+            NewTransaction(() =>
+                {
+                    MetalayerThrowIfError(star_alter_table_add_columns(ThreadData.ContextHandle,
+                        full_table_name, added_columns, out x));
+                });
+            new_layout_handle = x;
         }
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -198,9 +225,53 @@ namespace Starcounter.SqlProcessor {
             return DbState.ReadString(setspecRecordOid, setspecRecordAddr, 3);
         }
 
+        delegate uint continuation(out IntPtr next_continuation, out bool commit_required);
+
+        static uint run_continuations(continuation cont)
+        {
+            uint r = 0;
+            IntPtr continuation = IntPtr.Zero;
+
+            using (var tran = new Transaction(false,false))
+            {
+                tran.Scope(() =>
+                {
+                    bool commit_required;
+                    r = cont(out continuation, out commit_required);
+
+                    if (commit_required)
+                        tran.Commit();
+                });
+            }
+
+            if ( continuation != IntPtr.Zero )
+            {
+                return run_continuations(
+                    (out IntPtr next_continuation, out bool next_commit_required) =>
+                    {
+                        try
+                        {
+                            return run_continuation(continuation, out next_continuation, out next_commit_required);
+                        }
+                        finally
+                        {
+                            free_continuation_handle(continuation);
+                        }
+                    });
+            }
+            return r;
+
+        }
+
         public static void PopulateRuntimeMetadata() {
             ulong context = ThreadData.ContextHandle;
-            MetalayerThrowIfError(star_prepare_system_tables(context));
+            MetalayerThrowIfError(
+                run_continuations(
+                    (out IntPtr next_continuation, out bool next_commit_required) =>
+                    {
+                        return star_prepare_system_tables(context, out next_continuation, out next_commit_required);
+                    }
+            ));
             LoadGlobalSetspecIndexHandle(context);
         }
 
@@ -270,7 +341,10 @@ namespace Starcounter.SqlProcessor {
         }
 
         public static void CleanClrMetadata(ulong context) {
-            MetalayerThrowIfError(star_clrmetadata_clean(context));
+            NewTransaction(() =>
+            {
+                MetalayerThrowIfError(star_clrmetadata_clean(context));
+            });
         }
 
         public static unsafe ulong GetTokenFromName(string Name) {
@@ -309,13 +383,19 @@ namespace Starcounter.SqlProcessor {
         }
 
         public static void DropTableCascade(string tableFullName) {
-            MetalayerThrowIfError(star_drop_table_cascade(ThreadData.ContextHandle, tableFullName));
+            NewTransaction(() =>
+            {
+                MetalayerThrowIfError(star_drop_table_cascade(ThreadData.ContextHandle, tableFullName));
+            });
         }
 
         internal static unsafe void CreateIndex(string index_name, string table_name, 
             STAR_INDEXED_COLUMN* columns, bool is_unique) {
-            MetalayerThrowIfError(star_create_index_by_names(ThreadData.ContextHandle,
-                index_name, table_name, columns, is_unique));
+            NewTransaction(() =>
+            {
+                MetalayerThrowIfError(star_create_index_by_names(ThreadData.ContextHandle,
+                    index_name, table_name, columns, is_unique));
+            });
         }
 
         /// <summary>
@@ -362,6 +442,18 @@ namespace Starcounter.SqlProcessor {
         [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
             CharSet = CharSet.Unicode)]
         internal static extern uint scsql_deref_db_iter(ulong iter, out ulong rec_id, out ulong rec_ref);
+
+        private static void NewTransaction(Action a)
+        {
+            using (var tran = new Transaction(false,false))
+            {
+                tran.Scope(() =>
+                {
+                    a();
+                    tran.Commit();
+                });
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
