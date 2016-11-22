@@ -1844,7 +1844,7 @@ namespace LoadAndLatency
             const int transaction_in_group_limit = 10000;
 
 
-            for (Int64 i = 0; i < TotalNumOfObjectsInDB/transaction_in_group_limit; i++) {
+            for (Int64 i = 0; i < TotalNumOfObjectsInDB; i++) {
                 if (useIndividualTransactions) {
 
                     try
