@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using Starcounter.TestFramework;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace LoadAndLatency
 {
@@ -1832,25 +1833,45 @@ namespace LoadAndLatency
             //    Application.Profiler.DrawResultsServer();
         }
 
+        private class TransactionRollbackException : System.Exception
+        {
+        }
+
         private void RunPerformanceTestPerQueryType(QueryDataTypes queryType, Boolean useIndividualTransactions, Boolean performUpdate, Int32 workerId) {
-            Starcounter.Transaction trans = null;
 
+            var transactions = new List<System.Threading.Tasks.Task>();
             // Running each SELECT in separate transaction.
-            for (Int64 i = 0; i < TotalNumOfObjectsInDB; i++) {
+            const int transaction_in_group_limit = 10000;
+
+
+            for (Int64 i = 0; i < TotalNumOfObjectsInDB/transaction_in_group_limit; i++) {
                 if (useIndividualTransactions) {
-                    trans = new Transaction();
-                    trans.Scope<QueryDataTypes, Boolean, Int32, Int64>(RunOnePerformanceTestPerQueryType, queryType, performUpdate, workerId, i);
 
-                    // Committing if we have updates.
-                    if (performUpdate)
-                        CommitWithRetries(trans, TransRetriesNum);
+                    try
+                    {
+                        transactions.Add(
+                            Db.TransactAsync(() =>
+                            {
+                                RunOnePerformanceTestPerQueryType(queryType, performUpdate, workerId, i);
 
-                    // Disposing the transaction.
-                    trans.Dispose();
+                                if (!performUpdate)
+                                    throw new TransactionRollbackException();
+                            }, 
+                            0, new Db.Advanced.TransactOptions { maxRetries = TransRetriesNum }));
+                    }
+                    catch (TransactionRollbackException) { }
                 } else {
                     RunOnePerformanceTestPerQueryType(queryType, performUpdate, workerId, i);
                 }
+
+                if ( (i+1)%transaction_in_group_limit == 0)
+                {
+                    System.Threading.Tasks.Task.WaitAll(transactions.ToArray());
+                    transactions.Clear();
+                }
             }
+
+            System.Threading.Tasks.Task.WaitAll(transactions.ToArray());
         }
 
         private void RunOnePerformanceTestPerQueryType(QueryDataTypes queryType, Boolean performUpdate, Int32 workerId, Int64 i) {
