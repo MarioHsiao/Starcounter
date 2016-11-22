@@ -71,11 +71,11 @@ namespace tpcc.Transactions
       public string C_DATA;
     }
 
-    public static OutputData Execute(InputData input)
+    public static async Task<OutputData> Execute(InputData input)
     {
       var ret = new OutputData();
 
-      DbWrap.RetriableTransact("Payment", () =>
+      await DbWrap.RetriableTransact("Payment", () =>
       {
         Warehouse w = Db.SQL<Warehouse>("SELECT w FROM Warehouse w WHERE W_ID=?", input.W_ID).Single();
 

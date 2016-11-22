@@ -32,11 +32,11 @@ namespace tpcc.Transactions
       public int low_stock;
     }
 
-    public static OutputData Execute(InputData input)
+    public static async Task<OutputData> Execute(InputData input)
     {
       var ret = new OutputData();
 
-      DbWrap.RetriableTransact( "StockLevel", () =>
+      await DbWrap.RetriableTransact( "StockLevel", () =>
       {
         District d = Db.SQL<District>("SELECT d FROM District d WHERE D_W_ID=? AND D_ID=?", input.W_ID, input.D_ID).Single();
 
