@@ -1,20 +1,21 @@
 ﻿using System;
 using Starcounter;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace tpcc
 {
   public static class DbWrap
   {
-    static public void RetriableTransact(string name, Action fn)
+    static public Task RetriableTransact(string name, Action fn)
     {
       System.Threading.Interlocked.Increment(ref Program.tr_count);
       while (true)
       {
         try
         {
-          Db.Transact(fn,1);
-          return;
+          return Db.TransactAsync(fn,0, new Db.Advanced.TransactOptions { maxRetries = 1 });
+          
         }
         catch (Exception e) when (e?.InnerException is ITransactionConflictException)
         {
