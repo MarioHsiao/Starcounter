@@ -39,7 +39,7 @@ namespace Starcounter.Server.Compiler
         /// <summary>
         /// List of references that will be used to compile the application.
         /// </summary>
-        public List<string> MetadataReferences = new List<string>();
+        public Dictionary<string, bool> MetadataReferences = new Dictionary<string, bool>();
 
         /// <summary>
         /// Initialize a new <see cref="AppCompiler"/> instance.
@@ -90,7 +90,7 @@ namespace Starcounter.Server.Compiler
                 }
             }
 
-            MetadataReferences.ForEach((reference) => parameters.ReferencedAssemblies.Add(reference));
+            MetadataReferences.Keys.All((reference) => { return parameters.ReferencedAssemblies.Add(reference) >= 0; });
 
             var provider = CSharpCodeProvider.CreateProvider("CSharp");
             var compilerResult = provider.CompileAssemblyFromFile(parameters, sources.ToArray());

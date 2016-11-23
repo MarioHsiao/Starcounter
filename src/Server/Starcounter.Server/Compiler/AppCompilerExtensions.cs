@@ -72,21 +72,21 @@ namespace Starcounter.Server.Compiler
             return compiler.WithSourceCodeFile(file);
         }
 
-        static void AddReferencesToAllAssembliesInDirectory(this AppCompiler compiler, string directory)
+        static void AddReferencesToAllAssembliesInDirectory(this AppCompiler compiler, string directory, bool copyLocal = true)
         {
             var libraries = Directory.EnumerateFiles(directory, "*.dll");
-            compiler.AddReferencesFromDirectory(directory, libraries);
+            compiler.AddReferencesFromDirectory(directory, libraries, copyLocal);
         }
 
-        static void AddReferencesFromDirectory(this AppCompiler compiler, string directory, IEnumerable<string> assemblies)
+        static void AddReferencesFromDirectory(this AppCompiler compiler, string directory, IEnumerable<string> assemblies, bool copyLocal = true)
         {
             foreach (var assembly in assemblies)
             {
-                compiler.AddReferenceFromDirectory(directory, Path.GetFileName(assembly));
+                compiler.AddReferenceFromDirectory(directory, Path.GetFileName(assembly), copyLocal);
             }
         }
 
-        static void AddReferenceFromDirectory(this AppCompiler compiler, string directory, string assemblyName)
+        static void AddReferenceFromDirectory(this AppCompiler compiler, string directory, string assemblyName, bool copyLocal = true)
         {
             var reference = Path.Combine(directory, WithDefaultReferenceExtension(assemblyName));
             if (!File.Exists(reference))
@@ -94,7 +94,7 @@ namespace Starcounter.Server.Compiler
                 throw new FileNotFoundException($"Unable to add reference to {assemblyName}; file {reference} does not exist");
             }
 
-            compiler.AddReference(reference);
+            compiler.AddReference(reference, copyLocal);
         }
 
         static void AddGACReferences(this AppCompiler compiler, IEnumerable<string> assemblies)
@@ -107,14 +107,14 @@ namespace Starcounter.Server.Compiler
 
         static void AddGACReference(this AppCompiler compiler, string assemblyName)
         {
-            compiler.AddReference(WithDefaultReferenceExtension(assemblyName));
+            compiler.AddReference(WithDefaultReferenceExtension(assemblyName), false);
         }
 
-        static void AddReference(this AppCompiler compiler, string verifiedReference)
+        static void AddReference(this AppCompiler compiler, string verifiedReference, bool copyLocal = true)
         {
-            if (!compiler.MetadataReferences.Contains(verifiedReference))
+            if (!compiler.MetadataReferences.ContainsKey(verifiedReference))
             {
-                compiler.MetadataReferences.Add(verifiedReference);
+                compiler.MetadataReferences.Add(verifiedReference, copyLocal);
             }
         }
 
