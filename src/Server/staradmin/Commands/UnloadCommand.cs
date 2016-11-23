@@ -129,9 +129,14 @@ namespace staradmin.Commands {
                 cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.Db, Context.Database));
             }
 
-            var file = "@";
+            var file = "";
             if (Context.TryGetCommandProperty("file", out file)) {
                 file = Path.GetFullPath(file);
+            }
+            else
+            {
+                // Instruct application to use the default.
+                file = "@";
             }
             cmdLine.Add(string.Format("{0}", file));
 
