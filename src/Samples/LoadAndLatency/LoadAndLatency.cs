@@ -1347,7 +1347,7 @@ namespace LoadAndLatency
                         objectsCounter
                     );
 
-                    objectsCounter += res.Item1;
+                    objectsCounter = res.Item1;
                     transactions.AddRange(res.Item2);
                 }
 
