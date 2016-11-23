@@ -15,8 +15,17 @@ namespace Starcounter.Server.Compiler
             starcounterBinDirectory = starcounterBinDirectory ?? StarcounterEnvironment.InstallationDirectory;
 
             var publicAssemblies = Path.Combine(starcounterBinDirectory, "Public Assemblies");
-            var defaultStarcounterReferences = Directory.GetFiles(publicAssemblies, "*.dll");
             
+            // Keep these in sync with our VS templates to create a uniform experience.
+            
+            var defaultStarcounterReferences = new[]
+            {
+                "Starcounter.dll",
+                "Starcounter.Bootstrap.dll",
+                "Starcounter.Internal.dll",
+                "Starcounter.XSON.dll"
+            };
+
             compiler.AddReferencesFromDirectory(publicAssemblies, defaultStarcounterReferences);
 
             var defaultGACAssemblies = new[]
