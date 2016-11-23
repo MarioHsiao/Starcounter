@@ -106,6 +106,9 @@ namespace Starcounter.Server.Compiler
                 SafeDeleteTempFiles(compilerResult);
             }
 
+            var privateReferences = MetadataReferences.Where(kv => kv.Value == true).Select(item => item.Key);
+            CopyAndRegisterPrivateAssemblies(privateReferences, result.OutputDirectory, result);
+
             return result;
         }
 
@@ -164,6 +167,19 @@ namespace Starcounter.Server.Compiler
                     result.TempFiles.Delete();
                 }
                 catch { }
+            }
+        }
+
+        void CopyAndRegisterPrivateAssemblies(IEnumerable<string> files, string directory, AppCompilerResult result, bool overwrite = true)
+        {
+            foreach (var file in files)
+            {
+                var name = Path.GetFileName(file);
+                var target = Path.Combine(directory, name);
+
+                File.Copy(file, target, overwrite);
+
+                result.PrivateReferenceAssemblies.Add(target);
             }
         }
     }

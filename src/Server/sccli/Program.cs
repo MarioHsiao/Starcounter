@@ -176,43 +176,29 @@ namespace star {
 
             if (Path.GetExtension(filePath).Equals(".cs", StringComparison.InvariantCultureIgnoreCase)) {
                 try {
-                    var sourceCode = filePath;
-                    SourceCodeCompiler.CompileSingleFileToExecutable(sourceCode, out filePath);
-                    applicationFilePath = sourceCode;
                     sourceCodeInput = true;
+
+                    var sourceCode = filePath;
+                    var compileOnly = appArgs.ContainsFlag(StarOption.CompileOnly);
+                    var targetDirectory = compileOnly ? Path.GetDirectoryName(sourceCode) : null;
+
+                    SourceCodeCompiler.CompileSingleFileToExecutable(sourceCode, targetDirectory, out filePath);
+                    applicationFilePath = sourceCode;
+                    
+                    if (compileOnly)
+                    {
+                        ConsoleUtil.ToConsoleWithColor(
+                            string.Format("{0} -> {1}", Path.GetFileName(applicationFilePath), Path.GetFileName(filePath)),
+                            ConsoleColor.DarkGray
+                        );
+                        return;
+                    }
+
                 } catch (Exception e) {
                     SharedCLI.ShowErrorAndSetExitCode(e, showStackTrace: false, exit: true);
                 }
             }
-
-            if (sourceCodeInput && appArgs.ContainsFlag(StarOption.CompileOnly)) {
-                try {
-                    var target = Path.Combine(Path.GetDirectoryName(applicationFilePath), Path.GetFileName(filePath));
-                    if (File.Exists(target)) {
-                        File.Delete(target);
-                    }
-                    File.Move(filePath, target);
-
-                    var pdb = Path.ChangeExtension(filePath, ".pdb");
-                    if (File.Exists(pdb)) {
-                        var pdbTarget = Path.Combine(Path.GetDirectoryName(applicationFilePath), Path.GetFileName(pdb));
-                        if (File.Exists(pdbTarget)) {
-                            File.Delete(pdbTarget);
-                        }
-                        File.Move(pdb, pdbTarget);
-                    }
-
-                    ConsoleUtil.ToConsoleWithColor(
-                        string.Format("{0} -> {1}", Path.GetFileName(applicationFilePath), Path.GetFileName(filePath)),
-                        ConsoleColor.DarkGray
-                        ); 
-                } finally {
-                    CleanUpAfterCompilation(filePath);
-                }
-                return;
-            }
-
-
+            
             // Check if we have more arguments than one. Remember that we
             // reserve the first argument as the name/path of the executable
             // and that we are really hiding a general "Exec exe [others]"

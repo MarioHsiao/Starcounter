@@ -137,8 +137,10 @@ namespace Starcounter.Server.Test
 
         void DeleteCompilerResult(AppCompilerResult result, bool deleteDirectory = true)
         {
-            File.Delete(result.ApplicationPath);
-            File.Delete(result.SymbolFilePath);
+            foreach (var file in result.Artifacts)
+            {
+                File.Delete(file);
+            }
             if (deleteDirectory)
             {
                 Directory.Delete(result.OutputDirectory);

@@ -18,8 +18,11 @@ namespace Starcounter.CLI
         /// succeed, the path to the compiled assembly is returned.
         /// </summary>
         /// <param name="sourceCode">The source code to compile.</param>
+        /// <param name="targetPath">Target path, specifying that the compiled
+        /// result should end up in a specific directory. Pass null to use a
+        /// temporary path.</param>
         /// <param name="assemblyPath">Path to the compiled assembly.</param>
-        public static void CompileSingleFileToExecutable(string sourceCode, out string assemblyPath)
+        public static void CompileSingleFileToExecutable(string sourceCode, string targetPath, out string assemblyPath)
         {
             var name = Path.GetFileNameWithoutExtension(sourceCode);
             var compiler = new AppCompiler(name)
@@ -27,11 +30,16 @@ namespace Starcounter.CLI
                 .WithStarcounterAssemblyInfo()
                 .WithSourceCodeFile(sourceCode);
 
+            if (!string.IsNullOrEmpty(targetPath))
+            {
+                compiler.TargetPath = targetPath;
+            }
+
             assemblyPath = null;
             try
             {
-                var result2 = compiler.Compile();
-                assemblyPath = result2.ApplicationPath;
+                var result = compiler.Compile();
+                assemblyPath = result.ApplicationPath;
             }
             catch (AppCompilerException e)
             {

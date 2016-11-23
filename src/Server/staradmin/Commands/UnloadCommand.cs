@@ -101,7 +101,7 @@ namespace staradmin.Commands {
                 SharedCLI.CLIAppFolderName,
                 unloadSourceCodeFile
                 );
-            SourceCodeCompiler.CompileSingleFileToExecutable(appFile, out exeFile);
+            SourceCodeCompiler.CompileSingleFileToExecutable(appFile, null, out exeFile);
 
             var unload = StartApplicationCLICommand.FromFile(appFile, exeFile, CreateUnloadApplicationArguments());
             unload.JobDescription = string.Format("Unloading {0}", unload.DatabaseName);
