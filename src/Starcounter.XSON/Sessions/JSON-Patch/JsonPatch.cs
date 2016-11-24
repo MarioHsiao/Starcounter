@@ -333,10 +333,8 @@ namespace Starcounter.XSON {
         ///// <param name="patchArray">The bytearray containing all patches.</param>
         ///// <returns>The number of patches evaluated.</returns>
         public JsonPatchStatus Apply(Json root, byte[] patchArray, bool strictPatchRejection, out int patchCount) {
-            using (var reader = new JsonTextReader(new StreamReader((new MemoryStream(patchArray))))) {
-                reader.CloseInput = true;
-                return this.Apply(root, reader, strictPatchRejection, patchArray, out patchCount);
-            }
+            string patch = Encoding.UTF8.GetString(patchArray);
+            return Apply(root, patch, strictPatchRejection, out patchCount);
         }
 
         /// <summary>
