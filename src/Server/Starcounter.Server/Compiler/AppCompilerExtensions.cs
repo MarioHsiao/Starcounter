@@ -43,6 +43,18 @@ namespace Starcounter.Server.Compiler
 
             return compiler;
         }
+
+        public static AppCompiler WithReference(this AppCompiler compiler, string assemblyReference, bool copyLocal = true)
+        {
+            Guard.NotNullOrEmpty(assemblyReference, nameof(assemblyReference));
+
+            var directory = Path.GetDirectoryName(assemblyReference);
+            var file = Path.GetFileName(assemblyReference);
+
+            compiler.AddReferenceFromDirectory(directory, file, copyLocal);
+
+            return compiler;
+        }
         
         public static AppCompiler WithSourceCode(this AppCompiler compiler, string sourceCode)
         {
