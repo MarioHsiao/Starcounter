@@ -16,7 +16,8 @@ namespace Starcounter.Templates {
 		internal Type dataTypeForBinding;
 		internal bool isVerifiedUnbound;
         internal bool isBoundToParent;
-		internal bool hasCustomAccessors;
+        internal bool hasCustomAccessors;
+        internal bool hasCustomBoundAccessors;
         private bool codeGenStarted = false;
         private TypedJsonSerializer codegenStandardSerializer;
         private TypedJsonSerializer codegenFTJSerializer;
@@ -226,7 +227,12 @@ namespace Starcounter.Templates {
 
             if (BindingStrategy == BindingStrategy.Unbound || isVerifiedUnbound)
                 return false;
-            
+
+            if (hasCustomBoundAccessors) {
+                // Always use binding if custom delegates are set and not specifically set to unbound. 
+                return true; 
+            }
+
             // TODO:
             // Workaround for having a property bound to codebehind, but
             // Data-property is always null. Since we want to avoid recreate
