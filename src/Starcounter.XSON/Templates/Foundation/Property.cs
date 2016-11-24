@@ -17,7 +17,6 @@ namespace Starcounter.Templates {
     public abstract class Property<T> : TValue {
 		public Action<Json, T> Setter;
 		public Func<Json, T> Getter;
-		internal bool hasCustomBoundAccessors = false;
 		internal Action<Json, T> BoundSetter;
 		internal Func<Json, T> BoundGetter;
 		internal Action<Json, T> UnboundSetter;
@@ -30,8 +29,8 @@ namespace Starcounter.Templates {
 			Setter = BoundOrUnboundSet;
 		}
         
-		public void SetCustomBoundAccessors(Func<Json, T> boundGetter, Action<Json, T> boundSetter)
-		{
+		public void SetCustomBoundAccessors(Func<Json, T> boundGetter, Action<Json, T> boundSetter) {
+            BindingStrategy = BindingStrategy.Bound;
 			BoundGetter = boundGetter;
 			BoundSetter = boundSetter;
 			hasCustomBoundAccessors = true;
@@ -120,7 +119,10 @@ namespace Starcounter.Templates {
 		/// 
 		/// </summary>
 		internal override void InvalidateBoundGetterAndSetter() {
-			BoundGetter = null;
+            if (hasCustomBoundAccessors)
+                return; // Never invalidate custom accessors.
+
+            BoundGetter = null;
 			BoundSetter = null;
 			base.InvalidateBoundGetterAndSetter();
 		}
