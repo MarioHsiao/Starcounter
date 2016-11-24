@@ -49,11 +49,15 @@
         $(OutputPath)\Starcounter.Hypermedia.XML;
         $(OutputPath)\Starcounter.XSON.XML;
       "/>
+	  <FilesToDelete Include="
+        $(OutputPath)\Starcounter.Extensions.dll;
+      "/>
     </ItemGroup>
     <!-- Coyping selected files. -->
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(All32BitDllsToCopy)" DestinationFolder="$(OutputPath)\32BitComponents" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PublicAssemblies)" DestinationFolder="$(OutputPath)\Public Assemblies" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PublicAssembliesHelp)" DestinationFolder="$(OutputPath)\Public Assemblies" Condition="'$(Configuration)'=='Release'" />
+	<Delete Files="@(FilesToDelete)" />
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" DependsOnTargets="DoAfterBuild" />
