@@ -4,6 +4,8 @@ using System.IO;
 using NUnit.Framework;
 using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
+using Starcounter.XSON;
+using Starcounter.XSON.Interfaces;
 using XSONModule = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter.Internal.XSON.Tests {
@@ -11,92 +13,62 @@ namespace Starcounter.Internal.XSON.Tests {
     /// 
     /// </summary>
     public static class JsonSerializeTests {
-        private static StandardJsonSerializer defaultSerializer;
+        private static ITypedJsonSerializer defaultSerializer;
 
         [TestFixtureSetUp]
         public static void InitializeTest() {
-			defaultSerializer = new StandardJsonSerializer();
-        }
-
-        [Test]
-        public static void TestSerializeJsonString() {
-            // needed size includes the quotations around the string.
-            SerializeString("First!", 8);
-            SerializeString("FirstWithSpecial\n", 20);
-            SerializeString("\n\b\t", 8);
-            SerializeString("\u001f", 8); 
-        }
-
-        private static void SerializeString(string value, int neededSize) {
-            byte[] dest;
-            int written;
-
-            unsafe {
-                // Assert that we dont write outside of the available space.
-                dest = new byte[neededSize - 2];
-                fixed (byte* pdest = dest) {
-                    written = JsonHelper.WriteString((IntPtr)pdest, dest.Length, value);
-                    Assert.AreEqual(-1, written);
-                }
-
-                // Assert that we write correct amount of bytes.
-                dest = new byte[neededSize*2];
-                fixed (byte* pdest = dest) {
-                    written = JsonHelper.WriteString((IntPtr)pdest, dest.Length, value);
-                    Assert.AreEqual(neededSize, written);
-                }
-            }
+			defaultSerializer = new NewtonSoftSerializer();
         }
         
-		[Test]
-		public static void TestStandardSerializer() {
-            RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"));
-            RunStandardSerializerTest("person.json", File.ReadAllText("Json\\person.json"));
-            RunStandardSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"));
-            RunStandardSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"));
-            RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"));
-            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"));
-            RunStandardSerializerTest("SingleValue.json", File.ReadAllText("Json\\SingleValue.json"));
-            RunStandardSerializerTest("SingleArray.json", File.ReadAllText("Json\\SingleArray.json"));
-		}
+		//[Test]
+		//public static void TestStandardSerializer() {
+  //          RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"));
+  //          RunStandardSerializerTest("person.json", File.ReadAllText("Json\\person.json"));
+  //          RunStandardSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"));
+  //          RunStandardSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"));
+  //          RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"));
+  //          RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"));
+  //          RunStandardSerializerTest("SingleValue.json", File.ReadAllText("Json\\SingleValue.json"));
+  //          RunStandardSerializerTest("SingleArray.json", File.ReadAllText("Json\\SingleArray.json"));
+		//}
 
-        [Test]
-        public static void TestStandardSerializerWithCompiledJson() {
-            RunStandardSerializerTest("jsstyle.json", jsstyle.DefaultTemplate);
-            RunStandardSerializerTest("person.json", person.DefaultTemplate);
-            RunStandardSerializerTest("supersimple.json", supersimple.DefaultTemplate);
-            RunStandardSerializerTest("simple.json", simple.DefaultTemplate);
-            RunStandardSerializerTest("TestMessage.json", TestMessage.DefaultTemplate);
-            RunStandardSerializerTest("JsonWithFiller.json", JsonWithFiller.DefaultTemplate);
-            RunStandardSerializerTest("SingleValue.json", SingleValue.DefaultTemplate);
-            RunStandardSerializerTest("SingleValue.json", SingleArray.DefaultTemplate);
-        }
+  //      [Test]
+  //      public static void TestStandardSerializerWithCompiledJson() {
+  //          RunStandardSerializerTest("jsstyle.json", jsstyle.DefaultTemplate);
+  //          RunStandardSerializerTest("person.json", person.DefaultTemplate);
+  //          RunStandardSerializerTest("supersimple.json", supersimple.DefaultTemplate);
+  //          RunStandardSerializerTest("simple.json", simple.DefaultTemplate);
+  //          RunStandardSerializerTest("TestMessage.json", TestMessage.DefaultTemplate);
+  //          RunStandardSerializerTest("JsonWithFiller.json", JsonWithFiller.DefaultTemplate);
+  //          RunStandardSerializerTest("SingleValue.json", SingleValue.DefaultTemplate);
+  //          RunStandardSerializerTest("SingleValue.json", SingleArray.DefaultTemplate);
+  //      }
         
-        private static void RunStandardSerializerTest(string name, string jsonStr) {
-            TValue tval = Helper.CreateJsonTemplateFromContent(Path.GetFileNameWithoutExtension(name), jsonStr);
-            RunStandardSerializerTest(name, tval);
-        }
+  //      private static void RunStandardSerializerTest(string name, string jsonStr) {
+  //          TValue tval = Helper.CreateJsonTemplateFromContent(Path.GetFileNameWithoutExtension(name), jsonStr);
+  //          RunStandardSerializerTest(name, tval);
+  //      }
 
-		private static void RunStandardSerializerTest(string name, TValue tval) {
-			int serializedSize = 0;
-			int afterPopulateSize = 0;
-			Json original;
-			Json newJson;
+		//private static void RunStandardSerializerTest(string name, TValue tval) {
+		//	int serializedSize = 0;
+		//	int afterPopulateSize = 0;
+		//	Json original;
+		//	Json newJson;
             
-			original = (Json)tval.CreateInstance();
-            byte[] jsonArr = new byte[tval.JsonSerializer.EstimateSizeBytes(original)];
-			serializedSize = original.ToJsonUtf8(jsonArr, 0);
+		//	original = (Json)tval.CreateInstance();
+  //          byte[] jsonArr = new byte[tval.JsonSerializer.EstimateSizeBytes(original)];
+		//	serializedSize = original.ToJsonUtf8(jsonArr, 0);
 
-			unsafe {
-				fixed (byte* p = jsonArr) {
-					newJson = (Json)tval.CreateInstance();
-					afterPopulateSize = newJson.PopulateFromJson((IntPtr)p, serializedSize);
-				}
-			}
+		//	unsafe {
+		//		fixed (byte* p = jsonArr) {
+		//			newJson = (Json)tval.CreateInstance();
+		//			afterPopulateSize = newJson.PopulateFromJson((IntPtr)p, serializedSize);
+		//		}
+		//	}
 
-			Assert.AreEqual(serializedSize, afterPopulateSize);
-            Helper.AssertAreEqual(original, newJson);
-		}
+		//	Assert.AreEqual(serializedSize, afterPopulateSize);
+  //          Helper.AssertAreEqual(original, newJson);
+		//}
 
         [Test]
         public static void TestIncorrectInputJsonForDefaultSerializer() {
@@ -122,59 +94,37 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.Catch(() => obj.PopulateFromJson(invalidJson));
         }
 
- //       [Test]
-        public static void TestIncorrectInputJsonForCodegenSerializer() {
-            TValue tObj = Helper.CreateJsonTemplateFromFile("supersimple.json");
+//        [Test]
+//        public static void EncodeAndDecodeJsonStrings() {
+//            // "standard" special characters.
+//            EncodeDecodeString("1\b2\f3\n4\r5\t6\"7\\");
 
-            var obj = (Json)tObj.CreateInstance();
+//            // Low unicode characters.
+//            EncodeDecodeString("UnicodeChars:\u001a\u0006");
 
-            string invalidJson = "message";
-            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+//            // High unicode characters.
+//            EncodeDecodeString("UnicodeChars:\u2031");
+//        }
 
-            invalidJson = "PlayerId: \"Hey!\" }";
-            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+//        private static void EncodeDecodeString(string value) {
+//            byte[] buffer = new byte[1024];
+////            byte[] expected;
+//            int count;
+//            int used;
+//            string decodedString;
 
-            invalidJson = "{ PlayerId: \"Hey!\" ";
-            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+//            unsafe {
+//                fixed (byte* p = buffer) {
+//                    count = JsonHelper.WriteString((IntPtr)p, buffer.Length, value);
+//                    JsonHelper.ParseString((IntPtr)p, buffer.Length, out decodedString, out used);
+//                }
+//            }
+////            expected = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(value));
+////            AssertAreEqual(expected, buffer, count);
 
-            invalidJson = "{ PlayerId: Hey }";
-            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
-
-            invalidJson = "{ PlayerId: 123";
-            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
-        }
-
-        [Test]
-        public static void EncodeAndDecodeJsonStrings() {
-            // "standard" special characters.
-            EncodeDecodeString("1\b2\f3\n4\r5\t6\"7\\");
-
-            // Low unicode characters.
-            EncodeDecodeString("UnicodeChars:\u001a\u0006");
-
-            // High unicode characters.
-            EncodeDecodeString("UnicodeChars:\u2031");
-        }
-
-        private static void EncodeDecodeString(string value) {
-            byte[] buffer = new byte[1024];
-//            byte[] expected;
-            int count;
-            int used;
-            string decodedString;
-
-            unsafe {
-                fixed (byte* p = buffer) {
-                    count = JsonHelper.WriteString((IntPtr)p, buffer.Length, value);
-                    JsonHelper.ParseString((IntPtr)p, buffer.Length, out decodedString, out used);
-                }
-            }
-//            expected = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(value));
-//            AssertAreEqual(expected, buffer, count);
-
-            Assert.AreEqual(count, used);
-            Assert.AreEqual(value, decodedString);
-        }
+//            Assert.AreEqual(count, used);
+//            Assert.AreEqual(value, decodedString);
+//        }
 
         private static void AssertAreEqual(byte[] expected, byte[] actual, int count) {
             Assert.AreEqual(expected.Length, count);
@@ -213,7 +163,7 @@ namespace Starcounter.Internal.XSON.Tests {
             o4.SomeArray = o3;
             o4.SomeString2 = "SomeString2!";
 
-            String serString = o4.ToJson();
+            string serString = o4.ToJson();
 
             Assert.AreEqual(@"{""SomeString"":""SomeString!"",""SomeBool"":true,""SomeDecimal"":1.234567,""SomeDouble"":-1.234567,""SomeLong"":1234567,""SomeObject"":{""SomeString"":""NewString!"",""AnotherString"":""AnotherString!"",""SomeDecimal"":1.234567,""SomeLong"":1234567},""SomeArray"":[{""SomeString"":""NewString!"",""AnotherString"":""AnotherString!"",""SomeDecimal"":1.234567,""SomeLong"":1234567},{""SomeString"":""NewString!"",""AnotherString"":""AnotherString!"",""SomeDecimal"":1.234567,""SomeLong"":1234567},{""SomeString"":""NewString!"",""AnotherString"":""AnotherString!"",""SomeDecimal"":1.234567,""SomeLong"":1234567}],""SomeString2"":""SomeString2!""}", serString);
         }
@@ -283,56 +233,56 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Ooops", json.gender);
         }
 
-        [Test]
-        public static void TestJsonDeserializationWithMissingMembers_2() {
-            // Testing changing default settings object to ignore missing members.
+        //[Test]
+        //public static void TestJsonDeserializationWithMissingMembers_2() {
+        //    // Testing changing default settings object to ignore missing members.
 
-            dynamic json = new Json();
-            json.id = "abc";
-            json.gender = "F";
+        //    dynamic json = new Json();
+        //    json.id = "abc";
+        //    json.gender = "F";
 
-            var settings = new JsonSerializerSettings();
-            settings.MissingMemberHandling = MissingMemberHandling.Ignore;
+        //    var settings = new JsonSerializerSettings();
+        //    settings.MissingMemberHandling = MissingMemberHandling.Ignore;
 
-            var oldSettings = TypedJsonSerializer.DefaultSettings;
-            try {
-                TypedJsonSerializer.DefaultSettings = settings;
+        //    var oldSettings = TypedJsonSerializer.DefaultSettings;
+        //    try {
+        //        TypedJsonSerializer.DefaultSettings = settings;
 
-                // Unknown number property
-                string jsonSource = @" { ""id"":""1"", ""age"":19, ""gender"":""Female"" }";
-                Assert.DoesNotThrow(() => {
-                    ((Json)json).PopulateFromJson(jsonSource);
-                });
-                Assert.AreEqual("1", json.id);
-                Assert.AreEqual("Female", json.gender);
+        //        // Unknown number property
+        //        string jsonSource = @" { ""id"":""1"", ""age"":19, ""gender"":""Female"" }";
+        //        Assert.DoesNotThrow(() => {
+        //            ((Json)json).PopulateFromJson(jsonSource);
+        //        });
+        //        Assert.AreEqual("1", json.id);
+        //        Assert.AreEqual("Female", json.gender);
 
-                // Unknown string property
-                jsonSource = @" { ""id"":""ab"", ""age"":""nineteen"", ""gender"":""Male"" }";
-                Assert.DoesNotThrow(() => {
-                    ((Json)json).PopulateFromJson(jsonSource);
-                });
-                Assert.AreEqual("ab", json.id);
-                Assert.AreEqual("Male", json.gender);
+        //        // Unknown string property
+        //        jsonSource = @" { ""id"":""ab"", ""age"":""nineteen"", ""gender"":""Male"" }";
+        //        Assert.DoesNotThrow(() => {
+        //            ((Json)json).PopulateFromJson(jsonSource);
+        //        });
+        //        Assert.AreEqual("ab", json.id);
+        //        Assert.AreEqual("Male", json.gender);
 
-                // Unknown object property
-                jsonSource = @" { ""id"":""3"", ""age"": { ""innermember"":""nineteen"" }, ""gender"":""Unknown"" }";
-                Assert.DoesNotThrow(() => {
-                    ((Json)json).PopulateFromJson(jsonSource);
-                });
-                Assert.AreEqual("3", json.id);
-                Assert.AreEqual("Unknown", json.gender);
+        //        // Unknown object property
+        //        jsonSource = @" { ""id"":""3"", ""age"": { ""innermember"":""nineteen"" }, ""gender"":""Unknown"" }";
+        //        Assert.DoesNotThrow(() => {
+        //            ((Json)json).PopulateFromJson(jsonSource);
+        //        });
+        //        Assert.AreEqual("3", json.id);
+        //        Assert.AreEqual("Unknown", json.gender);
 
-                // Unknown array property
-                jsonSource = @" { ""id"":""abc123"", ""age"": [ 19, 21, 32 ], ""gender"":""Ooops"" }";
-                Assert.DoesNotThrow(() => {
-                    ((Json)json).PopulateFromJson(jsonSource);
-                });
-                Assert.AreEqual("abc123", json.id);
-                Assert.AreEqual("Ooops", json.gender);
-            } finally {
-                TypedJsonSerializer.DefaultSettings = oldSettings;
-            }
-        }
+        //        // Unknown array property
+        //        jsonSource = @" { ""id"":""abc123"", ""age"": [ 19, 21, 32 ], ""gender"":""Ooops"" }";
+        //        Assert.DoesNotThrow(() => {
+        //            ((Json)json).PopulateFromJson(jsonSource);
+        //        });
+        //        Assert.AreEqual("abc123", json.id);
+        //        Assert.AreEqual("Ooops", json.gender);
+        //    } finally {
+        //        TypedJsonSerializer.DefaultSettings = oldSettings;
+        //    }
+        //}
 
         [Test]
         public static void TestJsonDeserializationWithMissingMembers_3() {

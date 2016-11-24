@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Starcounter.Advanced.XSON;
+using Starcounter.XSON;
 using Starcounter.XSON.Interfaces;
 using Starcounter.XSON.JsonByExample;
 
@@ -10,7 +10,7 @@ namespace Starcounter.Internal.XSON.Modules {
     /// </summary>
     public static class Starcounter_XSON {
         private static Dictionary<string, uint> jsonSerializerIndexes = new Dictionary<string, uint>();
-        private static List<TypedJsonSerializer> jsonSerializers = new List<TypedJsonSerializer>();
+        private static List<ITypedJsonSerializer> jsonSerializers = new List<ITypedJsonSerializer>();
 
         internal static uint StandardJsonSerializerId;
         
@@ -18,7 +18,7 @@ namespace Starcounter.Internal.XSON.Modules {
         /// 
         /// </summary>
         public static void Initialize() {
-            StandardJsonSerializerId = RegisterJsonSerializer("json", new StandardJsonSerializer());
+            StandardJsonSerializerId = RegisterJsonSerializer("json", new NewtonSoftSerializer());
             JsonByExample.Initialize();
         }
         
@@ -39,7 +39,7 @@ namespace Starcounter.Internal.XSON.Modules {
         /// </summary>
         /// <param name="serializerId"></param>
         /// <returns></returns>
-        public static TypedJsonSerializer GetJsonSerializer(uint serializerId) {
+        public static ITypedJsonSerializer GetJsonSerializer(uint serializerId) {
             if (serializerId >= jsonSerializers.Count)
                 throw new Exception("Invalid serializerId.");
             return jsonSerializers[(int)serializerId];
@@ -51,7 +51,7 @@ namespace Starcounter.Internal.XSON.Modules {
         /// <param name="name"></param>
         /// <param name="serializer"></param>
         /// <returns></returns>
-        public static uint RegisterJsonSerializer(string name, TypedJsonSerializer serializer) {
+        public static uint RegisterJsonSerializer(string name, ITypedJsonSerializer serializer) {
             if (jsonSerializerIndexes.ContainsKey(name))
                 throw new Exception("An serializer with the same name is already registered.");
             uint id = (uint)jsonSerializers.Count;
