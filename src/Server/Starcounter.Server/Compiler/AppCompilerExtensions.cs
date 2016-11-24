@@ -15,14 +15,22 @@ namespace Starcounter.Server.Compiler
             starcounterBinDirectory = starcounterBinDirectory ?? StarcounterEnvironment.InstallationDirectory;
 
             var publicAssemblies = Path.Combine(starcounterBinDirectory, "Public Assemblies");
-            
-            // Keep these in sync with our VS templates to create a uniform experience.
+
+            // Hate the fact that we can't keep this in sync with our VS templates currently,
+            // because we seem to have a massive amount of tests that require shitload of assemblies
+            // to be referenced by default. The initial aim was to keep these in sync with our VS
+            // templates to create a uniform experience. It will require to adapt all those tests
+            // to explicitly reference the additional ones explicitly (when passing source code to
+            // star.exe).
             
             var defaultStarcounterReferences = new[]
             {
                 "Starcounter.dll",
+                "Starcounter.Apps.JsonPatch.dll",
                 "Starcounter.Bootstrap.dll",
+                "Starcounter.HyperMedia.dll",
                 "Starcounter.Internal.dll",
+                "Starcounter.Logging.dll",
                 "Starcounter.XSON.dll"
             };
 
