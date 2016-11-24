@@ -7,6 +7,9 @@ using System.Diagnostics;
 using System.IO;
 using Starcounter.TestFramework;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace LoadAndLatency
 {
@@ -1335,45 +1338,20 @@ namespace LoadAndLatency
                 objectsCounter = startIndex;
 
                 // Doing certain amount of objects per transaction.
+                var transactions = new List<Task>();
                 for (Int32 t = 0; t < numTransactions; t++)
                 {
-                    Transaction transaction = null;
-                    try
-                    {
-                        // Blocking yielding for transaction snapshot isolation.
-                        if ((typeOfOperation >= SimpleObjectOperations.SIMPLE_ATTR_INT_UPDATE_WITH_QUERY_PLUS_SNAPSHOT_ISOLATION) &&
-                            (typeOfOperation <= SimpleObjectOperations.SIMPLE_ATTR_STR_UPDATE_IN_SAVED_OBJECT_PLUS_SNAPSHOT_ISOLATION) &&
-                            (!startedOnClient))
-                        {
-                            //ThreadHelper.SetYieldBlock();
-                        }
+                    var res = RunSimplePerformanceTest(
+                        typeOfOperation, 
+                        objectsPerTransaction, 
+                        objectsCounter
+                    );
 
-                        // Creating new transaction.
-                        transaction = new Transaction();
-                        objectsCounter = transaction.Scope<SimpleObjectOperations, Int32, Int32, Int32>(
-                            RunSimplePerformanceTest, 
-                            typeOfOperation, 
-                            objectsPerTransaction, 
-                            objectsCounter
-                        );   
-                    }
-                    finally
-                    {
-                        // Disposing the transaction.
-                        if (transaction != null)
-                        {
-                            transaction.Dispose();
-
-                            // Blocking yielding for transaction snapshot isolation.
-                            if ((typeOfOperation >= SimpleObjectOperations.SIMPLE_ATTR_INT_UPDATE_WITH_QUERY_PLUS_SNAPSHOT_ISOLATION) &&
-                                (typeOfOperation <= SimpleObjectOperations.SIMPLE_ATTR_STR_UPDATE_IN_SAVED_OBJECT_PLUS_SNAPSHOT_ISOLATION) &&
-                                (!startedOnClient))
-                            {
-                                //ThreadHelper.ReleaseYieldBlock();
-                            }
-                        }
-                    }
+                    objectsCounter = res.Item1;
+                    transactions.AddRange(res.Item2);
                 }
+
+                Task.WaitAll(transactions.ToArray());
 
                 // Pausing the timer.
                 perfTimer.Stop();
@@ -1417,28 +1395,34 @@ namespace LoadAndLatency
             }
         }
 
-        private Int32 RunSimplePerformanceTest(SimpleObjectOperations typeOfOperation, Int32 objectsPerTransaction, Int32 objectsCounter) {
-            var transaction = Transaction.Current;
-
+        private Tuple<Int32, IEnumerable<Task>> RunSimplePerformanceTest(SimpleObjectOperations typeOfOperation, Int32 objectsPerTransaction, Int32 objectsCounter) {
+            var transactions = new List<Task>();
             switch (typeOfOperation) {
                 // Simple insert.
                 case SimpleObjectOperations.SIMPLE_OBJECT_INSERT: {
-                        for (Int32 i = 0; i < objectsPerTransaction; i++) {
-                            // Creating simple objects.
-                            SimpleObject insObj = new SimpleObject(objectsCounter);
-                            objectsCounter++;
-                        }
+                        var tran = Db.TransactAsync(() =>
+                        {
+                            for (Int32 i = 0; i < objectsPerTransaction; i++)
+                            {
+                                // Creating simple objects.
+                                SimpleObject insObj = new SimpleObject(objectsCounter);
+                                objectsCounter++;
+                            }
+                        });
 
-                        // Committing transaction.
-                        transaction.Commit();
+                        transactions.Add(tran);
 
                         break;
                     }
 
                 // Simple read attribute with query.
                 case SimpleObjectOperations.SIMPLE_ATTR_STR_READ_WITH_QUERY: {
-                        for (Int32 i = 0; i < objectsPerTransaction; i++) {
-                            Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
+                        Db.Transact(() =>
+                        {
+
+                            for (Int32 i = 0; i < objectsPerTransaction; i++)
+                            {
+                                Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
 
                             // Executing query.
                             SimpleObject o = Db.SQL<SimpleObject>(SimpleSelectIntQuery, objIndex).First;
@@ -1448,15 +1432,19 @@ namespace LoadAndLatency
 
                             // Incrementing object counter.
                             objectsCounter++;
-                        }
+                            }
+                        });
 
                         break;
                     }
 
                 // Simple read attribute with query.
                 case SimpleObjectOperations.SIMPLE_ATTR_INT_READ_WITH_QUERY: {
-                        for (Int32 i = 0; i < objectsPerTransaction; i++) {
-                            Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
+                        Db.Transact(() =>
+                        {
+                            for (Int32 i = 0; i < objectsPerTransaction; i++)
+                            {
+                                Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
 
                             // Executing query.
                             SimpleObject o = Db.SQL<SimpleObject>(SimpleSelectIntQuery, objIndex).First;
@@ -1466,7 +1454,8 @@ namespace LoadAndLatency
 
                             // Incrementing object counter.
                             objectsCounter++;
-                        }
+                            }
+                        });
 
                         break;
                     }
@@ -1474,8 +1463,12 @@ namespace LoadAndLatency
                 // Simple update attribute with query.
                 case SimpleObjectOperations.SIMPLE_ATTR_INT_UPDATE_WITH_QUERY:
                 case SimpleObjectOperations.SIMPLE_ATTR_INT_UPDATE_WITH_QUERY_PLUS_SNAPSHOT_ISOLATION: {
-                        for (Int32 i = 0; i < objectsPerTransaction; i++) {
-                            Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
+                        var tran = Db.TransactAsync(() =>
+                        {
+
+                            for (Int32 i = 0; i < objectsPerTransaction; i++)
+                            {
+                                Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
 
                             // Executing query.
                             SimpleObject o = Db.SQL<SimpleObject>(SimpleSelectIntQuery, objIndex).First;
@@ -1485,10 +1478,11 @@ namespace LoadAndLatency
 
                             // Incrementing object counter.
                             objectsCounter++;
-                        }
+                            }
+                        });
 
-                        // Committing transaction.
-                        transaction.Commit();
+
+                        transactions.Add(tran);
 
                         break;
                     }
@@ -1496,8 +1490,12 @@ namespace LoadAndLatency
                 // Simple update attribute with query.
                 case SimpleObjectOperations.SIMPLE_ATTR_STR_UPDATE_WITH_QUERY:
                 case SimpleObjectOperations.SIMPLE_ATTR_STR_UPDATE_WITH_QUERY_PLUS_SNAPSHOT_ISOLATION: {
-                        for (Int32 i = 0; i < objectsPerTransaction; i++) {
-                            Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
+                        var tran = Db.TransactAsync(() =>
+                        {
+
+                            for (Int32 i = 0; i < objectsPerTransaction; i++)
+                            {
+                                Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
 
                             // Executing query.
                             SimpleObject o = Db.SQL<SimpleObject>(SimpleSelectIntQuery, objIndex).First;
@@ -1507,54 +1505,64 @@ namespace LoadAndLatency
 
                             // Incrementing object counter.
                             objectsCounter++;
-                        }
-
-                        // Committing transaction.
-                        transaction.Commit();
-
+                            }
+                        });
+                        transactions.Add(tran);
                         break;
                     }
 
                 // Get objects for later use.
                 case SimpleObjectOperations.SIMPLE_SAVE_OBJECT_WITH_QUERY: {
-                        for (Int32 i = 0; i < objectsPerTransaction; i++) {
-                            Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
+                        Db.Transact(() =>
+                        { 
+                            for (Int32 i = 0; i < objectsPerTransaction; i++) {
+                                Int64 objIndex = g_simpleTestRandInt64[objectsCounter];
 
-                            // Executing query.
-                            SimpleObject o = Db.SQL<SimpleObject>(SimpleSelectIntQuery, objIndex).First;
+                                // Executing query.
+                                SimpleObject o = Db.SQL<SimpleObject>(SimpleSelectIntQuery, objIndex).First;
 
-                            // Saving object for later use.
-                            g_simpleTestSavedObjects[objIndex] = o;
+                                // Saving object for later use.
+                                g_simpleTestSavedObjects[objIndex] = o;
 
-                            // Incrementing object counter.
-                            objectsCounter++;
-                        }
+                                // Incrementing object counter.
+                                objectsCounter++;
+                            }
+                        });
 
                         break;
                     }
 
                 // Simple read object string attribute from saved object.
                 case SimpleObjectOperations.SIMPLE_ATTR_STR_READ_FROM_SAVED_OBJECT: {
-                        for (Int32 i = 0; i < objectsPerTransaction; i++) {
+                        Db.Transact(() =>
+                        {
+                            for (Int32 i = 0; i < objectsPerTransaction; i++)
+                            {
                             // Reading attribute from saved object.
                             g_simpleTestSavedStrings[objectsCounter] = g_simpleTestSavedObjects[g_simpleTestRandInt64[objectsCounter]].updateString;
 
                             // Incrementing object counter.
                             objectsCounter++;
-                        }
+                            }
+                        });
 
                         break;
                     }
 
                 // Simple read object integer attribute from saved object.
                 case SimpleObjectOperations.SIMPLE_ATTR_INT_READ_FROM_SAVED_OBJECT: {
-                        for (Int32 i = 0; i < objectsPerTransaction; i++) {
+                        Db.Transact(() =>
+                        {
+
+                            for (Int32 i = 0; i < objectsPerTransaction; i++)
+                            {
                             // Reading attribute from saved object.
                             g_simpleTestSavedInt64[objectsCounter] = g_simpleTestSavedObjects[g_simpleTestRandInt64[objectsCounter]].fetchInt;
 
                             // Incrementing object counter.
                             objectsCounter++;
-                        }
+                            }
+                        });
 
                         break;
                     }
@@ -1562,34 +1570,39 @@ namespace LoadAndLatency
                 // Simple update integer attribute in saved object.
                 case SimpleObjectOperations.SIMPLE_ATTR_INT_UPDATE_IN_SAVED_OBJECT:
                 case SimpleObjectOperations.SIMPLE_ATTR_INT_UPDATE_IN_SAVED_OBJECT_PLUS_SNAPSHOT_ISOLATION: {
-                        for (Int32 i = 0; i < objectsPerTransaction; i++) {
+                        var tran = Db.TransactAsync(() =>
+                        {
+
+                            for (Int32 i = 0; i < objectsPerTransaction; i++)
+                            {
                             // Writing attribute in saved object.
                             g_simpleTestSavedObjects[objectsCounter].updateInt = g_simpleTestRandInt64[g_simpleTestRandInt64[objectsCounter]];
 
                             // Incrementing object counter.
                             objectsCounter++;
-                        }
+                            }
+                        });
 
-                        // Committing transaction.
-                        transaction.Commit();
-
+                        transactions.Add(tran);
                         break;
                     }
 
                 // Simple update string attribute in saved object.
                 case SimpleObjectOperations.SIMPLE_ATTR_STR_UPDATE_IN_SAVED_OBJECT:
                 case SimpleObjectOperations.SIMPLE_ATTR_STR_UPDATE_IN_SAVED_OBJECT_PLUS_SNAPSHOT_ISOLATION: {
-                        for (Int32 i = 0; i < objectsPerTransaction; i++) {
+                        var tran = Db.TransactAsync(() =>
+                        {
+
+                            for (Int32 i = 0; i < objectsPerTransaction; i++)
+                            {
                             // Writing attribute in saved object.
                             g_simpleTestSavedObjects[objectsCounter].updateString = g_simpleTestRandStrings[g_simpleTestRandInt64[objectsCounter]];
 
                             // Incrementing object counter.
                             objectsCounter++;
-                        }
-
-                        // Committing transaction.
-                        transaction.Commit();
-
+                            }
+                        });
+                        transactions.Add(tran);
                         break;
                     }
 
@@ -1597,15 +1610,20 @@ namespace LoadAndLatency
                 case SimpleObjectOperations.SIMPLE_ATTR_INT_UPDATE_WITH_RANGE_QUERY:
                 case SimpleObjectOperations.SIMPLE_OBJECT_DELETE_WITH_QUERY:
                 case SimpleObjectOperations.SIMPLE_ATTR_STR_INT_UPDATE_SAME_WITH_RANGE_QUERY: {
-                        using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL("SELECT s FROM SimpleObject s WHERE s.fetchInt >= ? AND s.fetchInt < ?",
-                            objectsCounter, objectsCounter + objectsPerTransaction).GetEnumerator()) {
-                            Int64 realCheckSum = 0, artCheckSum = 0;
+                        var tran = Db.TransactAsync(() =>
+                        {
+
+                            using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL("SELECT s FROM SimpleObject s WHERE s.fetchInt >= ? AND s.fetchInt < ?",
+                                objectsCounter, objectsCounter + objectsPerTransaction).GetEnumerator())
+                            {
+                                Int64 realCheckSum = 0, artCheckSum = 0;
 
                             // Processing each object from a range.
-                            for (Int32 i = 0; i < objectsPerTransaction; i++) {
+                            for (Int32 i = 0; i < objectsPerTransaction; i++)
+                                {
                                 // Trying to get an object.
                                 if (!sqlResult.MoveNext())
-                                    throw new Exception(String.Format("Object does not exist where it should: {0}.", objectsCounter));
+                                        throw new Exception(String.Format("Object does not exist where it should: {0}.", objectsCounter));
 
                                 // Current database object.
                                 SimpleObject obj = (sqlResult.Current as SimpleObject);
@@ -1614,42 +1632,41 @@ namespace LoadAndLatency
                                 realCheckSum += obj.FetchInt();
 
                                 // Determining operation.
-                                switch (typeOfOperation) {
-                                    case SimpleObjectOperations.SIMPLE_ATTR_INT_UPDATE_WITH_RANGE_QUERY:
-                                        obj.UpdateInt();
-                                        break;
+                                switch (typeOfOperation)
+                                    {
+                                        case SimpleObjectOperations.SIMPLE_ATTR_INT_UPDATE_WITH_RANGE_QUERY:
+                                            obj.UpdateInt();
+                                            break;
 
-                                    case SimpleObjectOperations.SIMPLE_OBJECT_DELETE_WITH_QUERY:
-                                        obj.Delete();
-                                        break;
+                                        case SimpleObjectOperations.SIMPLE_OBJECT_DELETE_WITH_QUERY:
+                                            obj.Delete();
+                                            break;
 
-                                    case SimpleObjectOperations.SIMPLE_ATTR_STR_INT_UPDATE_SAME_WITH_RANGE_QUERY:
-                                        obj.UpdateSameStringInt();
-                                        break;
+                                        case SimpleObjectOperations.SIMPLE_ATTR_STR_INT_UPDATE_SAME_WITH_RANGE_QUERY:
+                                            obj.UpdateSameStringInt();
+                                            break;
 
-                                    default:
-                                        throw new Exception("Incorrect operation type.");
-                                }
+                                        default:
+                                            throw new Exception("Incorrect operation type.");
+                                    }
 
                                 // Calculating artificial checksum.
                                 artCheckSum += objectsCounter;
 
                                 // Incrementing object counter.
                                 objectsCounter++;
-                            }
+                                }
 
                             // Checking that we can't fetch anymore objects.
                             if (sqlResult.MoveNext())
-                                throw new Exception("Object fetched where it should not.");
+                                    throw new Exception("Object fetched where it should not.");
 
                             // Checking correct checksums.
                             if (artCheckSum != realCheckSum)
-                                throw new Exception(String.Format("Incorrect checksums: {0} vs {1}.", realCheckSum, artCheckSum));
-                        }
-
-                        // Committing transaction.
-                        transaction.Commit();
-
+                                    throw new Exception(String.Format("Incorrect checksums: {0} vs {1}.", realCheckSum, artCheckSum));
+                            }
+                        });
+                        transactions.Add(tran);
                         break;
                     }
 
@@ -1659,68 +1676,72 @@ namespace LoadAndLatency
 
                         // Running some times.
                         for (Int32 c = 0; c < 2; c++) {
-                            // Resetting object counter.
-                            objectsCounter = objectsCounterSaved;
+                            var tran = Db.TransactAsync(() =>
+                            {
 
-                            SqlEnumerator<Object> sqlResult = null;
-                            Boolean firstRound = ((c % 2) == 0);
+                                // Resetting object counter.
+                                objectsCounter = objectsCounterSaved;
 
-                            try {
-                                // Printing all objects.
-                                foreach (SimpleObject p in Db.SQL("SELECT s FROM SimpleObject s")) {
-                                    Console.Write(p.FetchInt() + " ");
-                                }
-                                Console.WriteLine();
+                                SqlEnumerator<Object> sqlResult = null;
+                                Boolean firstRound = ((c % 2) == 0);
 
-                                // Determining query type.
-                                if (firstRound)
-                                    sqlResult = (SqlEnumerator<Object>)Db.SQL("SELECT s FROM SimpleObject s WHERE s.fetchInt >= ? AND s.fetchInt < ?", objectsCounter, objectsCounter + objectsPerTransaction).GetEnumerator();
-                                else
-                                    sqlResult = (SqlEnumerator<Object>)Db.SQL("SELECT s FROM SimpleObject s WHERE s.fetchInt <= ? AND s.fetchInt > ?", -objectsCounter, -objectsCounter - objectsPerTransaction).GetEnumerator();
+                                try
+                                {
+                                    // Printing all objects.
+                                    foreach (SimpleObject p in Db.SQL("SELECT s FROM SimpleObject s"))
+                                    {
+                                        Console.Write(p.FetchInt() + " ");
+                                    }
+                                    Console.WriteLine();
 
-                                Int64 realCheckSum = 0, artCheckSum = 0;
-
-                                for (Int32 i = 0; i < objectsPerTransaction; i++) {
-                                    // Getting an object.
-                                    if (!sqlResult.MoveNext())
-                                        throw new Exception(String.Format("Object does not exist where it should: {0}.", objectsCounter));
-
-                                    // Current database object.
-                                    SimpleObject obj = (sqlResult.Current as SimpleObject);
-
-                                    // Getting checksum.
+                                    // Determining query type.
                                     if (firstRound)
-                                        realCheckSum += obj.FetchInt();
+                                        sqlResult = (SqlEnumerator<Object>)Db.SQL("SELECT s FROM SimpleObject s WHERE s.fetchInt >= ? AND s.fetchInt < ?", objectsCounter, objectsCounter + objectsPerTransaction).GetEnumerator();
                                     else
-                                        realCheckSum -= obj.FetchInt();
+                                        sqlResult = (SqlEnumerator<Object>)Db.SQL("SELECT s FROM SimpleObject s WHERE s.fetchInt <= ? AND s.fetchInt > ?", -objectsCounter, -objectsCounter - objectsPerTransaction).GetEnumerator();
 
-                                    // Performing reverse.
-                                    obj.UpdateIntShadow();
+                                    Int64 realCheckSum = 0, artCheckSum = 0;
 
-                                    // Calculating artificial checksum.
-                                    artCheckSum += objectsCounter;
+                                    for (Int32 i = 0; i < objectsPerTransaction; i++)
+                                    {
+                                        // Getting an object.
+                                        if (!sqlResult.MoveNext())
+                                            throw new Exception(String.Format("Object does not exist where it should: {0}.", objectsCounter));
 
-                                    // Incrementing object counter.
-                                    objectsCounter++;
+                                        // Current database object.
+                                        SimpleObject obj = (sqlResult.Current as SimpleObject);
+
+                                        // Getting checksum.
+                                        if (firstRound)
+                                            realCheckSum += obj.FetchInt();
+                                        else
+                                            realCheckSum -= obj.FetchInt();
+
+                                        // Performing reverse.
+                                        obj.UpdateIntShadow();
+
+                                        // Calculating artificial checksum.
+                                        artCheckSum += objectsCounter;
+
+                                        // Incrementing object counter.
+                                        objectsCounter++;
+                                    }
+
+                                    // Checking that we can't fetch anymore objects.
+                                    if (sqlResult.MoveNext())
+                                        throw new Exception("Object fetched where it should not.");
+
+                                    // Checking correct checksums.
+                                    if (artCheckSum != realCheckSum)
+                                        throw new Exception(String.Format("Incorrect checksums: {0} vs {1}.", realCheckSum, artCheckSum));
                                 }
-
-                                // Checking that we can't fetch anymore objects.
-                                if (sqlResult.MoveNext())
-                                    throw new Exception("Object fetched where it should not.");
-
-                                // Checking correct checksums.
-                                if (artCheckSum != realCheckSum)
-                                    throw new Exception(String.Format("Incorrect checksums: {0} vs {1}.", realCheckSum, artCheckSum));
-                            } finally {
-                                // Committing transaction.
-                                transaction.Commit();
-
-                                sqlResult.Dispose();
-                            }
+                                finally
+                                {
+                                    sqlResult.Dispose();
+                                }
+                            });
+                            transactions.Add(tran);
                         }
-
-                        // Committing transaction.
-                        transaction.Commit();
 
                         break;
                     }
@@ -1729,7 +1750,7 @@ namespace LoadAndLatency
                     throw new Exception("Wrong operation type.");
             }
 
-            return objectsCounter;
+            return Tuple.Create(objectsCounter, transactions.AsEnumerable() );
         }
 
         /// <summary>
@@ -1832,25 +1853,45 @@ namespace LoadAndLatency
             //    Application.Profiler.DrawResultsServer();
         }
 
-        private void RunPerformanceTestPerQueryType(QueryDataTypes queryType, Boolean useIndividualTransactions, Boolean performUpdate, Int32 workerId) {
-            Starcounter.Transaction trans = null;
+        private class TransactionRollbackException : System.Exception
+        {
+        }
 
+        private void RunPerformanceTestPerQueryType(QueryDataTypes queryType, Boolean useIndividualTransactions, Boolean performUpdate, Int32 workerId) {
+
+            var transactions = new List<System.Threading.Tasks.Task>();
             // Running each SELECT in separate transaction.
+            const int transaction_in_group_limit = 10000;
+
+
             for (Int64 i = 0; i < TotalNumOfObjectsInDB; i++) {
                 if (useIndividualTransactions) {
-                    trans = new Transaction();
-                    trans.Scope<QueryDataTypes, Boolean, Int32, Int64>(RunOnePerformanceTestPerQueryType, queryType, performUpdate, workerId, i);
 
-                    // Committing if we have updates.
-                    if (performUpdate)
-                        CommitWithRetries(trans, TransRetriesNum);
+                    try
+                    {
+                        transactions.Add(
+                            Db.TransactAsync(() =>
+                            {
+                                RunOnePerformanceTestPerQueryType(queryType, performUpdate, workerId, i);
 
-                    // Disposing the transaction.
-                    trans.Dispose();
+                                if (!performUpdate)
+                                    throw new TransactionRollbackException();
+                            }, 
+                            0, new Db.Advanced.TransactOptions { maxRetries = TransRetriesNum }));
+                    }
+                    catch (TransactionRollbackException) { }
                 } else {
                     RunOnePerformanceTestPerQueryType(queryType, performUpdate, workerId, i);
                 }
+
+                if ( (i+1)%transaction_in_group_limit == 0)
+                {
+                    System.Threading.Tasks.Task.WaitAll(transactions.ToArray());
+                    transactions.Clear();
+                }
             }
+
+            System.Threading.Tasks.Task.WaitAll(transactions.ToArray());
         }
 
         private void RunOnePerformanceTestPerQueryType(QueryDataTypes queryType, Boolean performUpdate, Int32 workerId, Int64 i) {
@@ -1960,39 +2001,41 @@ namespace LoadAndLatency
             Int64 curObjectNum = 0;
 
             // Populating database using number of given transactions.
+            var transactions = new List<Task>();
             for (Int32 t = 0; t < TransactionsMagnifier; t++)
             {
-                using (Transaction transaction = new Transaction())
+
+                var tran = Db.TransactAsync(() =>
                 {
-                    transaction.Scope(() => {
-                        for (Int64 i = 0; i < NumObjectsPerTransaction; i++) {
-                            TestClass testClassInstance = new TestClass(
-                                true,
-                                (Nullable<SByte>)(curObjectNum % 127),
-                                (Nullable<Byte>)(curObjectNum % 255),
-                                (Nullable<Int16>)(curObjectNum % 32767),
-                                (Nullable<UInt16>)(curObjectNum % 65535),
-                                (Nullable<Int32>)curObjectNum,
-                                (Nullable<UInt32>)curObjectNum,
-                                (Nullable<Int64>)curObjectNum,
-                                (Nullable<UInt64>)curObjectNum,
-                                (Nullable<Decimal>)curObjectNum,
-                                (Nullable<Double>)curObjectNum,
-                                (Nullable<Single>)curObjectNum,
-                                new DateTime(curObjectNum),
-                                new Binary(BitConverter.GetBytes(curObjectNum)),
-                                curObjectNum.ToString()
-                                );
 
-                            // Creating next unique object.
-                            curObjectNum++;
-                        }
+                    for (Int64 i = 0; i < NumObjectsPerTransaction; i++) {
+                        TestClass testClassInstance = new TestClass(
+                            true,
+                            (Nullable<SByte>)(curObjectNum % 127),
+                            (Nullable<Byte>)(curObjectNum % 255),
+                            (Nullable<Int16>)(curObjectNum % 32767),
+                            (Nullable<UInt16>)(curObjectNum % 65535),
+                            (Nullable<Int32>)curObjectNum,
+                            (Nullable<UInt32>)curObjectNum,
+                            (Nullable<Int64>)curObjectNum,
+                            (Nullable<UInt64>)curObjectNum,
+                            (Nullable<Decimal>)curObjectNum,
+                            (Nullable<Double>)curObjectNum,
+                            (Nullable<Single>)curObjectNum,
+                            new DateTime(curObjectNum),
+                            new Binary(BitConverter.GetBytes(curObjectNum)),
+                            curObjectNum.ToString()
+                            );
 
-                        // Committing all objects within transaction.
-                        transaction.Commit();
-                    });
-                }
+                        // Creating next unique object.
+                        curObjectNum++;
+                    }
+                });
+
+                transactions.Add(tran);
             }
+
+            Task.WaitAll(transactions.ToArray());
         }
     }
 }
