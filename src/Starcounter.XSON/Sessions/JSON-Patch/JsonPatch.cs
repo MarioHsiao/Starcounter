@@ -1,18 +1,23 @@
-// ***********************************************************************
-// <copyright file="JsonPatch.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using Starcounter.Advanced.XSON;
-using Starcounter.Internal;
-using Starcounter.Internal.XSON;
-using Starcounter.Templates;
-using System;
+﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using Newtonsoft.Json;
+using Starcounter.Advanced.XSON;
+using Starcounter.Internal.XSON;
+using Starcounter.Templates;
+using Starcounter.XSON.Interfaces;
 
 namespace Starcounter.XSON {
+    public enum JsonPatchStatus {
+        Unknown,
+        Applied,
+        Queued,
+        AlreadyApplied,
+        Rejected,
+        Processing
+    }
+    
     /// <summary>
     /// Class for evaluating, handling and creating json-patch to and from typed json objects 
     /// and logged changes done in a typed json object during a request.
@@ -20,18 +25,16 @@ namespace Starcounter.XSON {
     /// The json-patch is implemented according to http://tools.ietf.org/html/rfc6902
     /// </summary>
     public class JsonPatch {
-        private static byte[] testRemoteVersionPatchStart = Encoding.UTF8.GetBytes(@"{""op"":""test"",""path"":""/");
-        private static byte[] replaceLocalVersionPatchStart = Encoding.UTF8.GetBytes(@"{""op"":""replace"",""path"":""/");
-        private static byte[] patchStartToOp = Encoding.UTF8.GetBytes(@"{""op"":""");
-        private static byte[] patchEndToPath = Encoding.UTF8.GetBytes(@""",""path"":""");
-        private static byte[] patchEndToFrom = Encoding.UTF8.GetBytes(@""",""from"":""");
-        private static byte[] patchEndToValue = Encoding.UTF8.GetBytes(@""",""value"":");
+        private static string testRemoteVersionPatchStart = @"{""op"":""test"",""path"":""/";
+        private static string replaceLocalVersionPatchStart = @"{""op"":""replace"",""path"":""/";
+        private static string patchStartToOp = @"{""op"":""";
+        private static string patchEndToPath = @""",""path"":""";
+        private static string patchEndToValue = @""",""value"":";
+
+        private static string[] patchOpArr;
         
-        private static byte[][] patchOpUtf8Arr;
-        private static byte[] emptyPatchArr = { (byte)'[', (byte)']' };
-
-        private Action<Json, JsonPatchOperation, JsonPointer, IntPtr, int> patchHandler = DefaultPatchHandler.Handle;
-
+        private Action<Json, JsonPatchOperation, JsonPointer, string> patchHandler = DefaultPatchHandler.Handle;
+        
         private enum JsonPatchMember {
             Invalid,
             Op,
@@ -40,44 +43,91 @@ namespace Starcounter.XSON {
         }
 
         static JsonPatch() {
-            patchOpUtf8Arr = new byte[6][];
-            patchOpUtf8Arr[(int)JsonPatchOperation.Undefined] = Encoding.UTF8.GetBytes("undefined");
-            patchOpUtf8Arr[(int)JsonPatchOperation.Remove] = Encoding.UTF8.GetBytes("remove");
-            patchOpUtf8Arr[(int)JsonPatchOperation.Replace] = Encoding.UTF8.GetBytes("replace");
-            patchOpUtf8Arr[(int)JsonPatchOperation.Add] = Encoding.UTF8.GetBytes("add");
-            patchOpUtf8Arr[(int)JsonPatchOperation.Move] = Encoding.UTF8.GetBytes("move");
-            patchOpUtf8Arr[(int)JsonPatchOperation.Test] = Encoding.UTF8.GetBytes("test");    
+            patchOpArr = new string[6];
+            patchOpArr[(int)JsonPatchOperation.Undefined] = JsonPatchOperation.Undefined.ToString().ToLower();
+            patchOpArr[(int)JsonPatchOperation.Remove] = JsonPatchOperation.Remove.ToString().ToLower();
+            patchOpArr[(int)JsonPatchOperation.Replace] = JsonPatchOperation.Replace.ToString().ToLower();
+            patchOpArr[(int)JsonPatchOperation.Add] = JsonPatchOperation.Add.ToString().ToLower();
+            patchOpArr[(int)JsonPatchOperation.Move] = JsonPatchOperation.Move.ToString().ToLower();
+            patchOpArr[(int)JsonPatchOperation.Test] = JsonPatchOperation.Test.ToString().ToLower();
         }
 
         public JsonPatch() {
         }
 
+        #region obsoleted API
+        [Obsolete("Use the overload that takes a Func with value as string instead of IntPtr and length.", true)]
         public void SetPatchHandler(Action<Json, JsonPatchOperation, JsonPointer, IntPtr, int> handler) {
-            patchHandler = handler;
         }
 
+        [Obsolete("Use the overload that returns status instead of count.")]
+        public int Apply(Json root, byte[] patchArray, bool strictPatchRejection = true) {
+            int count;
+            var status = Apply(root, patchArray, strictPatchRejection, out count);
+            return ConvertStatusToCount(status, count);
+        }
+
+        [Obsolete("Use the overload that returns status instead of count.")]
+        public int Apply(Json root, string patch, bool strictPatchRejection = true) {
+            int count;
+            var status = Apply(root, patch, strictPatchRejection, out count);
+            return ConvertStatusToCount(status, count);
+        }
+
+        [Obsolete("Using IntPtr is no longer supported. Use method that takes source as string or byte[] instead")]
+        public int Apply(Json root, IntPtr patchArrayPtr, int patchArraySize, bool strictPatchRejection = true) {
+            int count;
+            byte[] tmp = new byte[patchArraySize];
+
+            Marshal.Copy(patchArrayPtr, tmp, 0, patchArraySize);
+            var status = Apply(root, tmp, strictPatchRejection, out count);
+            return ConvertStatusToCount(status, count);
+        }
+
+        private int ConvertStatusToCount(JsonPatchStatus status, int patchCount) {
+            if (status == JsonPatchStatus.AlreadyApplied)
+                return -1;
+            else if (status == JsonPatchStatus.Queued)
+                return -2;
+
+            return patchCount;
+        }
+
+        #endregion
+
+
+        public void SetPatchHandler(Action<Json, JsonPatchOperation, JsonPointer, string> handler) {
+            patchHandler = handler;
+        }
+        
         /// <summary>
         /// Generates a JSON-Patch array for all changes logged in the changelog.
         /// </summary>
         /// <param name="flushLog">If true, the change log will be reset</param>
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public string Generate(Json json, bool flushLog, bool includeNamespace) {
-            byte[] patchArr;
-            int size = Generate(json, flushLog, includeNamespace, out patchArr);
-            if (size > 0)
-                return Encoding.UTF8.GetString(patchArr, 0, size);
-            return null;
+        public int Generate(Json json, bool flushLog, bool includeNamespace, out byte[] patches) {
+            string str = Generate(json, flushLog, includeNamespace);
+            if (str != null) {
+                patches = Encoding.UTF8.GetBytes(str);
+                return patches.Length;
+            }
+            patches = null;
+            return -1;
         }
-        
+
         /// <summary>
         /// Generates a JSON-Patch array for all changes logged in the changelog
         /// </summary>
         /// <param name="flushLog">If true, the change log will be reset</param>
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public int Generate(Json json, bool flushLog, bool includeNamespace, out byte[] patches) {
-            int patchSize;
-            ChangeLog changeLog = json.ChangeLog;
+        public string Generate(Json json, bool flushLog, bool includeNamespace) {
+            bool addComma;
+            bool versioning;
+            int pos;
+            Change[] changes;
+            StringBuilder sb;
             
+            var changeLog = json.ChangeLog;
             if (changeLog == null) {
                 throw new Exception("Cannot generate patches on json that has no changelog attached.");
             }
@@ -87,93 +137,26 @@ namespace Starcounter.XSON {
                 session.enableNamespaces = true;
                 session.enableCachedReads = true;
             }
-
             try {
-                patchSize = Generate(changeLog, includeNamespace, flushLog, out patches);
-            } finally {
-                if (session != null) {
-                    session.enableNamespaces = false;
-                    session.enableCachedReads = false;
+                if (!changeLog.Generate(false, out changes)) {
+                    return null;
                 }
-            }
-            return patchSize;
-        }
 
-        /// <summary>
-        /// Creates an array of jsonpatches as a bytearray.
-        /// </summary>
-        /// <param name="changeLog"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        private int Generate(ChangeLog changeLog, bool includeNamespace, bool flushLog, out byte[] patches) {
-            byte[] buffer;
-            int size;
-            Utf8Writer writer;
-            Change[] changes;
-            bool versioning = (changeLog.Version != null);
-            
-            if (!changeLog.Generate(false, out changes)) { 
-                patches = null;
-                return -1;
-            }
+                sb = new StringBuilder();
+                using (var writer = new StringWriter(sb)) {
+                    versioning = (changeLog.Version != null);
 
-            size = 2; // [ ]
-
-            if (versioning) {
-                // If versioning is enabled two patches are fixed: test clientversion and replace serverversion.
-                size += testRemoteVersionPatchStart.Length;
-                size += changeLog.Version.RemoteVersionPropertyName.Length;
-                size += patchEndToValue.Length;
-                size += GetSizeOfIntAsUtf8(changeLog.Version.RemoteVersion);
-                size += 2; // +2 for "},"
-
-                size += replaceLocalVersionPatchStart.Length;
-                size += changeLog.Version.LocalVersionPropertyName.Length;
-                size += patchEndToValue.Length;
-                size += GetSizeOfIntAsUtf8(changeLog.Version.LocalVersion);
-                size += 2; // +2 for "},"
-            }
-
-            int patchSize;
-            for (int i = 0; i < changes.Length; i++) {
-                patchSize = EstimateSizeOfPatch(changes[i], includeNamespace);
-                if (patchSize == -1) { // This change is no longer valid.
-                    changes[i] = Change.Invalid;
-                    continue;
-                }
-                    
-                size += patchSize;
-            }
-
-            size += changes.Length - 1; // Adding one ',' per change over zero.
-            if (size < 2) size = 2;
-            
-            if (size > StarcounterConstants.NetworkConstants.MaxResponseSize) {
-                var errMsg = "JsonPatch: Estimated needed size (" 
-                            + size 
-                            + ") for patches exceeds the maximum allowed (" 
-                            + StarcounterConstants.NetworkConstants.MaxResponseSize 
-                            + ").\r\nNumber of patches: " + changes.Length
-                            + "\r\nJson: " + JsonDebugHelper.ToBasicString(changeLog.Employer);
-                throw new Exception(errMsg);
-            }
-            
-            buffer = new byte[size];
-            
-            unsafe {
-                fixed (byte* pbuf = buffer) {
-                    writer = new Utf8Writer(pbuf);
                     writer.Write('[');
 
-                    bool addComma = false;
+                    addComma = false;
                     if (versioning) {
+                        writer.Write(replaceLocalVersionPatchStart);
                         writer.Write(replaceLocalVersionPatchStart);
                         writer.Write(changeLog.Version.LocalVersionPropertyName);
                         writer.Write(patchEndToValue);
                         writer.Write(changeLog.Version.LocalVersion);
                         writer.Write('}');
                         writer.Write(',');
-
                         writer.Write(testRemoteVersionPatchStart);
                         writer.Write(changeLog.Version.RemoteVersionPropertyName);
                         writer.Write(patchEndToValue);
@@ -183,39 +166,28 @@ namespace Starcounter.XSON {
                     }
                     
                     for (int i = 0; i < changes.Length; i++) {
-                        var change = changes[i];
-                        if (change.ChangeType == Change.INVALID)
-                            continue;
+                        pos = sb.Length;
 
                         if (addComma)
                             writer.Write(',');
                         addComma = true;
 
-                        WritePatch(change, ref writer, includeNamespace);
+                        if (!WritePatch(changes[i], writer, includeNamespace))
+                            sb.Length = pos;
                     }
 
                     writer.Write(']');
 
-                    // Setting the actual size, since the first is just estimated.
-                    size = writer.Written;
+                    if (flushLog)
+                        changeLog.Checkpoint();
+                    return sb.ToString();
+                }
+            } finally {
+                if (session != null) {
+                    session.enableNamespaces = false;
+                    session.enableCachedReads = false;
                 }
             }
-
-            if (size > buffer.Length) {
-                var errMsg = "JsonPatch: written size (" 
-                            + size 
-                            + ") for patches exceeds the estimated size (" 
-                            + buffer.Length 
-                            + ").\r\nNumber of patches: " + changes.Length
-                            + "\r\nJson: " + JsonDebugHelper.ToBasicString(changeLog.Employer);
-                throw new Exception(errMsg);
-            }
-
-            if (flushLog)
-                changeLog.Checkpoint();
-
-            patches = buffer;
-            return size;
         }
 
         /// <summary>
@@ -226,67 +198,43 @@ namespace Starcounter.XSON {
         /// <param name="from">From.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        private bool WritePatch(Change change, ref Utf8Writer writer, bool includeNamespace) {
-            int size;
-            int writerStart = writer.Written;
-//            int pathStart;
-//            int pathEnd;
-            TypedJsonSerializer serializer;
+        private bool WritePatch(Change change, TextWriter writer, bool includeNamespace) {
+            ITypedJsonSerializer serializer;
 
             writer.Write(patchStartToOp);
-            writer.Write(patchOpUtf8Arr[change.ChangeType]);
+            writer.Write(patchOpArr[change.ChangeType]);
             writer.Write(patchEndToPath);
+            
+            if (!WritePath(change, writer, includeNamespace)) {
+                return false;
+            }
 
-//            if (change.Property != null) {
-//                pathStart = writer.Written;
-                if (!WritePath(ref writer, change, includeNamespace)) {
-                    writer.Skip(writer.Written - writerStart);
-                    return false;
-                }
-
-                if (change.ChangeType == Change.MOVE) {
-                    // TODO: 
-                    // implement move.
-                    throw new NotImplementedException("Move operation is not yet implemented.");
-
-                    //// Copy the contens of the path, changing the index 
-                    //pathEnd = writer.Written;
-                    //writer.Write(patchEndToFrom);
-
-                    ////TODO: 
-                    //// Copy...
-                    //unsafe {
-                    //    byte* pBuf = writer.Buffer;
-                        
-                    //}
-                }
-//            }
-
+            if (change.ChangeType == Change.MOVE)
+                throw new NotImplementedException("Move operation is not yet implemented.");
+            
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
                 writer.Write(patchEndToValue);
-
-                unsafe {
-                    if (change.Property == null) {
-                        change.Parent.calledFromStepSibling = change.SuppressNamespace;
-                        try {
-                            serializer = change.Parent.JsonSerializer;
-                            size = serializer.Serialize(change.Parent, (IntPtr)writer.Buffer, int.MaxValue);
-                        } finally {
-                            change.Parent.calledFromStepSibling = false;
-                        }
-                    } else if (change.Index != -1) {
-                        change.Item.calledFromStepSibling = change.SuppressNamespace;
-                        try {
-                            serializer = ((TValue)change.Item.Template).JsonSerializer;
-                            size = serializer.Serialize(change.Item, (IntPtr)writer.Buffer, int.MaxValue);
-                        } finally {
-                            change.Parent.calledFromStepSibling = false;
-                        }
-                    } else {
-                        size = change.Parent.JsonSerializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue);
+                
+                if (change.Property == null) {
+                    change.Parent.calledFromStepSibling = change.SuppressNamespace;
+                    try {
+                        serializer = change.Parent.JsonSerializer;
+                        serializer.Serialize(change.Parent, writer);
+                    } finally {
+                        change.Parent.calledFromStepSibling = false;
                     }
-                    writer.Skip(size);
+                } else if (change.Index != -1) {
+                    change.Item.calledFromStepSibling = change.SuppressNamespace;
+                    try {
+                        serializer = ((TValue)change.Item.Template).JsonSerializer;
+                        serializer.Serialize(change.Item, writer);
+                    } finally {
+                        change.Parent.calledFromStepSibling = false;
+                    }
+                } else {
+                    change.Parent.JsonSerializer.Serialize(change.Parent, change.Property, writer);
                 }
+                
             } else {
                 writer.Write('"');
             }
@@ -295,132 +243,23 @@ namespace Starcounter.XSON {
             return true;
         }
 
-        internal static int EstimateSizeOfPatch(Change change, bool includeNamespace) {
-            int size;
-            int pathSize;
-            TypedJsonSerializer serializer;
-
-            // {"op":"???","path":"???","value":???}
-            // size = 7 + op + 10 + path + 10 + value + 1 => 28 + var
-
-            // {"op":"???","path":"???"}
-            // size = 7 + op + 10 + path + 2 => 19 + var
-
-            if (change.ChangeType == Change.MOVE) {
-                // TODO: 
-                // implement move.
-                throw new NotImplementedException("Move operation is not yet implemented.");
-            }
-
-            size = 19;
-            size += patchOpUtf8Arr[change.ChangeType].Length;
-
-            pathSize = EstimateSizeOfPath(change.Parent, includeNamespace, false);
-            if (pathSize == -1) {
-                // No valid path found.
-                return -1;
-            }
-
-            size += pathSize;
-            if (change.Property != null)
-                size += change.Property.TemplateName.Length + 1;
-            else
-                size--; // Path for root is empty, ""
-
-            if (change.Index != -1)
-                size += GetSizeOfIntAsUtf8(change.Index) + 1;
-
-            if (change.ChangeType != (int)JsonPatchOperation.Remove) {
-                size += 9;
-
-                if (change.Property == null) {
-                    change.Parent.calledFromStepSibling = change.SuppressNamespace;
-                    try {
-                        serializer = change.Parent.JsonSerializer;
-                        size += serializer.EstimateSizeBytes(change.Parent);
-                    } finally {
-                        change.Parent.calledFromStepSibling = false;
-                    }
-                } else if (change.Index != -1) {
-                    serializer = change.Item.JsonSerializer;
-                    size += serializer.EstimateSizeBytes(change.Item);
-                } else {
-                    size += change.Parent.JsonSerializer.EstimateSizeBytes(change.Parent, change.Property);
+        private bool WritePath(Change change, TextWriter writer, bool includeNamespace) {
+            if (WritePathRecursive(change.Parent, writer, includeNamespace, false)) {
+                if (change.Property != null) {
+                    writer.Write('/');
+                    writer.Write(change.Property.TemplateName);
                 }
+
+                if (change.Index != -1) {
+                    writer.Write('/');
+                    writer.Write(change.Index);
+                }
+                return true;
             }
-            return size;
+            return false;
         }
 
-        private static int EstimateSizeOfPath(Json json, bool includeNamespace, bool calledFromStepSibling) {
-            int size;
-            int totalSize;
-            Json parent;
-            Template template;
-            Session session;
-
-            // TODO:
-            // Evaluate all possible paths and create patches for all valid ones. 
-
-            if (json == null)
-                return -1;
-
-            session = json.Session;
-            if (session == null) // No session, this can't be the correct path.
-                return -1;
-
-            if (json == session.PublicViewModel) // Valid path.
-                return 1;
-
-            size = -1;
-            totalSize = 0;
-            if (!calledFromStepSibling && json.Siblings != null) {
-                foreach (Json stepSibling in json.Siblings) {
-                    if (stepSibling == json)
-                        continue;
-                    size = EstimateSizeOfPath(stepSibling, includeNamespace, true);
-                    if (size != -1) 
-                        break;
-                }
-            }
-
-            parent = null;
-            if (size == -1) {
-                parent = json.Parent;
-                size = EstimateSizeOfPath(parent, includeNamespace, false);
-            }
-
-            if (size == -1)
-                return -1;
-
-            totalSize += size;
-
-            if (parent != null) {
-                totalSize++;
-                if (parent.IsArray) {
-                    if (json.cacheIndexInArr == -1)
-                        json.UpdateCachedIndex();
-                    totalSize += GetSizeOfIntAsUtf8(json.cacheIndexInArr);
-                } else {
-                    // We use the cacheIndexInArr to keep track of obj that is set
-                    // in the parent as an untyped object since the template here is not
-                    // the template in the parent (which we want).
-                    if (json.cacheIndexInArr != -1) {
-                        template = ((TObject)parent.Template).Properties[json.cacheIndexInArr];
-                    } else {
-                        template = json.Template;
-                    }
-                    totalSize += template.TemplateName.Length;
-                }
-            }
-
-            if (includeNamespace && !calledFromStepSibling && json.wrapInAppName) {
-                totalSize += json.appName.Length + 1;
-            } 
-
-            return totalSize;
-        }
-
-        private bool WritePath(ref Utf8Writer writer, Json json, bool includeNamespace, bool calledFromStepSibling) {
+        private bool WritePathRecursive(Json json, TextWriter writer, bool includeNamespace, bool calledFromStepSibling) {
             bool pathWritten;
             Json parent;
             Template template;
@@ -445,7 +284,7 @@ namespace Starcounter.XSON {
                     if (stepSibling == json)
                         continue;
 
-                    pathWritten = WritePath(ref writer, stepSibling, includeNamespace, true);
+                    pathWritten = WritePathRecursive(stepSibling, writer, includeNamespace, true);
                     if (pathWritten)
                         break;
                 }
@@ -454,7 +293,7 @@ namespace Starcounter.XSON {
             parent = null;
             if (!pathWritten) {
                 parent = json.Parent;
-                pathWritten = WritePath(ref writer, parent, includeNamespace, false);
+                pathWritten = WritePathRecursive(parent, writer, includeNamespace, false);
             }
 
             if (!pathWritten)
@@ -487,55 +326,19 @@ namespace Starcounter.XSON {
             return true;
         }
 
-        private bool WritePath(ref Utf8Writer writer, Change change, bool includeNamespace) {
-            if (WritePath(ref writer, change.Parent, includeNamespace, false)) {
-                if (change.Property != null) {
-                    writer.Write('/');
-                    writer.Write(change.Property.TemplateName);
-                }
-
-                if (change.Index != -1) {
-                    writer.Write('/');
-                    writer.Write(change.Index);
-                }
-                return true;
-            }
-            return false;
-        }
-
-        private static int GetSizeOfIntAsUtf8(long value) {
-            int size = 0;
-            do {
-                value = value / 10;
-                size++;
-            } while (value > 0);
-
-            return size;
-        }
-
         ///// <summary>
         ///// 
         ///// </summary>
         ///// <param name="root">The root json</param>
         ///// <param name="patchArray">The bytearray containing all patches.</param>
         ///// <returns>The number of patches evaluated.</returns>
-        public int Apply(Json root, byte[] patchArray, bool strictPatchRejection = true) {
-            int patchCount;
-
-            unsafe {
-                fixed (byte* pBody = patchArray) {
-                    patchCount = Apply(root, (IntPtr)pBody, patchArray.Length, strictPatchRejection);
-                }
+        public JsonPatchStatus Apply(Json root, byte[] patchArray, bool strictPatchRejection, out int patchCount) {
+            using (var reader = new JsonTextReader(new StreamReader((new MemoryStream(patchArray))))) {
+                reader.CloseInput = true;
+                return this.Apply(root, reader, strictPatchRejection, patchArray, out patchCount);
             }
-            return patchCount;
         }
 
-
-        public int Apply(Json root, string patch, bool strictPatchRejection = true) {
-
-            byte[] patchArray = System.Text.Encoding.UTF8.GetBytes(patch);
-            return this.Apply(root, patchArray, strictPatchRejection);
-        }
         /// <summary>
         /// Evaluates the patches and calls the appropriate inputhandler.
         /// </summary>
@@ -543,175 +346,113 @@ namespace Starcounter.XSON {
         /// <param name="patchArrayPtr">The pointer to the content for the patches.</param>
         /// <param name="patchArraySize">The size of the content.</param>
         /// <returns>The number of patches evaluated, or -1 if versioncheck is enabled and patches were queued or -2 if patches were already applied.</returns>
-        public int Apply(Json root, IntPtr patchArrayPtr, int patchArraySize, bool strictPatchRejection = true) {
-            int patchCount = 0;
-            int patchStart = -1;
-            int rejectedPatches = 0;
-            JsonPatchOperation patchOp = JsonPatchOperation.Undefined;
-            int valueSize;
-            IntPtr valuePtr;
-            JsonPatchMember member;
-            JsonPointer pointer;
-            JsonReader reader;
-            byte[] tmpBuf = new byte[512];
-            int usedTmpBufSize;
-            long remoteVersion = -1;
+        public JsonPatchStatus Apply(Json root, string patch, bool strictPatchRejection, out int patchCount) {
+            using (var reader = new JsonTextReader(new StringReader(patch))) {
+                reader.CloseInput = true;
+                return this.Apply(root, reader, strictPatchRejection, patch, out patchCount);
+            }
+        }
+
+        private JsonPatchStatus Apply(Json root, JsonTextReader reader, bool strictPatchRejection, object sourceJson, out int patchCount) {
             ChangeLog changeLog = null;
+            int rejectedPatches = 0;
+            JsonPatchStatus status = JsonPatchStatus.Unknown;
+            JsonPatchMember member;
+            JsonPointer pointer = null;
+            JsonPatchOperation operation = JsonPatchOperation.Undefined;
+            bool hasValue = false;
+            string value = null;
             ViewModelVersion version = null;
 
             if (root != null) {
                 changeLog = root.ChangeLog;
-                if (changeLog != null) {
-                    version = changeLog.Version;
-                    if (version != null) {
-                        version.RemoteLocalVersion = version.LocalVersion;
-                    }
+                version = changeLog?.Version;
+                if (version != null) {
+                    version.RemoteLocalVersion = version.LocalVersion;
                 }
             }
-
-            member = JsonPatchMember.Invalid;
-            valuePtr = IntPtr.Zero;
-            valueSize = 0;
-            pointer = null;
+            patchCount = 0;
 
             try {
-                unsafe {
-                    reader = new JsonReader(patchArrayPtr, patchArraySize);
-                    JsonToken token = JsonToken.Null;
-                    token = reader.ReadNext();
+                JsonToken token = JsonToken.Null;
+                while (reader.Read()) {
+                    token = reader.TokenType;
+                    switch (token) {
+                        case JsonToken.StartObject:
+                            if (status == JsonPatchStatus.Processing)
+                                ThrowPatchException(patchCount, "TODO!", sourceJson);
 
-                    while (token != JsonToken.End) {
-                        switch (token) {
-                            case JsonToken.StartArray:
-                                if (member == JsonPatchMember.Value) {
-                                    // In case the last read property is the value, we assume that
-                                    // this array is part of the value of the patch, and not
-                                    // the start of a new batch of patches.
-                                    token = JsonToken.Value;
-                                    continue;
-                                }
-                                reader.Skip(1);
-                                break;
-                            case JsonToken.EndArray:
-                                reader.Skip(1);
-                                break;
-                            case JsonToken.StartObject:
-                                if (member == JsonPatchMember.Value) {
-                                    // In case the last read property is the value, we assume that
-                                    // this object is part of the value of the patch, and not
-                                    // the start of a new patch.
-                                    token = JsonToken.Value;
-                                    continue;
-                                }
+                            patchCount++;
+                            member = JsonPatchMember.Invalid;
+                            pointer = null;
+                            operation = JsonPatchOperation.Undefined;
+                            hasValue = false;
+                            status = JsonPatchStatus.Processing;
+                            break;
+                        case JsonToken.PropertyName:
+                            if (status != JsonPatchStatus.Processing)
+                                ThrowPatchException(patchCount, "TODO!", sourceJson);
 
-                                member = JsonPatchMember.Invalid;
-                                pointer = null;
-                                valuePtr = IntPtr.Zero;
-                                valueSize = -1;
-                                patchStart = reader.Position;
-                                reader.Skip(1);
-                                break;
-                            case JsonToken.PropertyName:
-                                reader.ReadRaw(tmpBuf, out usedTmpBufSize);
-                                GetPatchMember(tmpBuf, 1, out member);
-                                break;
-                            case JsonToken.Value:
-                                switch (member) {
-                                    case JsonPatchMember.Op:
-                                        reader.ReadRaw(tmpBuf, out usedTmpBufSize);
-                                        patchOp = JsonPatch.GetPatchOperation(tmpBuf, 0, usedTmpBufSize);
-                                        break;
-                                    case JsonPatchMember.Path:
-                                        reader.ReadRaw(tmpBuf, out usedTmpBufSize);
-                                        byte[] ptr = new byte[usedTmpBufSize - 2];
-                                        Buffer.BlockCopy(tmpBuf, 1, ptr, 0, usedTmpBufSize - 2);
-                                        pointer = new JsonPointer(ptr);
-                                        break;
-                                    case JsonPatchMember.Value:
-                                        valuePtr = reader.CurrentPtr;
-                                        valueSize = reader.Position;
-                                        reader.SkipCurrent();
-                                        valueSize = reader.Position - valueSize;
-                                        break;
-                                    default:
-                                        ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Unknown property in patch.");
-                                        break;
-                                }
-                                break;
-                            case JsonToken.EndObject:
-                                reader.Skip(1);
-                                // Handle complete patch
-                                if (patchOp == JsonPatchOperation.Undefined)
-                                    ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Unsupported patch operation in patch.");
+                            if (!Enum.TryParse<JsonPatchMember>((string)reader.Value, true, out member) 
+                                || member == JsonPatchMember.Invalid)
+                                throw new Exception("Unknown property in patch: " + reader.Value);
 
-                                if (pointer == null)
-                                    ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "No path found in patch.");
+                            switch (member) {
+                                case JsonPatchMember.Op:
+                                    if (!Enum.TryParse<JsonPatchOperation>(reader.ReadAsString(), true, out operation))
+                                        throw new Exception("TODO!");
+                                    break;
+                                case JsonPatchMember.Path:
+                                    pointer = new JsonPointer(reader.ReadAsString());
+                                    break;
+                                case JsonPatchMember.Value:
+                                    // TODO: 
+                                    // Read depending on type from property
+                                    value = reader.ReadAsString();
+                                    hasValue = true;
+                                    break;
+                            }
+                            break;
+                        case JsonToken.EndObject:
+                            if (status != JsonPatchStatus.Processing)
+                                ThrowPatchException(patchCount, "TODO!", sourceJson);
 
-                                if ((patchOp != JsonPatchOperation.Remove) && (valuePtr == IntPtr.Zero))
-                                    ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "No value found in patch.");
+                            if (operation == JsonPatchOperation.Undefined)
+                                ThrowPatchException(patchCount,"Unsupported patch operation in patch.", sourceJson);
 
-                                patchCount++;
-                                if ((version != null) && patchCount <= 2) {
-                                    if (patchCount == 1) {
-                                        if ((patchOp != JsonPatchOperation.Replace) || !VerifyVersioningPatchPath(pointer, version.RemoteVersionPropertyName)) {
-                                            // First patch need to be replace for client version.
-                                            ThrowPatchException(patchStart, valuePtr, valueSize, "First patch when versioncheck is enabled have to be replace for remote version.");
-                                        }
-                                        remoteVersion = GetLongValue(valuePtr, valueSize, version.RemoteVersionPropertyName);
-                                        if (remoteVersion != (version.RemoteVersion + 1)) {
-                                            if (remoteVersion <= version.RemoteVersion) {
-                                                patchCount = -2;
-                                                break;
-                                            } else {
-                                                byte[] tmp = new byte[patchArraySize];
-                                                Marshal.Copy(patchArrayPtr, tmp, 0, patchArraySize);
-                                                version.EnqueuePatch(tmp, (int)(remoteVersion - version.RemoteVersion - 2));
-                                                patchCount = -1;
-                                                token = JsonToken.End;
-                                                break;
-                                            }
-                                        }
-                                        version.RemoteVersion = remoteVersion;
-                                    } else {
-                                        // Second patch -> determine if transformations are needed and what version.
-                                        if ((patchOp != JsonPatchOperation.Test) || !VerifyVersioningPatchPath(pointer, version.LocalVersionPropertyName)) {
-                                            ThrowPatchException(patchStart, valuePtr, valueSize, "Second patch when versioncheck is enabled have to be test of local version.");
-                                        }
+                            if (pointer == null)
+                                ThrowPatchException(patchCount, "No path found in patch.", sourceJson);
 
-                                        version.RemoteLocalVersion = GetLongValue(valuePtr, valueSize, version.LocalVersionPropertyName);
-                                        changeLog.CleanupOldVersionLogs();
-                                    }
-                                } else {
-                                    if (patchHandler != null) {
-                                        try {
-                                            patchHandler(root, patchOp, pointer, valuePtr, valueSize);
-                                        } catch (JsonPatchException jpe) {
-                                            if (strictPatchRejection || jpe.Severity > 0)
-                                                throw;
-                                            rejectedPatches++;
-                                        } catch (FormatException) {
-                                            if (strictPatchRejection)
-                                                throw;
-                                            rejectedPatches++;
-                                        }
-                                    }
-                                }
-                                member = JsonPatchMember.Invalid;
-                                break;
-                        }
-                        token = reader.ReadNext();
+                            if ((operation != JsonPatchOperation.Remove) && (!hasValue))
+                                ThrowPatchException(patchCount, "No value found in patch.", sourceJson);
+
+                            status = HandleOnePatch(root, operation, pointer, value, patchCount, changeLog, sourceJson, strictPatchRejection);
+                            if (status == JsonPatchStatus.AlreadyApplied || status == JsonPatchStatus.Queued)
+                                return status;
+
+                            if (status == JsonPatchStatus.Rejected)
+                                rejectedPatches++;                            
+                            break;
                     }
+                }
 
-                    if (version != null && patchCount >= 0) {
-                        byte[] enqueuedPatch = version.GetNextEnqueuedPatch();
-                        if (enqueuedPatch != null) {
-                            patchCount += Apply(root, enqueuedPatch, strictPatchRejection);
-                        }
+                // TODO:
+                // Check unexpected end of content.
+                if (status == JsonPatchStatus.Processing)
+                    ThrowPatchException(-1, "Unexpected end of content", sourceJson);
+
+                if (version != null && patchCount >= 0) {
+                    byte[] enqueuedPatch = version.GetNextEnqueuedPatch();
+                    if (enqueuedPatch != null) {
+                        // TODO:
+                        int otherPatchCount;
+                        JsonPatchStatus otherStatus = Apply(root, enqueuedPatch, strictPatchRejection, out otherPatchCount);
+                        patchCount += otherPatchCount;
                     }
                 }
             } catch (JsonPatchException jpex) {
-                if (patchStart != -1 && string.IsNullOrEmpty(jpex.Patch))
-                    jpex.Patch = GetPatchAsString(patchStart, patchArrayPtr, patchArraySize);
+                if (string.IsNullOrEmpty(jpex.Patch))
+                    jpex.Patch = GetPatchAsString(patchCount, sourceJson);
                 throw;
             }
 
@@ -720,9 +461,69 @@ namespace Starcounter.XSON {
                 // Callback for rejected patches.
             }
 
-            return patchCount;
+            return JsonPatchStatus.Applied;
         }
 
+        private JsonPatchStatus HandleOnePatch(Json root, 
+                                               JsonPatchOperation op, 
+                                               JsonPointer ptr, 
+                                               string value, 
+                                               int patchCount, 
+                                               ChangeLog changeLog, 
+                                               object sourceJson, 
+                                               bool strictRejection) {
+            long remoteVersion = -1;
+            ViewModelVersion version = changeLog?.Version;
+
+            if ((version != null) && patchCount <= 2) {
+                if (patchCount == 1) {
+                    if ((op != JsonPatchOperation.Replace) || !VerifyVersioningPatchPath(ptr, version.RemoteVersionPropertyName)) {
+                        // First patch need to be replace for client version.
+                        ThrowPatchException(patchCount, "First patch when versioncheck is enabled have to be replace for remote version.", sourceJson);
+                    }
+
+                    if (!long.TryParse(value, out remoteVersion))
+                        JsonHelper.ThrowWrongValueTypeException(null, version.RemoteVersionPropertyName, "Int64", value);
+
+                    if (remoteVersion != (version.RemoteVersion + 1)) {
+                        if (remoteVersion <= version.RemoteVersion) {
+                            return JsonPatchStatus.AlreadyApplied;
+                        } else {
+                            version.EnqueuePatch(GetSourceAsBytes(sourceJson), (int)(remoteVersion - version.RemoteVersion - 2));
+                            return JsonPatchStatus.Queued;
+                        }
+                    }
+                    version.RemoteVersion = remoteVersion;
+                } else {
+                    // Second patch -> determine if transformations are needed and what version.
+                    if ((op != JsonPatchOperation.Test) || !VerifyVersioningPatchPath(ptr, version.LocalVersionPropertyName)) {
+                        ThrowPatchException(patchCount, "Second patch when versioncheck is enabled have to be test of local version.", sourceJson);
+                    }
+
+                    if (!long.TryParse(value, out remoteVersion))
+                        JsonHelper.ThrowWrongValueTypeException(null, version.LocalVersionPropertyName, "Int64", value);
+                    version.RemoteLocalVersion = remoteVersion;
+                    
+                    changeLog.CleanupOldVersionLogs();
+                }
+            } else {
+                if (patchHandler != null) {
+                    try {
+                        patchHandler(root, op, ptr, value);
+                    } catch (JsonPatchException jpe) {
+                        if (strictRejection || jpe.Severity > 0)
+                            throw;
+                        return JsonPatchStatus.Rejected;
+                    } catch (FormatException) {
+                        if (strictRejection)
+                            throw;
+                        return JsonPatchStatus.Rejected;
+                    }
+                }
+            }
+            return JsonPatchStatus.Applied;
+        }
+        
         private bool VerifyVersioningPatchPath(JsonPointer pointer, string versionPropertyName) {
             byte[] ptrArr = pointer.GetRawBuffer();
 
@@ -736,30 +537,7 @@ namespace Starcounter.XSON {
 
             return true;
         }
-
-        private long GetLongValue(IntPtr ptr, int size, string propertyName) {
-            long value;
-            int valueSize;
-
-            if (!JsonHelper.ParseInt(ptr, size, out value, out valueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, propertyName, "Int64", ValueAsString(ptr, size));
-            return value;
-        }
-
-        private static string ValueAsString(IntPtr valuePtr, int valueSize) {
-            string value;
-            int size;
-            JsonHelper.ParseString(valuePtr, valueSize, out value, out size);
-
-            unsafe {
-                byte* pval = (byte*)valuePtr;
-                if (*pval == (byte)'"')
-                    value = '"' + value + '"';
-            }
-
-            return value;
-        }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -767,8 +545,8 @@ namespace Starcounter.XSON {
         /// <param name="patchEnd"></param>
         /// <param name="data"></param>
         /// <param name="msg"></param>
-        private void ThrowPatchException(int patchStart, IntPtr data, int dataSize, string msg) {
-            throw new JsonPatchException(1, msg, GetPatchAsString(patchStart, data, dataSize));
+        private void ThrowPatchException(int patchNo, string msg, object source) {
+            throw new JsonPatchException(1, msg, GetPatchAsString(patchNo, source));
         }
 
         /// <summary>
@@ -778,193 +556,49 @@ namespace Starcounter.XSON {
         /// <param name="data"></param>
         /// <param name="dataSize"></param>
         /// <returns></returns>
-        private string GetPatchAsString(int patchStart, IntPtr data, int dataSize) {
-            if (patchStart == -1)
-                return "";
+        private string GetPatchAsString(int patchNo, object source) {
+            string patch;
 
-            byte[] patchArr = new byte[GetPatchLength(patchStart, data, dataSize)];
-
-            unsafe {
-                byte* pdata = (byte*)data;
-                pdata += patchStart;
-                Marshal.Copy((IntPtr)pdata, patchArr, 0, patchArr.Length);
+            patch = source as string;
+            if (patch == null) {
+                patch = "";
+                if (source is byte[]) {
+                    patch = Encoding.UTF8.GetString((byte[])source);
+                } 
             }
-            return Encoding.UTF8.GetString(patchArr);
-        }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="patchStart"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        private int GetPatchLength(int patchStart, IntPtr data, int dataSize) {
-            int bracketCount = 1;
-            int patchEnd = patchStart + 1;
+            int objCount = 0;
+            int startPos = 0;
+            int patchCount = 0;
 
-            unsafe {
-                byte* pdata = (byte*)data;
-
-                while (patchEnd < dataSize) {
-                    if (pdata[patchEnd] == '}') {
-                        bracketCount--;
-                        if (bracketCount == 0) {
-                            patchEnd++;
+            // If patchNo is zero or below we want the whole source.
+            if (patchNo > 0) {
+                for (int i = 0; i < patch.Length; i++) {
+                    char c = patch[i];
+                    if (c == '{') {
+                        if (objCount == 0) {
+                            startPos = i;
+                            patchCount++;
+                        }
+                        objCount++;
+                    } else if (c == '}') {
+                        objCount--;
+                        if ((objCount == 0) && (patchCount == patchNo)) {
+                            // We found the patch we're interested of.
+                            patch = patch.Substring(startPos, i - startPos + 1);
                             break;
                         }
-                    } else if (pdata[patchEnd] == '{')
-                        bracketCount++;
-
-                    patchEnd++;
+                    }
                 }
             }
-            return (patchEnd - patchStart);
+            return patch;
         }
 
-        /// <summary>
-        /// Skips all bytes until the name of the current member starts.
-        /// </summary>
-        /// <param name="contentArr"></param>
-        /// <param name="offset"></param>
-        /// <returns></returns>
-        private int GotoMember(byte[] contentArr, int offset, bool first) {
-            if (!first) {
-                while (offset < contentArr.Length && contentArr[offset] != ',')
-                    offset++;
-                offset++;
-            }
-            while (offset < contentArr.Length && contentArr[offset] == ' ')
-                offset++;
-            if (offset < contentArr.Length && contentArr[offset] == (byte)'"')
-                offset++;
-
-            if (offset >= contentArr.Length)
-                offset = -1;
-            return offset;
-        }
-
-        /// <summary>
-        /// Skips all bytes until the value of the current member starts.
-        /// </summary>
-        /// <param name="contentArr"></param>
-        /// <param name="offset"></param>
-        /// <returns></returns>
-        private static int GotoValue(byte[] contentArr, int offset) {
-            while (offset < contentArr.Length && contentArr[offset] != ':')
-                offset++;
-            offset++;
-            while (offset < contentArr.Length && contentArr[offset] == ' ')
-                offset++;
-            //if (contentArr[offset] == (byte)'"')
-            //    offset++;
-            if (offset >= contentArr.Length)
-                offset = -1;
-            return offset;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="contentArr"></param>
-        /// <param name="offset"></param>
-        /// <param name="member"></param>
-        /// <returns></returns>
-        private static int GetPatchMember(byte[] contentArr, int offset, out JsonPatchMember member) {
-            member = JsonPatchMember.Invalid;
-            switch (contentArr[offset]) {
-                case (byte)'o':
-                    offset++;
-                    if (contentArr[offset] == 'p') {
-                        member = JsonPatchMember.Op;
-                        offset++;
-                    }
-                    break;
-                case (byte)'p':
-                    if (contentArr[offset + 1] == 'a'
-                        && contentArr[offset + 2] == 't'
-                        && contentArr[offset + 3] == 'h') {
-                        offset += 4;
-                        member = JsonPatchMember.Path;
-                    }
-                    break;
-                case (byte)'v':
-                    if (contentArr[offset + 1] == 'a'
-                        && contentArr[offset + 2] == 'l'
-                        && contentArr[offset + 3] == 'u'
-                        && contentArr[offset + 4] == 'e') {
-                        offset += 5;
-                        member = JsonPatchMember.Value;
-                    }
-                    break;
-            }
-            return offset;
-        }
-
-        /// <summary>
-        /// Gets the patch verb.
-        /// </summary>
-        /// <param name="contentArr">The content arr.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="patchType">Type of the patch.</param>
-        /// <returns>Int32.</returns>
-        /// <exception cref="System.Exception">Unsupported json-patch</exception>
-        private static JsonPatchOperation GetPatchOperation(Byte[] contentArr, int offset, int valueSize) {
-            byte current = contentArr[offset];
-            var op = JsonPatchOperation.Undefined;
-
-            if (current == '"') {
-                offset++;
-                current = contentArr[offset];
-            }
-
-            switch (current){
-                case (byte)'a':
-                    if (IsPatchOperation(patchOpUtf8Arr[(int)JsonPatchOperation.Add], contentArr, offset, valueSize))
-                        op = JsonPatchOperation.Add;
-                    break;
-                case (byte)'t':
-                    if (IsPatchOperation(patchOpUtf8Arr[(int)JsonPatchOperation.Test], contentArr, offset, valueSize))
-                        op = JsonPatchOperation.Test;
-                    break;
-                case (byte)'r':
-                    if (valueSize > 2) {
-                        if (contentArr[offset + 2] == 'p') {
-                            if (IsPatchOperation(patchOpUtf8Arr[(int)JsonPatchOperation.Replace], contentArr, offset, valueSize))
-                                op = JsonPatchOperation.Replace;
-                        } else {
-                            if (IsPatchOperation(patchOpUtf8Arr[(int)JsonPatchOperation.Remove], contentArr, offset, valueSize))
-                                op = JsonPatchOperation.Remove;
-                        }
-                    }
-                    break;
-                default:
-                    break;
-            }
-            
-            return op;
-        }
-
-        /// <summary>
-        /// Determines whether the value in the buffer equals the submitted field.
-        /// </summary>
-        /// <param name="verbName">The array of bytes for the field</param>
-        /// <param name="buffer">The buffer containing the value to check</param>
-        /// <param name="offset">The offset in the buffer</param>
-        /// <param name="length">The length of the buffer</param>
-        private static bool IsPatchOperation(byte[] verbName, byte[] buffer, int offset, int length) {
-            int i;
-
-            for (i = 0; i < verbName.Length; i++) {
-                if (i == length)
-                    return false;
-                if (buffer[offset] == verbName[i]) {
-                    offset++;
-                } else {
-                    return false;
-                }
-            }
-
-            return true;
+        private byte[] GetSourceAsBytes(object source) {
+            if (source is byte[])
+                return (byte[])source;
+            else
+                return Encoding.UTF8.GetBytes((string)source);
         }
     }
 }

@@ -188,16 +188,11 @@ namespace Starcounter {
                 return;
 
             // Calculating the patch.
-            Byte[] patch;
-            Int32 sizeBytes = jsonPatch_.Generate(
-                PublicViewModel, 
-                true, 
-                CheckOption(SessionOptions.IncludeNamespaces), 
-                out patch);
-
-            if (sizeBytes >= 0) {
+            string patch = jsonPatch_.Generate(PublicViewModel, true, CheckOption(SessionOptions.IncludeNamespaces));
+            
+            if (!string.IsNullOrEmpty(patch)) {
                 // Sending the patch bytes to the client.
-                ActiveWebSocket.Send(patch, sizeBytes, true);
+                ActiveWebSocket.Send(patch);
             }
         }
 
