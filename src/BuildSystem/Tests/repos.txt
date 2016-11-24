@@ -8,6 +8,7 @@
 
 https://github.com/starcounter/pokerdemo.git %git_pokerdemo_branch% %sc_run_pokerdemo_test%
 https://github.com/starcounter/tpc-a.git master %run_tpca_test%
+https://github.com/Starcounter/RetailDemo.git %GIT_RETAILDEMO_BRANCH% %SC_RUN_RETAILDEMO_TEST%
 
 # Skipping the app tests. They are now part of dedicated Apps build channel
 
