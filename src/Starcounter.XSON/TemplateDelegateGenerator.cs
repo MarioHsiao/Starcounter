@@ -179,6 +179,9 @@ namespace Starcounter.XSON {
 			Expression<Func<Json, T>> getLambda;
 			Expression<Action<Json, T>> setLambda = null;
 
+            if (property.hasCustomBoundAccessors)
+                return;
+
             try {
                 throwException = (property.BindingStrategy == BindingStrategy.Bound);
 
@@ -244,6 +247,9 @@ namespace Starcounter.XSON {
 			Expression<Func<Json, object>> getLambda;
 			Expression<Action<Json, object>> setLambda = null;
 
+            if (property.hasCustomBoundAccessors)
+                return;
+
             try {
                 var bind = property.Bind;
                 if (bind == null)
@@ -294,6 +300,9 @@ namespace Starcounter.XSON {
 			Expression<Func<Json, IEnumerable>> getLambda;
 			Expression<Action<Json, IEnumerable>> setLambda = null;
 			
+            if (property.hasCustomBoundAccessors)
+                return;
+
             try {
                 var bind = property.Bind;
                 if (bind == null)
