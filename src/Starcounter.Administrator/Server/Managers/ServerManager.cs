@@ -139,7 +139,8 @@ namespace Administrator.Server.Managers {
                     }
 
                     Json viewModel = ((Starcounter.Session)ws.Session).Data;
-                    ServerManager.ServerInstance.JsonPatchInstance.Apply(viewModel, data);
+                    int patchCount;
+                    ServerManager.ServerInstance.JsonPatchInstance.Apply(viewModel, data, true, out patchCount);
                 }
             });
 
@@ -227,7 +228,8 @@ namespace Administrator.Server.Managers {
                 lock (ServerManager.ServerInstance) {
 
                     Json json = TemporaryStorage.Find(id);
-                    ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
+                    int count;
+                    ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body, true, out count);
                     return GetAllowAccessControlResponse();
                 }
             });
@@ -252,7 +254,8 @@ namespace Administrator.Server.Managers {
                     Database database;
                     if (databaseModelSockets.TryGetValue(ws.ToUInt64(), out database)) {
                         Json viewModel = ((Starcounter.Session)ws.Session).Data;
-                        database.JsonPatchInstance.Apply(viewModel, data);
+                        int count;
+                        database.JsonPatchInstance.Apply(viewModel, data, true, out count);
                     }
                 }
             });
