@@ -95,7 +95,7 @@ namespace staradmin.Commands {
                 SharedCLI.CLIAppFolderName,
                 reloadSourceCodeFile
                 );
-            SourceCodeCompiler.CompileSingleFileToExecutable(appFile, null, out exeFile);
+            SourceCodeCompiler.CompileSingleFileToExecutable(appFile, null, null, out exeFile);
 
             var reload = StartApplicationCLICommand.FromFile(appFile, exeFile, CreateReloadApplicationArguments());
             reload.JobDescription = string.Format("Reloading {0}", reload.DatabaseName);

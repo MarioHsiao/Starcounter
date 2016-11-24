@@ -7,6 +7,7 @@ using Starcounter.Internal;
 using Starcounter.Server;
 using Starcounter.Server.Setup;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -182,7 +183,15 @@ namespace star {
                     var compileOnly = appArgs.ContainsFlag(StarOption.CompileOnly);
                     var targetDirectory = compileOnly ? Path.GetDirectoryName(sourceCode) : null;
 
-                    SourceCodeCompiler.CompileSingleFileToExecutable(sourceCode, targetDirectory, out filePath);
+                    string additionalAssemblyReferences;
+                    List<string> additonalReferencePaths = null;
+                    if (appArgs.TryGetProperty(StarOption.AdditionalCompilerReferences, out additionalAssemblyReferences))
+                    {
+                        var refs = additionalAssemblyReferences.Split(new [] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                        additonalReferencePaths = new List<string>(refs);
+                    }
+
+                    SourceCodeCompiler.CompileSingleFileToExecutable(sourceCode, targetDirectory, additonalReferencePaths, out filePath);
                     applicationFilePath = sourceCode;
                     
                     if (compileOnly)
@@ -282,6 +291,7 @@ namespace star {
                 Console.WriteLine(formatting, string.Format("--{0}", SharedCLI.UnofficialOptions.Debug), "Attaches a debugger to the star.exe process.");
                 Console.WriteLine(formatting, string.Format("--{0}", SharedCLI.UnofficialOptions.CodeHostCommandLineOptions), "Allows for the passing of custom code host parameters");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.CompileOnly), "Compiles given source-code input without running it.");
+                Console.WriteLine(formatting, string.Format("--{0}", StarOption.AdditionalCompilerReferences), "Additional references to be passed to the compiler. Semi-colon-separated.");
             }
             Console.WriteLine();
             if (extended) {
@@ -366,6 +376,11 @@ namespace star {
             appSyntax.DefineFlag(
                 StarOption.CompileOnly,
                 "Compiles any given source-code input without running it."
+                );
+
+            appSyntax.DefineProperty(
+                StarOption.AdditionalCompilerReferences,
+                "Allow additional assembly references to be specified when source code is given"
                 );
 
             // NOTE:

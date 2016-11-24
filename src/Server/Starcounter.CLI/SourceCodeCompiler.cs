@@ -21,8 +21,15 @@ namespace Starcounter.CLI
         /// <param name="targetPath">Target path, specifying that the compiled
         /// result should end up in a specific directory. Pass null to use a
         /// temporary path.</param>
+        /// <param name="additionalReferences">Additional assembly references
+        /// to give to the compiler, on top of the default ones. Pass null not
+        /// to specify any references.</param>
         /// <param name="assemblyPath">Path to the compiled assembly.</param>
-        public static void CompileSingleFileToExecutable(string sourceCode, string targetPath, out string assemblyPath)
+        public static void CompileSingleFileToExecutable(
+            string sourceCode, 
+            string targetPath, 
+            IEnumerable<string> additionalReferences, 
+            out string assemblyPath)
         {
             var name = Path.GetFileNameWithoutExtension(sourceCode);
             var compiler = new AppCompiler(name)
@@ -33,6 +40,14 @@ namespace Starcounter.CLI
             if (!string.IsNullOrEmpty(targetPath))
             {
                 compiler.TargetPath = targetPath;
+            }
+
+            if (additionalReferences != null)
+            {
+                foreach (var additionalRef in additionalReferences)
+                {
+                    compiler.WithReference(additionalRef);
+                }
             }
 
             assemblyPath = null;

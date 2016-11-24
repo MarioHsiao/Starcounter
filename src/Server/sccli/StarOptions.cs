@@ -28,5 +28,6 @@ namespace star {
         public const string Syntax = "syntax";
         public const string NoColor = "nocolor";
         public const string CompileOnly = "sc-compile";
+        public const string AdditionalCompilerReferences = "sc-compilerefs";
     }
 }
