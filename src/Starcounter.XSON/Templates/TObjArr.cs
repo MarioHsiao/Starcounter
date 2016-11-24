@@ -23,6 +23,7 @@ namespace Starcounter.Templates {
 
 		public Action<Json, Json> Setter;
 		public Func<Json, Json> Getter;
+		internal bool hasCustomBoundAccessors = false;
 		internal Action<Json, IEnumerable> BoundSetter;
 		internal Func<Json, IEnumerable> BoundGetter;
 		internal Action<Json, Json> UnboundSetter;
@@ -36,6 +37,13 @@ namespace Starcounter.Templates {
 		public TObjArr() {
 			Getter = BoundOrUnboundGet;
 			Setter = BoundOrUnboundSet;
+		}
+
+		public void SetCustomBoundAccessors(Func<Json, IEnumerable> boundGetter, Action<Json, IEnumerable> boundSetter)
+		{
+			BoundGetter = boundGetter;
+			BoundSetter = boundSetter;
+			hasCustomBoundAccessors = true;
 		}
 
         private void SetParentAndUseCustomSetter(Json parent, Json value) {
