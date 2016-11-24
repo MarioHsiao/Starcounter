@@ -879,5 +879,59 @@ namespace Starcounter.Internal.XSON.Tests {
             TObjArr tSubArr = (TObjArr)tArr.ElementType;
             Assert.IsInstanceOf(typeof(TLong), tSubArr.ElementType);
         }
+
+        [Test]
+        public static void TestCustomBoundAccessors_3977() {
+            TObject schema = new TObject();
+            var tName = schema.Add<TString>("Name");
+
+            string myBoundValue = null;
+            tName.SetCustomBoundAccessors(
+                (parent) => { return myBoundValue; },
+                (parent, value) => { myBoundValue = value; }
+            );
+
+            Assert.AreEqual(BindingStrategy.Bound, tName.BindingStrategy);
+            Assert.IsTrue(tName.hasCustomBoundAccessors);
+
+            var json = (Json)schema.CreateInstance();
+            string testValue = null;
+            Assert.IsTrue(tName.UseBinding(json));
+            Assert.DoesNotThrow(() => {
+                tName.BoundSetter(json, "Testing");
+                testValue = tName.BoundGetter(json);
+            });
+            Assert.AreEqual("Testing", testValue);
+            Assert.AreEqual("Testing", myBoundValue);
+
+            tName.Setter(json, "Another");
+            testValue = tName.Getter(json);
+            Assert.AreEqual("Another", testValue);
+            Assert.AreEqual("Another", myBoundValue);
+
+            tName.BindingStrategy = BindingStrategy.Unbound;
+            Assert.AreEqual("", tName.Getter(json));
+            tName.BindingStrategy = BindingStrategy.Bound;
+
+            testValue = null;
+            myBoundValue = null;
+            tName.Bind = "ChangingBinding";
+            Assert.IsTrue(tName.UseBinding(json));
+            Assert.DoesNotThrow(() => {
+                tName.BoundSetter(json, "Testing");
+                testValue = tName.BoundGetter(json);
+            });
+            Assert.AreEqual("Testing", testValue);
+            Assert.AreEqual("Testing", myBoundValue);
+
+            tName.Setter(json, "Another");
+            testValue = tName.Getter(json);
+            Assert.AreEqual("Another", testValue);
+            Assert.AreEqual("Another", myBoundValue);
+        }
+
+        private static void AssertCustomBindings(Json parent, TString tName) {
+
+        }
     }
 }
