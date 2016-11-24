@@ -33,7 +33,6 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestSoftPatchRejection() {
             string patch;
-            byte[] patchArr;
             int number;
 
             var schema = new TObject();
@@ -46,9 +45,8 @@ namespace Starcounter.Internal.XSON.Tests {
             jsonPatch.Generate(json, true, false);
 
             json.Total = 1L;
-            patch = string.Format(Helper.PATCH_REPLACE, "/Total", "invalid");
-            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
-            number = jsonPatch.Apply(json, patchArr, false);
+            patch = string.Format(Helper.PATCH_REPLACE, "/Total", Helper.Jsonify("invalid"));
+            jsonPatch.Apply(json, patch, false, out number);
             Assert.AreEqual(number, 1);
             Assert.AreEqual(1L, json.Total);
 
