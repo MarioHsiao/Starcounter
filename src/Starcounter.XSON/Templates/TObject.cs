@@ -21,6 +21,7 @@ namespace Starcounter.Templates {
 
 		public Action<Json, Json> Setter;
 		public Func<Json, Json> Getter;
+		internal bool hasCustomBoundAccessors = false;
 		internal Action<Json, object> BoundSetter;
 		internal Func<Json, object> BoundGetter;
 		internal Action<Json, Json> UnboundSetter;
@@ -50,6 +51,13 @@ namespace Starcounter.Templates {
 			_PropertyTemplates = new PropertyList(this);
 			Getter = BoundOrUnboundGet;
 			Setter = BoundOrUnboundSet;
+		}
+
+		public void SetCustomBoundAccessors(Func<Json, object> boundGetter, Action<Json, object> boundSetter)
+		{
+			BoundGetter = boundGetter;
+			BoundSetter = boundSetter;
+			hasCustomBoundAccessors = true;
 		}
 
 		internal override void SetDefaultValue(Json parent, bool markAsReplaced = false) {
