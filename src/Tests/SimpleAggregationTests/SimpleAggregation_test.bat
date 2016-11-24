@@ -1,4 +1,4 @@
-CMD /C "star.exe AggregationTestServer.cs"
+CMD /C "star.exe --sc-compilerefs="%StarcounterBin%Public Assemblies\Starcounter.Extensions.dll" AggregationTestServer.cs"
 
 IF %ERRORLEVEL% NEQ 0 EXIT /b 1
 
