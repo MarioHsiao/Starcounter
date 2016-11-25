@@ -13,6 +13,10 @@ namespace Starcounter {
     /// For any HTTP request with `Accept: application/json` that has a response of type Json
     /// and a Session attached, adds the session URL as a `X-Location` response header. 
     /// The header is used by PuppetJs to upgrade the connection to WebSocket.
+    /// 
+    /// Middleware only wraps requests that have a HTTP handler. However, Be cautious about the 
+    /// response status, because this middleware always returns 200 OK status for any request 
+    /// that matches the handler.
     /// </summary>
     public class PuppetJsProvider : IMiddleware {
         static Encoding defaultEncoding = Encoding.UTF8;
