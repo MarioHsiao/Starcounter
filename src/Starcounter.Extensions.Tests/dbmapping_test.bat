@@ -1,11 +1,16 @@
 set DBNAME=DbMappingTestsDb
 
+:: Make sure we are indifferent to if installation directory contain
+:: a trailing slash or not
+SET installationDir=%StarcounterBin%
+IF %installationDir:~-1%==\ SET installationDir=%installationDir:~0,-1%
+
 staradmin start server
 staradmin --database=%DBNAME% delete --force db
 IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 :: Starting server application.
-star.exe --sc-compilerefs="%StarcounterBin%Public Assemblies\Starcounter.Extensions.dll" --database=%DBNAME% "%StarcounterBin%\s\ExtensionsTests\StarcounterExtensionsTests.exe"
+star.exe --sc-compilerefs="%installationDir%\Public Assemblies\Starcounter.Extensions.dll" --database=%DBNAME% "%installationDir%\s\ExtensionsTests\StarcounterExtensionsTests.exe"
 IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 staradmin --database=%DBNAME% stop db
