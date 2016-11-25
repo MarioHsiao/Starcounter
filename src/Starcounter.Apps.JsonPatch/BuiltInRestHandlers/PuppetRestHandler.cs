@@ -166,9 +166,8 @@ namespace Starcounter.Internal {
                 if (request.PreferredMimeType != MimeType.Application_Json) {
                     return CreateErrorResponse(513, "Unsupported mime type {request.PreferredMimeTypeString}.");
                 }
-
-                int patchCount;
-                jsonPatch.Apply(root, request.Body, session.CheckOption(SessionOptions.StrictPatchRejection), out patchCount);
+                
+                jsonPatch.Apply(root, request.Body, session.CheckOption(SessionOptions.StrictPatchRejection));
                 
                 session.ActiveWebSocket = null; // since this is reconnection call we can assume that any web socket is dead
                 return CreateJsonBodyResponse(session, root);

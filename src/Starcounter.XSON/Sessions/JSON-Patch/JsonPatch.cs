@@ -59,21 +59,7 @@ namespace Starcounter.XSON {
         [Obsolete("Use the overload that takes a Func with value as string instead of IntPtr and length.", true)]
         public void SetPatchHandler(Action<Json, JsonPatchOperation, JsonPointer, IntPtr, int> handler) {
         }
-
-        [Obsolete("Use the overload that returns status instead of count.")]
-        public int Apply(Json root, byte[] patchArray, bool strictPatchRejection = true) {
-            int count;
-            var status = Apply(root, patchArray, strictPatchRejection, out count);
-            return ConvertStatusToCount(status, count);
-        }
-
-        [Obsolete("Use the overload that returns status instead of count.")]
-        public int Apply(Json root, string patch, bool strictPatchRejection = true) {
-            int count;
-            var status = Apply(root, patch, strictPatchRejection, out count);
-            return ConvertStatusToCount(status, count);
-        }
-
+        
         [Obsolete("Using IntPtr is no longer supported. Use method that takes source as string or byte[] instead")]
         public int Apply(Json root, IntPtr patchArrayPtr, int patchArraySize, bool strictPatchRejection = true) {
             int count;
@@ -83,16 +69,7 @@ namespace Starcounter.XSON {
             var status = Apply(root, tmp, strictPatchRejection, out count);
             return ConvertStatusToCount(status, count);
         }
-
-        private int ConvertStatusToCount(JsonPatchStatus status, int patchCount) {
-            if (status == JsonPatchStatus.AlreadyApplied)
-                return -1;
-            else if (status == JsonPatchStatus.Queued)
-                return -2;
-
-            return patchCount;
-        }
-
+        
         #endregion
 
 
@@ -326,24 +303,65 @@ namespace Starcounter.XSON {
             return true;
         }
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="root">The root json</param>
-        ///// <param name="patchArray">The bytearray containing all patches.</param>
-        ///// <returns>The number of patches evaluated.</returns>
+        /// <summary>
+        /// Applies patches and triggers the appropiate inputhandlers
+        /// </summary>
+        /// <param name="root">The root json</param>
+        /// <param name="patchArray">The array containing all patches.</param>
+        /// <param name="strictPatchRejection">
+        /// If set to true, rejected patches will throw exception otherwise they will 
+        /// be ignored (and the rest of the patches will be applied)
+        /// </param>
+        /// <returns>The number of patches applied.</returns>
+        public int Apply(Json root, byte[] patchArray, bool strictPatchRejection = true) {
+            int count;
+            var status = Apply(root, patchArray, strictPatchRejection, out count);
+            return ConvertStatusToCount(status, count);
+        }
+
+        /// <summary>
+        /// Applies patches and triggers the appropiate inputhandlers
+        /// </summary>
+        /// <param name="root">The root json</param>
+        /// <param name="patch">The string containing all patches.</param>
+        /// <param name="strictPatchRejection">
+        /// If set to true, rejected patches will throw exception otherwise they will 
+        /// be ignored (and the rest of the patches will be applied)
+        /// </param>
+        /// <returns>The number of patches applied.</returns>
+        public int Apply(Json root, string patch, bool strictPatchRejection = true) {
+            int count;
+            var status = Apply(root, patch, strictPatchRejection, out count);
+            return ConvertStatusToCount(status, count);
+        }
+
+        /// <summary>
+        /// Applies patches and triggers the appropiate inputhandlers
+        /// </summary>
+        /// <param name="root">The root json</param>
+        /// <param name="patchArray">The bytearray containing all patches.</param>
+        /// <param name="strictPatchRejection">
+        /// If set to true, rejected patches will throw exception otherwise they will 
+        /// be ignored (and the rest of the patches will be applied)
+        /// </param>
+        /// <param name="patchCount">The number of applied patches.</param>
+        /// <returns>The status of the patches that was applied.</returns>
         public JsonPatchStatus Apply(Json root, byte[] patchArray, bool strictPatchRejection, out int patchCount) {
             string patch = Encoding.UTF8.GetString(patchArray);
             return Apply(root, patch, strictPatchRejection, out patchCount);
         }
 
         /// <summary>
-        /// Evaluates the patches and calls the appropriate inputhandler.
+        /// Applies patches and triggers the appropiate inputhandlers
         /// </summary>
-        /// <param name="root">the root app for this request.</param>
-        /// <param name="patchArrayPtr">The pointer to the content for the patches.</param>
-        /// <param name="patchArraySize">The size of the content.</param>
-        /// <returns>The number of patches evaluated, or -1 if versioncheck is enabled and patches were queued or -2 if patches were already applied.</returns>
+        /// <param name="root">The root json</param>
+        /// <param name="patch">The string containing all patches.</param>
+        /// <param name="strictPatchRejection">
+        /// If set to true, rejected patches will throw exception otherwise they will 
+        /// be ignored (and the rest of the patches will be applied)
+        /// </param>
+        /// <param name="patchCount">The number of applied patches.</param>
+        /// <returns>The status of the patches that was applied.</returns>
         public JsonPatchStatus Apply(Json root, string patch, bool strictPatchRejection, out int patchCount) {
             using (var reader = new JsonTextReader(new StringReader(patch))) {
                 reader.CloseInput = true;
@@ -597,6 +615,26 @@ namespace Starcounter.XSON {
                 return (byte[])source;
             else
                 return Encoding.UTF8.GetBytes((string)source);
+        }
+
+        /// <summary>
+        /// Converts the status to the old hacky way of determining the status of
+        /// a batch of patches when versioning is used.
+        /// </summary>
+        /// <param name="status">The status of the applied patches</param>
+        /// <param name="patchCount">The count of applied patches</param>
+        /// <returns>
+        /// If the status says that the patch is either queued or already applied
+        /// the return value will be negative (-1 for already applied, -2 for queued),
+        /// otherwise the applied count will be returned.
+        /// </returns>
+        private int ConvertStatusToCount(JsonPatchStatus status, int patchCount) {
+            if (status == JsonPatchStatus.AlreadyApplied)
+                return -1;
+            else if (status == JsonPatchStatus.Queued)
+                return -2;
+
+            return patchCount;
         }
     }
 }
