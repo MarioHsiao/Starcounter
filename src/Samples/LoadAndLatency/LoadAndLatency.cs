@@ -1853,10 +1853,6 @@ namespace LoadAndLatency
             //    Application.Profiler.DrawResultsServer();
         }
 
-        private class TransactionRollbackException : System.Exception
-        {
-        }
-
         private void RunPerformanceTestPerQueryType(QueryDataTypes queryType, Boolean useIndividualTransactions, Boolean performUpdate, Int32 workerId) {
 
             var transactions = new List<System.Threading.Tasks.Task>();
@@ -1867,24 +1863,21 @@ namespace LoadAndLatency
             for (Int64 i = 0; i < TotalNumOfObjectsInDB; i++) {
                 if (useIndividualTransactions) {
 
-                    try
-                    {
-                        transactions.Add(
-                            Db.TransactAsync(() =>
-                            {
-                                RunOnePerformanceTestPerQueryType(queryType, performUpdate, workerId, i);
+                    var tran = Db.TransactAsync(() =>
+                        {
+                            RunOnePerformanceTestPerQueryType(queryType, performUpdate, workerId, i);
 
-                                if (!performUpdate)
-                                    throw new TransactionRollbackException();
-                            }, 
-                            0, new Db.Advanced.TransactOptions { maxRetries = TransRetriesNum }));
-                    }
-                    catch (TransactionRollbackException) { }
+                        }, 
+                        0, new Db.Advanced.TransactOptions { maxRetries = TransRetriesNum });
+
+                    if (performUpdate)
+                        transactions.Add(tran);
+
                 } else {
                     RunOnePerformanceTestPerQueryType(queryType, performUpdate, workerId, i);
                 }
 
-                if ( (i+1)%transaction_in_group_limit == 0)
+                if ( transactions.Count() >= transaction_in_group_limit)
                 {
                     System.Threading.Tasks.Task.WaitAll(transactions.ToArray());
                     transactions.Clear();
