@@ -17,6 +17,7 @@ namespace Starcounter.Rest {
         [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static UInt32 ScLLVMProduceModule(
             [MarshalAs(UnmanagedType.LPWStr)]String path_to_cache_dir,
+            [MarshalAs(UnmanagedType.LPWStr)]String cache_sub_dir,
             String predefined_hash_str,
             String code_to_build,
             String function_names_delimited,
@@ -73,18 +74,13 @@ namespace Starcounter.Rest {
                 dbName = "nodbname";
             }
 
-            String pathToTempDir = Path.Combine(
-                    Path.GetTempPath(),
-                    "starcounter",
-                    dbName,
-                    "self");
-
             // Pointer to execution module that we don't use though.
             IntPtr out_exec_module;
             float time_took_sec;
 
             UInt32 err_code = ScLLVMFunctions.ScLLVMProduceModule(
-                pathToTempDir,
+                null,
+                dbName + "\\self",
                 null,
                 code_to_build,
                 function_names_delimited,

@@ -208,7 +208,8 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
 			float time_took_sec = 0;
 
 			uint32_t err_code = ScLLVMProduceModule(
-				g_gateway.get_user_temp_sc_dir().c_str(), // Path to cache directory.
+                nullptr, // Path to cache dir.
+                L"gw", // Path to cache sub-directory.
 				nullptr, // Letting LLVM generate the hash itself.
 				uri_matching_code_, // code_to_build
 				root_function_name, // function_names_delimited
