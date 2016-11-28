@@ -2309,7 +2309,8 @@ uint32_t Gateway::Init()
 	float time_took_sec = 0;
 
     uint32_t err_code = ScLLVMProduceModule(
-		g_gateway.user_temp_sc_dir_.c_str(), // Path to cache directory.
+        nullptr, // Path to cache dir.
+		L"gw", // Path to cache sub-directory.
 		NULL, // No predefined hash string.
 		"extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
 		"extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",

@@ -1478,7 +1478,13 @@ public:
 };
 
 extern "C" uint32_t ScLLVMProduceModule(
-	const wchar_t* const path_to_cache_dir,
+#ifdef _WIN32
+    const wchar_t* const path_to_cache_dir,
+    const wchar_t* const cache_sub_dir,
+#else
+    const char* const path_to_cache_dir,
+    const char* const cache_sub_dir,
+#endif
 	const char* const predefined_hash_str,
 	const char* const code_to_build,
 	const char* const function_names_delimited,
