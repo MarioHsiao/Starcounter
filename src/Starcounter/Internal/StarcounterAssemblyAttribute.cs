@@ -10,5 +10,10 @@ namespace Starcounter.Internal {
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly, Inherited = false, AllowMultiple = false)]
     public sealed class StarcounterAssemblyAttribute : Attribute {
+        /// <summary>
+        /// Gets or sets a value dictating if database types are to be qualified
+        /// only by their full name. Default is <c>false</c>.
+        /// </summary>
+        public bool QualifyTypesOnlyByFullNameInQueries { get; set; }
     }
 }

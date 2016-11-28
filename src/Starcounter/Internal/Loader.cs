@@ -154,6 +154,8 @@ namespace Starcounter.Internal
                 columnRuntimeTypes
                 );
 
+            typeDef.UseOnlyFullNamespaceSqlName = databaseClass.IsQualifiedOnlyByFullNameInQueries;
+
             return typeDef;
         }
 

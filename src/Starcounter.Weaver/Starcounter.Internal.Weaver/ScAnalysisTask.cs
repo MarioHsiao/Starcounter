@@ -85,6 +85,8 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private IType _transientAttributeType;
 
+        private IType _starcounterAssemblyType;
+
         DatabaseTypePolicy databaseTypePolicy;
 
         /// <summary>
@@ -147,6 +149,28 @@ namespace Starcounter.Internal.Weaver {
                     return true;
             }
             return false;
+        }
+
+        bool ShouldBeQualifiedOnlyByFullName(TypeDefDeclaration typeDef)
+        {
+            bool result = false;
+            var tag = typeDef.Module.AssemblyManifest.CustomAttributes.GetOneByType(_starcounterAssemblyType);
+            if (tag != null)
+            {
+                var args = tag.NamedArguments;
+                if (args != null && args.Count > 0)
+                {
+                    foreach (var arg in args)
+                    {
+                        if (arg.MemberKind == MemberKind.Property && arg.MemberName == nameof(StarcounterAssemblyAttribute.QualifyTypesOnlyByFullNameInQueries))
+                        {
+                            result = (bool)arg.Value.Value;
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -395,6 +419,8 @@ namespace Starcounter.Internal.Weaver {
             _typeAttributeType = FindStarcounterType(typeof(TypeAttribute));
             _inheritsAttributeType = FindStarcounterType(typeof(InheritsAttribute));
             _typeNameAttributeType = FindStarcounterType(typeof(TypeNameAttribute));
+            _starcounterAssemblyType = FindStarcounterType(typeof(StarcounterAssemblyAttribute));
+
             databaseTypePolicy = new DatabaseTypePolicy(
                 CodeWeaver.Current.FileManager.TypeConfiguration, 
                 FindStarcounterType(typeof(Starcounter.DatabaseAttribute)),
@@ -1047,6 +1073,7 @@ namespace Starcounter.Internal.Weaver {
             }
 
             databaseClass.BaseClass = DiscoverDatabaseClass(typeDef.BaseType);
+            databaseClass.IsQualifiedOnlyByFullNameInQueries = ShouldBeQualifiedOnlyByFullName(typeDef);
 
             // If it is a regular type, process the fields.
             // This has to be done when the type itself has been processed.
