@@ -27,11 +27,13 @@ extern "C" {
 
 	// Version of this SCLLVM.
 #ifdef _WIN32
+    std::wstring g_path_to_temp;
 	std::wstring g_scllvm_diag_prefix;
-	const wchar_t* const ScllvmVersion = L"2.2.3";
+	const wchar_t* const ScllvmVersion = L"2.2.4";
 #else
+    std::string g_path_to_temp;
 	std::string g_scllvm_diag_prefix;
-	const char* const ScllvmVersion = "2.2.3";
+	const char* const ScllvmVersion = "2.2.4";
 #endif
 
 #ifdef _WIN32
@@ -42,6 +44,7 @@ extern "C" {
 #else
 #include <unistd.h>
 #include <sys/stat.h>
+#include <pwd.h>
 # define MODULE_API
 #endif
 
@@ -365,8 +368,10 @@ extern "C" {
 		uint32_t ProduceModuleAndReturnPointers(
 #ifdef _WIN32
 			const wchar_t* const path_to_cache_dir,
+            const wchar_t* const cache_sub_dir,
 #else
 			const char* const path_to_cache_dir,
+            const char* const cache_sub_dir,
 #endif
 			const char* const predefined_hash_str,
 			const char* const code_to_build,
@@ -442,13 +447,33 @@ extern "C" {
 			uint32_t err_code = 1;
 
 #ifdef _WIN32
-			std::wstring path_to_cache_dir_versioned = path_to_cache_dir;
-			path_to_cache_dir_versioned += L"/";
+            std::wstring path_to_cache_dir_versioned;
+            if (nullptr == path_to_cache_dir) {
+                path_to_cache_dir_versioned = g_path_to_temp;
+            } else {
+                path_to_cache_dir_versioned = path_to_cache_dir;
+            }
+
+            path_to_cache_dir_versioned += L"/";
 			path_to_cache_dir_versioned += ScllvmVersion;
+            if (nullptr != cache_sub_dir) {
+                path_to_cache_dir_versioned += L"/";
+                path_to_cache_dir_versioned += cache_sub_dir;
+            }
 #else
-			std::string path_to_cache_dir_versioned = path_to_cache_dir;
+            std::string path_to_cache_dir_versioned;
+            if (nullptr == path_to_cache_dir) {
+                path_to_cache_dir_versioned = g_path_to_temp;
+            } else {
+                path_to_cache_dir_versioned = path_to_cache_dir;
+            }
+
 			path_to_cache_dir_versioned += "/";
 			path_to_cache_dir_versioned += ScllvmVersion;
+            if (nullptr != cache_sub_dir) {
+                path_to_cache_dir_versioned += "/";
+                path_to_cache_dir_versioned += cache_sub_dir;
+            }
 #endif
 
 			// Creating directory path. 
@@ -648,6 +673,38 @@ extern "C" {
 		llvm::InitializeNativeTarget();
 		llvm::InitializeNativeTargetAsmPrinter();
 
+
+#ifdef _WIN32
+
+        wchar_t temp_dir_path[1024];
+        uint32_t num_chars = GetTempPathW(1024, temp_dir_path);
+        assert(num_chars > 0);
+        g_path_to_temp = std::wstring(temp_dir_path);
+        g_path_to_temp += L"\\starcounter";
+
+#else
+
+        char* temp_env_var_path = getenv("TMPDIR");
+
+        // Checking if temp directory exists (for example, in TeamCity).
+        if (nullptr != temp_env_var_path) {
+
+            g_path_to_temp = temp_env_var_path;
+            g_path_to_temp += "/starcounter";
+
+        } else {
+
+            // Getting current user name.
+            uid_t uid = geteuid();
+            struct passwd *pw = getpwuid(uid);
+            assert(pw && "getpwuid returned null!");
+
+            g_path_to_temp = "/tmp/starcounter/";
+            g_path_to_temp += pw->pw_name;
+        }
+
+#endif // _WIN32
+
 		g_mutex->release();
 	}
 
@@ -681,9 +738,11 @@ extern "C" {
 
 	MODULE_API uint32_t ScLLVMProduceModule(
 #ifdef _WIN32
-		const wchar_t* const path_to_cache_dir,
+        const wchar_t* const path_to_cache_dir,
+        const wchar_t* const cache_sub_dir,
 #else
-		const char* const path_to_cache_dir,
+        const char* const path_to_cache_dir,
+        const char* const cache_sub_dir,
 #endif
 		const char* const predefined_hash_str,
 		const char* const code_to_build,
@@ -706,6 +765,7 @@ extern "C" {
 
 		uint32_t err_code = (*out_codegen_engine)->ProduceModuleAndReturnPointers(
 			path_to_cache_dir,
+            cache_sub_dir,
 			predefined_hash_str,
 			code_to_build,
 			function_names_delimited,
@@ -884,8 +944,10 @@ extern "C" {
 		int32_t err_code = ScLLVMProduceModule(
 #ifdef _WIN32
 			L"star cÖunter",
+            L"haha",
 #else
 			"star cÖunter",
+            nullptr,
 #endif
 			nullptr,
 			"extern \"C\" int gen_function(int p) { char x = p; return p + 555; }",
@@ -899,7 +961,7 @@ extern "C" {
 			&out_exec_module,
 			&out_codegen_engine);
 
-		assert(0 == err_code);
+		assert(0 == err_code); 
 		
 		typedef int(*function_type) (int);
 		function_type gen_func = (function_type)(out_func_ptrs[0]);

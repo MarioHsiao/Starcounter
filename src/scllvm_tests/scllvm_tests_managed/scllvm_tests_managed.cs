@@ -16,6 +16,7 @@ namespace scllvm_tests_managed {
         [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static UInt32 ScLLVMProduceModule(
             [MarshalAs(UnmanagedType.LPWStr)]String path_to_cache_dir,
+            [MarshalAs(UnmanagedType.LPWStr)]String path_to_cache_sub_dir,
             String predefined_hash_str,
             String input_code_str,
             String function_names_delimited,
@@ -74,6 +75,7 @@ namespace scllvm_tests_managed {
 
             err_code = ScLLVMFunctions.ScLLVMProduceModule(
                 cur_dir,
+                null,
                 null,
                 "extern \"C\" int Func1(int x) { return 8459649 + x; }",
                 "Func1",
