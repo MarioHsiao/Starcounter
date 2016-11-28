@@ -228,7 +228,7 @@ namespace Starcounter.Internal {
                 unsafe {
                     keptHandle = Refs[handle.index];
                     if (!keptHandle.HasTemporaryRef()) {
-                        ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty, handle.verify);
+                        ec = sccoredb.star_transaction_is_dirty(handle.handle, out isDirty, handle.verify);
                         if (ec == 0)
                             ec = sccoredb.star_transaction_free(handle.handle, handle.verify);
 
@@ -236,7 +236,7 @@ namespace Starcounter.Internal {
                             Refs[handle.index] = TransactionHandle.Invalid;
 
                             if (isDirty != 0)
-                                throw ErrorCode.ToException(Error.SCERRTRANSACTIONMODIFIEDBUTNOTREFERENCED); 
+                                throw ErrorCode.ToException(Error.SCERRTRANSACTIONMODIFIEDBUTNOTREFERENCED);
 
                             // If the last one added is the one disposed we decrease the used count and allow the position to be reused.
                             if (handle.index == (Used - 1))
@@ -250,7 +250,7 @@ namespace Starcounter.Internal {
                 int calcIndex = handle.index - ShortListCount;
                 keptHandle = SlowList[calcIndex];
                 if (!keptHandle.HasTemporaryRef()) {
-                    ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty, handle.verify);
+                    ec = sccoredb.star_transaction_is_dirty(handle.handle, out isDirty, handle.verify);
                     if (ec == 0)
                         ec = sccoredb.star_transaction_free(handle.handle, handle.verify);
 
@@ -623,9 +623,7 @@ namespace Starcounter.Internal {
             if (handle.handle == 0)
                 return false;
 
-            unsafe {
-                ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty, handle.verify);
-            }
+            ec = sccoredb.star_transaction_is_dirty(handle.handle, out isDirty, handle.verify);
 
             if (ec == 0) return (isDirty != 0);
 
@@ -638,7 +636,7 @@ namespace Starcounter.Internal {
 
         public void Commit(TransactionHandle handle) {
             Scope(handle, () => {
-                Commit(0).Wait();
+                Commit(handle.handle, 0).Wait();
 
                 // Note that transaction is no longer current. We need to restore the scope but
                 // again setting it as the current transaction on context.
@@ -651,20 +649,38 @@ namespace Starcounter.Internal {
             });
         }
 
+        private static bool is_write_transaction_ignore_error(ulong handle)
+        {
+            int dirty_transaction;
+            if (sccoredb.star_transaction_is_dirty(handle, out dirty_transaction) != 0)
+                dirty_transaction = 1;
+
+            return dirty_transaction != 0;
+        }
+
         /// <summary>
         /// Commits current transaction.
         /// </summary>
-        internal static async System.Threading.Tasks.Task Commit(int free) {
-            if (ThreadData.applyHooks_)
-                InvokeHooks();
+        internal static System.Threading.Tasks.Task Commit(ulong handle, int free) {
 
-            long current_cookie = System.Threading.Interlocked.Increment(ref max_completion_cookie);
-            var tcs = new TaskCompletionSource<uint>();
-            completions_[current_cookie] = tcs;
+            bool write_transaction = is_write_transaction_ignore_error(handle);
+
+            TaskCompletionSource<uint> tcs = null;
+            long current_cookie = 0;
+
+            if (write_transaction)
+            {
+                if (ThreadData.applyHooks_)
+                    InvokeHooks();
+
+                current_cookie = System.Threading.Interlocked.Increment(ref max_completion_cookie);
+                tcs = new TaskCompletionSource<uint>();
+                completions_[current_cookie] = tcs;
+            }
 
             uint r = sccoredb.star_context_commit_async(ThreadData.ContextHandle, free, 1, (ulong)current_cookie);
 
-            if (r != Error.SCERROPERATIONPENDING)
+            if ((r != Error.SCERROPERATIONPENDING) && (write_transaction))
             {
                 TaskCompletionSource<uint> dummy;
                 completions_.TryRemove(current_cookie, out dummy);
@@ -672,12 +688,18 @@ namespace Starcounter.Internal {
 
             if ((r != 0) && (r != Error.SCERROPERATIONPENDING)) throw ErrorCode.ToException(r);
 
-            if (r != 0)
-            {
-                r = await tcs.Task;
-                if (r != 0)
-                    throw ErrorCode.ToException(r);
-            }
+            if ((r == 0) || (!write_transaction)) //read transactions are expected to be synchronous
+                return System.Threading.Tasks.Task.FromResult(0);
+
+            return tcs.Task.ContinueWith(
+                (t) =>
+                {
+                    if (t.Result != 0)
+                        throw ErrorCode.ToException(r);
+                    else
+                        return t.Result;
+                }
+            );
         }
 
         internal static void CompleteCommit(long cookie, uint result)
