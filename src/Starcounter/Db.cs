@@ -269,7 +269,7 @@ namespace Starcounter {
                                 );
 
                             action();
-                            t = TransactionManager.Commit(1);
+                            t = TransactionManager.Commit(handle, 1);
                             if (t.IsCompleted)
                                 t.GetAwaiter().GetResult();
                             break;

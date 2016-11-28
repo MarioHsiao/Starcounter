@@ -351,15 +351,17 @@ namespace Starcounter.Internal
         /// Checks if there are any pending changes on given transaction.
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        private static extern unsafe uint star_transaction_is_dirty(ulong handle, int* pvalue);
+        internal static extern uint star_transaction_is_dirty(ulong handle, out int pvalue);
 
-        internal static unsafe uint star_transaction_is_dirty(
-            ulong handle, int* pvalue, ulong verify
+        internal static uint star_transaction_is_dirty(
+            ulong handle, out int pvalue, ulong verify
             )
         {
             var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
             if (verify == ThreadData.ObjectVerify)
-                return star_transaction_is_dirty(handle, pvalue);
+                return star_transaction_is_dirty(handle, out pvalue);
+
+            pvalue = 0;
             return Error.SCERRITERATORNOTOWNED;
         }
 
