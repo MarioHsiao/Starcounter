@@ -26,7 +26,13 @@ int32_t FuncSimulation(int32_t p) {
 #endif
 
 extern "C" uint32_t ScLLVMProduceModule(
-	const wchar_t* const path_to_cache_dir,
+#ifdef _WIN32
+    const wchar_t* const path_to_cache_dir,
+    const wchar_t* const cache_sub_dir,
+#else
+    const char* const path_to_cache_dir,
+    const char* const cache_sub_dir,
+#endif
 	const char* const predefined_hash_str,
 	const char* const code_to_build,
 	const char* const function_names_delimited,
@@ -151,6 +157,7 @@ TEST(ScLLVMTests, SimpleCachingCases) {
 
 	err = ScLLVMProduceModule(
 		cur_dir,
+        nullptr,
 		nullptr,
 		"extern \"C\" int Func1(int x) { return 8459649 + x; }",
 		"Func1",
@@ -172,7 +179,8 @@ TEST(ScLLVMTests, SimpleCachingCases) {
 
 	float time_took_sec_cached = 0;
 	err = ScLLVMProduceModule(
-		cur_dir, 
+		cur_dir,
+        nullptr,
 		nullptr,
 		"extern \"C\" int Func1(int x) { return 8459649 + x; }",
 		"Func1", 
@@ -241,6 +249,7 @@ void TestScLLVMPerformance(bool delete_cached_modules) {
 
 		uint32_t err = ScLLVMProduceModule(
 			cur_dir,
+            nullptr,
 			NULL,
 			code,
 			"gen_function",
