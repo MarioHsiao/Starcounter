@@ -24,12 +24,14 @@ namespace Starcounter.Hosting {
     /// </remarks>
     internal sealed class AssemblyResolver : IAssemblyResolver {
         readonly LogSource log = LogSources.CodeHostAssemblyResolver;
+        Assembly appAssembly;
 
         public readonly PrivateAssemblyStore PrivateAssemblies;
 
         public AssemblyResolver(PrivateAssemblyStore store) {
             Trace("Assembly resolver created in process {0}", Process.GetCurrentProcess().Id);
             PrivateAssemblies = store;
+            appAssembly = null;
         }
 
         ApplicationDirectory IAssemblyResolver.RegisterApplication(string executablePath, out DatabaseSchema schema)
@@ -37,23 +39,38 @@ namespace Starcounter.Hosting {
             var exe = new FileInfo(executablePath);
             var appDir = new ApplicationDirectory(exe.Directory);
 
-            schema = DatabaseSchema.DeserializeFrom(appDir.GetApplicationSchemaFiles());
-
             PrivateAssemblies.RegisterApplicationDirectory(appDir);
 
-            return appDir;
-        }
-
-        Assembly IAssemblyResolver.ResolveApplication(string executablePath)
-        {
-            var assembly = ResolveApplication(executablePath);
-            if (assembly.EntryPoint == null)
+            // Cheat: pre-load the application assembly.
+            appAssembly = ResolveApplication(executablePath);
+            if (appAssembly.EntryPoint == null)
             {
                 throw ErrorCode.ToException(
                     Error.SCERRAPPLICATIONNOTANEXECUTABLE, string.Format("Failing application file: {0}", executablePath));
             }
 
-            return assembly;
+            var stream = appAssembly.GetManifestResourceStream(DatabaseSchema.EmbeddedResourceName);
+            if (stream != null)
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                schema = DatabaseSchema.DeserializeFrom(stream);
+            }
+            else
+            {
+                // Figure this out. Some apps will not have a schema.
+                // TODO:
+                Debug.Assert(StarcounterEnvironment.IsAdministratorApp);
+                schema = new DatabaseSchema();
+                schema.AddStarcounterAssembly();
+            }
+            
+            return appDir;
+        }
+
+        Assembly IAssemblyResolver.ResolveApplication(string executablePath)
+        {
+            Debug.Assert(appAssembly != null);
+            return appAssembly;
         }
         
         Assembly IAssemblyResolver.ResolveApplicationReference(ResolveEventArgs args) {
