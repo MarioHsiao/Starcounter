@@ -158,10 +158,14 @@ namespace Starcounter.VisualStudio.Projects
             var sec1 = new SECURITY_ATTRIBUTES();
             var sec2 = new SECURITY_ATTRIBUTES();
 
+            var mainArgs = args.CommandParameters == null || args.CommandParameters.Count == 0
+                ? string.Empty
+                : string.Join(" ", args.CommandParameters);
+
             uint createFlags = attachDebugger ? (uint)ProcessCreationFlags.CREATE_SUSPENDED : 0;
             var created = Kernel32.CreateProcess(
                 debugConfig.AssemblyPath,
-                null,
+                mainArgs,
                 ref sec1,
                 ref sec2,
                 false,
