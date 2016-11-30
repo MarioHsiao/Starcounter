@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal;
 using Starcounter.Templates;
@@ -71,8 +72,8 @@ namespace Starcounter.XSON {
         private static void ParseAndProcess(TDecimal property, Json parent, string valueStr) {
             decimal value;
             bool markAsDirtyAfter = false;
-
-            if (!decimal.TryParse(valueStr, out value)) {
+            
+            if (!decimal.TryParse(valueStr, NumberStyles.Any, CultureInfo.InvariantCulture, out value)) {
                 if (string.IsNullOrEmpty(valueStr)) {
                     markAsDirtyAfter = true;
                     value = default(decimal);
@@ -95,7 +96,7 @@ namespace Starcounter.XSON {
             double value;
             bool markAsDirtyAfter = false;
 
-            if (!double.TryParse(valueStr, out value)) {
+            if (!double.TryParse(valueStr, NumberStyles.Float, CultureInfo.InvariantCulture, out value)) {
                 if (string.IsNullOrEmpty(valueStr)) {
                     markAsDirtyAfter = true;
                     value = default(double);
