@@ -66,9 +66,9 @@ namespace Starcounter.XSON {
         }
 
         public void Serialize(Json json, Template template, TextWriter textWriter, JsonSerializerSettings settings = null) {
-            bool oldValue = json.checkBoundProperties;
-            try {
-                json.checkBoundProperties = false;
+//            bool oldValue = json.checkBoundProperties;
+//            try {
+//                json.checkBoundProperties = false;
 
                 if (settings == null)
                     settings = DefaultSettings;
@@ -83,9 +83,9 @@ namespace Starcounter.XSON {
                         SerializeObject(this, json, writer, settings);
                     }
                 });
-            } finally {
-                json.checkBoundProperties = oldValue;
-            }
+//            } finally {
+//                json.checkBoundProperties = oldValue;
+//            }
         }
 
         public T Deserialize<T>(string source, JsonSerializerSettings settings = null) where T : Json, new() {
@@ -278,7 +278,7 @@ namespace Starcounter.XSON {
                             // If we have an object with another serializer set, this code will not 
                             // work since it will bypass the setting.
                             int templateType = (pp.Template != null) ? (int)pp.Template.TemplateTypeId : (int)TemplateTypeEnum.Object;
-                            serializePerTemplate[templateType](serializer, json, pp.Template, writer, settings);
+                            serializePerTemplate[templateType](serializer, pp, pp.Template, writer, settings);
                         } finally {
                             pp.calledFromStepSibling = false;
                         }
@@ -309,37 +309,34 @@ namespace Starcounter.XSON {
             }
         }
 
-        private static void SerializeArray(NewtonSoftSerializer serializer, 
+        private static void SerializeArray(NewtonSoftSerializer serializer,
                                           Json json,
                                           Newt.JsonWriter writer,
                                           JsonSerializerSettings settings) {
             IList arrList;
             Json arrItem;
 
-            unsafe
-            {
-                writer.WriteStartArray();
-                
-                arrList = (IList)json;
-                for (int i = 0; i < arrList.Count; i++) {
-                    arrItem = (Json)arrList[i];
+            writer.WriteStartArray();
 
-                    if (arrItem != null) {
-                        // TODO:
-                        // If we have an object with another serializer set, this code wont 
-                        // work since it will bypass the setting.
-                        int templateType = (arrItem.Template != null) ? (int)arrItem.Template.TemplateTypeId : (int)TemplateTypeEnum.Object;
-                        serializePerTemplate[templateType](serializer, arrItem, arrItem.Template, writer, settings);
-                    } else {
-                        // TODO:
-                        // Handle nullvalues.
-                        writer.WriteStartObject();
-                        writer.WriteEndObject();
-                    }
+            arrList = (IList)json;
+            for (int i = 0; i < arrList.Count; i++) {
+                arrItem = (Json)arrList[i];
+
+                if (arrItem != null) {
+                    // TODO:
+                    // If we have an object with another serializer set, this code wont 
+                    // work since it will bypass the setting.
+                    int templateType = (arrItem.Template != null) ? (int)arrItem.Template.TemplateTypeId : (int)TemplateTypeEnum.Object;
+                    serializePerTemplate[templateType](serializer, arrItem, arrItem.Template, writer, settings);
+                } else {
+                    // TODO:
+                    // Handle nullvalues.
+                    writer.WriteStartObject();
+                    writer.WriteEndObject();
                 }
-
-                writer.WriteEndArray();
             }
+
+            writer.WriteEndArray();
         }
         
         private static void DeserializeException(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings) {
