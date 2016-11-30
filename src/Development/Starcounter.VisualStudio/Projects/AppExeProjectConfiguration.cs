@@ -162,10 +162,16 @@ namespace Starcounter.VisualStudio.Projects
                 ? string.Empty
                 : string.Join(" ", args.CommandParameters);
 
+            var cmdline = debugConfig.AssemblyPath;
+            if (mainArgs != string.Empty)
+            {
+                cmdline += " " + mainArgs;
+            }
+
             uint createFlags = attachDebugger ? (uint)ProcessCreationFlags.CREATE_SUSPENDED : 0;
             var created = Kernel32.CreateProcess(
-                debugConfig.AssemblyPath,
-                mainArgs,
+                null,
+                cmdline,
                 ref sec1,
                 ref sec2,
                 false,
