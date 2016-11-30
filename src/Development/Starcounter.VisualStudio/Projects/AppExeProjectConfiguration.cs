@@ -106,7 +106,7 @@ namespace Starcounter.VisualStudio.Projects
             }
             this.WriteDebugLaunchStatus("started");
 
-            if (debugConfiguration.IsSelfHosted)
+            if (cmdLine.ContainsFlag(SharedCLI.Option.SelfHosted))
             {
                 result = DoBeginDebugSelfHosted(debugConfiguration, flags, cmdLine);
             }
