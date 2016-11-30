@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
@@ -93,38 +94,6 @@ namespace Starcounter.Internal.XSON.Tests {
             invalidJson = "{ Accounts: ] }";
             Assert.Catch(() => obj.PopulateFromJson(invalidJson));
         }
-
-//        [Test]
-//        public static void EncodeAndDecodeJsonStrings() {
-//            // "standard" special characters.
-//            EncodeDecodeString("1\b2\f3\n4\r5\t6\"7\\");
-
-//            // Low unicode characters.
-//            EncodeDecodeString("UnicodeChars:\u001a\u0006");
-
-//            // High unicode characters.
-//            EncodeDecodeString("UnicodeChars:\u2031");
-//        }
-
-//        private static void EncodeDecodeString(string value) {
-//            byte[] buffer = new byte[1024];
-////            byte[] expected;
-//            int count;
-//            int used;
-//            string decodedString;
-
-//            unsafe {
-//                fixed (byte* p = buffer) {
-//                    count = JsonHelper.WriteString((IntPtr)p, buffer.Length, value);
-//                    JsonHelper.ParseString((IntPtr)p, buffer.Length, out decodedString, out used);
-//                }
-//            }
-////            expected = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(value));
-////            AssertAreEqual(expected, buffer, count);
-
-//            Assert.AreEqual(count, used);
-//            Assert.AreEqual(value, decodedString);
-//        }
 
         private static void AssertAreEqual(byte[] expected, byte[] actual, int count) {
             Assert.AreEqual(expected.Length, count);
@@ -325,6 +294,22 @@ namespace Starcounter.Internal.XSON.Tests {
             });
             Assert.IsTrue(ErrorCode.TryGetCode(ex, out errorCode));
             Assert.AreEqual(Error.SCERRJSONPROPERTYNOTFOUND, errorCode);
+        }
+
+        [Test]
+        public static void TestDeserializeStringArray() {
+            TObjArr schema = new TObjArr();
+            schema.ElementType = new TString();
+
+            string jsonStr = @"[""One"", ""Two""]";
+            Json json = new Json() { Template = schema };
+
+            json.PopulateFromJson(jsonStr);
+            var list = (IList)json;
+
+            Assert.AreEqual(2, list.Count);
+            Assert.AreEqual("One", ((Json)list[0]).StringValue);
+            Assert.AreEqual("Two", ((Json)list[1]).StringValue);
         }
     }
 }

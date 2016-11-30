@@ -66,10 +66,6 @@ namespace Starcounter.XSON {
         }
 
         public void Serialize(Json json, Template template, TextWriter textWriter, JsonSerializerSettings settings = null) {
-//            bool oldValue = json.checkBoundProperties;
-//            try {
-//                json.checkBoundProperties = false;
-
                 if (settings == null)
                     settings = DefaultSettings;
 
@@ -83,9 +79,6 @@ namespace Starcounter.XSON {
                         SerializeObject(this, json, writer, settings);
                     }
                 });
-//            } finally {
-//                json.checkBoundProperties = oldValue;
-//            }
         }
 
         public T Deserialize<T>(string source, JsonSerializerSettings settings = null) where T : Json, new() {
@@ -118,8 +111,8 @@ namespace Starcounter.XSON {
             var reader = new Newt.JsonTextReader(textReader);
             if (settings == null)
                 settings = DefaultSettings;
-
-            deserializePerTemplate[(int)json.Template.TemplateTypeId](json, null, reader, settings);
+            
+            deserializePerTemplate[(int)json.Template.TemplateTypeId](json, json.Template, reader, settings);
         }
 
         private static void SerializeException(NewtonSoftSerializer serializer, 
@@ -347,62 +340,77 @@ namespace Starcounter.XSON {
             if (template == null)
                 template = json.Template;
 
-            try {
-                bool? value = reader.ReadAsBoolean();
+            //try {
+                if (reader.TokenType != Newt.JsonToken.Boolean)
+                    JsonHelper.ThrowWrongValueTypeException(null, template.TemplateName, template.JsonType, reader.Value?.ToString());
+
+                bool? value = (bool?)reader.Value;
                 ((TBool)template).Setter(json, value.GetValueOrDefault());
-            } catch (Exception ex) {
-                JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.Value?.ToString());
-            }
+            //} catch (Exception ex) {
+            //    JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.Value?.ToString());
+            //}
         }
 
         private static void DeserializeDecimal(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings) {
             if (template == null)
                 template = json.Template;
 
-            try {
-                decimal? value = reader.ReadAsDecimal();
+            //try {
+                if (reader.TokenType != Newt.JsonToken.Float)
+                    JsonHelper.ThrowWrongValueTypeException(null, template.TemplateName, template.JsonType, reader.Value?.ToString());
+
+                decimal? value = (decimal?)reader.Value;
                 ((TDecimal)template).Setter(json, value.GetValueOrDefault());
-            } catch (Exception ex) {
-                JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.Value?.ToString());
-            }
+            //} catch (Exception ex) {
+            //    JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.Value?.ToString());
+            //}
         }
 
         private static void DeserializeDouble(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings) {
             if (template == null)
                 template = json.Template;
 
-            try {
-                double? value = reader.ReadAsDouble();
+            //try {
+                if (reader.TokenType != Newt.JsonToken.Float)
+                    JsonHelper.ThrowWrongValueTypeException(null, template.TemplateName, template.JsonType, reader.Value?.ToString());
+
+                double? value = (double?)reader.Value;
                 ((TDouble)template).Setter(json, value.GetValueOrDefault());
-            } catch (Exception ex) {
-                JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.Value?.ToString());
-            }
+            //} catch (Exception ex) {
+            //    JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.Value?.ToString());
+            //}
         }
 
         private static void DeserializeLong(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings) {
             if (template == null)
                 template = json.Template;
 
-            try {
+            //try {
+                if (reader.TokenType != Newt.JsonToken.Integer)
+                    JsonHelper.ThrowWrongValueTypeException(null, template.TemplateName, template.JsonType, reader.Value?.ToString());
+
                 // No way to read int64 by using direct method. But default for token integer is int64
-                if (!reader.Read())
-                    throw ErrorCode.ToException(Error.SCERRJSONUNEXPECTEDENDOFCONTENT);
+                //if (!reader.Read())
+                //    throw ErrorCode.ToException(Error.SCERRJSONUNEXPECTEDENDOFCONTENT);
                 long? value = (long?)reader.Value;
                 ((TLong)template).Setter(json, value.GetValueOrDefault());
-            } catch (Exception ex) {
-                JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.Value?.ToString());
-            }
+            //} catch (Exception ex) {
+            //    JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.Value?.ToString());
+            //}
         }
 
         private static void DeserializeString(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings) {
             if (template == null)
                 template = json.Template;
 
-            try {
-                ((TString)template).Setter(json, reader.ReadAsString());
-            } catch (Exception ex) {
-                JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.Value?.ToString());
-            }
+            //try {
+                if (reader.TokenType != Newt.JsonToken.String)
+                    JsonHelper.ThrowWrongValueTypeException(null, template.TemplateName, template.JsonType, reader.Value?.ToString());
+
+                ((TString)template).Setter(json, (string)reader.Value);
+            //} catch (Exception ex) {
+            //    JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.Value?.ToString());
+            //}
         }
 
         private static void DeserializeObject(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings) {
@@ -410,13 +418,11 @@ namespace Starcounter.XSON {
             Template tProperty;
             TObject tObject;
             Newt.JsonToken token;
-            
-            if (template != null) {
-                tObject = (TObject)template;
+
+            tObject = (TObject)template;
+            if (template != json.Template) {
                 json = tObject.Getter(json);
-            } else {
-                tObject = (TObject)json.Template;
-            }
+            } 
 
             if (!reader.Read())
                 throw ErrorCode.ToException(Error.SCERRJSONUNEXPECTEDENDOFCONTENT);
@@ -442,6 +448,7 @@ namespace Starcounter.XSON {
                 if (tProperty != null) {
                     // TODO:
                     // This will always use the same serializer and reader. So this wont allow a child to specify a different serializer.
+                    reader.Read();
                     deserializePerTemplate[(int)tProperty.TemplateTypeId](json, tProperty, reader, settings);
                 } else {
                     // Property is not found in the template. 
@@ -461,8 +468,9 @@ namespace Starcounter.XSON {
             Json childObj;
             Newt.JsonToken token;
 
-            if (template != null) {
-                json = ((TObjArr)template).Getter(json);
+            TObjArr tArr = (TObjArr)template;
+            if (template != json.Template) {
+                json = tArr.Getter(json);
             }
 
             if (!reader.Read())
@@ -472,22 +480,27 @@ namespace Starcounter.XSON {
             if (token != Newt.JsonToken.StartArray)
                 JsonHelper.ThrowInvalidJsonException("Expected array but found: " + token.ToString());
             
-            TObjArr tArr = (TObjArr)template;
+            
             if (tArr.ElementType == null)
                 throw new Exception("TODO!");
 
-            while (true) {
+            while (reader.Read()) {
+                token = reader.TokenType;
+
+                if (token == Newt.JsonToken.EndArray)
+                    break;
+
                 // TODO:
                 // This will always use the same serializer and reader. So this wont allow a child to specify a different serializer.
-                try {
+                //try {
                     childObj = (Json)tArr.ElementType.CreateInstance();
                     deserializePerTemplate[(int)childObj.Template.TemplateTypeId](childObj, childObj.Template, reader, settings);
                     json._Add(childObj);
-                } catch (Exception ex) {
-                    if (reader.TokenType == Newt.JsonToken.EndArray)
-                        break;
-                    throw ex;
-                }
+                //} catch (Exception ex) {
+                //    if (reader.TokenType == Newt.JsonToken.EndArray)
+                //        break;
+                //    throw ex;
+                //}
             }
         }
        
