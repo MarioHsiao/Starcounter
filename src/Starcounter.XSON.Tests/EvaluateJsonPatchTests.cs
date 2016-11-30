@@ -478,24 +478,21 @@ namespace Starcounter.Internal.XSON.Tests {
 
             incomingPatch = GetVersioningPatch(version, 4, 1);
             status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
-            Assert.AreEqual(JsonPatchStatus.Applied, status);
-            Assert.AreEqual(-1, evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Queued, status);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(1, version.LocalVersion);
             Assert.AreEqual("qwerty", tValue.Getter(json));
 
             incomingPatch = GetVersioningPatch(version, 3, 1);
             status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
-            Assert.AreEqual(JsonPatchStatus.Applied, status);
-            Assert.AreEqual(-1, evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Queued, status);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(1, version.LocalVersion);
             Assert.AreEqual("qwerty", tValue.Getter(json));
 
             incomingPatch = GetVersioningPatch(version, 5, 1);
             status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
-            Assert.AreEqual(JsonPatchStatus.Applied, status);
-            Assert.AreEqual(-1, evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Queued, status);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(1, version.LocalVersion);
             Assert.AreEqual("qwerty", tValue.Getter(json));
