@@ -629,9 +629,9 @@ namespace Starcounter.XSON {
         /// otherwise the applied count will be returned.
         /// </returns>
         private int ConvertStatusToCount(JsonPatchStatus status, int patchCount) {
-            if (status == JsonPatchStatus.AlreadyApplied)
+            if (status == JsonPatchStatus.Queued)
                 return -1;
-            else if (status == JsonPatchStatus.Queued)
+            else if (status == JsonPatchStatus.AlreadyApplied)
                 return -2;
 
             return patchCount;
