@@ -110,10 +110,9 @@ namespace Starcounter.XSON {
             }
 
             var session = json.Session;
-            if (session != null) {
+            if (session != null)
                 session.enableNamespaces = true;
-                session.enableCachedReads = true;
-            }
+            
             try {
                 if (!changeLog.Generate(false, out changes)) {
                     return null;
@@ -160,10 +159,8 @@ namespace Starcounter.XSON {
                     return sb.ToString();
                 }
             } finally {
-                if (session != null) {
+                if (session != null)
                     session.enableNamespaces = false;
-                    session.enableCachedReads = false;
-                }
             }
         }
 
@@ -365,6 +362,7 @@ namespace Starcounter.XSON {
         public JsonPatchStatus Apply(Json root, string patch, bool strictPatchRejection, out int patchCount) {
             using (var reader = new JsonTextReader(new StringReader(patch))) {
                 reader.CloseInput = true;
+                reader.DateParseHandling = DateParseHandling.None;
                 return this.Apply(root, reader, strictPatchRejection, patch, out patchCount);
             }
         }

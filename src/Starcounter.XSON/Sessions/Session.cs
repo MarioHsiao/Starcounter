@@ -80,13 +80,7 @@ namespace Starcounter {
         /// and no siblings should be serialized.
         /// </summary>
         internal bool enableNamespaces = false;
-
-        /// <summary>
-        /// If set to true values that are bound will not be read several times when generating
-        /// changes from changelog and creating patches.
-        /// </summary>
-        internal bool enableCachedReads = false;
-
+        
         public Session() : this(SessionOptions.Default) {
         }
 
@@ -584,12 +578,7 @@ namespace Starcounter {
                 return true;
             }
         }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool HaveAddedOrRemovedObjects { get; set; }
-        
+      
         internal TransactionHandle RegisterTransaction(TransactionHandle handle) {
             TransactionRef tref = null;
 

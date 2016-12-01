@@ -192,13 +192,11 @@ namespace Starcounter.Internal {
         private static Response CreateJsonBodyResponse(Session session, Json root) {
             string body;
             session.enableNamespaces = true;
-            session.enableCachedReads = true;
             try {
                 body = root.ToJson();
                 root.ChangeLog?.Checkpoint();
             } finally {
                 session.enableNamespaces = false;
-                session.enableCachedReads = false;
             }
 
             return new Response() {
