@@ -12,8 +12,9 @@ using Newt = Newtonsoft.Json;
 namespace Starcounter.XSON {
     public class NewtonSoftSerializer : ITypedJsonSerializer {
         // TODOS:
-        // Handle when no ElementType is specified on array template.
-        // Try to find a way to not box valuetypes when deserializing.
+        // - Handle when no ElementType is specified on array template.
+        // - Try to find a way to not box valuetypes when deserializing.
+        // - Same serializer is used for children instead of checking if custom serializer is specified.
 
         private delegate void SerializeDelegate(NewtonSoftSerializer serializer, Json json, Template template, Newt.JsonWriter writer, JsonSerializerSettings settings);
         private delegate void DeserializeDelegate(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings);
