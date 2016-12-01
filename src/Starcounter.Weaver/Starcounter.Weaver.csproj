@@ -146,14 +146,6 @@
     </RuntimeFile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Server\Starcounter.CLI\Starcounter.CLI.csproj">
-      <Project>{c20f6d2a-3988-4abc-bfc2-95e19aca3c07}</Project>
-      <Name>Starcounter.CLI</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Bootstrap\Starcounter.Bootstrap.csproj">
-      <Project>{8278b17c-e0e9-49b7-8bda-f15282445d45}</Project>
-      <Name>Starcounter.Bootstrap</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
