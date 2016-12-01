@@ -32,5 +32,10 @@ namespace Starcounter.Hosting
         {
             throw ErrorCode.ToException(Error.SCERRCANTRUNSHAREDAPPHOST);
         }
+
+        void ICodeHost.Start()
+        {
+            throw ErrorCode.ToException(Error.SCERRCANTRUNSHAREDAPPHOST);
+        }
     }
 }

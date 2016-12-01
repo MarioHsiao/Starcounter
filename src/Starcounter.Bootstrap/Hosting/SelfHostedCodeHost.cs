@@ -29,6 +29,20 @@ namespace Starcounter.Hosting
             var runtimeHost = RuntimeHost.CreateAndAssignToProcess<SelfHostingRuntimeHost>(LogSources.Hosting);
             runtimeHost.ApplicationMainLoop = applicationMainLoop;
 
+            RunHost(runtimeHost);
+        }
+
+        public void Start()
+        {
+            var runtimeHost = RuntimeHost.CreateAndAssignToProcess<SelfHostingRuntimeHost>(LogSources.Hosting);
+            runtimeHost.ApplicationMainLoop = null;
+            runtimeHost.NonBlockingBootstrap = true;
+
+            RunHost(runtimeHost);
+        }
+
+        void RunHost(RuntimeHost host)
+        {
             // The prerequisite to use this: backend services running with a
             // running scdata, but with no host.
             //   staradmin start server
@@ -51,8 +65,8 @@ namespace Starcounter.Hosting
             // that management API's are not exposed (I think). Possibly more.
             // Console redirects? Probably not.
             // TODO:
-            
-            runtimeHost.Run(() => { return configuration; }, () => { return appStart; } );
+
+            host.Run(() => { return configuration; }, () => { return appStart; });
         }
     }
 }
