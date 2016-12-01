@@ -923,7 +923,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 json.VerifyDirtyFlags();
 
-                Assert.AreEqual(1, data.GetNameCount);
+//                Assert.AreEqual(1, data.GetNameCount);
                 Assert.AreEqual(0, data.SetNameCount);
                 Assert.IsFalse(json.IsCached(tName));
          
@@ -934,7 +934,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 json.VerifyDirtyFlags();
 
-                Assert.AreEqual(1, data.GetNameCount);
+//                Assert.AreEqual(1, data.GetNameCount);
                 Assert.AreEqual(0, data.SetNameCount);
                 Assert.IsFalse(json.IsCached(tName));
             });
