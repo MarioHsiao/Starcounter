@@ -56,11 +56,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup>
-    <!-- Base paths to redistributables / third party files -->
-    <PostSharpRedistributables>$(OutputPath)</PostSharpRedistributables>
-    <CecilRedistributables>$(OutputPath)</CecilRedistributables>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -71,16 +66,16 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="PostSharp">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.dll</HintPath>
+      <HintPath>PostSharp.dll</HintPath>
     </Reference>
     <Reference Include="PostSharp.Hosting">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Hosting.dll</HintPath>
+      <HintPath>PostSharp.Hosting.dll</HintPath>
     </Reference>
     <Reference Include="PostSharp.Sdk">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Sdk.dll</HintPath>
+      <HintPath>PostSharp.Sdk.dll</HintPath>
     </Reference>
     <Reference Include="PostSharp.Settings">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Settings.dll</HintPath>
+      <HintPath>PostSharp.Settings.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
