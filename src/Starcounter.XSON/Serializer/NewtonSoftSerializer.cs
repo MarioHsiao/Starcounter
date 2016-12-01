@@ -12,7 +12,6 @@ using Newt = Newtonsoft.Json;
 namespace Starcounter.XSON {
     public class NewtonSoftSerializer : ITypedJsonSerializer {
         // TODOS:
-        // - Handle when no ElementType is specified on array template.
         // - Try to find a way to not box valuetypes when deserializing.
         // - Same serializer is used for children instead of checking if custom serializer is specified.
 
@@ -443,8 +442,11 @@ namespace Starcounter.XSON {
             if (token != Newt.JsonToken.StartArray)
                 ExceptionHelper.ThrowInvalidJson("Expected array but found: " + token.ToString());
 
-            if (tArr.ElementType == null)
-                throw new Exception("TODO!");
+            if (tArr.ElementType == null) {
+                // There is no way for us to know which template should be used for the child. Create a dynamic json from the array?
+                reader.Skip();
+                return;
+            }
 
             while (true) {
                 SpecialRead(reader, tArr.ElementType);
