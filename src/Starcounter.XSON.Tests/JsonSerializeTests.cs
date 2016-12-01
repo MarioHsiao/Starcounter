@@ -194,56 +194,56 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Ooops", json.gender);
         }
 
-        //[Test]
-        //public static void TestJsonDeserializationWithMissingMembers_2() {
-        //    // Testing changing default settings object to ignore missing members.
+        [Test]
+        public static void TestJsonDeserializationWithMissingMembers_2() {
+            // Testing changing default settings object to ignore missing members.
 
-        //    dynamic json = new Json();
-        //    json.id = "abc";
-        //    json.gender = "F";
+            dynamic json = new Json();
+            json.id = "abc";
+            json.gender = "F";
 
-        //    var settings = new JsonSerializerSettings();
-        //    settings.MissingMemberHandling = MissingMemberHandling.Ignore;
+            var settings = new JsonSerializerSettings();
+            settings.MissingMemberHandling = MissingMemberHandling.Ignore;
 
-        //    var oldSettings = TypedJsonSerializer.DefaultSettings;
-        //    try {
-        //        TypedJsonSerializer.DefaultSettings = settings;
+            var oldSettings = JsonSerializerSettings.Default;
+            try {
+                JsonSerializerSettings.Default = settings;
 
-        //        // Unknown number property
-        //        string jsonSource = @" { ""id"":""1"", ""age"":19, ""gender"":""Female"" }";
-        //        Assert.DoesNotThrow(() => {
-        //            ((Json)json).PopulateFromJson(jsonSource);
-        //        });
-        //        Assert.AreEqual("1", json.id);
-        //        Assert.AreEqual("Female", json.gender);
+                // Unknown number property
+                string jsonSource = @" { ""id"":""1"", ""age"":19, ""gender"":""Female"" }";
+                Assert.DoesNotThrow(() => {
+                    ((Json)json).PopulateFromJson(jsonSource);
+                });
+                Assert.AreEqual("1", json.id);
+                Assert.AreEqual("Female", json.gender);
 
-        //        // Unknown string property
-        //        jsonSource = @" { ""id"":""ab"", ""age"":""nineteen"", ""gender"":""Male"" }";
-        //        Assert.DoesNotThrow(() => {
-        //            ((Json)json).PopulateFromJson(jsonSource);
-        //        });
-        //        Assert.AreEqual("ab", json.id);
-        //        Assert.AreEqual("Male", json.gender);
+                // Unknown string property
+                jsonSource = @" { ""id"":""ab"", ""age"":""nineteen"", ""gender"":""Male"" }";
+                Assert.DoesNotThrow(() => {
+                    ((Json)json).PopulateFromJson(jsonSource);
+                });
+                Assert.AreEqual("ab", json.id);
+                Assert.AreEqual("Male", json.gender);
 
-        //        // Unknown object property
-        //        jsonSource = @" { ""id"":""3"", ""age"": { ""innermember"":""nineteen"" }, ""gender"":""Unknown"" }";
-        //        Assert.DoesNotThrow(() => {
-        //            ((Json)json).PopulateFromJson(jsonSource);
-        //        });
-        //        Assert.AreEqual("3", json.id);
-        //        Assert.AreEqual("Unknown", json.gender);
+                // Unknown object property
+                jsonSource = @" { ""id"":""3"", ""age"": { ""innermember"":""nineteen"" }, ""gender"":""Unknown"" }";
+                Assert.DoesNotThrow(() => {
+                    ((Json)json).PopulateFromJson(jsonSource);
+                });
+                Assert.AreEqual("3", json.id);
+                Assert.AreEqual("Unknown", json.gender);
 
-        //        // Unknown array property
-        //        jsonSource = @" { ""id"":""abc123"", ""age"": [ 19, 21, 32 ], ""gender"":""Ooops"" }";
-        //        Assert.DoesNotThrow(() => {
-        //            ((Json)json).PopulateFromJson(jsonSource);
-        //        });
-        //        Assert.AreEqual("abc123", json.id);
-        //        Assert.AreEqual("Ooops", json.gender);
-        //    } finally {
-        //        TypedJsonSerializer.DefaultSettings = oldSettings;
-        //    }
-        //}
+                // Unknown array property
+                jsonSource = @" { ""id"":""abc123"", ""age"": [ 19, 21, 32 ], ""gender"":""Ooops"" }";
+                Assert.DoesNotThrow(() => {
+                    ((Json)json).PopulateFromJson(jsonSource);
+                });
+                Assert.AreEqual("abc123", json.id);
+                Assert.AreEqual("Ooops", json.gender);
+            } finally {
+                JsonSerializerSettings.Default = oldSettings;
+            }
+        }
 
         [Test]
         public static void TestJsonDeserializationWithMissingMembers_3() {
