@@ -110,6 +110,8 @@ namespace Starcounter.XSON {
 
         public void Deserialize(Json json, TextReader textReader, JsonSerializerSettings settings = null) {
             var reader = new Newt.JsonTextReader(textReader);
+            reader.DateParseHandling = Newt.DateParseHandling.None; // Treat dates as strings.
+
             if (settings == null)
                 settings = JsonSerializerSettings.Default;
 
