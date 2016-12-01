@@ -451,16 +451,12 @@ namespace Starcounter.XSON {
                             break;
                     }
                 }
-
-                // TODO:
-                // Check unexpected end of content.
-                if (status == JsonPatchStatus.Processing)
+                
                     ThrowPatchException(-1, "Unexpected end of content", sourceJson);
 
                 if (version != null && patchCount >= 0) {
                     byte[] enqueuedPatch = version.GetNextEnqueuedPatch();
                     if (enqueuedPatch != null) {
-                        // TODO:
                         int otherPatchCount;
                         JsonPatchStatus otherStatus = Apply(root, enqueuedPatch, strictPatchRejection, out otherPatchCount);
                         patchCount += otherPatchCount;
@@ -480,6 +476,18 @@ namespace Starcounter.XSON {
             return JsonPatchStatus.Applied;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="op"></param>
+        /// <param name="ptr"></param>
+        /// <param name="value"></param>
+        /// <param name="patchCount"></param>
+        /// <param name="changeLog"></param>
+        /// <param name="sourceJson"></param>
+        /// <param name="strictRejection"></param>
+        /// <returns></returns>
         private JsonPatchStatus HandleOnePatch(Json root, 
                                                JsonPatchOperation op, 
                                                JsonPointer ptr, 
@@ -499,7 +507,7 @@ namespace Starcounter.XSON {
                     }
 
                     if (!long.TryParse(value, out remoteVersion))
-                        JsonHelper.ThrowWrongValueTypeException(null, version.RemoteVersionPropertyName, "Int64", value);
+                        ExceptionHelper.ThrowWrongValueType(null, version.RemoteVersionPropertyName, "Int64", value);
 
                     if (remoteVersion != (version.RemoteVersion + 1)) {
                         if (remoteVersion <= version.RemoteVersion) {
@@ -517,7 +525,7 @@ namespace Starcounter.XSON {
                     }
 
                     if (!long.TryParse(value, out remoteVersion))
-                        JsonHelper.ThrowWrongValueTypeException(null, version.LocalVersionPropertyName, "Int64", value);
+                        ExceptionHelper.ThrowWrongValueType(null, version.LocalVersionPropertyName, "Int64", value);
                     version.RemoteLocalVersion = remoteVersion;
                     
                     changeLog.CleanupOldVersionLogs();

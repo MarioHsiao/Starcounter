@@ -64,7 +64,7 @@ namespace Starcounter.XSON {
 
             if (!bool.TryParse(valueStr, out value)) {
                 parent.MarkAsDirty(property);
-                    JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, valueStr);
+                    ExceptionHelper.ThrowWrongValueType(null, property.PropertyName, property.JsonType, valueStr);
             }
             property.ProcessInput(parent, value);
         }
@@ -79,7 +79,7 @@ namespace Starcounter.XSON {
                     value = default(decimal);
                 } else {
                     parent.MarkAsDirty(property);
-                    JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, valueStr);
+                    ExceptionHelper.ThrowWrongValueType(null, property.PropertyName, property.JsonType, valueStr);
                 }
             }
             property.ProcessInput(parent, value);
@@ -102,7 +102,7 @@ namespace Starcounter.XSON {
                     value = default(double);
                 } else {
                     parent.MarkAsDirty(property);
-                    JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, valueStr);
+                    ExceptionHelper.ThrowWrongValueType(null, property.PropertyName, property.JsonType, valueStr);
                 }
             }
             property.ProcessInput(parent, value);
@@ -125,7 +125,7 @@ namespace Starcounter.XSON {
                     value = default(long);
                 } else {
                     parent.MarkAsDirty(property);
-                    JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, valueStr);
+                    ExceptionHelper.ThrowWrongValueType(null, property.PropertyName, property.JsonType, valueStr);
                 }
             }
             property.ProcessInput(parent, value);

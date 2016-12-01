@@ -112,7 +112,7 @@
     <Compile Include="Class Json\Json.IResource.cs" />
     <Compile Include="Class Json\Json.Serializing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Serializer\JsonHelper.cs" />
+    <Compile Include="ExceptionHelper.cs" />
     <Compile Include="Sessions\Session.cs" />
     <Compile Include="TemplateAttribute.cs" />
     <Compile Include="Templates\Foundation\PropertyList.cs" />
@@ -125,7 +125,6 @@
     <Compile Include="Templates\TDouble.cs" />
     <Compile Include="Templates\TLong.cs" />
     <Compile Include="Templates\TString.cs" />
-    <Compile Include="Serializer\TypedJsonSerializer.cs" />
     <Compile Include="ValueMetaData\ArrMetadata.cs" />
     <Compile Include="ValueMetaData\BoolMetadata.cs" />
     <Compile Include="ValueMetaData\DecimalMetadata.cs" />
