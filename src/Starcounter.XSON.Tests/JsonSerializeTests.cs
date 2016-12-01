@@ -20,56 +20,48 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void InitializeTest() {
 			defaultSerializer = new NewtonSoftSerializer();
         }
-        
-		//[Test]
-		//public static void TestStandardSerializer() {
-  //          RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"));
-  //          RunStandardSerializerTest("person.json", File.ReadAllText("Json\\person.json"));
-  //          RunStandardSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"));
-  //          RunStandardSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"));
-  //          RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"));
-  //          RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"));
-  //          RunStandardSerializerTest("SingleValue.json", File.ReadAllText("Json\\SingleValue.json"));
-  //          RunStandardSerializerTest("SingleArray.json", File.ReadAllText("Json\\SingleArray.json"));
-		//}
 
-  //      [Test]
-  //      public static void TestStandardSerializerWithCompiledJson() {
-  //          RunStandardSerializerTest("jsstyle.json", jsstyle.DefaultTemplate);
-  //          RunStandardSerializerTest("person.json", person.DefaultTemplate);
-  //          RunStandardSerializerTest("supersimple.json", supersimple.DefaultTemplate);
-  //          RunStandardSerializerTest("simple.json", simple.DefaultTemplate);
-  //          RunStandardSerializerTest("TestMessage.json", TestMessage.DefaultTemplate);
-  //          RunStandardSerializerTest("JsonWithFiller.json", JsonWithFiller.DefaultTemplate);
-  //          RunStandardSerializerTest("SingleValue.json", SingleValue.DefaultTemplate);
-  //          RunStandardSerializerTest("SingleValue.json", SingleArray.DefaultTemplate);
-  //      }
-        
-  //      private static void RunStandardSerializerTest(string name, string jsonStr) {
-  //          TValue tval = Helper.CreateJsonTemplateFromContent(Path.GetFileNameWithoutExtension(name), jsonStr);
-  //          RunStandardSerializerTest(name, tval);
-  //      }
+        [Test]
+        public static void TestStandardSerializer() {
+            RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"));
+            RunStandardSerializerTest("person.json", File.ReadAllText("Json\\person.json"));
+            RunStandardSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"));
+            RunStandardSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"));
+            RunStandardSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"));
+            RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"));
+            RunStandardSerializerTest("SingleValue.json", File.ReadAllText("Json\\SingleValue.json"));
+            RunStandardSerializerTest("SingleArray.json", File.ReadAllText("Json\\SingleArray.json"));
+        }
 
-		//private static void RunStandardSerializerTest(string name, TValue tval) {
-		//	int serializedSize = 0;
-		//	int afterPopulateSize = 0;
-		//	Json original;
-		//	Json newJson;
-            
-		//	original = (Json)tval.CreateInstance();
-  //          byte[] jsonArr = new byte[tval.JsonSerializer.EstimateSizeBytes(original)];
-		//	serializedSize = original.ToJsonUtf8(jsonArr, 0);
+        [Test]
+        public static void TestStandardSerializerWithCompiledJson() {
+            RunStandardSerializerTest("jsstyle.json", jsstyle.DefaultTemplate);
+            RunStandardSerializerTest("person.json", person.DefaultTemplate);
+            RunStandardSerializerTest("supersimple.json", supersimple.DefaultTemplate);
+            RunStandardSerializerTest("simple.json", simple.DefaultTemplate);
+            RunStandardSerializerTest("TestMessage.json", TestMessage.DefaultTemplate);
+            RunStandardSerializerTest("JsonWithFiller.json", JsonWithFiller.DefaultTemplate);
+            RunStandardSerializerTest("SingleValue.json", SingleValue.DefaultTemplate);
+            RunStandardSerializerTest("SingleValue.json", SingleArray.DefaultTemplate);
+        }
 
-		//	unsafe {
-		//		fixed (byte* p = jsonArr) {
-		//			newJson = (Json)tval.CreateInstance();
-		//			afterPopulateSize = newJson.PopulateFromJson((IntPtr)p, serializedSize);
-		//		}
-		//	}
+        private static void RunStandardSerializerTest(string name, string jsonStr) {
+            TValue tval = Helper.CreateJsonTemplateFromContent(Path.GetFileNameWithoutExtension(name), jsonStr);
+            RunStandardSerializerTest(name, tval);
+        }
 
-		//	Assert.AreEqual(serializedSize, afterPopulateSize);
-  //          Helper.AssertAreEqual(original, newJson);
-		//}
+        private static void RunStandardSerializerTest(string name, TValue tval) {
+            Json original;
+            Json newJson;
+
+            original = (Json)tval.CreateInstance();
+            string jsonStr = original.ToJson();
+
+            newJson = (Json)tval.CreateInstance();
+            newJson.PopulateFromJson(jsonStr);
+
+            Helper.AssertAreEqual(original, newJson);
+        }
 
         [Test]
         public static void TestIncorrectInputJsonForDefaultSerializer() {
