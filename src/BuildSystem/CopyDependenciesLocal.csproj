@@ -41,12 +41,6 @@
   <!-- Builds Level0 if necessary and copies output files. -->
   <Target Name="BuildLevel0" Condition="Exists('$(LocalLevel0Solution)')" >
   
-    <!-- Building Level0 solution if any. -->
-    <Exec Condition="'$(LEVEL0_CONFIGURATION)' != ''" Command="&quot;c:\Program Files (x86)\MSBuild\14.0\Bin\MSBuild.exe&quot; $(LocalLevel0Solution) /property:Configuration=$(Level0Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
-    
-    <!-- Building SqlProcessor solution. -->
-    <Exec Condition="'$(LEVEL0_CONFIGURATION)' != ''" Command="&quot;c:\Program Files (x86)\MSBuild\14.0\Bin\MSBuild.exe&quot; ..\..\..\Level0\msbuild\SqlProcessor\SqlProcessor.sln /property:Configuration=$(Level0Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
-    
     <!-- Creating dynamic copied files lists. -->
     <ItemGroup>
       <LocalLevel0BinFiles Include="..\..\..\Level0\msbuild\x64\$(Level0Configuration)\*" />
