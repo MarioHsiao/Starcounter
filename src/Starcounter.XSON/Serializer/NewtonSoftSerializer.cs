@@ -331,54 +331,63 @@ namespace Starcounter.XSON {
             if (template == null)
                 template = json.Template;
 
-            if (reader.TokenType != Newt.JsonToken.Boolean)
+            bool value = default(bool);
+            if (reader.TokenType == Newt.JsonToken.Boolean)
+                value = ((bool?)reader.Value).GetValueOrDefault();
+            else if (reader.TokenType != Newt.JsonToken.Null)
                 ExceptionHelper.ThrowWrongValueType(null, template.TemplateName, template.JsonType, reader.Value?.ToString());
-
-            bool? value = (bool?)reader.Value;
-            ((TBool)template).Setter(json, value.GetValueOrDefault());
+            ((TBool)template).Setter(json, value);
         }
 
         private static void DeserializeDecimal(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings) {
             if (template == null)
                 template = json.Template;
 
-            if (reader.TokenType != Newt.JsonToken.Float)
+            decimal value = default(decimal);
+            if (reader.TokenType == Newt.JsonToken.Float)
+                value = ((decimal?)reader.Value).GetValueOrDefault();
+            else if (reader.TokenType != Newt.JsonToken.Null)
                 ExceptionHelper.ThrowWrongValueType(null, template.TemplateName, template.JsonType, reader.Value?.ToString());
-
-            decimal? value = (decimal?)reader.Value;
-            ((TDecimal)template).Setter(json, value.GetValueOrDefault());
+            
+            ((TDecimal)template).Setter(json, value);
         }
 
         private static void DeserializeDouble(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings) {
             if (template == null)
                 template = json.Template;
-
-            if (reader.TokenType != Newt.JsonToken.Float)
+            double value = default(double);
+            if (reader.TokenType == Newt.JsonToken.Float)
+                value = ((double?)reader.Value).GetValueOrDefault();
+            else if (reader.TokenType != Newt.JsonToken.Null)
                 ExceptionHelper.ThrowWrongValueType(null, template.TemplateName, template.JsonType, reader.Value?.ToString());
 
-            double? value = (double?)reader.Value;
-            ((TDouble)template).Setter(json, value.GetValueOrDefault());
+            ((TDouble)template).Setter(json, value);
         }
 
         private static void DeserializeLong(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings) {
             if (template == null)
                 template = json.Template;
 
-            if (reader.TokenType != Newt.JsonToken.Integer)
+            long value = default(long);
+            if (reader.TokenType == Newt.JsonToken.Integer)
+                value = ((long?)reader.Value).GetValueOrDefault();
+            else if (reader.TokenType != Newt.JsonToken.Null)
                 ExceptionHelper.ThrowWrongValueType(null, template.TemplateName, template.JsonType, reader.Value?.ToString());
 
-            long? value = (long?)reader.Value;
-            ((TLong)template).Setter(json, value.GetValueOrDefault());
+            ((TLong)template).Setter(json, value);
         }
 
         private static void DeserializeString(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings) {
             if (template == null)
                 template = json.Template;
 
-            if (reader.TokenType != Newt.JsonToken.String)
+            string value = "";
+            if (reader.TokenType == Newt.JsonToken.String)
+                value = (string)reader.Value;
+            else if (reader.TokenType != Newt.JsonToken.Null) // if value is null we keep original value.
                 ExceptionHelper.ThrowWrongValueType(null, template.TemplateName, template.JsonType, reader.Value?.ToString());
-
-            ((TString)template).Setter(json, (string)reader.Value);
+            
+            ((TString)template).Setter(json, value);
         }
 
         private static void DeserializeObject(Json json, Template template, Newt.JsonTextReader reader, JsonSerializerSettings settings) {
@@ -387,14 +396,19 @@ namespace Starcounter.XSON {
             TObject tObject;
             Newt.JsonToken token;
 
+            token = reader.TokenType;
+            if (token == Newt.JsonToken.Null) {
+                reader.Skip();
+                return;
+            }
+
+            if (token != Newt.JsonToken.StartObject)
+                ExceptionHelper.ThrowInvalidJson("Expected object but found: " + reader.TokenType.ToString());
+
             tObject = (TObject)template;
             if (template != json.Template) {
                 json = tObject.Getter(json);
             } 
-
-            token = reader.TokenType;
-            if (token != Newt.JsonToken.StartObject)
-                ExceptionHelper.ThrowInvalidJson("Expected object but found: " + reader.TokenType.ToString());
             
             while (true) {
                 if (!reader.Read())
@@ -433,19 +447,24 @@ namespace Starcounter.XSON {
             Json childObj;
             Newt.JsonToken token;
 
-            TObjArr tArr = (TObjArr)template;
-            if (template != json.Template) {
-                json = tArr.Getter(json);
+            token = reader.TokenType;
+            if (token == Newt.JsonToken.Null) {
+                reader.Skip();
+                return;
             }
 
-            token = reader.TokenType;
             if (token != Newt.JsonToken.StartArray)
                 ExceptionHelper.ThrowInvalidJson("Expected array but found: " + token.ToString());
 
+            TObjArr tArr = (TObjArr)template;
             if (tArr.ElementType == null) {
                 // There is no way for us to know which template should be used for the child. Create a dynamic json from the array?
                 reader.Skip();
                 return;
+            }
+
+            if (template != json.Template) {
+                json = tArr.Getter(json);
             }
 
             while (true) {
