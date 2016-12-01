@@ -165,6 +165,12 @@ namespace Starcounter.Templates {
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="parent"></param>
+        internal abstract void SetCachedReads(Json parent);
+
+        /// <summary>
+        /// 
+        /// </summary>
         internal virtual void InvalidateBoundGetterAndSetter() {
             isBoundToParent = false;
             isVerifiedUnbound = false;

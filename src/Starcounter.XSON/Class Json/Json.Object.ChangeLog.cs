@@ -10,6 +10,9 @@ using Starcounter.XSON;
 
 namespace Starcounter {
     partial class Json {
+        /// <summary>
+        /// If true changes in TypedJSON are tracked and stored.
+        /// </summary>
         internal bool IsTrackingChanges {
             get {
                 return this.trackChanges;
@@ -17,8 +20,13 @@ namespace Starcounter {
         }
 
 		/// <summary>
-		/// 
+		/// Marks this instance and all parents as dirty, i.e. some value
+        /// in the instance have changed.
 		/// </summary>
+        /// <remarks>
+        /// If IsTrackingChanges is false, then this method will simply exit
+        /// without doing anything. Same will happen if it's already dirty.
+        /// </remarks>
 		internal void Dirtyfy(bool callStepSiblings = true) {
             if (!this.trackChanges || (this.dirty == true))
                 return;
@@ -123,7 +131,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Checkpoints this instance and all children and resets state and dirtyflags.
         /// </summary>
         internal void CheckpointChangeLog(bool callStepSiblings = true) {
             if (!this.trackChanges)
@@ -179,14 +187,14 @@ namespace Starcounter {
 		/// Logs all property changes made to this object or its bound data object
 		/// </summary>
 		/// <param name="changeLog">Log of changes</param>
-		internal void LogValueChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings) {
+		internal void GatherChanges(ChangeLog changeLog, bool callStepSiblings) {
             if (!this.trackChanges)
                 return;
 
 			if (this.IsArray) {
-				LogArrayChangesWithDatabase(changeLog, callStepSiblings);
+				GatherChangesForArray(changeLog, callStepSiblings);
 			} else {
-				LogObjectValueChangesWithDatabase(changeLog, callStepSiblings);
+				GatherChangesForValues(changeLog, callStepSiblings);
 			}
 		}
 
@@ -194,7 +202,7 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		/// <param name="changeLog"></param>
-		private void LogArrayChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings = true) {
+		private void GatherChangesForArray(ChangeLog changeLog, bool callStepSiblings = true) {
             bool logChanges;
             Json item;
 
@@ -216,7 +224,6 @@ namespace Starcounter {
                     var index = change.Item.cacheIndexInArr;
                     
                     if (change.ChangeType != Change.REMOVE && index >= 0 && index < this.valueList.Count) {
-                        //CheckpointAt(index);
                         this.MarkAsNonDirty(index);
                         item = change.Item;
                         item.SetBoundValuesInTuple();
@@ -235,7 +242,7 @@ namespace Starcounter {
                     }
 
                     if (logChanges) {
-                        ((Json)this.valueList[i]).LogValueChangesWithDatabase(changeLog, callStepSiblings);
+                        ((Json)this.valueList[i]).GatherChanges(changeLog, callStepSiblings);
                     }
                 }
 
@@ -248,30 +255,19 @@ namespace Starcounter {
                         changeLog.Add(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
                         this.MarkAsNonDirty(t);
                     } else {
-                        arrItem.LogValueChangesWithDatabase(changeLog, callStepSiblings);
+                        arrItem.GatherChanges(changeLog, callStepSiblings);
                     }
                 }
             }
             this.dirty = false;
 		}
-
-		/// <summary>
-		/// Used to generate change logs for all pending property changes in this object and
-		/// and its children and grandchidren (recursivly) excluding changes to bound data
-		/// objects. This method is much faster than the corresponding method checking
-		/// th database.
-		/// </summary>
-		/// <param name="changeLog">The log of changes</param>
-		internal void LogValueChangesWithoutDatabase(ChangeLog changeLog, bool callStepSiblings = true) {
-			throw new NotImplementedException();
-		}
-
+        
 		/// <summary>
 		/// Dirty checks each value of the object and reports any changes
 		/// to the changelog.
 		/// </summary>
 		/// <param name="changeLog">The log of changes</param>
-		private void LogObjectValueChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings = true) {
+		private void GatherChangesForValues(ChangeLog changeLog, bool callStepSiblings = true) {
             this.Scope<ChangeLog, Json, bool>((clog, json, css) => {
                 var template = (TValue)json.Template;
                 if (template != null) {
@@ -303,7 +299,7 @@ namespace Starcounter {
                                     if (p is TContainer) {
                                         var c = ((TContainer)p).GetValue(json);
                                         if (c != null)
-                                            c.LogValueChangesWithDatabase(clog, true);
+                                            c.GatherChanges(clog, true);
                                     } else {
                                         if (json.IsArray) {
                                             throw new NotImplementedException();
@@ -321,7 +317,7 @@ namespace Starcounter {
                                 if (exposed[t] is TContainer) {
                                     var c = ((TContainer)exposed[t]).GetValue(json);
                                     if (c != null)
-                                        c.LogValueChangesWithDatabase(clog, true);
+                                        c.GatherChanges(clog, true);
                                 } else {
                                     if (json.IsArray) {
                                         throw new NotImplementedException();
@@ -365,7 +361,7 @@ namespace Starcounter {
                             continue;
 
                         if (json.siblings.HasBeenSent(i)) {
-                            sibling.LogValueChangesWithDatabase(clog, false);
+                            sibling.GatherChanges(clog, false);
                         } else {
                             clog.Add(Change.Update(sibling, null, true));
                             json.siblings.MarkAsSent(i);
@@ -380,8 +376,10 @@ namespace Starcounter {
 		}
         
 		internal void SetBoundValuesInTuple(bool callStepSiblings = true) {
-            if (!this.checkBoundProperties)
-                return;
+            //            if (!this.checkBoundProperties)
+            //                return;
+            
+
 
 			if (IsArray) {
 				foreach (Json item in this.valueList) {

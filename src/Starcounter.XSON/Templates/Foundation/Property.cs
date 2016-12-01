@@ -186,10 +186,10 @@ namespace Starcounter.Templates {
         /// until the cache is resetted when checkpointing.
         /// </summary>
         /// <param name="json"></param>
-        internal void SetCachedReads(Json json) {
+        internal override void SetCachedReads(Json json) {
             // We don't have to check if th property is already cached.
             // That is done when checking if binding should be used.
-            if (json.IsTrackingChanges && UseBinding(json) && json.Session.enableCachedReads) {
+            if (json.IsTrackingChanges && UseBinding(json)) {
                 UnboundSetter(json, BoundGetter(json));
                 json.MarkAsCached(this.TemplateIndex);
             }
@@ -223,9 +223,8 @@ namespace Starcounter.Templates {
                     if (addToChangeLog)
                         parent.ChangeLog.UpdateValue(parent, this);
                 }
-
-                if (parent.Session.enableCachedReads)
-                    parent.MarkAsCached(this.TemplateIndex);
+                
+                parent.MarkAsCached(this.TemplateIndex);
             }
 		}
 
