@@ -451,7 +451,8 @@ namespace Starcounter.XSON {
                             break;
                     }
                 }
-                
+
+                if (status == JsonPatchStatus.Processing)
                     ThrowPatchException(-1, "Unexpected end of content", sourceJson);
 
                 if (version != null && patchCount >= 0) {
