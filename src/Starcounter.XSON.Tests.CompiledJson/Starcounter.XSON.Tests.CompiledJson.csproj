@@ -24,7 +24,7 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PlatformTarget>x64</PlatformTarget>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <DocumentationFile>..\..\bin\Debug\Starcounter.XSON.Tests.CompiledJson.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -36,7 +36,7 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PlatformTarget>x64</PlatformTarget>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <DocumentationFile>..\..\bin\Release\Starcounter.XSON.Tests.CompiledJson.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
@@ -75,6 +75,10 @@
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.MsBuild\Starcounter.MsBuild.csproj">
+      <Project>{b1ec8976-b515-4308-89c3-319543a0c7a9}</Project>
+      <Name>Starcounter.MsBuild</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.PartialClassGenerator\Starcounter.XSON.PartialClassGenerator.csproj">
       <Project>{7824b013-943c-4cf5-b0b9-953a6d828eb6}</Project>

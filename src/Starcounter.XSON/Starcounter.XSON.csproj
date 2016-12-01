@@ -23,7 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\bin\Release\Starcounter.XSON.XML</DocumentationFile>
     <NoWarn>1591;1570;1571;1572;1573;1574</NoWarn>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -137,14 +137,6 @@
     <Compile Include="ValueMetaData\StringMetadata.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Starcounter.BitsAndBytes.Unsafe\BitsAndBytes.Unsafe.csproj">
-      <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
-      <Name>BitsAndBytes.Unsafe</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.BitsAndBytes\BitsAndBytes.csproj">
-      <Project>{c6b4ba42-680c-446d-9b89-1c82d443dc75}</Project>
-      <Name>BitsAndBytes</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
