@@ -303,5 +303,31 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("One", ((Json)list[0]).StringValue);
             Assert.AreEqual("Two", ((Json)list[1]).StringValue);
         }
+
+        [Test]
+        public static void TestDeserializeNullValues() {
+            TObject schema = new TObject();
+            TString tStr = schema.Add<TString>("MyStr");
+            TDecimal tDec = schema.Add<TDecimal>("MyDec");
+            TDouble tDbl = schema.Add<TDouble>("MyDbl");
+            TLong tLong = schema.Add<TLong>("MyLong");
+            TBool tBool = schema.Add<TBool>("MyBool");
+            TObject tObj = schema.Add<TObject>("MyObj");
+            TObjArr tArr = schema.Add<TObjArr>("MyArr");
+
+            string jsonStr = @"{""MyStr"":null,""MyDec"":null,""MyDbl"":null,""MyLong"":null,""MyBool"":null,""MyObj"":null,""MyArr"":null}";
+            Json json = new Json() { Template = schema };
+
+            Assert.DoesNotThrow(() => {
+                json.PopulateFromJson(jsonStr);
+            });
+            Assert.AreEqual("", tStr.Getter(json));
+            Assert.AreEqual(default(decimal), tDec.Getter(json));
+            Assert.AreEqual(default(double), tDbl.Getter(json));
+            Assert.AreEqual(default(long), tLong.Getter(json));
+            Assert.AreEqual(default(bool), tBool.Getter(json));
+            Assert.IsNotNull(tObj.Getter(json));
+            Assert.IsNotNull(tArr.Getter(json));
+        }
     }
 }
