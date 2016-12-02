@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -61,7 +62,7 @@ namespace Starcounter.Hosting {
 
             bool IPrivateAssemblyStore.IsApplicationDirectory(string applicationDirectory) {
                 return applicationDirectories.FirstOrDefault((candidate) => {
-                    return EqualDirectories(candidate, applicationDirectory);
+                    return DirectoryExtensions.EqualDirectories(candidate, applicationDirectory);
                 }) != null;
             }
         }
@@ -92,13 +93,6 @@ namespace Starcounter.Hosting {
         public void RegisterApplicationDirectory(ApplicationDirectory dir) {
             var next = new ImmutableState(state, dir);
             state = next;
-        }
-
-        public static bool EqualDirectories(string dir1, string dir2) {
-            return string.Compare(
-                Path.GetFullPath(dir1).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
-                Path.GetFullPath(dir2).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
-                StringComparison.CurrentCultureIgnoreCase) == 0;
         }
     }
 }
