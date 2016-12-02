@@ -439,6 +439,14 @@ namespace Starcounter {
             callStepSiblings);
 		}
         
+        /// <summary>
+        /// The automatic dirtycheck for bound properties works by setting the current 
+        /// value from the dataobject as the unbound value. This method will set all 
+        /// current values starting from this instance and mark these properties as cached,
+        /// which means that the unbound value will be used until all changes have been 
+        /// sent and viewmodels checkpointed.
+        /// </summary>
+        /// <param name="callStepSiblings"></param>
         internal void SetBoundValuesInTuple(bool callStepSiblings = true) {
             if (!IsTrackingChanges)
                 return;
