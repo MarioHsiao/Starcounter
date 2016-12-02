@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0. Starcounter.ErrorCodes", "0. Starcounter.ErrorCodes", "{FF0868CF-A78E-44A4-93E5-57182F039F31}"
 EndProject
@@ -222,6 +222,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Web.Tests", "St
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scweaver", "scweaver\scweaver.csproj", "{76C95AD5-A9B4-4672-856A-18A1CE45D2B1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EC69526F-72FB-4E26-AD8D-7CF22B145C93} = {EC69526F-72FB-4E26-AD8D-7CF22B145C93}
+		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BizArkCore", "ThirdParty\BizArkCore\BizArkCore.csproj", "{8D3E6472-7E47-4266-947B-659F17F641F1}"
 EndProject
@@ -458,6 +462,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Server.Test", "Server\Starcounter.Server.Test\Starcounter.Server.Test.csproj", "{40FF0D61-5978-464E-BB8B-83E635D9BEC2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Weaver", "Starcounter.Weaver\Starcounter.Weaver.csproj", "{4E56FDE2-AC12-43B0-8C52-F0C80512DF83}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EC69526F-72FB-4E26-AD8D-7CF22B145C93} = {EC69526F-72FB-4E26-AD8D-7CF22B145C93}
+		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Weaver.Test", "Starcounter.Weaver.Test\Starcounter.Weaver.Test.csproj", "{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}"
 EndProject
