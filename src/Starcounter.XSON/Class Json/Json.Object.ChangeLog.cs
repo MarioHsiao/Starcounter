@@ -110,6 +110,10 @@ namespace Starcounter {
             this.Dirtyfy();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="templateIndex"></param>
         private void MarkAsNonDirty(int templateIndex) {
             stateFlags[templateIndex] &= ~PropertyState.Dirty;
         }
@@ -268,74 +272,109 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="changeLog">The log of changes</param>
 		private void GatherChangesForValues(ChangeLog changeLog, bool callStepSiblings = true) {
+            // TODO:
+            // This method should be refactored. Contains duplicated code and is too long 
+            // and the flow is not easy to follow or understand.
+
             this.Scope<ChangeLog, Json, bool>((clog, json, css) => {
                 var template = (TValue)json.Template;
                 if (template != null) {
                     if (json.IsObject) {
                         var exposed = ((TObject)template).Properties.ExposedProperties;
                         if (json.dirty) {
+                            // At least one property have been changed. We need to check which one.
+                            // If not dirty, we still need to check bound properties.
                             for (int t = 0; t < exposed.Count; t++) {
-                                if (json.IsDirty(exposed[t].TemplateIndex)) {
-                                    if (clog != null) {
-                                        if (json.IsArray) {
-                                            throw new NotImplementedException();
-                                        } else {
-                                            var childTemplate = (TValue)exposed[t];
-                                            clog.UpdateValue(json, childTemplate);
 
-                                            TContainer container = childTemplate as TContainer;
-                                            if (container != null) {
-                                                var childJson = container.GetValue(json);
-                                                if (childJson != null) {
-                                                    childJson.CheckAndAddArrayVersionLog(clog);
-                                                    childJson.SetBoundValuesInTuple();
-                                                }
+                                // BEGIN DUPLICATED CODE 1
+                                if (json.IsDirty(exposed[t].TemplateIndex)) {
+                                    // Property is dirty. Add a change to changelog.
+
+                                    // TODO: 
+                                    // Is this check really necessery? if we get here there should be a changelog
+                                    if (clog != null) { 
+                                        var childTemplate = (TValue)exposed[t];
+                                        clog.UpdateValue(json, childTemplate);
+
+                                        TContainer container = childTemplate as TContainer;
+                                        if (container != null) {
+                                            var childJson = container.GetValue(json);
+                                            if (childJson != null) {
+                                                childJson.CheckAndAddArrayVersionLog(clog);
+                                                childJson.SetBoundValuesInTuple();
                                             }
                                         }
                                     }
+
+                                    // TODO: 
+                                    // Why do we reset the dirtyflag here? It will be done when checkpointing later.
+                                    // Is it because we dont want to handle it twice? In that case there should be another 
+                                    // flag set to mark it as processed (that will also be resetted during checkpointing).
                                     json.MarkAsNonDirty(exposed[t].TemplateIndex);
+
+                                    // END DUPLICATED CODE 1
                                 } else {
+                                    // Property not dirty. We still need to check bound properties though
+                                    // and call children of any containers.
                                     var p = exposed[t];
+
+                                    // BEGIN DUPLICATED CODE 2
                                     if (p is TContainer) {
                                         var c = ((TContainer)p).GetValue(json);
                                         if (c != null)
                                             c.GatherChanges(clog, true);
                                     } else {
-                                        if (json.IsArray) {
-                                            throw new NotImplementedException();
-                                        } else {
-                                            ((TValue)p).CheckAndSetBoundValue(json, true);
-                                            if (json.IsDirty(p.TemplateIndex))
-                                                clog.UpdateValue(json, (TValue)p);
-                                        }
+                                        ((TValue)p).CheckAndSetBoundValue(json, true);
+
+                                        // TODO:
+                                        // Check these lines. Why do we need them. We add it in 
+                                        // the method above if needed.
+                                        if (json.IsDirty(p.TemplateIndex))
+                                            clog.UpdateValue(json, (TValue)p);
+                                        
                                     }
+                                    // END DUPLICATED CODE 2
                                 }
                             }
                             json.dirty = false;
                         } else if (this.checkBoundProperties) {
+                            // This json instance is not marked as dirty. We still need to check
+                            // bound properties in case the values have changed in the dataobject.
                             for (int t = 0; t < exposed.Count; t++) {
+                                // TODO:
+                                // Why do we not check the object/array if underlying objects have been changed?
+
+                                // BEGIN DUPLICATED CODE 2
                                 if (exposed[t] is TContainer) {
                                     var c = ((TContainer)exposed[t]).GetValue(json);
                                     if (c != null)
                                         c.GatherChanges(clog, true);
                                 } else {
-                                    if (json.IsArray) {
-                                        throw new NotImplementedException();
-                                    } else {
-                                        var p = exposed[t] as TValue;
-                                        p.CheckAndSetBoundValue(json, true);
-                                        if (json.IsDirty(p.TemplateIndex))
-                                            clog.UpdateValue(json, p);
-                                    }
-                                }
+                                    var p = exposed[t] as TValue;
+                                    p.CheckAndSetBoundValue(json, true);
 
+                                    // TODO:
+                                    // Check these lines. Why do we need them. We add it in 
+                                    // the method above if needed.
+                                    if (json.IsDirty(p.TemplateIndex))
+                                        clog.UpdateValue(json, p);
+                                    
+                                }
+                                // END DUPLICATED CODE 2
                             }
                         }
                     } else {
+                        // This instance is not a TObject (i.e. it contains no children)
+                        // We need to do the same checks as above, but only for one single template.
+
                         if (json.dirty) {
+                            // BEGIN DUPLICATED CODE 1
                             if (json.IsDirty(template.TemplateIndex)) {
+
                                 clog.UpdateValue(json, null);
 
+                                // Same check as above, but instead of TContainer (which is both objects 
+                                // and arrays) we only checks for arrays.
                                 if (template.TemplateTypeId == TemplateTypeEnum.Array) {
                                     var childJson = ((TContainer)template).GetValue(json);
                                     if (childJson != null) {
@@ -343,12 +382,20 @@ namespace Starcounter {
                                         childJson.SetBoundValuesInTuple();
                                     }
                                 }
+
+                                // TODO:
+                                // Again, why do we reset dirtyflag here?
                                 json.MarkAsNonDirty(template.TemplateIndex);
+
                             } else {
+                                // Similar as the section above with the difference that we know that it's not an 
+                                // object or array. Same code should be used though
                                 template.CheckAndSetBoundValue(json, true);
                                 if (json.IsDirty(template.TemplateIndex))
                                     clog.UpdateValue(json, template);
                             }
+
+                            // END DUPLICATED CODE 1
                         }
                     }
                 }
@@ -364,6 +411,10 @@ namespace Starcounter {
                             sibling.GatherChanges(clog, false);
                         } else {
                             clog.Add(Change.Update(sibling, null, true));
+
+                            // TODO:
+                            // Same questions as above. Why do we reset these flags here and not
+                            // in checkpoint?
                             json.siblings.MarkAsSent(i);
                             sibling.dirty = false;
                         }
@@ -375,51 +426,35 @@ namespace Starcounter {
             callStepSiblings);
 		}
         
-		internal void SetBoundValuesInTuple(bool callStepSiblings = true) {
-            //            if (!this.checkBoundProperties)
-            //                return;
-            
+        internal void SetBoundValuesInTuple(bool callStepSiblings = true) {
+            if (!IsTrackingChanges)
+                return;
 
-
-			if (IsArray) {
-				foreach (Json item in this.valueList) {
-					item.SetBoundValuesInTuple();
-				}
-			} else {
-                this.Scope<Json>((json) => {
-                    TValue tval = (TValue)json.Template;
-                    if (tval != null) {
-                        if (json.IsObject) {
-                            var tobj = (TObject)tval;
-                            for (int i = 0; i < tobj.Properties.Count; i++) {
-                                var t = tobj.Properties[i];
-
-                                if (t is TContainer) {
-                                    var childJson = ((TContainer)t).GetValue(json);
-                                    if (childJson != null)
-                                        childJson.SetBoundValuesInTuple();
-                                } else {
-                                    var vt = t as TValue;
-                                    if (vt != null)
-                                        vt.CheckAndSetBoundValue(json, false);
-                                }
-                            }
-                        } else {
-                            tval.CheckAndSetBoundValue(json, false);
+            this.Scope<Json>((json) => {
+                TValue tval = (TValue)json.Template;
+                if (tval != null) {
+                    if (json.IsObject) {
+                        var tobj = (TObject)tval;
+                        for (int i = 0; i < tobj.Properties.Count; i++) {
+                            var t = tobj.Properties[i] as TValue;
+                            if (t != null)
+                                t.CheckAndSetBoundValue(json, false);
                         }
+                    } else {
+                        tval.CheckAndSetBoundValue(json, false);
                     }
+                }
 
-                    if (callStepSiblings == true && json.siblings != null) {
-                        foreach (var stepSibling in json.siblings) {
-                            if (stepSibling == this)
-                                continue;
-                            stepSibling.SetBoundValuesInTuple(false);
-                        }
-                    }            
-                }, 
-                this);
-			}
-		}
+                if (callStepSiblings == true && json.siblings != null) {
+                    foreach (var stepSibling in json.siblings) {
+                        if (stepSibling == this)
+                            continue;
+                        stepSibling.SetBoundValuesInTuple(false);
+                    }
+                }
+            },
+            this);
+        }
 
         internal void CheckBoundObject(object boundValue) {
             if (!CompareDataObjects(boundValue, Data))
