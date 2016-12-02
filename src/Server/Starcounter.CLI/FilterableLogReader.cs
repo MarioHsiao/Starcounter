@@ -136,16 +136,7 @@ namespace Starcounter.CLI {
         }
 
         static string GetLogDirectory() {
-            var configDir = Path.Combine(StarcounterEnvironment.InstallationDirectory, StarcounterEnvironment.Directories.InstallationConfiguration);
-            var configFile = Path.Combine(configDir, StarcounterEnvironment.FileNames.InstallationServerConfigReferenceFile);
-
-            var xml = XDocument.Load(configFile);
-            var query = from c in xml.Root.Descendants(MixedCodeConstants.ServerConfigDirName)
-                        select c.Value;
-            var serverDir = query.First();
-            var serverConfigPath = Path.Combine(serverDir, "Personal" + ServerConfiguration.FileExtension);
-            
-            var serverConfig = ServerConfiguration.Load(serverConfigPath);
+            var serverConfig = InstallationBasedServerConfigurationProvider.GetConfiguration();
             return serverConfig.LogDirectory;
         }
     }
