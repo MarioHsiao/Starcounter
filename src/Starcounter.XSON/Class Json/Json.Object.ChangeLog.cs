@@ -276,6 +276,16 @@ namespace Starcounter {
             // This method should be refactored. Contains duplicated code and is too long 
             // and the flow is not easy to follow or understand.
 
+            // Why do we have separate paths for dirty vs non-dirty? We're still looping 
+            // all properties every time and check for bound values.
+            // the only difference is that a dirty property should always generate a change 
+            // while a non-dirty bound value might generate a change.
+
+            // I guess one reason might be that the initial thought was that if we have some 
+            // callbacks from underlying dataobject for changes instead of checking them here
+            // we can optimize the branches and loops, but this implenetation right now feels 
+            // like the wrong way of doing it since the code is awful.
+
             this.Scope<ChangeLog, Json, bool>((clog, json, css) => {
                 var template = (TValue)json.Template;
                 if (template != null) {
@@ -295,6 +305,9 @@ namespace Starcounter {
                                     if (clog != null) { 
                                         var childTemplate = (TValue)exposed[t];
                                         clog.UpdateValue(json, childTemplate);
+
+                                        // TODO:
+                                        // Need to check and cache here if value is bound.
 
                                         TContainer container = childTemplate as TContainer;
                                         if (container != null) {
@@ -431,25 +444,31 @@ namespace Starcounter {
                 return;
 
             this.Scope<Json>((json) => {
-                TValue tval = (TValue)json.Template;
-                if (tval != null) {
-                    if (json.IsObject) {
-                        var tobj = (TObject)tval;
-                        for (int i = 0; i < tobj.Properties.Count; i++) {
-                            var t = tobj.Properties[i] as TValue;
-                            if (t != null)
-                                t.CheckAndSetBoundValue(json, false);
-                        }
-                    } else {
-                        tval.CheckAndSetBoundValue(json, false);
+                if (json.IsArray) {
+                    foreach (Json row in ((IList)json)) {
+                        row.SetBoundValuesInTuple();
                     }
-                }
+                } else {
+                    TValue tval = (TValue)json.Template;
+                    if (tval != null) {
+                        if (json.IsObject) {
+                            var tobj = (TObject)tval;
+                            for (int i = 0; i < tobj.Properties.Count; i++) {
+                                var t = tobj.Properties[i] as TValue;
+                                if (t != null)
+                                    t.CheckAndSetBoundValue(json, false);
+                            }
+                        } else {
+                            tval.CheckAndSetBoundValue(json, false);
+                        }
+                    }
 
-                if (callStepSiblings == true && json.siblings != null) {
-                    foreach (var stepSibling in json.siblings) {
-                        if (stepSibling == this)
-                            continue;
-                        stepSibling.SetBoundValuesInTuple(false);
+                    if (callStepSiblings == true && json.siblings != null) {
+                        foreach (var stepSibling in json.siblings) {
+                            if (stepSibling == this)
+                                continue;
+                            stepSibling.SetBoundValuesInTuple(false);
+                        }
                     }
                 }
             },
