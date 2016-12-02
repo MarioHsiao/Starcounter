@@ -1,9 +1,11 @@
 ﻿using Microsoft.CSharp;
+using Starcounter.Advanced.Configuration;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace Starcounter.Server.Compiler
 {
@@ -13,6 +15,8 @@ namespace Starcounter.Server.Compiler
     /// </summary>
     public sealed class AppCompiler
     {
+        static HashAlgorithm hashAlgorithm = SHA1.Create();
+
         /// <summary>
         /// Gets or sets the name to use for the compiled application.
         /// </summary>
@@ -114,13 +118,31 @@ namespace Starcounter.Server.Compiler
 
         string CreateTempDirectory()
         {
-            var guid = Guid.NewGuid().ToString();
-            var tp = Path.GetTempPath();
-            var tempPath = Path.Combine(tp, guid);
+            string tempRoot = string.Empty;
+            try
+            {
+                var serverConfig = InstallationBasedServerConfigurationProvider.GetConfiguration();
+                tempRoot = serverConfig.TempDirectory;
+            }
+            catch
+            {
+                // Well, don't bother. Let's go with standard temporary
+                // creation.
+                tempRoot = Path.GetTempPath();
+            }
+
+            var singleSource = SourceFiles.SingleOrDefault();
+
+            var folder = singleSource != null
+                ? ExecutableService.CreateKey(singleSource, hashAlgorithm)
+                : Guid.NewGuid().ToString();
+            
+            var tempPath = Path.Combine(tempRoot, folder);
             if (Directory.Exists(tempPath))
             {
                 Directory.Delete(tempPath, true);
             }
+
             Directory.CreateDirectory(tempPath);
             return tempPath;
         }
