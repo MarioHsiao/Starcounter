@@ -161,13 +161,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="from"></param>
 		internal abstract void CopyValueDelegates(Template toTemplate);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="parent"></param>
-        internal abstract void SetCachedReads(Json parent);
-
+        
         /// <summary>
         /// 
         /// </summary>

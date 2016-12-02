@@ -180,22 +180,6 @@ namespace Starcounter.Templates {
 		}
 
         /// <summary>
-        /// If the property is bound, it reads the bound value and stores it
-        /// using the unbound delegate and marks the property as cached. 
-        /// All reads after this will read the from the unbound delegate,
-        /// until the cache is resetted when checkpointing.
-        /// </summary>
-        /// <param name="json"></param>
-        internal override void SetCachedReads(Json json) {
-            // We don't have to check if th property is already cached.
-            // That is done when checking if binding should be used.
-            if (json.IsTrackingChanges && UseBinding(json)) {
-                UnboundSetter(json, BoundGetter(json));
-                json.MarkAsCached(this.TemplateIndex);
-            }
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="parent"></param>
@@ -217,7 +201,7 @@ namespace Starcounter.Templates {
             if (UseBinding(parent)) {
                 T boundValue = BoundGetter(parent);
                 T oldValue = UnboundGetter(parent);
-                
+               
                 if (!ValueEquals(boundValue, oldValue)) {
                     UnboundSetter(parent, boundValue);
                     if (addToChangeLog)

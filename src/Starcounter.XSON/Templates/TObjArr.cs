@@ -135,35 +135,7 @@ namespace Starcounter.Templates {
 			if (UnboundGetter == null)
 				TemplateDelegateGenerator.GenerateUnboundDelegates(this, false);
 		}
-
-        /// <summary>
-        /// If the property is bound, it reads the bound value and stores it
-        /// using the unbound delegate and marks the property as cached. 
-        /// All reads after this will read the from the unbound delegate,
-        /// until the cache is resetted when checkpointing.
-        /// </summary>
-        /// <param name="json"></param>
-        internal override void SetCachedReads(Json json) {
-            // We don't have to check if th property is already cached.
-            // That is done when checking if binding should be used.
-            if (json.IsTrackingChanges && UseBinding(json)) {
-                Json value = UnboundGetter(json);
-                if (value != null) {
-                    if (json.checkBoundProperties) {
-                        value.CheckBoundArray(BoundGetter(json));
-                    }
-
-                    var list = (IList)value;
-                    foreach (Json row in list) {
-                        if (row == null)
-                            continue;
-                        ((TValue)row.Template).SetCachedReads(row);
-                    }
-                }
-                json.MarkAsCached(this.TemplateIndex);
-            }
-        }
-
+        
         internal override void Checkpoint(Json parent) {
 			Json arr = UnboundGetter(parent);
 
@@ -178,8 +150,20 @@ namespace Starcounter.Templates {
 		}
 
 		internal override void CheckAndSetBoundValue(Json parent, bool addToChangeLog) {
-			throw new NotImplementedException();
-		}
+            Json arr = UnboundGetter(parent);
+            if (arr != null) {
+                if (UseBinding(parent)) {
+                    if (parent.AutoRefreshBoundProperties)
+                        arr.CheckBoundArray(BoundGetter(parent));
+                    parent.MarkAsCached(TemplateIndex);
+                }
+
+                var list = (IList)arr;
+                foreach (Json item in list) {
+                    item.SetBoundValuesInTuple();
+                }
+            }
+        }
 
 		internal override Json GetValue(Json parent) {
 			var arr = UnboundGetter(parent);
