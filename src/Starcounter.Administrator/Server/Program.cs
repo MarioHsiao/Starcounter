@@ -65,30 +65,6 @@ namespace Starcounter.Administrator.Server {
             ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
             LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
-
-            // Override default appstore host
-            AppStoreManager.AppStoreServerHost = StarcounterEnvironment.InternetAddresses.DefaultAppStoreHost;
-            string appStoreHostFile = System.IO.Path.Combine(Program.ResourceFolder, StarcounterEnvironment.FileNames.OverrideAppStoreHost);
-            if (System.IO.File.Exists(appStoreHostFile)) {
-                try {
-
-                    string appStoreHost = System.IO.File.ReadAllText(appStoreHostFile);
-                    if (appStoreHost != null) {
-                        appStoreHost = appStoreHost.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Replace("\r", string.Empty).Trim();
-                        if (ValidateHost(appStoreHost)) {
-                            AppStoreManager.AppStoreServerHost = appStoreHost;
-                        }
-                        else {
-                            StarcounterAdminAPI.AdministratorLogSource.LogWarning("Invalid settings for the appstore host in file " + appStoreHostFile + ". Supported format is host[:port]");
-                        }
-                    }
-                }
-                catch (Exception e) {
-
-                    StarcounterAdminAPI.AdministratorLogSource.LogException(e, "Failed to read appstore settings host file");
-                }
-            }
-
             // Register and setup the API subsystem handlers
             var admin = new AdminAPI();
             RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Program.ServerEngine, Program.ServerInterface);
