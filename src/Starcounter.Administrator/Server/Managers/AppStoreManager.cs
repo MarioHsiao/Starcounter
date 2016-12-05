@@ -41,22 +41,29 @@ namespace Administrator.Server.Managers {
         /// <param name="errorCallback"></param>
         public static void GetApplications(AppStoreStore store, Action<IList<AppStoreApplication>> completionCallback = null, Action<string> errorCallback = null) {
 
-            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(DepotSoftwares_v1).FullName + "+json" } };
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(Softwares_v2).FullName + "+json" } };
             Http.GET(string.Format("http://{0}:{1}/warehouse/api/depots/{2}/applications", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, store.DepotKey), headers, (Response response) => {
 
                 try {
                     if (response.IsSuccessStatusCode) {
 
-                        DepotSoftwares_v1 depotSoftwares = new DepotSoftwares_v1();
+                        Softwares_v2 depotSoftwares = new Softwares_v2();
                         depotSoftwares.PopulateFromJson(response.Body);
 
-                        ConcurrentQueue<DepotSoftwares_v1.SoftwaresElementJson> queue = new ConcurrentQueue<DepotSoftwares_v1.SoftwaresElementJson>();
+                        List<AppStoreApplication> result = new List<AppStoreApplication>();
 
-                        foreach (var item in depotSoftwares.Softwares) {
-                            queue.Enqueue(item);
+                        foreach (var softwareJson in depotSoftwares.Items) {
+
+                            IList<AppStoreApplication> appStoreApplications = WarehouseSoftwareToAppStoreApplication(store, softwareJson);
+                            foreach (AppStoreApplication item in appStoreApplications) {
+                                if (result.Find(x => x.ID == item.ID) == null) {
+                                    result.Add(item);
+                                }
+                            }
                         }
 
-                        ProsessSoftware(store, queue, null, completionCallback, errorCallback);
+                        completionCallback?.Invoke(result);
+
                     }
                     else {
                         StarcounterAdminAPI.AdministratorLogSource.Debug(string.Format("Warehouse: ({0}), {1}", response.StatusCode, response.Body));
@@ -64,7 +71,7 @@ namespace Administrator.Server.Managers {
                 }
                 catch (Exception e) {
                     StarcounterAdminAPI.AdministratorLogSource.LogException(e, "Warehouse");
-                    errorCallback.Invoke(e.Message);
+                    errorCallback?.Invoke(e.Message);
                 }
             });
         }
@@ -79,34 +86,23 @@ namespace Administrator.Server.Managers {
 
             message = null;
 
-            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(DepotSoftwares_v1).FullName + "+json" } };
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(Softwares_v2).FullName + "+json" } };
             Response response = Http.GET(string.Format("http://{0}:{1}/warehouse/api/depots/{2}/applications", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, store.DepotKey), headers);
 
             if (response.IsSuccessStatusCode) {
 
-                DepotSoftwares_v1 depotSoftwares = new DepotSoftwares_v1();
+                Softwares_v2 depotSoftwares = new Softwares_v2();
                 depotSoftwares.PopulateFromJson(response.Body);
 
                 List<AppStoreApplication> applications = new List<AppStoreApplication>();
 
-                foreach (DepotSoftwares_v1.SoftwaresElementJson item in depotSoftwares.Softwares) {
+                foreach (Software_v2 softwareJson in depotSoftwares.Items) {
 
-                    Dictionary<String, String> headers2 = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(Software_v1).FullName + "+json" } };
-                    Response softwareResponse = Http.GET(string.Format("http://{0}:{1}{2}", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, item.Url), headers2);
-
-                    if (softwareResponse.IsSuccessStatusCode) {
-
-                        Software_v1 softwareJson = new Software_v1();
-                        softwareJson.PopulateFromJson(softwareResponse.Body);
-                        IList<AppStoreApplication> appStoreApplications = WarehouseSoftwareToAppStoreApplication(store, softwareJson);
-                        foreach (AppStoreApplication appStoreApplication in appStoreApplications) {
-                            if (applications.Find(x => x.ID == item.ID) == null) {
-                                applications.Add(appStoreApplication);
-                            }
+                    IList<AppStoreApplication> appStoreApplications = WarehouseSoftwareToAppStoreApplication(store, softwareJson);
+                    foreach (AppStoreApplication appStoreApplication in appStoreApplications) {
+                        if (applications.Find(x => x.ID == softwareJson.Software.ID) == null) {
+                            applications.Add(appStoreApplication);
                         }
-                    }
-                    else {
-                        StarcounterAdminAPI.AdministratorLogSource.Debug(string.Format("Warehouse: ({0}), {1}", softwareResponse.StatusCode, softwareResponse.Body));
                     }
                 }
 
@@ -170,6 +166,7 @@ namespace Administrator.Server.Managers {
         /// <param name="message"></param>
         /// <returns></returns>
         public static IList<AppStoreStore> GetStores(out string message) {
+
             List<AppStoreStore> stores = new List<AppStoreStore>();
             message = null;
 
@@ -319,64 +316,20 @@ namespace Administrator.Server.Managers {
             return depotKeys;
         }
 
-        private static void ProsessSoftware(AppStoreStore store, ConcurrentQueue<DepotSoftwares_v1.SoftwaresElementJson> softwares, List<AppStoreApplication> appStoreApplication, Action<List<AppStoreApplication>> completionCallback = null, Action<string> errorCallback = null) {
-
-            if (appStoreApplication == null) {
-                appStoreApplication = new List<AppStoreApplication>();
-            }
-
-            if (softwares.Count == 0) {
-                completionCallback(appStoreApplication);
-                return;
-            }
-
-            // Get next depot key
-            DepotSoftwares_v1.SoftwaresElementJson depotKey;
-            softwares.TryDequeue(out depotKey);
-
-            string url = string.Format("http://{0}:{1}{2}", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, depotKey.Url);
-
-            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(Software_v1).FullName + "+json" } };
-            Http.GET(url, headers, (Response response) => {
-                try {
-                    if (response.IsSuccessStatusCode) {
-                        Software_v1 softwareJson = new Software_v1();
-                        softwareJson.PopulateFromJson(response.Body);
-                        IList<AppStoreApplication> appStoreApplications = WarehouseSoftwareToAppStoreApplication(store, softwareJson);
-                        foreach (AppStoreApplication item in appStoreApplications) {
-                            if (appStoreApplication.Find(x => x.ID == item.ID) == null) {
-                                appStoreApplication.Add(item);
-                            }
-                        }
-
-                    }
-                    else {
-                        StarcounterAdminAPI.AdministratorLogSource.Debug(string.Format("Warehouse: ({0}), {1}", response.StatusCode, response.Body));
-                    }
-
-                    ProsessSoftware(store, softwares, appStoreApplication, completionCallback, errorCallback);
-                }
-                catch (Exception e) {
-                    StarcounterAdminAPI.AdministratorLogSource.LogException(e, "Warehouse");
-                    errorCallback.Invoke(e.Message);
-                }
-            }, 20);
-        }
-
-        private static IList<AppStoreApplication> WarehouseSoftwareToAppStoreApplication(AppStoreStore store, Software_v1 softwareJson) {
+        private static IList<AppStoreApplication> WarehouseSoftwareToAppStoreApplication(AppStoreStore store, Software_v2 softwareJson) {
 
             List<AppStoreApplication> result = new List<AppStoreApplication>();
 
-            if (softwareJson.Apps.Count == 0) {
-                foreach (Version_v1 versionJson in softwareJson.Versions) {
+            if (softwareJson.SoftwareContent.Count == 0) {
+                foreach (Version_v1 versionJson in softwareJson.Software.Versions) {
                     #region Create Appp
 
                     AppStoreApplication application = VersionToAppStoreApplication(versionJson);
-                    application.Namespace = softwareJson.Namespace;
-                    application.DisplayName = softwareJson.Name;
-                    application.Description = softwareJson.Description;
-                    application.ImageUri = string.Format("http://{0}:{1}{2}", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, softwareJson.IconUrl);
-                    application.Company = softwareJson.Organization;
+                    application.Namespace = softwareJson.Software.Namespace;
+                    application.DisplayName = softwareJson.Software.Name;
+                    application.Description = softwareJson.Software.Description;
+                    application.ImageUri = string.Format("http://{0}:{1}{2}", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, softwareJson.Software.IconUrl);
+                    application.Company = softwareJson.Software.Organization;
                     application.Database = store.Database;
                     application.StoreID = store.ID;
                     application.StoreUrl = store.SourceUrl;
@@ -395,11 +348,11 @@ namespace Administrator.Server.Managers {
             return result;
         }
 
-        private static IList<AppStoreApplication> CreateAppsFromSuit(AppStoreStore store, Software_v1 softwareJson) {
+        private static IList<AppStoreApplication> CreateAppsFromSuit(AppStoreStore store, Software_v2 softwareJson) {
 
             List<AppStoreApplication> result = new List<AppStoreApplication>();
 
-            foreach (var suiteApp in softwareJson.Apps) {
+            foreach (SoftwareItem_v2 suiteApp in softwareJson.SoftwareContent) {
 
                 foreach (Version_v1 versionJson in suiteApp.Versions) {
 
