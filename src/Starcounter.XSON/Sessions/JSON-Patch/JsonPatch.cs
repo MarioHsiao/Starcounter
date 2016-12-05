@@ -192,7 +192,7 @@ namespace Starcounter.XSON {
                 if (change.Property == null) {
                     change.Parent.calledFromStepSibling = change.SuppressNamespace;
                     try {
-                        serializer = change.Parent.JsonSerializer;
+                        serializer = change.Parent.Serializer;
                         serializer.Serialize(change.Parent, writer);
                     } finally {
                         change.Parent.calledFromStepSibling = false;
@@ -206,7 +206,7 @@ namespace Starcounter.XSON {
                         change.Parent.calledFromStepSibling = false;
                     }
                 } else {
-                    change.Parent.JsonSerializer.Serialize(change.Parent, change.Property, writer);
+                    change.Parent.Serializer.Serialize(change.Parent, change.Property, writer);
                 }
                 
             } else {

@@ -69,6 +69,8 @@
     <Compile Include="JsonByExample\JsonByExampleParser.cs" />
     <Compile Include="JsonByExample\JsonParser.cs" />
     <Compile Include="Serializer\NewtonSoftSerializer.cs" />
+    <Compile Include="Serializer\StandardJsonSerializerBase.cs" />
+    <Compile Include="Serializer\TypedJsonSerializer.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatch.cs" />
     <Compile Include="Templates\Factory\CodegenInfo.cs" />
     <Compile Include="Templates\Factory\FactoryExceptionHelper.cs" />

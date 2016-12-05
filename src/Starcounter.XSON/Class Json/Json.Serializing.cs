@@ -24,7 +24,7 @@ namespace Starcounter {
 		/// </summary>
 		/// <returns></returns>
 		public string ToJson(JsonSerializerSettings settings = null) {
-            return JsonSerializer.Serialize(this, settings);
+            return Serializer.Serialize(this, settings);
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Starcounter {
         /// <returns></returns>
         public byte[] ToJsonUtf8(JsonSerializerSettings settings = null) {
             MemoryStream stream = new MemoryStream();
-            JsonSerializer.Serialize(this, stream, settings);
+            Serializer.Serialize(this, stream, settings);
             return stream.ToArray();
         }
 
@@ -48,7 +48,7 @@ namespace Starcounter {
         /// <returns></returns>
         public int ToJsonUtf8(byte[] buf, int offset, JsonSerializerSettings settings = null) {
             MemoryStream stream = new MemoryStream(buf, offset, buf.Length - offset);
-            JsonSerializer.Serialize(this, stream, settings);
+            Serializer.Serialize(this, stream, settings);
             return (int)stream.Position - offset;
         }
         
@@ -63,7 +63,7 @@ namespace Starcounter {
             if (string.IsNullOrEmpty(json))
                 return;
 
-            JsonSerializer.Deserialize(this, json, settings);
+            Serializer.Deserialize(this, json, settings);
         }		
 
         /// <summary>
@@ -77,19 +77,26 @@ namespace Starcounter {
                 CreateDynamicTemplate(null);
 
             var stream = new MemoryStream(source, 0, sourceSize);
-            JsonSerializer.Deserialize(this, stream, settings);
+            Serializer.Deserialize(this, stream, settings);
             return (int)stream.Position;
         }
         
         /// <summary>
         /// 
         /// </summary>
-        internal ITypedJsonSerializer JsonSerializer {
+        internal ITypedJsonSerializer Serializer {
             get {
                 TValue tv = Template as TValue;
                 if (tv != null)
                     return tv.JsonSerializer;
                 return Module.GetJsonSerializer(Module.StandardJsonSerializerId);
+            }
+        }
+
+        [Obsolete("This property and the returned type have been deprecated and will be removed soon. Please use the property Serializer and interface ITypedJsonSerializer instead.")]
+        internal TypedJsonSerializer JsonSerializer {
+            get {
+                return StandardJsonSerializer.Default;
             }
         }
     }
