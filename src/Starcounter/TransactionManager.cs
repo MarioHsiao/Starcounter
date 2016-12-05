@@ -179,6 +179,10 @@ namespace Starcounter.Internal {
                         if (keptHandle == handle)
                             Refs[handle.index] = TransactionHandle.Invalid;
                     }
+
+                    // If the last one added is the one disposed we decrease the used count and allow the position to be reused.
+                    if (handle.index == (Used - 1))
+                        Used--;
                 } else {
                     int calcIndex = handle.index - ShortListCount;
 
@@ -186,10 +190,6 @@ namespace Starcounter.Internal {
                     if (keptHandle == handle)
                         SlowList[calcIndex] = TransactionHandle.Invalid;
                 }
-
-                // If the last one added is the one disposed we decrease the used count and allow the position to be reused.
-                if (handle.index == (Used - 1))
-                    Used--;
             }
             return 0;
         }
@@ -250,9 +250,6 @@ namespace Starcounter.Internal {
                         if (isDirty != 0)
                             throw ErrorCode.ToException(Error.SCERRTRANSACTIONMODIFIEDBUTNOTREFERENCED);
 
-                        // If the last one added is the one disposed we decrease the used count and allow the position to be reused.
-                        if (handle.index == (Used - 1))
-                            Used--;
                         return;
                     }
                     throw ErrorCode.ToException(ec);
