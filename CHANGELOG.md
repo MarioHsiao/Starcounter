@@ -23,6 +23,7 @@
 - Fixed scoping in auto-assigned slots for stamped `HTMLCompositions` [#3859](https://github.com/Starcounter/Starcounter/issues/3859)
 - Fixed workaround for webcomponents polyfill bug that result in erasing `starcounter-composition`s in some cases [StarcounterSamples/People#49](https://github.com/StarcounterSamples/People/issues/49)
 - Fixed a bug in codegen for TypedJSON where a loop was terminated instead of current item skipped, which lead to using IExplicitBound<> sometimes added compile-time checks for properties that should not be bound [#262](https://github.com/Starcounter/Starcounter/issues/262)
+- Fixed a bug in PuppetJs when a new HTTP request from the client aborted the previous request [#3981](https://github.com/Starcounter/Starcounter/issues/3981)
 
 ### Changed
 - Changed the parser for Json-by-example from F# parser to NewtonSoft (nuget) [#3811](https://github.com/Starcounter/Starcounter/issues/3811)
@@ -31,10 +32,13 @@
 
 ### Changed
 - Upgraded Polymer to 1.7.0 [#3888](https://github.com/Starcounter/Starcounter/issues/3888)
-- Upgraded webcomponent.js to 0.7.23 [#3925](https://github.com/Starcounter/Starcounter/issues/3925)
+- Upgraded webcomponents.js to 0.7.23 [#3925](https://github.com/Starcounter/Starcounter/issues/3925)
 - Upgraded Starcounter/starcounter-include from 2.0.0 to 2.0.1 (https://github.com/Starcounter/starcounter-include/releases)
 - Upgraded Juicy/imported-template from 1.4.3 to 1.4.4 (https://github.com/Juicy/imported-template/releases)
 - Upgraded Juicy/juicy-composition from 0.0.5 to 0.0.7 (https://github.com/Juicy/juicy-composition/releases)
+- Upgraded puppetjs/puppetjs from 2.2.1 to 2.3.0 [#3981](https://github.com/Starcounter/Starcounter/issues/3981) (https://github.com/PuppetJs/PuppetJs/releases)
+- Upgraded puppetjs/puppet-polymer-client from 3.2.0 to 3.2.1 (https://github.com/PuppetJs/puppet-polymer-client/releases)
+- Upgraded fast-json-patch from 1.1.0 to 1.1.2 (https://github.com/Starcounter-Jack/JSON-Patch/releases)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 
