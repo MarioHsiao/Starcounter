@@ -327,7 +327,7 @@ namespace Administrator.Server.Managers {
             List<AppStoreStore> stores = new List<AppStoreStore>();
             message = null;
 
-            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/warehouse.starcounter.depots-v1+json" } };
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(Depots_v1).FullName + "+json" } };
             string url = string.Format("http://{0}:{1}/warehouse/api/depots?version={2}&versiondate={3}&channel={4}", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, HttpUtility.UrlEncode(CurrentVersion.Version), HttpUtility.UrlEncode(CurrentVersion.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'")), HttpUtility.UrlEncode(CurrentVersion.ChannelName));
             Response response = Http.GET(url, headers, 20);
             if (response.IsSuccessStatusCode) {
@@ -385,7 +385,7 @@ namespace Administrator.Server.Managers {
 
             ConcurrentQueue<string> depotKeys = new ConcurrentQueue<string>();
 
-            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/warehouse.starcounter.depots-v1+json" } };
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(Depots_v1).FullName + "+json" } };
             string url = string.Format("http://{0}:{1}/warehouse/api/depots?version={2}&versiondate={3}&channel={4}", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, HttpUtility.UrlEncode(CurrentVersion.Version), HttpUtility.UrlEncode(CurrentVersion.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'")), HttpUtility.UrlEncode(CurrentVersion.ChannelName));
             Http.GET(url, headers, (response) => {
 
@@ -441,7 +441,7 @@ namespace Administrator.Server.Managers {
             string depotKey;
             depotKeys.TryDequeue(out depotKey);
 
-            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/warehouse.starcounter.depot-v1+json" } };
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(Depots_v1).FullName + "+json" } };
             string url = string.Format("http://{0}:{1}/warehouse/api/depots/{2}", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, depotKey);
             Http.GET(url, headers, (Response response) => {
 
@@ -516,7 +516,7 @@ namespace Administrator.Server.Managers {
 
             message = null;
 
-            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/warehouse.starcounter.depotsoftwares-v1+json" } };
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(DepotSoftwares_v1).FullName + "+json" } };
             Response response = Http.GET(string.Format("http://{0}:{1}/warehouse/api/depots/{2}/applications", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, store.DepotKey), headers);
 
             if (response.IsSuccessStatusCode) {
@@ -528,7 +528,7 @@ namespace Administrator.Server.Managers {
 
                 foreach (DepotSoftwares_v1.SoftwaresElementJson item in depotSoftwares.Softwares) {
 
-                    Dictionary<String, String> headers2 = new Dictionary<String, String> { { "acceptversion", "application/warehouse.starcounter.software-v1+json" } };
+                    Dictionary<String, String> headers2 = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(Software_v1).FullName + "+json" } };
                     Response softwareResponse = Http.GET(string.Format("http://{0}:{1}{1}", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, item.Url), headers2);
 
                     if (softwareResponse.IsSuccessStatusCode) {
@@ -555,7 +555,7 @@ namespace Administrator.Server.Managers {
 
         private static void GetApplicationsFromWarehouse(AppStoreStore store, Action<IList<AppStoreApplication>> completionCallback = null, Action<string> errorCallback = null) {
 
-            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/warehouse.starcounter.depotsoftwares-v1+json" } };
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(DepotSoftwares_v1).FullName + "+json" } };
             Http.GET(string.Format("http://{0}:{1}/warehouse/api/depots/{2}/applications", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, store.DepotKey), headers, (Response response) => {
 
                 try {
@@ -602,7 +602,7 @@ namespace Administrator.Server.Managers {
 
             string url = string.Format("http://{0}:{1}{2}", WarehouseSettings.WarehouseHost, WarehouseSettings.WarehousePort, depotKey.Url);
 
-            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/warehouse.starcounter.software-v1+json" } };
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/" + typeof(Software_v1).FullName + "+json" } };
             Http.GET(url, headers, (Response response) => {
                 try {
                     if (response.IsSuccessStatusCode) {
