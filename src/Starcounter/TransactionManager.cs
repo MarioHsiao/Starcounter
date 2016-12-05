@@ -75,10 +75,10 @@ namespace Starcounter.Internal {
                         if (SlowList == null)
                             SlowList = new List<TransactionHandle>();
                         
-                        SlowList.Add(th);
-
                         // The index will be recalculated based on the shortlist when used.
                         Debug.Assert(SlowList.Count == (index - ShortListCount));
+
+                        SlowList.Add(th);
                     }
 
                     Used++;
@@ -147,11 +147,11 @@ namespace Starcounter.Internal {
                         // The ShortList is filled. We need to switch over to slower list that can manage more transactions.
                         if (SlowList == null)
                             SlowList = new List<TransactionHandle>();
-                        
-                        SlowList.Add(th);
 
                         // The index will be recalculated based on the shortlist when used.
                         Debug.Assert(SlowList.Count == (index - ShortListCount));
+
+                        SlowList.Add(th);
                     }
 
                     Used++;
