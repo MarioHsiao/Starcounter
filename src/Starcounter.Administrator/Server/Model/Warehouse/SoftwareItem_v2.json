@@ -1,0 +1,16 @@
+﻿{
+  "$": { "Namespace": "Warehouse.Api.REST" },
+  "ID": "",
+  "Url": "",
+  "Name": "",
+  "Description": "",
+  "Namespace": "",
+  "$Organization": { "Bind": "Organization.Name" },
+  "Organization": "",
+  "EntryPoint": "",
+  "IconUrl": "",
+  "Versions": [ { "$": { "Reuse": "Warehouse.Api.REST.Version_v1" } } ],
+  "Banners": [ { "$": { "Reuse": "Warehouse.Api.REST.SoftwareImage_v1" } } ],
+  "Screenshots": [ { "$": { "Reuse": "Warehouse.Api.REST.SoftwareImage_v1" } } ],
+  "Icons": [ { "$": { "Reuse": "Warehouse.Api.REST.SoftwareImage_v1" } } ]
+}
