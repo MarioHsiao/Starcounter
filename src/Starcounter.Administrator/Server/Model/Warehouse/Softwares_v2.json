@@ -1,0 +1,4 @@
+﻿{
+  "$": { "Namespace": "Warehouse.Api.REST" },
+  "Items": [ { "$": { "Reuse": "Warehouse.Api.REST.Software_v2" } } ]
+}
