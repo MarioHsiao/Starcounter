@@ -156,6 +156,8 @@ namespace Starcounter.XSON {
 
                     if (flushLog)
                         changeLog.Checkpoint();
+
+                    writer.Flush();
                     return sb.ToString();
                 }
             } finally {

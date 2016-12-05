@@ -66,11 +66,11 @@ namespace Starcounter.XSON {
         }
 
         public void Serialize(Json json, Template template, TextWriter textWriter, JsonSerializerSettings settings = null) {
-                if (settings == null)
-                    settings = JsonSerializerSettings.Default;
+            if (settings == null)
+                settings = JsonSerializerSettings.Default;
 
-                var writer = new Newt.JsonTextWriter(textWriter);
-
+            using (var writer = new Newt.JsonTextWriter(textWriter)) {
+                writer.CloseOutput = false;
                 json.Scope(() => {
                     if (template != null) {
                         serializePerTemplate[(int)template.TemplateTypeId](json, template, writer, settings);
@@ -79,6 +79,8 @@ namespace Starcounter.XSON {
                         SerializeObject(json, writer, settings);
                     }
                 });
+                writer.Flush();
+            }
         }
 
         public T Deserialize<T>(string source, JsonSerializerSettings settings = null) where T : Json, new() {
