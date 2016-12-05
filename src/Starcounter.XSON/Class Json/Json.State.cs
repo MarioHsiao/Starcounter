@@ -142,7 +142,11 @@ namespace Starcounter {
         // See if there are better ways of solving this problem.
         internal bool calledFromStepSibling;
 
-        private bool isAddedToViewmodel;
+        /// <summary>
+        /// Flag determining if this instance is stateful or not. When it's stateful it keeps track of changes
+        /// in properties that have been made.
+        /// </summary>
+        private bool isStateful;
 
 #if JSONINSTANCECOUNTER
         private static long globalInstanceCounter = 0;

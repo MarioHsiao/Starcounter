@@ -654,6 +654,10 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="changes"></param>
         private static void SplitMoves(List<Change> changes) {
             Change current;
             Change toSplit;
@@ -732,26 +736,31 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Called when this object is added to a stateful viewmodel. 
-        /// This method will be called on each childjson as well.
+        /// Initializes needed state to be able to keep track of changes and optionally
+        /// keep track of versions.
         /// </summary>
-        private void OnAddedToViewmodel(bool callStepSiblings) {
+        /// <remarks>
+        /// If this method is called on an already stateful instance, it will silently return.
+        /// All children of this json will be called as well, so it's enough to just call 
+        /// this method for the instance in question.
+        /// </remarks>
+        private void UpgradeToStateful(bool callStepSiblings) {
             if (callStepSiblings == true && this.siblings != null) {
                 foreach (var stepSibling in this.siblings) {
                     if (stepSibling == this)
                         continue;
-                    stepSibling.OnAddedToViewmodel(false);
+                    stepSibling.UpgradeToStateful(false);
                 }
             }
 
-            if (this.isAddedToViewmodel == true)
+            if (this.isStateful == true)
                 return;
 
             var changeLog = ChangeLog;
             if (changeLog != null && changeLog.Version != null)
                 this.addedInVersion = changeLog.Version.LocalVersion;
 
-            this.isAddedToViewmodel = true;
+            this.isStateful = true;
 
             // If the transaction attached to this json is the same transaction set higher 
             // up in the tree we set it back to invalid. This will be useful later when
@@ -773,7 +782,7 @@ namespace Starcounter {
                 stateFlags = new List<PropertyState>(this.valueList.Count);
                 foreach (Json item in this.valueList) {
                     stateFlags.Add(PropertyState.Default);
-                    item.OnAddedToViewmodel(true);
+                    item.UpgradeToStateful(true);
                 }
             } else {
                 if (Template != null) {
@@ -786,7 +795,7 @@ namespace Starcounter {
                             if (container != null) {
                                 var childJson = (Json)container.GetUnboundValueAsObject(this);
                                 if (childJson != null)
-                                    childJson.OnAddedToViewmodel(true);
+                                    childJson.UpgradeToStateful(true);
                             }
                         }
                     } else {
@@ -798,14 +807,19 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Called when this object have been detached from a stateful viewmodel. Will call all
-        /// children as well.
+        /// Downgrades the instance from a stateful viewmodel to a non-stateful meaning that 
+        /// changes will not be tracked and versioninformation is discarded.
         /// </summary>
-        private void OnRemovedFromViewmodel(bool callStepSiblings) {
-            if (isAddedToViewmodel == false)
+        /// <remarks>
+        /// If this method is called on a non-stateful instance, it will silently return.
+        /// All children of this json will be called as well, so it's enough to just call 
+        /// this method for the instance in question.
+        /// </remarks>
+        private void DowngradeFromStateFul(bool callStepSiblings) {
+            if (isStateful == false)
                 return;
 
-            isAddedToViewmodel = false;
+            isStateful = false;
             addedInVersion = -1;
             if (this.transaction != TransactionHandle.Invalid) {
                 Session.DeregisterTransaction(this.transaction);
@@ -816,7 +830,7 @@ namespace Starcounter {
 
             if (this.IsArray) {
                 foreach (Json item in this.valueList) {
-                    item.OnRemovedFromViewmodel(true);
+                    item.DowngradeFromStateFul(true);
                 }
             } else {
                 if (Template != null) {
@@ -826,7 +840,7 @@ namespace Starcounter {
                             if (container != null) {
                                 var childJson = (Json)container.GetUnboundValueAsObject(this);
                                 if (childJson != null)
-                                    childJson.OnRemovedFromViewmodel(true);
+                                    childJson.DowngradeFromStateFul(true);
                             }
                         }
                     }
@@ -840,13 +854,16 @@ namespace Starcounter {
 
                     // Check for stepsiblings that might be a part of a stateful viewmodel,
                     // and still be a sibling to another. In that case we don't do the call.
-                    if (stepSibling.session != null || (stepSibling.Parent != null && stepSibling.Parent.isAddedToViewmodel))
+                    if (stepSibling.session != null || (stepSibling.Parent != null && stepSibling.Parent.isStateful))
                         continue;
-                    stepSibling.OnRemovedFromViewmodel(false);
+                    stepSibling.DowngradeFromStateFul(false);
                 }
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         internal SiblingList Siblings {
             get { return this.siblings; }
             set {
@@ -855,11 +872,14 @@ namespace Starcounter {
                     // We just call OnAdd for this sibling since the list will be set on each one.
                     // If the sibling is already added the method will just return so no need to 
                     // do additional checks here.
-                    this.OnAddedToViewmodel(true);
+                    this.UpgradeToStateful(true);
                 }
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public bool AutoRefreshBoundProperties {
             get { return this.checkBoundProperties; }
             set {
@@ -899,6 +919,10 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="verifySiblings"></param>
         internal void VerifyDirtyFlags(bool verifySiblings = true) {
             if (!this.trackChanges)
                 return;
@@ -924,12 +948,18 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void VerifyDirtyFlagsForSingleValue() {
             AssertOrThrow((this.stateFlags.Count == 1), this.Template);
             AssertOrThrow((this.stateFlags[0] == PropertyState.Default), this.Template);
             AssertOrThrow((this.dirty == false), this.Template);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void VerifyDirtyFlagsForArray() {
             Json row;
             var tArr = (TObjArr)this.Template;
@@ -945,6 +975,9 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void VerifyDirtyFlagsForObject() {
             Json child;
             TContainer tCon;
@@ -963,6 +996,11 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <param name="template"></param>
         private void AssertOrThrow(bool expression, Template template) {
             if (!expression) {
                 //                Json.logSource.LogWarning("Verification of dirtyflags failed for " + GetTemplateName(template) + "\n" + (new StackTrace(true)).ToString());
