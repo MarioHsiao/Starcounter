@@ -191,37 +191,72 @@ namespace Starcounter {
 		/// Logs all property changes made to this object or its bound data object
 		/// </summary>
 		/// <param name="changeLog">Log of changes</param>
-		internal void GatherChanges(ChangeLog changeLog, bool callStepSiblings) {
+		internal void GatherChanges(ChangeLog changeLog, bool callStepSiblings = true) {
             if (!this.trackChanges)
                 return;
-
-            this.Scope<Json, ChangeLog, bool>((parent, clog, callSiblings) => {
-                if (this.IsArray) {
-                    GatherChangesForArray(changeLog, callStepSiblings);
-                } else {
-                    GatherChangesInScope(parent, changeLog, callStepSiblings);
-                }
-            }, this, changeLog, callStepSiblings);
+            this.Scope<Json, ChangeLog, bool>(GatherChangesInScope, this, changeLog, callStepSiblings);
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="changeLog"></param>
-		private void GatherChangesForArray(ChangeLog changeLog, bool callStepSiblings = true) {
+        /// <summary>
+        /// Dirty checks each value of the object and adds any changes
+        /// to the changelog.
+        /// </summary>
+        /// <remarks>This method assumes that the correct transaction is used.</remarks>
+        /// <param name="changeLog">The log of changes</param>
+        private static void GatherChangesInScope(Json parent, ChangeLog changeLog, bool callStepSiblings = true) {
+            var template = (TValue)parent.Template;
+            if (template != null) {
+                if (template.TemplateTypeId == TemplateTypeEnum.Object) {
+                    var exposed = ((TObject)template).Properties.ExposedProperties;
+                    for (int t = 0; t < exposed.Count; t++) {
+                        CheckOneTemplate(parent, (TValue)exposed[t], changeLog);
+                    }
+                } else if (template.TemplateTypeId != TemplateTypeEnum.Array) {
+                    CheckOneTemplate(parent, template, changeLog);
+                } else {
+                    GatherChangesForArray(parent, changeLog);
+                }
+            }
+
+            if (callStepSiblings == true && parent.siblings != null) {
+                for (int i = 0; i < parent.siblings.Count; i++) {
+                    var sibling = parent.siblings[i];
+
+                    if (sibling == parent)
+                        continue;
+
+                    if (parent.siblings.HasBeenSent(i)) {
+                        sibling.GatherChanges(changeLog, false);
+                    } else {
+                        changeLog.Add(Change.Update(sibling, null, true));
+
+                        // TODO:
+                        // Same questions as above. Why do we reset these flags here and not in checkpoint?
+                        parent.siblings.MarkAsSent(i);
+                        sibling.dirty = false;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="changeLog"></param>
+        private static void GatherChangesForArray(Json arr, ChangeLog changeLog) {
             bool logChanges;
             Json item;
 
-            if (this.arrayAddsAndDeletes != null && this.arrayAddsAndDeletes.Count > 0) {
-                for (int i = 0; i < this.arrayAddsAndDeletes.Count; i++) {
-                    var change = this.arrayAddsAndDeletes[i];
+            if (arr.arrayAddsAndDeletes != null && arr.arrayAddsAndDeletes.Count > 0) {
+                for (int i = 0; i < arr.arrayAddsAndDeletes.Count; i++) {
+                    var change = arr.arrayAddsAndDeletes[i];
 
                     if (change.ChangeType == Change.REMOVE && change.Index == int.MaxValue) {
                         // TBH I'm not sure we can ever get here when having a remove all (it should refresh 
                         // the whole array), but if we do we treat it as adding a remove change for each item 
                         // removed (i.e count in change).
                         for (int k = 0; k < change.FromIndex; k++) {
-                            ChangeLog.Add(Change.Remove(change.Parent, (TObjArr)change.Property, k, null));
+                            changeLog.Add(Change.Remove(change.Parent, (TObjArr)change.Property, k, null));
                         }
                         continue;
                     } 
@@ -229,18 +264,18 @@ namespace Starcounter {
                     changeLog.Add(change);
                     var index = change.Item.cacheIndexInArr;
                     
-                    if (change.ChangeType != Change.REMOVE && index >= 0 && index < this.valueList.Count) {
-                        this.MarkAsNonDirty(index);
+                    if (change.ChangeType != Change.REMOVE && index >= 0 && index < arr.valueList.Count) {
+                        arr.MarkAsNonDirty(index);
                         item = change.Item;
                         item.SetBoundValuesInTuple();
                         item.dirty = false;
                     }
                 }
 
-                for (int i = 0; i < this.valueList.Count; i++) {
+                for (int i = 0; i < arr.valueList.Count; i++) {
                     // Skip all items we have already added to the changelog.
                     logChanges = true;
-                    foreach (Change change in this.arrayAddsAndDeletes) {
+                    foreach (Change change in arr.arrayAddsAndDeletes) {
                         if (change.ChangeType != Change.REMOVE && change.Index == i) {
                             logChanges = false;
                             break;
@@ -248,24 +283,24 @@ namespace Starcounter {
                     }
 
                     if (logChanges) {
-                        ((Json)this.valueList[i]).GatherChanges(changeLog, callStepSiblings);
+                        ((Json)arr.valueList[i]).GatherChanges(changeLog);
                     }
                 }
 
-                this.CheckAndAddArrayVersionLog(changeLog);
-                this.arrayAddsAndDeletes = null;
+                arr.CheckAndAddArrayVersionLog(changeLog);
+                arr.arrayAddsAndDeletes = null;
             } else {
-                for (int t = 0; t < this.valueList.Count; t++) {
-                    var arrItem = ((Json)this.valueList[t]);
-                    if (this.IsDirty(t)) { // A refresh of an existing row (that is not added or removed)
-                        changeLog.Add(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
-                        this.MarkAsNonDirty(t);
+                for (int t = 0; t < arr.valueList.Count; t++) {
+                    var arrItem = ((Json)arr.valueList[t]);
+                    if (arr.IsDirty(t)) { // A refresh of an existing row (that is not added or removed)
+                        changeLog.Add(Change.Update(arr.Parent, (TValue)arr.Template, t, arrItem));
+                        arr.MarkAsNonDirty(t);
                     } else {
-                        arrItem.GatherChanges(changeLog, callStepSiblings);
+                        arrItem.GatherChanges(changeLog);
                     }
                 }
             }
-            this.dirty = false;
+            arr.dirty = false;
 		}
         
         /// <summary>
@@ -300,48 +335,6 @@ namespace Starcounter {
             // Is it because we dont want to handle it twice? In that case there should be another 
             // flag set to mark it as processed (that will also be resetted during checkpointing).
             parent.MarkAsNonDirty(template.TemplateIndex);
-        }
-
-        /// <summary>
-        /// Dirty checks each value of the object and adds any changes
-        /// to the changelog.
-        /// </summary>
-        /// <remarks>This method assumes that the correct transaction is used.</remarks>
-        /// <param name="changeLog">The log of changes</param>
-        private static void GatherChangesInScope(Json parent, ChangeLog changeLog, bool callStepSiblings = true) {
-            var template = (TValue)parent.Template;
-            if (template != null) {
-                if (template.TemplateTypeId == TemplateTypeEnum.Object) {
-                    var exposed = ((TObject)template).Properties.ExposedProperties;
-                    for (int t = 0; t < exposed.Count; t++) {
-                        CheckOneTemplate(parent, (TValue)exposed[t], changeLog);
-                    }
-                } else if (template.TemplateTypeId == TemplateTypeEnum.Array) {
-
-                } else {
-                    CheckOneTemplate(parent, template, changeLog);
-                }
-            }
-
-            if (callStepSiblings == true && parent.siblings != null) {
-                for (int i = 0; i < parent.siblings.Count; i++) {
-                    var sibling = parent.siblings[i];
-
-                    if (sibling == parent)
-                        continue;
-
-                    if (parent.siblings.HasBeenSent(i)) {
-                        sibling.GatherChanges(changeLog, false);
-                    } else {
-                        changeLog.Add(Change.Update(sibling, null, true));
-
-                        // TODO:
-                        // Same questions as above. Why do we reset these flags here and not in checkpoint?
-                        parent.siblings.MarkAsSent(i);
-                        sibling.dirty = false;
-                    }
-                }
-            }
         }
         
         /// <summary>
@@ -388,11 +381,29 @@ namespace Starcounter {
             this);
         }
 
+        /// <summary>
+        /// Compares the existing dataobject with the one submitted as a parameter. 
+        /// If they differ the new will be set as data.
+        /// </summary>
+        /// <remarks>
+        /// If both dataobjects implements interface IBindable, the property IBindable.Identity 
+        /// will be used for comparison, otherwise a reference equality will be performed.
+        /// </remarks>
+        /// <param name="boundValue"></param>
         internal void CheckBoundObject(object boundValue) {
             if (!CompareDataObjects(boundValue, Data))
                 AttachData(boundValue, false);
         }
 
+        /// <summary>
+        /// Returns the index, starting from offset, of the specifed object
+        /// using either IBindable.Identity (if available) or reference equality
+        /// for comparison.
+        /// </summary>
+        /// <param name="list">The list to find the index in.</param>
+        /// <param name="offset">The starting point in the list.</param>
+        /// <param name="value">The value to find.</param>
+        /// <returns></returns>
         private static int IndexOf(IList list, int offset, object value) {
             int index = -1;
             Json current;
@@ -407,6 +418,10 @@ namespace Starcounter {
             return index;
         }
 
+        /// <summary>
+        /// Old method, not currently used, but kept to be able to run tests and check performance and differences.
+        /// </summary>
+        /// <param name="boundValue"></param>
         internal void CheckBoundArray_OLD(IEnumerable boundValue) {
             Json oldJson;
             Json newJson;
@@ -444,6 +459,11 @@ namespace Starcounter {
                 this.Parent.HasChanged(tArr);
         }
 
+        /// <summary>
+        /// Compares all items in an array that is bound with an enumeration of values.
+        /// Will remove, add and replaces items that have changed.
+        /// </summary>
+        /// <param name="boundValue"></param>
         internal void CheckBoundArray(IEnumerable boundValue) {
             Json oldJson;
             Json newJson;
@@ -498,6 +518,13 @@ namespace Starcounter {
                 this.Parent.HasChanged(tArr);
         }
 
+        /// <summary>
+        /// Compares the two objects. If both implements the IBindable interface, the
+        /// identity will be used, otherwise a reference equality will be performed.
+        /// </summary>
+        /// <param name="obj1"></param>
+        /// <param name="obj2"></param>
+        /// <returns></returns>
         private static bool CompareDataObjects(object obj1, object obj2) {
             if (obj1 == null && obj2 == null)
                 return true;
@@ -661,6 +688,12 @@ namespace Starcounter {
             return (serverVersion >= addedInVersion);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="version"></param>
+        /// <param name="toVersion"></param>
+        /// <param name="callStepSiblings"></param>
         internal void CleanupOldVersionLogs(ViewModelVersion version, long toVersion, bool callStepSiblings = true) {
             if (versionLog != null) {
                 for (int i = 0; i < versionLog.Count; i++) {
