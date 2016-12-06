@@ -41,21 +41,21 @@ namespace Starcounter.Weaver
 
         public bool Weave(IWeaverHost host)
         {
+            Setup.WeaveToCacheOnly = true;
             var weaver = WeaverFactory.CreateWeaver(Setup, host);
             return WeaveToCache(weaver);
         }
 
         public bool Weave(Type hostType)
         {
+            Setup.WeaveToCacheOnly = true;
             var weaver = WeaverFactory.CreateWeaver(Setup, hostType);
             return WeaveToCache(weaver);
         }
 
         bool WeaveToCache(IWeaver weaver)
         {
-            weaver.Setup.WeaveToCacheOnly = true;
             setupFreezed = weaver.Setup;
-
             return weaver.Execute();
         }
 
