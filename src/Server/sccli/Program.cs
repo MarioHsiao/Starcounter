@@ -1,11 +1,13 @@
 ﻿
 using Starcounter;
 using Starcounter.CLI;
+using Starcounter.CLI.Weaver;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
 using Starcounter.Server;
 using Starcounter.Server.Setup;
+using Starcounter.Weaver;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -173,12 +175,9 @@ namespace star {
             // The file exist. Check what kind of file we are dealing 
             // with here.
             var applicationFilePath = filePath;
-            bool sourceCodeInput = false;
-
+            
             if (Path.GetExtension(filePath).Equals(".cs", StringComparison.InvariantCultureIgnoreCase)) {
                 try {
-                    sourceCodeInput = true;
-
                     var sourceCode = filePath;
                     var compileOnly = appArgs.ContainsFlag(StarOption.CompileOnly);
                     var targetDirectory = compileOnly ? Path.GetDirectoryName(sourceCode) : null;
@@ -202,7 +201,13 @@ namespace star {
                         );
                         return;
                     }
-
+                    
+                    var weaverResult = CLIToolingWeaver.Weave(ref filePath);
+                    if (weaverResult != 0)
+                    {
+                        throw ErrorCode.ToException(weaverResult);
+                    }
+                    
                 } catch (Exception e) {
                     SharedCLI.ShowErrorAndSetExitCode(e, showStackTrace: false, exit: true);
                 }
@@ -233,12 +238,6 @@ namespace star {
                 cli.Execute();
             } catch (Exception e) {
                 SharedCLI.ShowErrorAndSetExitCode(e, false, false);
-            } finally {
-                // Delete the temporary executable if we have executed
-                // from a script being given.
-                if (sourceCodeInput) {
-                    CleanUpAfterCompilation(filePath);
-                }
             }
         }
 
@@ -470,21 +469,6 @@ namespace star {
             }
 
             Console.WriteLine();
-        }
-
-        static void CleanUpAfterCompilation(string compiledApplicationFile) {
-            var filePath = compiledApplicationFile;
-            try {
-                File.Delete(filePath);
-                File.Delete(Path.ChangeExtension(filePath, ".pdb"));
-                var directory = Path.GetDirectoryName(filePath);
-                Directory.Delete(directory);
-            } catch (Exception e) {
-                if (SharedCLI.Verbose) {
-                    Console.WriteLine("Failed deleting temporary content: {0}.", e.Message);
-                }
-            }
-
         }
 
         static void CreateServerRepository(ApplicationArguments args) {
