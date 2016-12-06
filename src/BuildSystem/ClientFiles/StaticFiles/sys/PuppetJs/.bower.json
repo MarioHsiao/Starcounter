@@ -27,14 +27,13 @@
     "puppet-bunny": "PuppetJs/puppet-bunny",
     "dom-bind-notifier": "*"
   },
-  "version": "2.2.1",
-  "_release": "2.2.1",
+  "_release": "e0fc68fdae",
   "_resolution": {
-    "type": "version",
-    "tag": "2.2.1",
-    "commit": "317e2bbc4fdb77ae356b9c5f618fde81c088266a"
+    "type": "branch",
+    "branch": "remove-location-cookie",
+    "commit": "e0fc68fdae35926eea20df43310549f2b647cf37"
   },
   "_source": "https://github.com/PuppetJs/PuppetJs.git",
-  "_target": ">=2.2.1",
+  "_target": "remove-location-cookie",
   "_originalSource": "PuppetJs"
 }
