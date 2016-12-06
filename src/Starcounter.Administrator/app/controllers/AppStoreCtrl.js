@@ -8,7 +8,6 @@ var appCtrl = adminModule.controller('AppStoreCtrl', ['$scope', '$routeParams', 
     $scope.database = null;
 
     $scope.settings = {
-        showWarehouse: false,
         showCompatibleVersions: true
     };
 
@@ -76,14 +75,6 @@ var appCtrl = adminModule.controller('AppStoreCtrl', ['$scope', '$routeParams', 
     $scope.database = HostModelService.getDatabase($routeParams.name);
     $scope.database.RefreshAppStoreStores$++;
 
-    $scope.$watch('settings.showWarehouse', function (newValue, oldValue) {
-        // Save user state
-        localStorage.setItem('showWarehouse', newValue);
-    });
-    if (localStorage.getItem('showWarehouse') != null) {
-        $scope.settings.showWarehouse = localStorage.getItem('showWarehouse') === 'true';
-    }
-
     $scope.$watch('settings.showCompatibleVersions', function (newValue, oldValue) {
         // Save user state
         localStorage.setItem('showCompatibleVersions', newValue);
@@ -92,7 +83,6 @@ var appCtrl = adminModule.controller('AppStoreCtrl', ['$scope', '$routeParams', 
     if (localStorage.getItem('showCompatibleVersions') != null) {
         $scope.settings.showCompatibleVersions = localStorage.getItem('showCompatibleVersions') === 'true';
     }
-
 
 }]);
 

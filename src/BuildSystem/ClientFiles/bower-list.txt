@@ -1,7 +1,7 @@
 bower check-new     Checking for new versions of the project dependencies...
-sys#1.0.0 D:\repos\Starcounter\src\BuildSystem\ClientFiles
-├─┬ PuppetJs#2.2.1
-│ ├── fast-json-patch#1.1.0 (1.1.1 available)
+sys#1.0.0 c:\www\Starcounter\src\BuildSystem\ClientFiles
+├─┬ PuppetJs#2.3.0
+│ ├── fast-json-patch#1.1.2
 │ ├── json-patch-ot#73a40c7e4a
 │ ├─┬ json-patch-ot-agent#d59dcb5d01
 │ │ └── json-patch-queue#4e279479ca
@@ -15,14 +15,14 @@ sys#1.0.0 D:\repos\Starcounter\src\BuildSystem\ClientFiles
 ├── juicy-redirect#0.4.2 extraneous
 ├── object.observe#0.2.6 extraneous
 ├── polymer#1.7.0
-├─┬ puppet-client#3.2.0
-│ ├── PuppetJs#2.2.1
+├─┬ puppet-client#3.2.1
+│ ├── PuppetJs#2.3.0
 │ └─┬ polymer#1.7.0
 │   └── webcomponentsjs#0.7.23
 ├── puppet-redirect#0.4.3
 ├─┬ starcounter-debug-aid#2.0.7
 │ ├─┬ juicy-jsoneditor#1.1.0
-│ │ ├── fast-json-patch#1.1.0 incompatible with ~1.0.0 (1.0.1 available, latest is 1.1.1)
+│ │ ├── fast-json-patch#1.1.2 incompatible with ~1.0.0 (1.0.1 available, latest is 1.1.2)
 │ │ ├── jsoneditor#5.5.6 (5.5.10 available)
 │ │ └── polymer#1.7.0
 │ └── polymer#1.7.0

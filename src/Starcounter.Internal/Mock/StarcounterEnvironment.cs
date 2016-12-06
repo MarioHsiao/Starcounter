@@ -626,7 +626,8 @@ namespace Starcounter.Internal
             /// </summary>
             public const string AdministratorStartPage = "http://www.starcounter.com/admin/index.php";
 
-            public const string DefaultAppStoreHost = "appstore.polyjuice.com:8787";
+            public const string DefaultWarehouseHost = "warehouse.starcounter.com";
+            public const ushort DefaultWarehousePort = 80;
 
         }
     }

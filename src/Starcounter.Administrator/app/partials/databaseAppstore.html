@@ -60,16 +60,6 @@
                     </div>
                 </td>
 
-                <td class="vert-align" style="padding-left: 40px">
-
-                    <div class="checkbox" style="margin-top: 5px; margin-bottom:5px">
-                        <label title="Show compatible versions with installed Starcounter version">
-                            <input type="checkbox" ng-model="settings.showWarehouse">Warehouse <span class="text-danger">(BETA)</span>
-                        </label>
-                    </div>
-
-                </td>
-
             </tr>
         </tbody>
     </table>
@@ -79,7 +69,7 @@
 <div ng-show="database" style="margin-bottom:20px">
 
 
-    <div class="panel panel-default" ng-repeat="store in database.AppStoreStores | storefilter:settings.showWarehouse | orderBy:['DisplayName']">
+    <div class="panel panel-default" ng-repeat="store in database.AppStoreStores | orderBy:['DisplayName']">
 
         <div class="panel-heading">
             <h4>  {{store.DisplayName}}</h4>

@@ -1,6 +1,6 @@
 /*!
  * https://github.com/Starcounter-Jack/JSON-Patch
- * json-patch-duplex.js version: 1.1.0
+ * json-patch-duplex.js version: 1.1.2
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -395,13 +395,13 @@ module jsonpatch {
     for (var t = oldKeys.length - 1; t >= 0; t--) {
       var key = oldKeys[t];
       var oldVal = mirror[key];
-      if (obj.hasOwnProperty(key) && !(obj[key] === undefined && _isArray(obj) === false)) {
+      if (obj.hasOwnProperty(key) && !(obj[key] === undefined && oldVal !== undefined && _isArray(obj) === false)) {
         var newVal = obj[key];
         if (typeof oldVal == "object" && oldVal != null && typeof newVal == "object" && newVal != null) {
           _generate(oldVal, newVal, patches, path + "/" + escapePathComponent(key));
         }
         else {
-          if (oldVal != newVal) {
+          if (oldVal !== newVal) {
             changed = true;
             patches.push({op: "replace", path: path + "/" + escapePathComponent(key), value: deepClone(newVal)});
           }
@@ -588,6 +588,11 @@ module jsonpatch {
 
     else if (typeof operation.path !== 'string') {
       throw new JsonPatchError('Operation `path` property is not a string', 'OPERATION_PATH_INVALID', index, operation, tree);
+    }
+
+    else if (operation.path.indexOf('/') !== 0 && operation.path.length > 0) {
+      // paths that aren't emptystring should start with "/"
+      throw new JsonPatchError('Operation `path` property must start with "/"', 'OPERATION_PATH_INVALID', index, operation, tree);
     }
 
     else if ((operation.op === 'move' || operation.op === 'copy') && typeof operation.from !== 'string') {
