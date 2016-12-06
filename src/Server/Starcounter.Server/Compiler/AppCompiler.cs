@@ -149,10 +149,11 @@ namespace Starcounter.Server.Compiler
                 tempRoot = Path.GetTempPath();
             }
 
-            var singleSource = SourceFiles.SingleOrDefault();
 
-            var folder = singleSource != null
-                ? ExecutableService.CreateKey(singleSource, hashAlgorithm)
+            var mainSourceFile = MainSourceFile != -1 ? SourceFiles[MainSourceFile] : null;
+
+            var folder = mainSourceFile != null
+                ? ExecutableService.CreateKey(mainSourceFile, hashAlgorithm)
                 : Guid.NewGuid().ToString();
             
             var tempPath = Path.Combine(tempRoot, folder);
