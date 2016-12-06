@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace Starcounter.Bootstrap.RuntimeHosts.SelfHosted
 {
@@ -21,7 +22,15 @@ namespace Starcounter.Bootstrap.RuntimeHosts.SelfHosted
 
         void ILifetimeService.Run()
         {
-            host.ApplicationMainLoop();
+            if (host.ApplicationMainLoop != null)
+            {
+                Scheduling.ScheduleTask(host.ApplicationMainLoop, true);
+            }
+
+            if (!host.NonBlockingBootstrap)
+            {
+                Thread.Sleep(Timeout.Infinite);
+            }
         }
     }
 }

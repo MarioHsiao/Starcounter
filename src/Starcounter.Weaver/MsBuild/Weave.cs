@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Starcounter.Internal;
 using Starcounter.Internal.Weaver.Cache;
 using System;
 using System.Collections.Generic;
@@ -39,46 +40,16 @@ namespace Starcounter.Weaver.MsBuild
                 Directory.CreateDirectory(CacheDirectory);
             }
 
-            WeaverSetup setup;
-            var result = WeaveToCache(out setup);
-            if (result)
-            {
-                var weavedArtifacts = CachedAssemblyFiles.GetAllFromCacheDirectoryMatchingSources(CacheDirectory, setup.InputDirectory);
-                return CopyWeavedArtifactsToOutputDirectory(weavedArtifacts);
-            }
+            var weaver = new InPlaceWeaver(AssemblyFile, CacheDirectory);
+            weaver.Setup.DisableWeaverCache = DisableCache;
 
-            return result;
-        }
-
-        bool WeaveToCache(out WeaverSetup setup)
-        {
-            // We are weaving to cache only, so output directory should not really
-            // be in play here.
-
-            var ignoredOutputDirectory = Path.Combine(CacheDirectory, ".output_ignored");
-            if (!Directory.Exists(ignoredOutputDirectory))
-            {
-                Directory.CreateDirectory(ignoredOutputDirectory);
-            }
-
-            setup = new WeaverSetup()
-            {
-                InputDirectory = Path.GetDirectoryName(AssemblyFile),
-                AssemblyFile = AssemblyFile,
-                OutputDirectory = ignoredOutputDirectory,
-                CacheDirectory = CacheDirectory
-            };
-            setup.WeaveToCacheOnly = true;
-            setup.DisableWeaverCache = DisableCache;
-
+            bool weaverSuccess = false;
             Log.LogMessageFromText($"Weaving {AssemblyFile} -> {CacheDirectory}", MessageImportance.High);
-
-            var weaver = WeaverFactory.CreateWeaver(setup, typeof(MsBuildWeaverHost));
             try
             {
-                var result = weaver.Execute();
+                var result = weaver.Weave(typeof(MsBuildWeaverHost));
                 Trace.Assert(result);
-                return result;
+                weaverSuccess = true;
             }
             catch (Exception ex) when (MsBuildWeaverHost.IsOriginatorOf(ex))
             {
@@ -99,25 +70,20 @@ namespace Starcounter.Weaver.MsBuild
                     }
                 }
 
-                return !Log.HasLoggedErrors;
+                weaverSuccess = !Log.HasLoggedErrors;
             }
             catch (Exception e)
             {
                 Log.LogErrorFromException(e);
-                return false;
+                weaverSuccess = false;
             }
-        }
 
-        bool CopyWeavedArtifactsToOutputDirectory(IEnumerable<CachedAssemblyFiles> files)
-        {
-            var outputDirectory = Path.GetDirectoryName(AssemblyFile);
-            
-            foreach (var cachedFiles in files)
+            if (weaverSuccess)
             {
-                cachedFiles.CopyTo(outputDirectory, true, CachedAssemblyArtifact.Binaries);
+                weaver.CopyWeavedArtifactsToTargetDirectory();
             }
 
-            return true;
+            return weaverSuccess;
         }
     }
 }

@@ -152,6 +152,12 @@ namespace Starcounter.CLI {
             /// is the default.
             /// </summary>
             public const string TransactMain = "transact";
+
+            /// <summary>
+            /// Indicates the starting application should be hosted in an
+            /// independent process rather than in the shared host.
+            /// </summary>
+            public const string SelfHosted = "selfhosted";
         }
 
         /// <summary>
@@ -284,6 +290,10 @@ namespace Starcounter.CLI {
                 Option.Logs,
                 "Specifies that log entries are to be displayed."
                 );
+            definition.DefineFlag(
+                Option.SelfHosted,
+                "Specifies that the application should be started in a separate process"
+                );
 
             if (includeUnofficial) {
                 definition.DefineFlag(
@@ -324,7 +334,7 @@ namespace Starcounter.CLI {
             if (appArgs.ContainsFlag(Option.Verbose)) {
                 Verbosity = OutputLevel.Verbose;
             } else if (appArgs.ContainsFlag(Option.Detailed)) {
-                Verbosity = OutputLevel.Normal;
+                Verbosity = OutputLevel.Verbose;
             }
 
             if (appArgs.ContainsFlag(Option.Logs)) {

@@ -1,5 +1,7 @@
 ﻿
+using Starcounter;
 using Starcounter.CLI;
+using Starcounter.CLI.Weaver;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using System.Collections.Generic;
@@ -96,6 +98,12 @@ namespace staradmin.Commands {
                 reloadSourceCodeFile
                 );
             SourceCodeCompiler.CompileSingleFileToExecutable(appFile, null, null, out exeFile);
+
+            var weaverResult = CLIToolingWeaver.Weave(ref exeFile);
+            if (weaverResult != 0)
+            {
+                throw ErrorCode.ToException(weaverResult);
+            }
 
             var reload = StartApplicationCLICommand.FromFile(appFile, exeFile, CreateReloadApplicationArguments());
             reload.JobDescription = string.Format("Reloading {0}", reload.DatabaseName);

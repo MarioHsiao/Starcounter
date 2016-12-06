@@ -34,12 +34,25 @@ namespace Starcounter.Server {
         /// should be generated.</param>
         /// <returns>A unique key from <paramref name="executablePath"/>.</returns>
         public string CreateKey(string executablePath) {
+            return CreateKey(executablePath, hashAlgorithm);
+        }
+
+        /// <summary>
+        /// Generates a unique key for the given executable, based on it's path,
+        /// using a supplied hash algorithm.
+        /// </summary>
+        /// <param name="executablePath">Full path to the executable whose key
+        /// should be generated.</param>
+        /// <param name="hasher">Hash algorithm to use.</param>
+        /// <returns>A unique key from <paramref name="executablePath"/>.</returns>
+        public static string CreateKey(string executablePath, HashAlgorithm hasher)
+        {
             string hash;
             string key;
 
             executablePath = executablePath.ToLowerInvariant();
             var keyBytes = Encoding.UTF8.GetBytes(executablePath);
-            var hashBytes = hashAlgorithm.ComputeHash(keyBytes);
+            var hashBytes = hasher.ComputeHash(keyBytes);
             hash = BitConverter.ToString(hashBytes).Replace("-", "");
 
             key = hash;

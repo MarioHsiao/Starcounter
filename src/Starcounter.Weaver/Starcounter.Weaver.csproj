@@ -57,9 +57,10 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <!-- Base paths to redistributables / third party files -->
-    <PostSharpRedistributables>$(OutputPath)</PostSharpRedistributables>
-    <CecilRedistributables>$(OutputPath)</CecilRedistributables>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Starcounter.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -73,20 +74,21 @@
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
     <Reference Include="PostSharp">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.dll</HintPath>
+      <HintPath>PostSharp.dll</HintPath>
     </Reference>
     <Reference Include="PostSharp.Hosting">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Hosting.dll</HintPath>
+      <HintPath>PostSharp.Hosting.dll</HintPath>
     </Reference>
     <Reference Include="PostSharp.Sdk">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Sdk.dll</HintPath>
+      <HintPath>PostSharp.Sdk.dll</HintPath>
     </Reference>
     <Reference Include="PostSharp.Settings">
-      <HintPath>$(PostSharpRedistributables)\PostSharp.Settings.dll</HintPath>
+      <HintPath>PostSharp.Settings.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CallingDomainWeaverProxy.cs" />
+    <Compile Include="InPlaceWeaver.cs" />
     <Compile Include="IWeaver.cs" />
     <Compile Include="MsBuild\ErrorOrWarning.cs" />
     <Compile Include="MsBuild\MsBuildWeaverHost.cs" />
@@ -146,14 +148,6 @@
     </RuntimeFile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Server\Starcounter.CLI\Starcounter.CLI.csproj">
-      <Project>{c20f6d2a-3988-4abc-bfc2-95e19aca3c07}</Project>
-      <Name>Starcounter.CLI</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Starcounter.Bootstrap\Starcounter.Bootstrap.csproj">
-      <Project>{8278b17c-e0e9-49b7-8bda-f15282445d45}</Project>
-      <Name>Starcounter.Bootstrap</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
@@ -171,7 +165,6 @@
       <LogicalName>Sc.Postsharp.license</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

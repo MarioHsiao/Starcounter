@@ -9,7 +9,7 @@ namespace Starcounter.Bootstrap.RuntimeHosts.SelfHosted
     public class SelfHostingRuntimeHost : RuntimeHost
     {
         /// <summary>
-        /// Callback invoked by the self-hosting host when ready for service.
+        /// Optional callback invoked by the self-hosting host when ready for service.
         /// </summary>
         /// <remarks>
         /// The self-hosting host will invoke this callback and block the
@@ -17,6 +17,12 @@ namespace Starcounter.Bootstrap.RuntimeHosts.SelfHosted
         /// the host will shut down and dispose.
         /// </remarks>
         internal Action ApplicationMainLoop { get; set; }
+
+        /// <summary>
+        /// Configure the lifetime service to bootstrap the host in a non-blocking
+        /// fashion.
+        /// </summary>
+        internal bool NonBlockingBootstrap { get; set; }
 
         protected override ILifetimeService CreateLifetimeService()
         {

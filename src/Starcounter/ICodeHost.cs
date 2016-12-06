@@ -21,5 +21,10 @@ namespace Starcounter {
         /// Application main lopp callback.
         /// </param>
         void Run(Action applicationMainLoop);
+
+        /// <summary>
+        /// Start the host in a non-blocking manner.
+        /// </summary>
+        void Start();
     }
 }

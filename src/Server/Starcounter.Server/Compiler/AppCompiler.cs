@@ -1,9 +1,11 @@
 ﻿using Microsoft.CSharp;
+using Starcounter.Advanced.Configuration;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace Starcounter.Server.Compiler
 {
@@ -13,6 +15,8 @@ namespace Starcounter.Server.Compiler
     /// </summary>
     public sealed class AppCompiler
     {
+        static HashAlgorithm hashAlgorithm = SHA1.Create();
+
         /// <summary>
         /// Gets or sets the name to use for the compiled application.
         /// </summary>
@@ -29,6 +33,12 @@ namespace Starcounter.Server.Compiler
         /// Holds source files that should be included in the compilation.
         /// </summary>
         public List<string> SourceFiles = new List<string>();
+
+        /// <summary>
+        /// Index of a source file to be treated as the main source file
+        /// when compiling.
+        /// </summary>
+        public int MainSourceFile { get; private set; }
 
         /// <summary>
         /// Holds a set of source code strings that should be included in
@@ -52,6 +62,18 @@ namespace Starcounter.Server.Compiler
             }
 
             Name = applicationName;
+            MainSourceFile = -1;
+        }
+
+        /// <summary>
+        /// Adds a source code file that are to be treated as the main source
+        /// file to the collection of source code files.
+        /// </summary>
+        /// <param name="path">Path to the source code file.</param>
+        public void AddMainSourceFile(string path)
+        {
+            SourceFiles.Add(path);
+            MainSourceFile = SourceFiles.IndexOf(path);
         }
         
         /// <summary>
@@ -114,13 +136,33 @@ namespace Starcounter.Server.Compiler
 
         string CreateTempDirectory()
         {
-            var guid = Guid.NewGuid().ToString();
-            var tp = Path.GetTempPath();
-            var tempPath = Path.Combine(tp, guid);
+            string tempRoot = string.Empty;
+            try
+            {
+                var serverConfig = InstallationBasedServerConfigurationProvider.GetConfiguration();
+                tempRoot = serverConfig.TempDirectory;
+            }
+            catch
+            {
+                // Well, don't bother. Let's go with standard temporary
+                // creation.
+                tempRoot = Path.GetTempPath();
+            }
+
+            tempRoot = Path.Combine(tempRoot, ".appcompiler");
+            
+            var mainSourceFile = MainSourceFile != -1 ? SourceFiles[MainSourceFile] : null;
+
+            var folder = mainSourceFile != null
+                ? ExecutableService.CreateKey(mainSourceFile, hashAlgorithm)
+                : Guid.NewGuid().ToString();
+            
+            var tempPath = Path.Combine(tempRoot, folder);
             if (Directory.Exists(tempPath))
             {
                 Directory.Delete(tempPath, true);
             }
+
             Directory.CreateDirectory(tempPath);
             return tempPath;
         }

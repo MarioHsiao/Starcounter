@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Starcounter.Internal;
+using System;
 using System.IO;
 using System.Reflection;
 
@@ -25,7 +26,7 @@ namespace Starcounter.Hosting {
         }
 
         public bool IsFromApplicaionDirectory(string dir) {
-            return PrivateAssemblyStore.EqualDirectories(
+            return DirectoryExtensions.EqualDirectories(
                 Path.GetDirectoryName(FilePath),
                 dir);
         }

@@ -59,10 +59,9 @@
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
-      <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
-      <Name>Starcounter.XSON</Name>
-      <Private>False</Private>
+    <ProjectReference Include="..\..\Starcounter.Weaver\Starcounter.Weaver.csproj">
+      <Project>{4e56fde2-ac12-43b0-8c52-f0c80512df83}</Project>
+      <Name>Starcounter.Weaver</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.CLI\Starcounter.CLI.csproj">
       <Project>{c20f6d2a-3988-4abc-bfc2-95e19aca3c07}</Project>

@@ -58,6 +58,8 @@
   <ItemGroup>
     <Compile Include="AdminCLI.cs" />
     <Compile Include="CLIClientCommand.cs" />
+    <Compile Include="Weaver\CLIToolingWeaver.cs" />
+    <Compile Include="Weaver\ConsoleWriterWeaverHost.cs" />
     <Compile Include="CreateDatabaseCLICommand.cs" />
     <Compile Include="FilterableLogReader.cs" />
     <Compile Include="KeyValueTable\KeyValueTable.cs" />
@@ -103,6 +105,10 @@
     <ProjectReference Include="..\..\Starcounter.Apps.JsonPatch\Starcounter.App.Server.csproj">
       <Project>{828ecac2-9748-4e7f-bdc0-6d154c90b9c3}</Project>
       <Name>Starcounter.App.Server</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Weaver\Starcounter.Weaver.csproj">
+      <Project>{4e56fde2-ac12-43b0-8c52-f0c80512df83}</Project>
+      <Name>Starcounter.Weaver</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>

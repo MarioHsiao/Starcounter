@@ -31,9 +31,8 @@ namespace Starcounter.Server.Commands {
         /// <inheritdoc />
         protected override void Execute() {
             StartExecutableCommand command;
-            WeaverService weaver;
             string appRuntimeDirectory;
-            string weavedExecutable;
+            string runtimeExecutable;
             Database database;
             DatabaseApplication app;
             Process codeHostProcess;
@@ -41,7 +40,7 @@ namespace Starcounter.Server.Commands {
 
             command = (StartExecutableCommand)this.Command;
             databaseExist = false;
-            weavedExecutable = null;
+            runtimeExecutable = null;
             database = null;
             codeHostProcess = null;
 
@@ -89,19 +88,10 @@ namespace Starcounter.Server.Commands {
 
             var exeKey = Engine.ExecutableService.CreateKey(command.Application.FilePath);
             WithinTask(Task.PrepareExecutable, (task) => {
-                weaver = Engine.WeaverService;
                 appRuntimeDirectory = Path.Combine(database.ExecutableBasePath, exeKey);
 
-                if (command.NoDb) {
-                    weavedExecutable = CopyAllFilesToRunNoDbApplication(command.Application.BinaryFilePath, appRuntimeDirectory);
-                    OnAssembliesCopiedToRuntimeDirectory();
-                } else {
-                    weavedExecutable = weaver.Weave(
-                        command.Application.BinaryFilePath,
-                        appRuntimeDirectory);
-
-                    OnWeavingCompleted();
-                }
+                runtimeExecutable = PrepareRuntimeDirectory(command.Application.BinaryFilePath, appRuntimeDirectory);
+                OnAssembliesCopiedToRuntimeDirectory();
             });
 
             WithinTask(Task.Run, (task) => {
@@ -109,7 +99,7 @@ namespace Starcounter.Server.Commands {
                 
                 var databaseStateSnapshot = database.ToPublicModel();
                 command.Application.Key = exeKey;
-                command.Application.HostedFilePath = weavedExecutable;
+                command.Application.HostedFilePath = runtimeExecutable;
                 
                 app = new DatabaseApplication(command.Application);
                 app.IsStartedWithAsyncEntrypoint = command.RunEntrypointAsynchronous;
@@ -218,10 +208,8 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
-        /// Adapts to the (temporary) NoDb switch by copying all binary
-        /// files possibly referenced by the starting assembly, as given
-        /// by <paramref name="assemblyPath"/>, including the starting
-        /// assembly itself.
+        /// Prepare an application for execution just before it's bootstrapped
+        /// in the host.
         /// </summary>
         /// <param name="assemblyPath">Full path to the original assembly,
         /// i.e. the assembly we are told to execute.</param>
@@ -229,7 +217,7 @@ namespace Starcounter.Server.Commands {
         /// assembly will actually run from, when hosted in Starcounter.</param>
         /// <returns>Full path to the assembly that is about to be executed.
         /// </returns>
-        string CopyAllFilesToRunNoDbApplication(string assemblyPath, string runtimeDirectory) {
+        string PrepareRuntimeDirectory(string assemblyPath, string runtimeDirectory) {
             #region Copying of a single binary + it's symbol file (i.e. pdb)
             Action<string, string> copyBinary = (string sourceFile, string targetDirectory) => {
                 string sourceDirectory;

@@ -1,6 +1,8 @@
 ﻿
 using Sc.Tools.Logging;
+using Starcounter;
 using Starcounter.CLI;
+using Starcounter.CLI.Weaver;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using System;
@@ -102,6 +104,12 @@ namespace staradmin.Commands {
                 unloadSourceCodeFile
                 );
             SourceCodeCompiler.CompileSingleFileToExecutable(appFile, null, null, out exeFile);
+
+            var weaverResult = CLIToolingWeaver.Weave(ref exeFile);
+            if (weaverResult != 0)
+            {
+                throw ErrorCode.ToException(weaverResult);
+            }
 
             var unload = StartApplicationCLICommand.FromFile(appFile, exeFile, CreateUnloadApplicationArguments());
             unload.JobDescription = string.Format("Unloading {0}", unload.DatabaseName);
