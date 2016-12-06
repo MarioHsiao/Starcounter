@@ -149,7 +149,8 @@ namespace Starcounter.Server.Compiler
                 tempRoot = Path.GetTempPath();
             }
 
-
+            tempRoot = Path.Combine(tempRoot, ".appcompiler");
+            
             var mainSourceFile = MainSourceFile != -1 ? SourceFiles[MainSourceFile] : null;
 
             var folder = mainSourceFile != null
