@@ -35,6 +35,12 @@ namespace Starcounter.Server.Compiler
         public List<string> SourceFiles = new List<string>();
 
         /// <summary>
+        /// Index of a source file to be treated as the main source file
+        /// when compiling.
+        /// </summary>
+        public int MainSourceFile { get; private set; }
+
+        /// <summary>
         /// Holds a set of source code strings that should be included in
         /// the compilation.
         /// </summary>
@@ -56,6 +62,18 @@ namespace Starcounter.Server.Compiler
             }
 
             Name = applicationName;
+            MainSourceFile = -1;
+        }
+
+        /// <summary>
+        /// Adds a source code file that are to be treated as the main source
+        /// file to the collection of source code files.
+        /// </summary>
+        /// <param name="path">Path to the source code file.</param>
+        public void AddMainSourceFile(string path)
+        {
+            SourceFiles.Add(path);
+            MainSourceFile = SourceFiles.IndexOf(path);
         }
         
         /// <summary>

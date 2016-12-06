@@ -75,7 +75,7 @@ namespace Starcounter.Server.Compiler
             return compiler;
         }
 
-        public static AppCompiler WithSourceCodeFile(this AppCompiler compiler, string sourceFile)
+        public static AppCompiler WithSourceCodeFile(this AppCompiler compiler, string sourceFile, bool mainSourceFile = false)
         {
             if (string.IsNullOrEmpty(sourceFile))
             {
@@ -87,7 +87,15 @@ namespace Starcounter.Server.Compiler
                 throw new FileNotFoundException(sourceFile);
             }
 
-            compiler.SourceFiles.Add(sourceFile);
+            if (mainSourceFile)
+            {
+                compiler.AddMainSourceFile(sourceFile);
+            }
+            else
+            {
+                compiler.SourceFiles.Add(sourceFile);
+            }
+            
             return compiler;
         }
 
