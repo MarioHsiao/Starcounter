@@ -127,7 +127,6 @@ namespace Starcounter.XSON {
                     addComma = false;
                     if (versioning) {
                         writer.Write(replaceLocalVersionPatchStart);
-                        writer.Write(replaceLocalVersionPatchStart);
                         writer.Write(changeLog.Version.LocalVersionPropertyName);
                         writer.Write(patchEndToValue);
                         writer.Write(changeLog.Version.LocalVersion);
