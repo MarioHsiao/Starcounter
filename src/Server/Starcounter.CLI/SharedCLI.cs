@@ -334,7 +334,7 @@ namespace Starcounter.CLI {
             if (appArgs.ContainsFlag(Option.Verbose)) {
                 Verbosity = OutputLevel.Verbose;
             } else if (appArgs.ContainsFlag(Option.Detailed)) {
-                Verbosity = OutputLevel.Normal;
+                Verbosity = OutputLevel.Verbose;
             }
 
             if (appArgs.ContainsFlag(Option.Logs)) {
