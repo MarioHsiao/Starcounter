@@ -35,7 +35,7 @@ namespace Starcounter.CLI
             var compiler = new AppCompiler(name)
                 .WithDefaultReferences()
                 .WithStarcounterAssemblyInfo()
-                .WithSourceCodeFile(sourceCode);
+                .WithSourceCodeFile(sourceCode, true);
 
             if (!string.IsNullOrEmpty(targetPath))
             {
