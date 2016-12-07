@@ -34,7 +34,7 @@
 - Upgraded Starcounter/starcounter-include from 2.0.0 to 2.0.1 (https://github.com/Starcounter/starcounter-include/releases)
 - Upgraded Juicy/imported-template from 1.4.3 to 1.4.4 (https://github.com/Juicy/imported-template/releases)
 - Upgraded Juicy/juicy-composition from 0.0.5 to 0.0.7 (https://github.com/Juicy/juicy-composition/releases)
-- Upgraded puppetjs/puppetjs from 2.2.1 to 2.3.0 [#3981](https://github.com/Starcounter/Starcounter/issues/3981) (https://github.com/PuppetJs/PuppetJs/releases)
+- Upgraded puppetjs/puppetjs from 2.2.1 to 2.4.0 [#3981](https://github.com/Starcounter/Starcounter/issues/3981),  [#3798](https://github.com/Starcounter/Starcounter/issues/3798)  (https://github.com/PuppetJs/PuppetJs/releases)
 - Upgraded puppetjs/puppet-polymer-client from 3.2.0 to 3.2.1 (https://github.com/PuppetJs/puppet-polymer-client/releases)
 - Upgraded fast-json-patch from 1.1.0 to 1.1.2 (https://github.com/Starcounter-Jack/JSON-Patch/releases)
 
