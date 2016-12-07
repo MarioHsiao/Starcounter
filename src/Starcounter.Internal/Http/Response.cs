@@ -866,7 +866,7 @@ namespace Starcounter
                 }
                 // We have our precious bytes. Let's wrap them up in a response.
             }
-
+            
             Int32 estimatedNumBytes = EstimateNeededSize(bytes);
 
             if (estimatedNumBytes > StarcounterConstants.NetworkConstants.MaxResponseSize) {
@@ -933,16 +933,21 @@ namespace Starcounter
 
                     writer.Write(HttpHeadersUtf8.ServerSc);
 
-                    Boolean addSetCookie = true;
+                    // Checking if session is defined.
+                    ScSessionClass session = ScSessionClass.GetCurrent();
+                    Boolean addSessionHeader = (null != session) 
+                                            && (session.UseSessionHeader) 
+                                            && ((req == null) || (!req.CameWithCorrectSession));
+                     
                     Boolean cacheControl = false;
-                    if (null != customHeaderFields_) {
 
+                    if (null != customHeaderFields_) {
                         foreach (KeyValuePair<string, string> h in customHeaderFields_) {
 
                             if (h.Key == HttpHeadersUtf8.CacheControlHeader)
                                 cacheControl = true;
-                            else if (h.Key == HttpHeadersUtf8.SetCookieHeader)
-                                addSetCookie = false;
+                            if (addSessionHeader && h.Key == session.SessionHeaderName)
+                                addSessionHeader = false;
 
                             writer.Write(h.Key);
                             writer.Write(": ");
@@ -964,19 +969,12 @@ namespace Starcounter
                         }
                     }
 
-                    // Checking if session is defined.
-                    ScSessionClass session = ScSessionClass.GetCurrent();
-                    if (addSetCookie && (null != session) && ((req == null) || (!req.CameWithCorrectSession))) {
-
-                        if (session.use_session_cookie_) {
-                            writer.Write(HttpHeadersUtf8.SetSessionCookieStart);
-                            writer.Write(session.ToAsciiString());
-                        } else {
-                            writer.Write(HttpHeadersUtf8.SetCookieLocationStart);
-                            writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
-                            writer.Write(session.ToAsciiString());
-                        }
-                        writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
+                    if (addSessionHeader) {
+                        writer.Write(session.SessionHeaderName);
+                        writer.Write(": ");
+                        writer.Write(ScSessionClass.DataLocationUriPrefix);
+                        writer.Write(session.ToAsciiString());
+                        writer.Write(HttpHeadersUtf8.CRLF);
                     }
 
                     // Checking the cookies list.
@@ -1121,10 +1119,13 @@ namespace Starcounter
                     size += ((h.Key.Length << 1) + (h.Value.Length << 1) + 4); // * 2 for possible multibyte chars, 4 for colon, space, CRLF
                 }
             }
-
-            if (null != ScSessionClass.GetCurrent()) {
+            
+            ScSessionClass session = ScSessionClass.GetCurrent();
+            if (null != session) {
                 size += ScSessionClass.DataLocationUriPrefixEscaped.Length;
-                size += ScSessionClass.GetCurrent().ToAsciiString().Length;
+                size += session.ToAsciiString().Length;
+                size += session.SessionHeaderName.Length * 2;
+                size += 4;
             }
 
             if (null != cookies_) {
