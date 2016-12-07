@@ -972,7 +972,7 @@ namespace Starcounter
                     if (addSessionHeader) {
                         writer.Write(session.SessionHeaderName);
                         writer.Write(": ");
-                        writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
+                        writer.Write(ScSessionClass.DataLocationUriPrefix);
                         writer.Write(session.ToAsciiString());
                         writer.Write(HttpHeadersUtf8.CRLF);
                     }
