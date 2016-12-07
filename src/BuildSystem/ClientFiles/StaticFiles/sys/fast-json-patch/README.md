@@ -208,7 +208,7 @@ Error name                    | Error message
 SEQUENCE_NOT_AN_ARRAY         | Patch sequence must be an array
 OPERATION_NOT_AN_OBJECT       | Operation is not an object
 OPERATION_OP_INVALID          | Operation `op` property is not one of operations defined in RFC-6902
-OPERATION_PATH_INVALID        | Operation `path` property is not a string
+OPERATION_PATH_INVALID        | Operation `path` property is not a valid string
 OPERATION_FROM_REQUIRED       | Operation `from` property is not present (applicable in `move` and `copy` operations)
 OPERATION_VALUE_REQUIRED      | Operation `value` property is not present, or `undefined` (applicable in `add`, `replace` and `test` operations)
 OPERATION_VALUE_CANNOT_CONTAIN_UNDEFINED  | Operation `value` property object has at least one `undefined` value (applicable in `add`, `replace` and `test` operations)
@@ -227,6 +227,12 @@ Whenever a value is set to `undefined` in JS, JSON-Patch methods `generate` and 
 > If `undefined` (...) is encountered during conversion it is either omitted (when it is found in an object) or censored to `null` (when it is found in an array).
 
 See the [ECMAScript spec](http://www.ecma-international.org/ecma-262/6.0/index.html#sec-json.stringify) for details.
+
+## Specs/tests
+
+ - [for `json-patch.js`](http://starcounter-jack.github.io/JSON-Patch/test/SpecRunner.html)
+ - [for `json-patch-duplex.js`](
+     http://starcounter-jack.github.io/JSON-Patch/test/SpecRunnerDuplex.html)
 
 ## [Contributing](CONTRIBUTING.md)
 
