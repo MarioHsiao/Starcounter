@@ -36,9 +36,11 @@
 - Upgraded Starcounter/starcounter-include from 2.0.0 to 2.0.1 (https://github.com/Starcounter/starcounter-include/releases)
 - Upgraded Juicy/imported-template from 1.4.3 to 1.4.4 (https://github.com/Juicy/imported-template/releases)
 - Upgraded Juicy/juicy-composition from 0.0.5 to 0.0.7 (https://github.com/Juicy/juicy-composition/releases)
-- Upgraded puppetjs/puppetjs from 2.2.1 to 2.3.0 [#3981](https://github.com/Starcounter/Starcounter/issues/3981) (https://github.com/PuppetJs/PuppetJs/releases)
+- Upgraded puppetjs/puppetjs from 2.2.1 to 2.4.0 [#3981](https://github.com/Starcounter/Starcounter/issues/3981),  [#3798](https://github.com/Starcounter/Starcounter/issues/3798)  (https://github.com/PuppetJs/PuppetJs/releases)
 - Upgraded puppetjs/puppet-polymer-client from 3.2.0 to 3.2.1 (https://github.com/PuppetJs/puppet-polymer-client/releases)
 - Upgraded fast-json-patch from 1.1.0 to 1.1.2 (https://github.com/Starcounter-Jack/JSON-Patch/releases)
+- Removed automatic adding of `Set-Cookie: Location=x` and `Set-Cookie: ScSessionCookie=x` headers for outgoing responses with new session, and instead added `X-Location` header with the location of the session. This header can be changed or disabled by setting `session.UseSessionHeader` and `session.SessionHeaderName` [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
+- Including location of session in the response for the standalone html from the `PartialToStandaloneHtmlProvider` middleware to solve problems with mixed up sessions when several tabs are used [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 

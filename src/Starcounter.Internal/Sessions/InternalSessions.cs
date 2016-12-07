@@ -303,9 +303,20 @@ namespace Starcounter.Internal
         public LinkedListNode<UInt32> linear_index_node_;
 
         /// <summary>
-        /// Using session cookie.
+        /// If set to true, a header will be added to the outgoing response 
+        /// containing the location of the session. The header is default set 
+        /// to 'X-Location', but can be changed using the property 'SessionHeaderName'
         /// </summary>
-        public Boolean use_session_cookie_;
+        /// <remarks>
+        /// Only the first response for a request that either: created a new 
+        /// session or changed the current session will contain this header.
+        /// </remarks>
+        public Boolean UseSessionHeader { get; set; } = true;
+
+        /// <summary>
+        /// Specifies the name used for the header if 'UseSessionHeader' is true.
+        /// </summary>
+        public String SessionHeaderName { get; set; } = "X-Location";
 
         /// <summary>
         /// Time when session was created.

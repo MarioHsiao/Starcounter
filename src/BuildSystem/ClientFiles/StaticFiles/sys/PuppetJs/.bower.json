@@ -27,12 +27,12 @@
     "puppet-bunny": "PuppetJs/puppet-bunny",
     "dom-bind-notifier": "*"
   },
-  "version": "2.3.0",
-  "_release": "2.3.0",
+  "version": "2.4.0",
+  "_release": "2.4.0",
   "_resolution": {
     "type": "version",
-    "tag": "2.3.0",
-    "commit": "9f6b023182dfca171532399edd61a451a777064f"
+    "tag": "2.4.0",
+    "commit": "979f5401d11de8ec37c80c97a543ae7c9ae8e8a3"
   },
   "_source": "https://github.com/PuppetJs/PuppetJs.git",
   "_target": ">=2.2.1",

@@ -4,9 +4,21 @@ using System.Text;
 
 namespace Starcounter {
     /// <summary>
-    /// Provide "standalone HTML" when a JSON is returned from a handler, and
-    /// that JSON provide a partial HTML (normally, using HtmlFromJsonProvider
-    /// middleware).
+    /// For any HTTP request with `Accept: text/html` with a response that is HTML,
+    /// checks if the HTML document is a partial (does not start with a doctype).
+    /// If yes, returns an implicit HTML template that contains code to bootstrap 
+    /// a PuppetJs connection instead of that HTML. 
+    /// 
+    /// The HTML template cointans the session URL that was returned from the handler, 
+    /// so that PuppetJs can request the relevant Json in a following request.
+    /// 
+    /// Must be used after `HtmlFromJsonProvider` middleware.
+    /// 
+    /// A custom HTML template can be provided as a string parameter to the constructor.
+    /// 
+    /// Middleware only wraps requests that have a HTTP handler. Since this middleware
+    /// wraps the actual response, it will also have the HTTP status code
+    /// that was returned from the handler.
     /// </summary>
     public class PartialToStandaloneHtmlProvider : IMiddleware {
         static Encoding defaultEncoding = Encoding.UTF8;
@@ -37,7 +49,7 @@ namespace Starcounter {
         <template is=""imported-template"" content$=""{{{{model.Html}}}}"" model=""{{{{model}}}}""></template>
     </template>
 
-    <puppet-client ref=""puppet-root""></puppet-client>
+    <puppet-client ref=""puppet-root"" remote-url=""{1}""></puppet-client>
 
     <starcounter-debug-aid></starcounter-debug-aid>
 </body>
@@ -48,16 +60,14 @@ namespace Starcounter {
         /// Creates a new instance of <see cref="PartialToStandaloneHtmlProvider"/>
         /// using the predefined default template.
         /// </summary>
-        public PartialToStandaloneHtmlProvider() : this(ImplicitStandaloneTemplate)
-        {
+        public PartialToStandaloneHtmlProvider() : this(ImplicitStandaloneTemplate) {
         }
 
         /// <summary>
         /// Creates a new instance of <see cref="PartialToStandaloneHtmlProvider"/>
         /// using the given standalone page template.
         /// </summary>
-        public PartialToStandaloneHtmlProvider(string standaloneTemplate)
-        {
+        public PartialToStandaloneHtmlProvider(string standaloneTemplate) {
             if (string.IsNullOrEmpty(standaloneTemplate)) throw new ArgumentNullException("standaloneTemplate");
             template = standaloneTemplate;
         }
@@ -72,8 +82,8 @@ namespace Starcounter {
             if (content != null) {
                 var json = context.Resource as Json;
                 if (json != null) {
-                    if (!IsFullPageHtml(content)) {
-                        content = ProvideImplicitStandalonePage(content, context.Request.HandlerAppName, template);
+                    if (!IsFullPageHtml(content) && json.Session != null) {
+                        content = ProvideImplicitStandalonePage(content, context.Request.HandlerAppName, json.Session.SessionUri, template);
                         context.Result = content;
                     }
                 }
@@ -82,8 +92,8 @@ namespace Starcounter {
             next();
         }
 
-        internal static byte[] ProvideImplicitStandalonePage(byte[] content, string appName, string template = ImplicitStandaloneTemplate) {
-            var html = String.Format(template, appName);
+        internal static byte[] ProvideImplicitStandalonePage(byte[] content, string appName, string sessionUri, string template = ImplicitStandaloneTemplate) {
+            var html = String.Format(template, appName, sessionUri);
             return defaultEncoding.GetBytes(html);
         }
 
