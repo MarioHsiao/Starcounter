@@ -38,6 +38,8 @@
 - Upgraded fast-json-patch from 1.1.0 to 1.1.2 (https://github.com/Starcounter-Jack/JSON-Patch/releases)
 - Removed automatic adding of `Set-Cookie: Location=x` and `Set-Cookie: ScSessionCookie=x` headers for outgoing responses with new session, and instead added `X-Location` header with the location of the session. This header can be changed or disabled by setting `session.UseSessionHeader` and `session.SessionHeaderName` [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
 - Including location of session in the response for the standalone html from the `PartialToStandaloneHtmlProvider` middleware to solve problems with mixed up sessions when several tabs are used [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
+- Rewrote serializer for TypedJSON and changed public API. `TypedJsonSerializer` class and methods are marked obsolete. Interface `ITypedJsonSerializer` should be used instead. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
+- Rewrote how json was parsed and generated in TypedJSON jsonpatch implementation and obsoleted public methods that took `IntPtr` as input-parameter. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 
