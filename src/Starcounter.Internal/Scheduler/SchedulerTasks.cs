@@ -14,12 +14,7 @@ namespace Starcounter {
         /// <summary>
         /// Runs a task asynchronously on a given scheduler.
         /// </summary>
-        void RunAsync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId);
-
-        /// <summary>
-        /// Runs a task asynchronously on current scheduler.
-        /// </summary>
-        void RunSync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId);
+        System.Threading.Tasks.Task RunAsync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId);
     }
 
     /// <summary>
@@ -60,11 +55,28 @@ namespace Starcounter {
                 throw new ArgumentOutOfRangeException("Wrong scheduler ID is supplied.");
             }
 
+            var t = ScheduleTaskAsync(action, schedulerId);
+
             if (waitForCompletion) {
-                _dbSession.RunSync(action, schedulerId);
-            } else {
-                _dbSession.RunAsync(action, schedulerId);
+                t.Wait();
             }
         }
+
+        public static System.Threading.Tasks.Task ScheduleTaskAsync(
+            Action action,
+            Byte schedulerId = StarcounterEnvironment.InvalidSchedulerId)
+        {
+
+            // Checking for correct scheduler id.
+            if ((schedulerId >= StarcounterEnvironment.SchedulerCount) &&
+                (schedulerId != StarcounterEnvironment.InvalidSchedulerId))
+            {
+
+                throw new ArgumentOutOfRangeException("Wrong scheduler ID is supplied.");
+            }
+
+            return _dbSession.RunAsync(action, schedulerId);
+        }
+
     }
 }

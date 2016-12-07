@@ -204,7 +204,22 @@ namespace Starcounter {
         /// manner. When all schedulers are tried but the queues are full - then task is put into
         /// the awaiting queue.
         /// </remarks>
-        public void RunAsync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
+        public System.Threading.Tasks.Task RunAsync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
+
+            var tcs = new System.Threading.Tasks.TaskCompletionSource<int>();
+
+
+            Action act = () =>
+            {
+                try
+                {
+                    action();
+                }
+                finally
+                {
+                    tcs.SetResult(0);
+                }
+            };
 
             unsafe
             {
@@ -221,7 +236,7 @@ namespace Starcounter {
                     // Adding to the queue now.
                     asyncTasksAnyScheduler_.Enqueue(new UserTaskInfo() {
                         AppName = curAppName,
-                        UserTask = action
+                        UserTask = act
                     });
 
                     // Waking up a round robin scheduler.
@@ -241,31 +256,15 @@ namespace Starcounter {
                     // Enqueing the task.
                     asyncTasksPerScheduler_[schedId].Enqueue(new UserTaskInfo() {
                         AppName = curAppName,
-                        UserTask = action
+                        UserTask = act
                     });
 
                     // Just sending a special task to read from queue.
                     TaskScheduler.Run(task, schedId);
                 }
             }
-        }
 
-        /// <summary>
-        /// Runs the task represented by the action delegate on given scheduler and waits for its finish.
-        /// </summary>
-        public void RunSync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
-            ManualResetEventSlim mreSlim = new ManualResetEventSlim(false);
-
-            RunAsync(() => {
-                try {
-                    action();
-                } finally {
-                    mreSlim.Set();
-                }
-                
-            }, schedId);
-
-            mreSlim.Wait();
+            return tcs.Task;
         }
 
         /// <summary>
