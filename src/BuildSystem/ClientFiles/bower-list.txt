@@ -1,6 +1,6 @@
 bower check-new     Checking for new versions of the project dependencies...
 sys#1.0.0 c:\www\Starcounter\src\BuildSystem\ClientFiles
-├─┬ PuppetJs#2.3.0
+├─┬ PuppetJs#2.4.0
 │ ├── fast-json-patch#1.1.2
 │ ├── json-patch-ot#73a40c7e4a
 │ ├─┬ json-patch-ot-agent#d59dcb5d01
@@ -16,7 +16,7 @@ sys#1.0.0 c:\www\Starcounter\src\BuildSystem\ClientFiles
 ├── object.observe#0.2.6 extraneous
 ├── polymer#1.7.0
 ├─┬ puppet-client#3.2.1
-│ ├── PuppetJs#2.3.0
+│ ├── PuppetJs#2.4.0
 │ └─┬ polymer#1.7.0
 │   └── webcomponentsjs#0.7.23
 ├── puppet-redirect#0.4.3

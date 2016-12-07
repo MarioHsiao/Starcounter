@@ -18,9 +18,7 @@ namespace Starcounter.Internal {
 		internal readonly static byte[] ContentLengthStart;
         internal readonly static byte[] HostStart;
         internal readonly static byte[] GetCookieStart;
-		internal readonly static byte[] SetCookieStart;
-		internal readonly static byte[] SetCookieLocationStart;
-        internal readonly static byte[] SetSessionCookieStart;
+        internal readonly static byte[] SetCookieStart;
 		internal readonly static byte[] SetCookiePathEnd;
 		internal readonly static byte[] CRLF;
         internal readonly static byte[] SemicolonSpace;
@@ -38,10 +36,8 @@ namespace Starcounter.Internal {
         internal const String ContentLengthHeader = "Content-Length";
         internal const String CacheControlHeader = "Cache-Control";
         internal const String HostHeader = "Host";
-        internal const String SetLocationHeader = SetCookieHeader + ": Location=";
-        internal const String SetSessionCookieHeader = SetCookieHeader + ": " + MixedCodeConstants.ScSessionCookieName + "=";
 
-		static HttpHeadersUtf8() {
+        static HttpHeadersUtf8() {
 			Http11 = Encoding.UTF8.GetBytes("HTTP/1.1 ");
             Http11NoSpace = Encoding.UTF8.GetBytes("HTTP/1.1");
 			ServerSc = Encoding.UTF8.GetBytes("Server: SC" + Constants.CRLF);
@@ -53,8 +49,6 @@ namespace Starcounter.Internal {
             HostStart = Encoding.UTF8.GetBytes(HostHeader + ": ");
             GetCookieStart = Encoding.UTF8.GetBytes(GetCookieHeader + ": ");
 			SetCookieStart = Encoding.UTF8.GetBytes(SetCookieHeader + ": ");
-			SetCookieLocationStart = Encoding.UTF8.GetBytes(SetCookieHeader + ": Location=");
-            SetSessionCookieStart = Encoding.UTF8.GetBytes(SetCookieHeader + ": " + MixedCodeConstants.ScSessionCookieName + "=");
 			SetCookiePathEnd = Encoding.UTF8.GetBytes("; path=/" + Constants.CRLF);
 			CRLF = Encoding.UTF8.GetBytes(Constants.CRLF);
             SemicolonSpace = Encoding.UTF8.GetBytes("; ");
@@ -68,7 +62,6 @@ namespace Starcounter.Internal {
 							+ ContentEncodingStart.Length 
 							+ ContentLengthStart.Length 
 							+ SetCookieStart.Length
-							+ SetCookieLocationStart.Length 
 							+ SetCookiePathEnd.Length
                             + DateMaxString.Length
 							+ CRLF.Length 
