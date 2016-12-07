@@ -209,7 +209,7 @@ namespace Starcounter {
         }
 
         internal void OnSessionSet() {
-            OnAddedToViewmodel(true);
+            UpgradeToStateful(true);
         }
 
         /// <summary>
@@ -366,15 +366,15 @@ namespace Starcounter {
             // all stateful info is correct.
 
             // Since we change parents we need to retrieve session twice.
-            if (isAddedToViewmodel && this.parent != null) {
+            if (isStateful && this.parent != null) {
                 if (Session != null)
-                    OnRemovedFromViewmodel(true);
+                    DowngradeFromStateFul(true);
             }
 
             this.parent = value;
             if (this.parent != null) {
                 if (Session != null)
-                    OnAddedToViewmodel(true);
+                    UpgradeToStateful(true);
             }
         }
 

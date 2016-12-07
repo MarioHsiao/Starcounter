@@ -892,11 +892,11 @@ namespace Starcounter.Internal.XSON.Tests {
             string str = json.ToJson();
 
             // No caching should be enabled. Each property is accessed twice (estimate, serialize)
-            Assert.AreEqual(2, data.GetNameCount);
+            Assert.AreEqual(1, data.GetNameCount);
             Assert.AreEqual(0, data.SetNameCount);
 
             json.Set(tName, "Nils Nilsson");
-            Assert.AreEqual(2, data.GetNameCount);
+            Assert.AreEqual(1, data.GetNameCount);
             Assert.AreEqual(1, data.SetNameCount);
             Assert.AreEqual("Nils Nilsson", data.NameSkipCounter);
 
@@ -907,7 +907,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             str = json.ToJson();
 
-            Assert.AreEqual(2, data.GetNameCount);
+            Assert.AreEqual(1, data.GetNameCount);
             Assert.AreEqual(0, data.SetNameCount);
 
             json.VerifyDirtyFlags();

@@ -88,8 +88,7 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         private static void RunStandardJsonBenchmark(string name, TValue tObj, int numberOfTimes) {
-            byte[] jsonArr = null;
-            int size = 0;
+            string jsonStr = null;
             Json jsonInst;
             DateTime start;
             DateTime stop;
@@ -100,27 +99,21 @@ namespace Starcounter.Internal.XSON.Tests {
             // Serializing to standard json.
             start = DateTime.Now;
             for (int i = 0; i < numberOfTimes; i++) {
-                jsonArr = jsonInst.ToJsonUtf8();
-                size = jsonArr.Length;
+                jsonStr = jsonInst.ToJson();
             }
             stop = DateTime.Now;
             PrintResult(stop, start, numberOfTimes, COL3);
 
             // Deserializing from standard json.
-            unsafe {
-                fixed (byte* p = jsonArr) {
                     start = DateTime.Now;
                     for (int i = 0; i < numberOfTimes; i++) {
-                        size = jsonInst.PopulateFromJson((IntPtr)p, size);
+                        jsonInst.PopulateFromJson(jsonStr);
                     }
-                }
-            }
             stop = DateTime.Now;
             PrintResult(stop, start, numberOfTimes, COL4);
             Helper.ConsoleWrite("\n");
         }
-
-
+        
         private static string AddSpaces(string org, int totalLength) {
             return AddChars(org, ' ', totalLength);
         }

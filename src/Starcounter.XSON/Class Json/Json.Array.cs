@@ -113,7 +113,7 @@ namespace Starcounter {
             cacheIndexInArr = ((IList)Parent).IndexOf(this);
         }
 
-        private void CheckAndAddArrayVersionLog(ChangeLog clog) {
+        internal void CheckAndAddArrayVersionLog(ChangeLog clog) {
             if (clog.Version != null && this.IsArray) {
                 if (this.versionLog == null)
                     this.versionLog = new List<ArrayVersionLog>();

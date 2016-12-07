@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
+using Starcounter.XSON;
+using Starcounter.XSON.Interfaces;
 using XSONModule = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter.Internal.XSON.Tests {
@@ -11,45 +14,15 @@ namespace Starcounter.Internal.XSON.Tests {
     /// 
     /// </summary>
     public static class JsonSerializeTests {
-        private static StandardJsonSerializer defaultSerializer;
+        private static ITypedJsonSerializer defaultSerializer;
 
         [TestFixtureSetUp]
         public static void InitializeTest() {
-			defaultSerializer = new StandardJsonSerializer();
+			defaultSerializer = new NewtonSoftSerializer();
         }
 
         [Test]
-        public static void TestSerializeJsonString() {
-            // needed size includes the quotations around the string.
-            SerializeString("First!", 8);
-            SerializeString("FirstWithSpecial\n", 20);
-            SerializeString("\n\b\t", 8);
-            SerializeString("\u001f", 8); 
-        }
-
-        private static void SerializeString(string value, int neededSize) {
-            byte[] dest;
-            int written;
-
-            unsafe {
-                // Assert that we dont write outside of the available space.
-                dest = new byte[neededSize - 2];
-                fixed (byte* pdest = dest) {
-                    written = JsonHelper.WriteString((IntPtr)pdest, dest.Length, value);
-                    Assert.AreEqual(-1, written);
-                }
-
-                // Assert that we write correct amount of bytes.
-                dest = new byte[neededSize*2];
-                fixed (byte* pdest = dest) {
-                    written = JsonHelper.WriteString((IntPtr)pdest, dest.Length, value);
-                    Assert.AreEqual(neededSize, written);
-                }
-            }
-        }
-        
-		[Test]
-		public static void TestStandardSerializer() {
+        public static void TestStandardSerializer() {
             RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"));
             RunStandardSerializerTest("person.json", File.ReadAllText("Json\\person.json"));
             RunStandardSerializerTest("supersimple.json", File.ReadAllText("Json\\supersimple.json"));
@@ -58,7 +31,7 @@ namespace Starcounter.Internal.XSON.Tests {
             RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"));
             RunStandardSerializerTest("SingleValue.json", File.ReadAllText("Json\\SingleValue.json"));
             RunStandardSerializerTest("SingleArray.json", File.ReadAllText("Json\\SingleArray.json"));
-		}
+        }
 
         [Test]
         public static void TestStandardSerializerWithCompiledJson() {
@@ -71,32 +44,24 @@ namespace Starcounter.Internal.XSON.Tests {
             RunStandardSerializerTest("SingleValue.json", SingleValue.DefaultTemplate);
             RunStandardSerializerTest("SingleValue.json", SingleArray.DefaultTemplate);
         }
-        
+
         private static void RunStandardSerializerTest(string name, string jsonStr) {
             TValue tval = Helper.CreateJsonTemplateFromContent(Path.GetFileNameWithoutExtension(name), jsonStr);
             RunStandardSerializerTest(name, tval);
         }
 
-		private static void RunStandardSerializerTest(string name, TValue tval) {
-			int serializedSize = 0;
-			int afterPopulateSize = 0;
-			Json original;
-			Json newJson;
-            
-			original = (Json)tval.CreateInstance();
-            byte[] jsonArr = new byte[tval.JsonSerializer.EstimateSizeBytes(original)];
-			serializedSize = original.ToJsonUtf8(jsonArr, 0);
+        private static void RunStandardSerializerTest(string name, TValue tval) {
+            Json original;
+            Json newJson;
 
-			unsafe {
-				fixed (byte* p = jsonArr) {
-					newJson = (Json)tval.CreateInstance();
-					afterPopulateSize = newJson.PopulateFromJson((IntPtr)p, serializedSize);
-				}
-			}
+            original = (Json)tval.CreateInstance();
+            string jsonStr = original.ToJson();
 
-			Assert.AreEqual(serializedSize, afterPopulateSize);
+            newJson = (Json)tval.CreateInstance();
+            newJson.PopulateFromJson(jsonStr);
+
             Helper.AssertAreEqual(original, newJson);
-		}
+        }
 
         [Test]
         public static void TestIncorrectInputJsonForDefaultSerializer() {
@@ -120,60 +85,6 @@ namespace Starcounter.Internal.XSON.Tests {
 
             invalidJson = "{ Accounts: ] }";
             Assert.Catch(() => obj.PopulateFromJson(invalidJson));
-        }
-
- //       [Test]
-        public static void TestIncorrectInputJsonForCodegenSerializer() {
-            TValue tObj = Helper.CreateJsonTemplateFromFile("supersimple.json");
-
-            var obj = (Json)tObj.CreateInstance();
-
-            string invalidJson = "message";
-            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
-
-            invalidJson = "PlayerId: \"Hey!\" }";
-            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
-
-            invalidJson = "{ PlayerId: \"Hey!\" ";
-            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
-
-            invalidJson = "{ PlayerId: Hey }";
-            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
-
-            invalidJson = "{ PlayerId: 123";
-            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
-        }
-
-        [Test]
-        public static void EncodeAndDecodeJsonStrings() {
-            // "standard" special characters.
-            EncodeDecodeString("1\b2\f3\n4\r5\t6\"7\\");
-
-            // Low unicode characters.
-            EncodeDecodeString("UnicodeChars:\u001a\u0006");
-
-            // High unicode characters.
-            EncodeDecodeString("UnicodeChars:\u2031");
-        }
-
-        private static void EncodeDecodeString(string value) {
-            byte[] buffer = new byte[1024];
-//            byte[] expected;
-            int count;
-            int used;
-            string decodedString;
-
-            unsafe {
-                fixed (byte* p = buffer) {
-                    count = JsonHelper.WriteString((IntPtr)p, buffer.Length, value);
-                    JsonHelper.ParseString((IntPtr)p, buffer.Length, out decodedString, out used);
-                }
-            }
-//            expected = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(value));
-//            AssertAreEqual(expected, buffer, count);
-
-            Assert.AreEqual(count, used);
-            Assert.AreEqual(value, decodedString);
         }
 
         private static void AssertAreEqual(byte[] expected, byte[] actual, int count) {
@@ -213,7 +124,7 @@ namespace Starcounter.Internal.XSON.Tests {
             o4.SomeArray = o3;
             o4.SomeString2 = "SomeString2!";
 
-            String serString = o4.ToJson();
+            string serString = o4.ToJson();
 
             Assert.AreEqual(@"{""SomeString"":""SomeString!"",""SomeBool"":true,""SomeDecimal"":1.234567,""SomeDouble"":-1.234567,""SomeLong"":1234567,""SomeObject"":{""SomeString"":""NewString!"",""AnotherString"":""AnotherString!"",""SomeDecimal"":1.234567,""SomeLong"":1234567},""SomeArray"":[{""SomeString"":""NewString!"",""AnotherString"":""AnotherString!"",""SomeDecimal"":1.234567,""SomeLong"":1234567},{""SomeString"":""NewString!"",""AnotherString"":""AnotherString!"",""SomeDecimal"":1.234567,""SomeLong"":1234567},{""SomeString"":""NewString!"",""AnotherString"":""AnotherString!"",""SomeDecimal"":1.234567,""SomeLong"":1234567}],""SomeString2"":""SomeString2!""}", serString);
         }
@@ -294,9 +205,9 @@ namespace Starcounter.Internal.XSON.Tests {
             var settings = new JsonSerializerSettings();
             settings.MissingMemberHandling = MissingMemberHandling.Ignore;
 
-            var oldSettings = TypedJsonSerializer.DefaultSettings;
+            var oldSettings = JsonSerializerSettings.Default;
             try {
-                TypedJsonSerializer.DefaultSettings = settings;
+                JsonSerializerSettings.Default = settings;
 
                 // Unknown number property
                 string jsonSource = @" { ""id"":""1"", ""age"":19, ""gender"":""Female"" }";
@@ -330,7 +241,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 Assert.AreEqual("abc123", json.id);
                 Assert.AreEqual("Ooops", json.gender);
             } finally {
-                TypedJsonSerializer.DefaultSettings = oldSettings;
+                JsonSerializerSettings.Default = oldSettings;
             }
         }
 
@@ -375,6 +286,48 @@ namespace Starcounter.Internal.XSON.Tests {
             });
             Assert.IsTrue(ErrorCode.TryGetCode(ex, out errorCode));
             Assert.AreEqual(Error.SCERRJSONPROPERTYNOTFOUND, errorCode);
+        }
+
+        [Test]
+        public static void TestDeserializeStringArray() {
+            TObjArr schema = new TObjArr();
+            schema.ElementType = new TString();
+
+            string jsonStr = @"[""One"", ""Two""]";
+            Json json = new Json() { Template = schema };
+
+            json.PopulateFromJson(jsonStr);
+            var list = (IList)json;
+
+            Assert.AreEqual(2, list.Count);
+            Assert.AreEqual("One", ((Json)list[0]).StringValue);
+            Assert.AreEqual("Two", ((Json)list[1]).StringValue);
+        }
+
+        [Test]
+        public static void TestDeserializeNullValues() {
+            TObject schema = new TObject();
+            TString tStr = schema.Add<TString>("MyStr");
+            TDecimal tDec = schema.Add<TDecimal>("MyDec");
+            TDouble tDbl = schema.Add<TDouble>("MyDbl");
+            TLong tLong = schema.Add<TLong>("MyLong");
+            TBool tBool = schema.Add<TBool>("MyBool");
+            TObject tObj = schema.Add<TObject>("MyObj");
+            TObjArr tArr = schema.Add<TObjArr>("MyArr");
+
+            string jsonStr = @"{""MyStr"":null,""MyDec"":null,""MyDbl"":null,""MyLong"":null,""MyBool"":null,""MyObj"":null,""MyArr"":null}";
+            Json json = new Json() { Template = schema };
+
+            Assert.DoesNotThrow(() => {
+                json.PopulateFromJson(jsonStr);
+            });
+            Assert.AreEqual("", tStr.Getter(json));
+            Assert.AreEqual(default(decimal), tDec.Getter(json));
+            Assert.AreEqual(default(double), tDbl.Getter(json));
+            Assert.AreEqual(default(long), tLong.Getter(json));
+            Assert.AreEqual(default(bool), tBool.Getter(json));
+            Assert.IsNotNull(tObj.Getter(json));
+            Assert.IsNotNull(tArr.Getter(json));
         }
     }
 }

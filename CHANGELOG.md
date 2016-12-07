@@ -4,7 +4,6 @@
 
 - Added interface `IExplicitBound<T>` which will generate compile-time errors on bound properties in TypedJSON [#262](https://github.com/Starcounter/Starcounter/issues/262)
 - Added possibility to override delegates used for bindings in TypedJSON to allow custom implemented getters and setters [#3977](https://github.com/Starcounter/Starcounter/issues/3977)
-- Added PuppetJsProvider middleware [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
 
 ### Fixed
 - Fixed a bug where pushing changes on websocket could cause versioning and patches to be messed up [#3844](https://github.com/Starcounter/Starcounter/issues/3844)
@@ -29,8 +28,6 @@
 - Changed the parser for Json-by-example from F# parser to NewtonSoft (nuget) [#3811](https://github.com/Starcounter/Starcounter/issues/3811)
 - Removed code for creating codegenerated jsonserializers for TypedJSON [#3832](https://github.com/Starcounter/Starcounter/issues/3832)
 - Redesigned weaver and app compiler as host-agnostic libraries [#3684](https://github.com/Starcounter/Starcounter/issues/3684)
-
-### Changed
 - Upgraded Polymer to 1.7.0 [#3888](https://github.com/Starcounter/Starcounter/issues/3888)
 - Upgraded webcomponents.js to 0.7.23 [#3925](https://github.com/Starcounter/Starcounter/issues/3925)
 - Upgraded Starcounter/starcounter-include from 2.0.0 to 2.0.1 (https://github.com/Starcounter/starcounter-include/releases)
@@ -41,6 +38,8 @@
 - Upgraded fast-json-patch from 1.1.0 to 1.1.2 (https://github.com/Starcounter-Jack/JSON-Patch/releases)
 - Removed automatic adding of `Set-Cookie: Location=x` and `Set-Cookie: ScSessionCookie=x` headers for outgoing responses with new session, and instead added `X-Location` header with the location of the session. This header can be changed or disabled by setting `session.UseSessionHeader` and `session.SessionHeaderName` [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
 - Including location of session in the response for the standalone html from the `PartialToStandaloneHtmlProvider` middleware to solve problems with mixed up sessions when several tabs are used [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
+- Rewrote serializer for TypedJSON and changed public API. `TypedJsonSerializer` class and methods are marked obsolete. Interface `ITypedJsonSerializer` should be used instead. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
+- Rewrote how json was parsed and generated in TypedJSON jsonpatch implementation and obsoleted public methods that took `IntPtr` as input-parameter. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 
