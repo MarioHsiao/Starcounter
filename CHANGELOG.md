@@ -4,7 +4,6 @@
 
 - Added interface `IExplicitBound<T>` which will generate compile-time errors on bound properties in TypedJSON [#262](https://github.com/Starcounter/Starcounter/issues/262)
 - Added possibility to override delegates used for bindings in TypedJSON to allow custom implemented getters and setters [#3977](https://github.com/Starcounter/Starcounter/issues/3977)
-- Added PuppetJsProvider middleware [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
 
 ### Fixed
 - Fixed a bug where pushing changes on websocket could cause versioning and patches to be messed up [#3844](https://github.com/Starcounter/Starcounter/issues/3844)
@@ -29,8 +28,6 @@
 - Changed the parser for Json-by-example from F# parser to NewtonSoft (nuget) [#3811](https://github.com/Starcounter/Starcounter/issues/3811)
 - Removed code for creating codegenerated jsonserializers for TypedJSON [#3832](https://github.com/Starcounter/Starcounter/issues/3832)
 - Redesigned weaver and app compiler as host-agnostic libraries [#3684](https://github.com/Starcounter/Starcounter/issues/3684)
-
-### Changed
 - Upgraded Polymer to 1.7.0 [#3888](https://github.com/Starcounter/Starcounter/issues/3888)
 - Upgraded webcomponents.js to 0.7.23 [#3925](https://github.com/Starcounter/Starcounter/issues/3925)
 - Upgraded Starcounter/starcounter-include from 2.0.0 to 2.0.1 (https://github.com/Starcounter/starcounter-include/releases)
