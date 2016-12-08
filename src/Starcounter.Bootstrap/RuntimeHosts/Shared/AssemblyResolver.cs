@@ -57,11 +57,14 @@ namespace Starcounter.Hosting {
             }
             else
             {
-                // Figure this out. Some apps will not have a schema.
-                // TODO:
-                Debug.Assert(StarcounterEnvironment.IsAdministratorApp);
+                // We don't require apps to include any database code to allow them
+                // to run in the shared host. Just give back an empty schema to
+                // denote this.
                 schema = new DatabaseSchema();
-                schema.AddStarcounterAssembly();
+                if (!StarcounterEnvironment.IsAdministratorApp)
+                {
+                    log.LogNotice($"Application {Path.GetFileName(executablePath)} does not define a database schema.");
+                }
             }
             
             return appDir;
