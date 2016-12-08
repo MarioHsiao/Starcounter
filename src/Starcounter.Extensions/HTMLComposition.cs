@@ -131,6 +131,9 @@ namespace Starcounter
 
             HTMLComposition.CreateIndex();
 
+            /// <summary>  
+            ///  Posts a new HTMLComposition.  
+            /// </summary> 
             Handle.POST("/sc/partial/composition?key={?}&ver={?}", (Request request, string key, string version) => {
                 key = System.Uri.UnescapeDataString(key);
                 Db.Transact(() => {
@@ -148,6 +151,9 @@ namespace Starcounter
                 return 201;
             }, new HandlerOptions() { SkipRequestFilters = true });
 
+            /// <summary>  
+            ///  Deletes a HTMLComposition from the input key and (optionally) version. The key "all" deletes all HTMLCompositions.  
+            /// </summary> 
             Handle.DELETE("/sc/partial/composition?key={?}&ver={?}", (string key, string version) => {
                 key = System.Uri.UnescapeDataString(key);
                 Db.Transact(() => {
@@ -167,31 +173,49 @@ namespace Starcounter
                 return 204;
             }, new HandlerOptions() { SkipRequestFilters = true });
 
+            /// <summary>  
+            ///  Returns an HTMLComposition from the key and/or the version  
+            /// </summary> 
             Handle.GET("/sc/partial/composition?key={?}&ver={?}", (Request request, string key, string version) => {
                 key = System.Uri.UnescapeDataString(key);
                 return GetResponse(GetUsingKey(key), request, version);
             }, new HandlerOptions() { SkipRequestFilters = true });
 
+            /// <summary>  
+            ///  Returns all the HTMLCompositions.  
+            /// </summary> 
             Handle.GET("/sc/partial/composition/all", (Request request) =>
             {
                 return GetResponse(GetAll(), request, null, "all");
             });
 
+            /// <summary>  
+            ///  Returns a compositions for merged partial in a set of apps.  
+            /// </summary> 
             Handle.GET("/sc/partial/composition?mergedpartial={?}&ver={?}", (string mergedPartial, string version) =>
             {
                 return GetResponse(GetUsingMergedPartials(mergedPartial), request, version, "mergedpartial");
             });
 
+            /// <summary>  
+            ///  Returns compositions for partial in any set of apps.  
+            /// </summary> 
             Handle.GET("/sc/partial/composition?partial={?}&ver={?}", (string partial, string version) =>
             {
                 return GetResponse(GetUsingPartial(partial), request, version, "partial");
             });
 
+            /// <summary>  
+            ///  Returns compositions for given app partial in standalone model.  
+            /// </summary> 
             Handle.GET("/sc/partial/composition?standalonepartial={?}&ver={?}", (string standalonepartial, string version) =>
             {
                 return GetResponse(GetUsingStandalonePartial(standalonepartial), request, version, "standalonepartial");
             });
 
+            /// <summary>  
+            ///  Returns compositions for given app partials in any set of apps.  
+            /// </summary> 
             Handle.GET("/sc/partial/composition?app={?}&ver={?}", (string app, string version) =>
             {
                 return GetResponse(GetUsingApp(app), request, version, "app");
