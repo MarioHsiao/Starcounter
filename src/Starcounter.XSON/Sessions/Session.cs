@@ -80,13 +80,7 @@ namespace Starcounter {
         /// and no siblings should be serialized.
         /// </summary>
         internal bool enableNamespaces = false;
-
-        /// <summary>
-        /// If set to true values that are bound will not be read several times when generating
-        /// changes from changelog and creating patches.
-        /// </summary>
-        internal bool enableCachedReads = false;
-
+        
         public Session() : this(SessionOptions.Default) {
         }
 
@@ -188,16 +182,11 @@ namespace Starcounter {
                 return;
 
             // Calculating the patch.
-            Byte[] patch;
-            Int32 sizeBytes = jsonPatch_.Generate(
-                PublicViewModel, 
-                true, 
-                CheckOption(SessionOptions.IncludeNamespaces), 
-                out patch);
-
-            if (sizeBytes >= 0) {
+            string patch = jsonPatch_.Generate(PublicViewModel, true, CheckOption(SessionOptions.IncludeNamespaces));
+            
+            if (!string.IsNullOrEmpty(patch)) {
                 // Sending the patch bytes to the client.
-                ActiveWebSocket.Send(patch, sizeBytes, true);
+                ActiveWebSocket.Send(patch);
             }
         }
 
@@ -314,10 +303,38 @@ namespace Starcounter {
         /// <summary>
         /// Indicates if user wants to use session cookie.
         /// </summary>
+        [Obsolete("ScSessionCookie have been deprecated. Please use 'UseSessionHeader' instead (name of header can be changed with 'SessionHeaderName'", true)]
         public Boolean UseSessionCookie {
-            get { return InternalSession.use_session_cookie_; }
-            set { InternalSession.use_session_cookie_ = value; }
+            get { return false; }
+            set { }
         }
+
+        /// <summary>
+        /// If set to true, a header will be added to the outgoing response 
+        /// containing the location of the session. The header is default set 
+        /// to 'X-Location', but can be changed using the property 'SessionHeaderName'
+        /// </summary>
+        /// <remarks>
+        /// Only the first response for a request that either: created a new 
+        /// session or changed the current session will contain this header.
+        /// </remarks>
+        public Boolean UseSessionHeader {
+            get { return InternalSession.UseSessionHeader;  }
+            set { InternalSession.UseSessionHeader = value;  }
+        } 
+
+        /// <summary>
+        /// Specifies the name used for the header if 'UseSessionHeader' is true.
+        /// </summary>
+        public String SessionHeaderName {
+            get { return InternalSession.SessionHeaderName; }
+            set {
+                if (value == null)
+                    throw new ArgumentNullException();
+            
+                InternalSession.SessionHeaderName = value;
+            }
+        } 
 
         /// <summary>
         /// Getting internal session.
@@ -589,12 +606,7 @@ namespace Starcounter {
                 return true;
             }
         }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool HaveAddedOrRemovedObjects { get; set; }
-        
+      
         internal TransactionHandle RegisterTransaction(TransactionHandle handle) {
             TransactionRef tref = null;
 

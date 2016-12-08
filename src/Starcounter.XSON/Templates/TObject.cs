@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Starcounter.Internal;
 using Starcounter.XSON;
+using Starcounter.Advanced.XSON;
 
 namespace Starcounter.Templates {
     /// <summary>
@@ -94,26 +95,7 @@ namespace Starcounter.Templates {
 			if (UnboundGetter == null)
 				TemplateDelegateGenerator.GenerateUnboundDelegates(this, false);
 		}
-
-        /// <summary>
-        /// If the property is bound, it reads the bound value and stores it
-        /// using the unbound delegate and marks the property as cached. 
-        /// All reads after this will read the from the unbound delegate,
-        /// until the cache is resetted when checkpointing.
-        /// </summary>
-        /// <param name="json"></param>
-        internal void SetCachedReads(Json json) {
-            // We don't have to check if th property is already cached.
-            // That is done when checking if binding should be used.
-            if (json.IsTrackingChanges && UseBinding(json) && json.Session.enableCachedReads) {
-                Json value = UnboundGetter(json);
-                if (value != null && json.checkBoundProperties) {
-                    value.CheckBoundObject(BoundGetter(json));
-                }
-                json.MarkAsCached(this.TemplateIndex);
-            }
-        }
-
+        
         internal override void Checkpoint(Json parent) {
 			var json = UnboundGetter(parent);
 			if (json != null)
@@ -121,10 +103,16 @@ namespace Starcounter.Templates {
 			base.Checkpoint(parent);
 		}
 
-		internal override void CheckAndSetBoundValue(Json parent, bool addToChangeLog) {
-			Json value = UnboundGetter(parent);
-			if (value != null)
-				value.SetBoundValuesInTuple();
+        internal override void CheckAndSetBoundValue(Json parent, bool addToChangeLog) {
+            Json value = UnboundGetter(parent);
+            if (value != null) {
+                if (UseBinding(parent)) {
+                    if (parent.AutoRefreshBoundProperties)
+                        value.CheckBoundObject(BoundGetter(parent));
+                    parent.MarkAsCached(TemplateIndex);
+                }
+                value.SetBoundValuesInTuple();
+            }             
 		}
 
 		internal override Json GetValue(Json parent) {
@@ -132,9 +120,7 @@ namespace Starcounter.Templates {
 
             if (json != null && json.checkBoundProperties && UseBinding(parent)) {
 				json.CheckBoundObject(BoundGetter(parent));
-
-                if (json.Session.enableCachedReads)
-                    parent.MarkAsCached(this.TemplateIndex);
+                parent.MarkAsCached(this.TemplateIndex);
 			}
 
 			return json;

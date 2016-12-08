@@ -24,14 +24,15 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestEmptyPatch() {
             var json = new Json();
 
-            int count = jsonPatch.Apply(json, "[]", true);
+            int count;
+            JsonPatchStatus status = jsonPatch.Apply(json, "[]", true, out count);
+            Assert.AreEqual(JsonPatchStatus.Applied, status);
             Assert.AreEqual(0, count);
         }
 
         [Test]
         public static void TestSoftPatchRejection() {
             string patch;
-            byte[] patchArr;
             int number;
 
             var schema = new TObject();
@@ -44,9 +45,8 @@ namespace Starcounter.Internal.XSON.Tests {
             jsonPatch.Generate(json, true, false);
 
             json.Total = 1L;
-            patch = string.Format(Helper.PATCH_REPLACE, "/Total", "invalid");
-            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
-            number = jsonPatch.Apply(json, patchArr, false);
+            patch = string.Format(Helper.PATCH_REPLACE, "/Total", Helper.Jsonify("invalid"));
+            jsonPatch.Apply(json, patch, false, out number);
             Assert.AreEqual(number, 1);
             Assert.AreEqual(1L, json.Total);
 
@@ -248,7 +248,7 @@ namespace Starcounter.Internal.XSON.Tests {
                        + string.Format(Helper.PATCH_REPLACE, "/Content/ApplicationPage/GanttData/ItemDropped/TemplateId$", Helper.Jsonify("lm7"))
                        + "]";
 
-            jsonPatch.SetPatchHandler(null);
+            jsonPatch.SetPatchHandler((j, op, ptr, str) => { });
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             patchCount = jsonPatch.Apply(json, patchBytes);
             Assert.AreEqual(2, patchCount);
@@ -448,6 +448,7 @@ namespace Starcounter.Internal.XSON.Tests {
             string outgoingPatch;
             Session session;
             Json json;
+            JsonPatchStatus status;
             TObject tJson;
             TString tValue;
 
@@ -464,7 +465,8 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(0, version.LocalVersion);
 
             incomingPatch = GetVersioningPatch(version, 1, 0);
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
+            status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Applied, status);
             Assert.AreEqual(3, evaluatedCount);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(0, version.LocalVersion);
@@ -475,28 +477,29 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(1, version.LocalVersion);
 
             incomingPatch = GetVersioningPatch(version, 4, 1);
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
-            Assert.AreEqual(-1, evaluatedCount);
+            status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Queued, status);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(1, version.LocalVersion);
             Assert.AreEqual("qwerty", tValue.Getter(json));
 
             incomingPatch = GetVersioningPatch(version, 3, 1);
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
-            Assert.AreEqual(-1, evaluatedCount);
+            status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Queued, status);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(1, version.LocalVersion);
             Assert.AreEqual("qwerty", tValue.Getter(json));
 
             incomingPatch = GetVersioningPatch(version, 5, 1);
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
-            Assert.AreEqual(-1, evaluatedCount);
+            status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Queued, status);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(1, version.LocalVersion);
             Assert.AreEqual("qwerty", tValue.Getter(json));
 
             incomingPatch = GetVersioningPatch(version, 2, 1);
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
+            status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Applied, status);
             Assert.AreEqual(12, evaluatedCount);
             Assert.AreEqual(5, version.RemoteVersion);
             Assert.AreEqual(1, version.LocalVersion);
@@ -510,15 +513,16 @@ namespace Starcounter.Internal.XSON.Tests {
             var json = (Json)tJson.CreateInstance();
             new Session(SessionOptions.PatchVersioning) {Data = json}; // establishes itself as current session
             var version = json.ChangeLog.Version;
+            int evaluatedCount;
 
             json.ChangeLog.Checkpoint();
-            jsonPatch.Apply(json, Encoding.UTF8.GetBytes(GetVersioningPatch(version, 1, 0)));
+            jsonPatch.Apply(json, GetVersioningPatch(version, 1, 0), true, out evaluatedCount);
 
             // act
-            var evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(GetVersioningPatch(version, 1, 0)));
+            JsonPatchStatus status = jsonPatch.Apply(json, GetVersioningPatch(version, 1, 0), true, out evaluatedCount);
 
             // assert
-            Assert.AreEqual(-2, evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.AlreadyApplied, status);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(0, version.LocalVersion);
         }
@@ -528,6 +532,7 @@ namespace Starcounter.Internal.XSON.Tests {
             int evaluatedCount;
             string incomingPatch;
             string outgoingPatch;
+            JsonPatchStatus status;
             Session session;
             TestOfOT json = new TestOfOT();
 
@@ -541,7 +546,8 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(0, version.LocalVersion);
 
             incomingPatch = GetVersioningPatch(version, 1, 0, string.Format(Helper.PATCH_REPLACE, "/Page/Description$", @"""Changed1"""));
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
+            status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Applied, status);
             Assert.AreEqual(3, evaluatedCount);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(0, version.LocalVersion);
@@ -552,7 +558,8 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(1, version.LocalVersion);
 
             incomingPatch = GetVersioningPatch(version, 2, 0, string.Format(Helper.PATCH_REPLACE, "/Page/Description$", @"""Changed1"""));
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
+            status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Applied, status);
             Assert.AreEqual(3, evaluatedCount);
             Assert.AreEqual(2, version.RemoteVersion);
             Assert.AreEqual(1, version.LocalVersion);
@@ -563,7 +570,7 @@ namespace Starcounter.Internal.XSON.Tests {
             incomingPatch = GetVersioningPatch(version, 3, 0, string.Format(Helper.PATCH_REPLACE, "/Page/Description$", @"""Changed1"""));
 
             Assert.Throws<JsonPatchException>(() => {
-                evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
+                status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
             });
         }
 
@@ -601,8 +608,10 @@ namespace Starcounter.Internal.XSON.Tests {
 
             jsonPatch.Generate(json, true, false);
 
+            int patchCount;
             incomingPatch = GetVersioningPatch(version, 1, 1, string.Format(Helper.PATCH_REPLACE, "/Name$", @"""A:Change"""));
-            jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
+            JsonPatchStatus status = jsonPatch.Apply(json, incomingPatch, true, out patchCount);
+            Assert.AreEqual(JsonPatchStatus.Applied, status);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(1, version.RemoteLocalVersion);
         }
@@ -633,7 +642,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // ServerVersion is still 1 since no patches have been created, but there are pending changes that needs to be considered.
             incomingPatch = GetVersioningPatch(version, 1, 1, string.Format(Helper.PATCH_REPLACE, "/Items/0/Description$", @"""A:Change"""));
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
+            JsonPatchStatus status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Applied, status);
             Assert.AreEqual(3, evaluatedCount);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(1, version.LocalVersion);
@@ -668,7 +678,8 @@ namespace Starcounter.Internal.XSON.Tests {
             
             // One version behind, index 0 should be 1
             incomingPatch = GetVersioningPatch(version, 1, 1, string.Format(Helper.PATCH_REPLACE, "/Items/0/Description$", @"""A:Change"""));
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
+            JsonPatchStatus status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Applied, status);
             Assert.AreEqual(3, evaluatedCount);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(2, version.LocalVersion);
@@ -710,7 +721,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Several versions behind, index 0 should be 2
             incomingPatch = GetVersioningPatch(version, 1, 2, string.Format(Helper.PATCH_REPLACE, "/Items/0/Description$", @"""A:Change"""));
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
+            JsonPatchStatus status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Applied, status);
             Assert.AreEqual(3, evaluatedCount);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(4, version.LocalVersion);
@@ -755,7 +767,8 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Several versions behind, index 0 should be 1
             incomingPatch = GetVersioningPatch(version, 1, 2, string.Format(Helper.PATCH_REPLACE, "/Items/0/Description$", @"""A:Change"""));
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
+            JsonPatchStatus status = jsonPatch.Apply(json, incomingPatch, true, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Applied, status);
             Assert.AreEqual(3, evaluatedCount);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(4, version.LocalVersion);
@@ -800,9 +813,9 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Several versions behind, index 0 should be 1
             incomingPatch = GetVersioningPatch(version, 1, 3, string.Format(Helper.PATCH_REPLACE, "/Items/0/Description$", @"""A:Change"""));
-
-            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch), false);
-
+            
+            JsonPatchStatus status = jsonPatch.Apply(json, incomingPatch, false, out evaluatedCount);
+            Assert.AreEqual(JsonPatchStatus.Applied, status);
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(5, version.LocalVersion);
             Assert.AreEqual("A", itemA.Description);

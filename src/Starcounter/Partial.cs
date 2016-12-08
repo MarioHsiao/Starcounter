@@ -24,7 +24,7 @@ namespace Starcounter {
                 }
 
                 if (ImplicitStandalonePageBytes == null) {
-                    ImplicitStandalonePageBytes = PartialToStandaloneHtmlProvider.ProvideImplicitStandalonePage(bytes, ImplicitStandaloneTitle);
+                    ImplicitStandalonePageBytes = PartialToStandaloneHtmlProvider.ProvideImplicitStandalonePage(bytes, ImplicitStandaloneTitle, Session.Current?.SessionUri);
                 }
 
                 return ImplicitStandalonePageBytes;

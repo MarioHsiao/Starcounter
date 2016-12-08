@@ -30,7 +30,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="bs"></param>
         /// <param name="ws"></param>
-        static void HandleWebSocketJson(Byte[] bs, WebSocket ws) {
+        static void HandleWebSocketJson(string bs, WebSocket ws) {
 
             // Incrementing the initial call level for handles.
             Handle.CallLevel++;
@@ -54,24 +54,23 @@ namespace Starcounter.Internal {
                 }
 
                 // Running patches evaluation.
-                int patchCount = jsonPatch.Apply(root, bs, session.CheckOption(SessionOptions.StrictPatchRejection));
+                int patchCount;
+                JsonPatchStatus status = jsonPatch.Apply(root, bs, session.CheckOption(SessionOptions.StrictPatchRejection), out patchCount);
 
-                // -1 means that the patch was queued due to clientversion mismatch. We send no response.
-                // 0 mean empty patch which we treat as a simple ping.
-                if (patchCount > 0) {
-                    // Getting changes from the root.
-                    Byte[] patchResponse;
-                    Int32 sizeBytes = jsonPatch.Generate(root, true,
-                        session.CheckOption(SessionOptions.IncludeNamespaces), out patchResponse);
-
-                    if (sizeBytes >= 0) {
-                        // Sending the patch bytes to the client.
-                        ws.Send(patchResponse, sizeBytes, ws.IsText);
+                if (status == JsonPatchStatus.Applied) {
+                    if (patchCount > 0) {
+                        // Getting changes from the root.
+                        string patchResponse;
+                        patchResponse = jsonPatch.Generate(root, true, session.CheckOption(SessionOptions.IncludeNamespaces));
+                        if (!string.IsNullOrEmpty(patchResponse)) {
+                            // Sending the patch bytes to the client.
+                            ws.Send(patchResponse, ws.IsText);
+                        }
+                    } else {
+                        // ping, send empty patch back.
+                        ws.Send(emptyPatchArr, 2, ws.IsText);
                     }
-                } else if (patchCount == 0) {
-                    // ping, send empty patch back.
-                    ws.Send(emptyPatchArr, 2, ws.IsText);
-                }
+                } 
             } catch (JsonPatchException nex) {
                 ws.Disconnect(nex.Message, WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
                 return;
@@ -100,32 +99,33 @@ namespace Starcounter.Internal {
                     root = session.PublicViewModel;
                     if (root == null)
                         return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
+                    
+                    int patchCount;
+                    JsonPatchStatus status;
+                    
+                    status = jsonPatch.Apply(root, request.Body, session.CheckOption(SessionOptions.StrictPatchRejection), out patchCount);
 
-                    IntPtr bodyPtr;
-                    uint bodySize;
-                    request.GetBodyRaw(out bodyPtr, out bodySize);
-                    int patchCount = jsonPatch.Apply(root, bodyPtr, (int)bodySize, session.CheckOption(SessionOptions.StrictPatchRejection));
-
-                    if (patchCount < 1) {
+                    if (status == JsonPatchStatus.Applied) {
                         if (patchCount == 0) { // 0 means empty patch. Used for ping. Send empty patch back.
                             return new Response() {
                                 BodyBytes = emptyPatchArr,
                                 ContentLength = 2,
                                 ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_JsonPatch__Json)
                             };
-                        } else if (patchCount == -1) { // -1 means that the patch was queued due to clientversion mismatch.
-                            return new Response() {
-                                Resource = root,
-                                StatusCode = 202,
-                                StatusDescription = "Patch enqueued until earlier versions have arrived. Last known version is " + root.ChangeLog.Version.RemoteVersion
-                            };
-                        } else if (patchCount == -2) { // -2 means that patch had already been applied and now it's been ignored 
-                            return new Response() {
-                                Resource = root,
-                                StatusCode = 200,
-                                StatusDescription = "Patch already applied"
-                            };
                         }
+                        return root;
+                    } else if (status == JsonPatchStatus.Queued) {
+                        return new Response() {
+                            Resource = root,
+                            StatusCode = 202,
+                            StatusDescription = "Patch enqueued until earlier versions have arrived. Last known version is " + root.ChangeLog.Version.RemoteVersion
+                        };
+                    } else if (status == JsonPatchStatus.AlreadyApplied) {
+                        return new Response() {
+                            Resource = root,
+                            StatusCode = 200,
+                            StatusDescription = "Patch already applied"
+                        };
                     }
 
                     return root;
@@ -166,33 +166,17 @@ namespace Starcounter.Internal {
                 if (request.PreferredMimeType != MimeType.Application_Json) {
                     return CreateErrorResponse(513, "Unsupported mime type {request.PreferredMimeTypeString}.");
                 }
-
-                IntPtr bodyPtr;
-                uint bodySize;
-                request.GetBodyRaw(out bodyPtr, out bodySize);
-
-                IEnumerable<Buffer> patchSequences;
-                try {
-                    patchSequences = ReadElements(new Buffer(bodyPtr, (int) bodySize));
-                } catch (ArgumentException e) {
-                    return CreateErrorResponse(400, "Malformed request: " + e.Message);
-                }
-                foreach (var buffer in patchSequences) {
-                    jsonPatch.Apply(root, buffer.ptr, buffer.length,
-                        session.CheckOption(SessionOptions.StrictPatchRejection));
-                }
-
+                
+                jsonPatch.Apply(root, request.Body, session.CheckOption(SessionOptions.StrictPatchRejection));
+                
                 session.ActiveWebSocket = null; // since this is reconnection call we can assume that any web socket is dead
                 return CreateJsonBodyResponse(session, root);
             });
 
             // Handling WebSocket JsonPatch string message.
             Handle.WebSocket(port, JsonPatchWebSocketGroupName, (String s, WebSocket ws) => {
-                
-                Byte[] dataBytes = Encoding.UTF8.GetBytes(s);
-
                 // Calling bytes data handler.
-                HandleWebSocketJson(dataBytes, ws);
+                HandleWebSocketJson(s, ws);
             });
 
             // Handling WebSocket JsonPatch byte array.
@@ -204,52 +188,19 @@ namespace Starcounter.Internal {
                 // Do nothing!
             });
         }
-
-        private class Buffer {
-            public readonly IntPtr ptr;
-            public readonly int length;
-
-            public Buffer(IntPtr ptr, int length) {
-                this.ptr = ptr;
-                this.length = length;
-            }
-        }
-
-        private static IEnumerable<Buffer> ReadElements(Buffer jsonArray) {
-            var jsonReader = new JsonReader(jsonArray.ptr, jsonArray.length);
-            if (jsonReader.ReadNext() != JsonToken.StartArray) {
-                throw new ArgumentException("provided document is not an array");
-            }
-            jsonReader.Skip(1); // ReadNext() doesn't advance the pointer
-            while (true) {
-                var currentToken = jsonReader.ReadNext();
-                if (currentToken == JsonToken.End) {
-                    throw new ArgumentException("unexpected end of document");
-                }
-                if (currentToken == JsonToken.EndArray) {
-                    yield break;
-                }
-                var startPosition = jsonReader.Position;
-                var start = jsonReader.CurrentPtr;
-                jsonReader.SkipCurrent();
-                yield return new Buffer(start, jsonReader.Position - startPosition);
-            }
-        }
-
+        
         private static Response CreateJsonBodyResponse(Session session, Json root) {
-            byte[] body;
+            string body;
             session.enableNamespaces = true;
-            session.enableCachedReads = true;
             try {
-                body = root.ToJsonUtf8();
+                body = root.ToJson();
                 root.ChangeLog?.Checkpoint();
             } finally {
                 session.enableNamespaces = false;
-                session.enableCachedReads = false;
             }
 
             return new Response() {
-                BodyBytes = body,
+                Body = body,
                 ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
             };
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using Starcounter.Advanced.XSON;
+using Starcounter.XSON.Interfaces;
 using Module = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter.Templates {
@@ -160,7 +161,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="from"></param>
 		internal abstract void CopyValueDelegates(Template toTemplate);
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -280,7 +281,7 @@ namespace Starcounter.Templates {
         /// 
         /// </summary>
         /// <returns></returns>
-        internal TypedJsonSerializer JsonSerializer {
+        internal ITypedJsonSerializer JsonSerializer {
             get {
                 return Module.GetJsonSerializer(Module.StandardJsonSerializerId);
             }
