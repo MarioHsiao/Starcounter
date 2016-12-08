@@ -15,7 +15,7 @@ sys#1.0.0 c:\www\Starcounter\src\BuildSystem\ClientFiles
 ├── juicy-redirect#0.4.2 extraneous
 ├── object.observe#0.2.6 extraneous
 ├── polymer#1.7.0
-├─┬ puppet-client#3.2.1
+├─┬ puppet-client#3.2.2
 │ ├── PuppetJs#2.4.0
 │ └─┬ polymer#1.7.0
 │   └── webcomponentsjs#0.7.23
