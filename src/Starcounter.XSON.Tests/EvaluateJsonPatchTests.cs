@@ -853,6 +853,40 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(string.Format(Helper.ONE_PATCH_ARR, "/NumberDec", "0.0"), outgoingPatch);
         }
 
+        [Test]
+        public static void TestUnhandledJsonPatchExceptionDetails() {
+            TObject tPerson = Helper.CreateComplexPersonTemplate();
+            var json = new Json() { Template = tPerson };
+            var session = new Session(SessionOptions.PatchVersioning);
+
+            json.Session = session;
+            ViewModelVersion version = json.ChangeLog.Version;
+
+            // Unknown property
+            var patch = string.Format(Helper.PATCH_REPLACE, "/ExtraInfo/DontExists", 1);
+            patch = GetVersioningPatch(version, 1, 0, patch);
+
+            var jpex = Assert.Throws<JsonPatchException>(() => {
+                jsonPatch.Apply(json, patch);
+            });
+            string detailedMessage = jpex.Message;
+            Assert.IsTrue(detailedMessage.Contains("Patch:"));
+            Assert.IsTrue(detailedMessage.Contains("Property:"));
+            Assert.IsTrue(detailedMessage.Contains("Viewmodel versions:"));
+
+            // Invalid array index, but correct version.
+            patch = string.Format(Helper.PATCH_REPLACE, "/Fields/666/Text", Helper.Jsonify("q"));
+            patch = GetVersioningPatch(version, 2, 0, patch);
+
+            jpex = Assert.Throws<JsonPatchException>(() => {
+                jsonPatch.Apply(json, patch);
+            });
+            detailedMessage = jpex.Message;
+            Assert.IsTrue(detailedMessage.Contains("Patch:"));
+            Assert.IsTrue(detailedMessage.Contains("Property:"));
+            Assert.IsTrue(detailedMessage.Contains("Viewmodel versions:"));
+            Assert.IsNotNull(jpex.InnerException);
+        }
 
         private static string GetVersioningPatch(ViewModelVersion version, long clientVersion, long serverVersion) {
             return
