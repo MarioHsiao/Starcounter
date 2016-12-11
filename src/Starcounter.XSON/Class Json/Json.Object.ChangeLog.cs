@@ -315,6 +315,15 @@ namespace Starcounter {
             if (parent.IsDirty(template.TemplateIndex)) {
                 changeLog.UpdateValue(parent, template);
                 template.CheckAndSetBoundValue(parent, false);
+
+                // TODO:
+                // Would like to avoid this check and call here, but the method 
+                // CheckAndSetBoundValue for array is called from places where we dont want
+                // to add a new versionlog.
+                if (template.TemplateTypeId == TemplateTypeEnum.Array) {
+                    ((TObjArr)template).UnboundGetter(parent).CheckAndAddArrayVersionLog(changeLog);
+                }
+                
             } else if (parent.checkBoundProperties) {
                 if (template is TContainer) {
                     var c = ((TContainer)template).GetValue(parent);
