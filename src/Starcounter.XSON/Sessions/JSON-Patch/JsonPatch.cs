@@ -655,7 +655,7 @@ namespace Starcounter.XSON {
                                     if (patchCount == 1) {
                                         if ((patchOp != JsonPatchOperation.Replace) || !VerifyVersioningPatchPath(pointer, version.RemoteVersionPropertyName)) {
                                             // First patch need to be replace for client version.
-                                            ThrowPatchException(patchStart, valuePtr, valueSize, "First patch when versioncheck is enabled have to be replace for remote version.");
+                                            ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "First patch when versioncheck is enabled have to be replace for remote version.");
                                         }
                                         remoteVersion = GetLongValue(valuePtr, valueSize, version.RemoteVersionPropertyName);
                                         if (remoteVersion != (version.RemoteVersion + 1)) {
@@ -675,7 +675,7 @@ namespace Starcounter.XSON {
                                     } else {
                                         // Second patch -> determine if transformations are needed and what version.
                                         if ((patchOp != JsonPatchOperation.Test) || !VerifyVersioningPatchPath(pointer, version.LocalVersionPropertyName)) {
-                                            ThrowPatchException(patchStart, valuePtr, valueSize, "Second patch when versioncheck is enabled have to be test of local version.");
+                                            ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Second patch when versioncheck is enabled have to be test of local version.");
                                         }
 
                                         version.RemoteLocalVersion = GetLongValue(valuePtr, valueSize, version.LocalVersionPropertyName);
@@ -712,6 +712,7 @@ namespace Starcounter.XSON {
             } catch (JsonPatchException jpex) {
                 if (patchStart != -1 && string.IsNullOrEmpty(jpex.Patch))
                     jpex.Patch = GetPatchAsString(patchStart, patchArrayPtr, patchArraySize);
+                jpex.Version = version;
                 throw;
             }
 
