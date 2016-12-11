@@ -15,6 +15,7 @@ namespace Starcounter.Internal {
     internal static class PuppetRestHandler {
         private static byte[] emptyPatchArr = new byte[] { (byte)'[', (byte)']' };
         private static JsonPatch jsonPatch = new JsonPatch();
+        private static LogSource patchLog = new LogSource("Starcounter.XSON");
 
         private static List<UInt16> registeredPorts = new List<UInt16>();
 
@@ -73,6 +74,7 @@ namespace Starcounter.Internal {
                     ws.Send(emptyPatchArr, 2, ws.IsText);
                 }
             } catch (JsonPatchException nex) {
+                patchLog.LogException(nex);
                 ws.Disconnect(nex.Message, WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
                 return;
             } 
@@ -130,7 +132,8 @@ namespace Starcounter.Internal {
 
                     return root;
                 } catch (JsonPatchException nex) {
-                    return CreateErrorResponse(400, nex.Message + " Patch: " + nex.Patch);
+                    patchLog.LogException(nex);
+                    return CreateErrorResponse(400, nex.Message);
                 }
             }, new HandlerOptions() { ProxyDelegateTrigger = true });
 
