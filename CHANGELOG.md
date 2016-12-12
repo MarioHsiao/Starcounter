@@ -27,6 +27,7 @@
 
 ### Improved
 - Improved subsequent startup time for the server/applications. Initial startup is still taking approximately the same time.
+- Improved the message coming from exceptions when applying jsonpatches [#3987](https://github.com/Starcounter/Starcounter/issues/3987)
 
 ### Changed
 - Upgraded Polymer to 1.7.0 [#3888](https://github.com/Starcounter/Starcounter/issues/3888)

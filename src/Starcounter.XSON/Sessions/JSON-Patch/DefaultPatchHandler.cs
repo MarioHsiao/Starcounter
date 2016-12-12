@@ -13,7 +13,7 @@ namespace Starcounter.XSON {
             if (root == null) return;
 
             if (patchOp != JsonPatchOperation.Replace)
-                throw new JsonPatchException(1, "Unsupported patch operation in patch.");
+                throw new JsonPatchException(1, "Unsupported patch operation in patch: '" + patchOp.ToString() + "'.");
 
             origAppName = StarcounterEnvironment.AppName;
             try {
