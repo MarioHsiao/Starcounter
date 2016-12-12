@@ -71,22 +71,30 @@ namespace Starcounter.XSON {
             if (root.ChangeLog != null)
                 version = root.ChangeLog.Version;
             json = root;
-           
-            while (pointer.MoveNext()) {
-                // TODO: 
-                // Check if this can be improved. Searching for transaction and execute every
-                // step in a new action is not the most efficient way.
-                nextIsIndex = json.Scope<JsonProperty, JsonPointer, ViewModelVersion, bool, bool>(
-                    (prop, ptr, pv, isIndex) => {
-                        prop.EvalutateCurrent(ptr, pv, ref isIndex);
-                        return isIndex;
-                    }, 
-                    this, 
-                    pointer,
-                    version, 
-                    nextIsIndex);
-            }
 
+            try {
+                while (pointer.MoveNext()) {
+                    // TODO: 
+                    // Check if this can be improved. Searching for transaction and execute every
+                    // step in a new action is not the most efficient way.
+                    nextIsIndex = json.Scope<JsonProperty, JsonPointer, ViewModelVersion, bool, bool>(
+                        (prop, ptr, pv, isIndex) => {
+                            prop.EvalutateCurrent(ptr, pv, ref isIndex);
+                            return isIndex;
+                        },
+                        this,
+                        pointer,
+                        version,
+                        nextIsIndex);
+                }
+            }catch (JsonPatchException jpex) {
+                jpex.CurrentProperty = pointer.Current;
+                throw;
+            } catch (Exception ex) {
+                var jpex = new JsonPatchException("Unhandled expection when evaluating path in patch.", ex);
+                jpex.CurrentProperty = pointer.Current;
+                throw jpex;
+            }
         }
 
         private void EvalutateCurrent(JsonPointer ptr, ViewModelVersion version, ref bool nextIsIndex) {
@@ -104,11 +112,11 @@ namespace Starcounter.XSON {
                 if (version != null) {
                     if (version.RemoteLocalVersion != version.LocalVersion || (list.dirty == true)) {
                         if (!list.IsValidForVersion(version.RemoteLocalVersion))
-                            throw new JsonPatchException("The array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
+                            throw new JsonPatchException("The array in path has been replaced or removed and is no longer valid.");
 
                         int transformedIndex = list.TransformIndex(version, version.RemoteLocalVersion, index);
                         if (transformedIndex == -1)
-                            throw new JsonPatchException("The object at index " + index + " in array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
+                            throw new JsonPatchException("The object at index " + index + " for the array in path has been replaced or removed and is no longer valid.");
                         index = transformedIndex;
                     }
                 }
@@ -118,7 +126,7 @@ namespace Starcounter.XSON {
                 if (tobj != null) {
                     json = tobj.Getter(json);
                     if ((version != null) && !json.IsValidForVersion(version.RemoteLocalVersion))
-                        throw new JsonPatchException("The object '" + tobj.TemplateName + "' in path has been replaced or removed and is no longer valid.");
+                        throw new JsonPatchException("The object in path has been replaced or removed and is no longer valid.");
                 }
                 if (json.IsArray) {
                     throw new NotImplementedException();
@@ -146,11 +154,7 @@ namespace Starcounter.XSON {
                     }
 
                     if (!found) {
-                        throw new JsonPatchException(
-                            1,
-                            String.Format("Unknown namespace '{0}' in path.", ptr.Current),
-                            null
-                        );
+                        throw new JsonPatchException(1, "Unknown namespace in path.", null);
                     }
 
                     // Setting the current name to the correct app after we found an attachpoint to another app.
@@ -163,11 +167,7 @@ namespace Starcounter.XSON {
                 if (t != null) {
                     current = t;
                 } else {
-                    throw new JsonPatchException(
-                            1,
-                            String.Format("Unknown property '{0}' in path.", ptr.Current),
-                            null
-                        );
+                    throw new JsonPatchException(1, "Unknown property in path.", null);
                 }
             }
 
@@ -178,11 +178,7 @@ namespace Starcounter.XSON {
             } else if (!(current is TObject)) {
                 // Current token points to a value or an action. No more tokens should exist. 
                 if (ptr.MoveNext()) {
-                    throw new JsonPatchException(
-                                1,
-                                String.Format("Invalid path in patch. Property: '{0}' was not expected.", ptr.Current),
-                                null
-                    );
+                    throw new JsonPatchException(1, "Invalid path in patch. Property was not expected.", null);
                 }
             }
         }
