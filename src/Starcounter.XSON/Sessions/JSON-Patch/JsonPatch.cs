@@ -465,6 +465,7 @@ namespace Starcounter.XSON {
             } catch (JsonPatchException jpex) {
                 if (string.IsNullOrEmpty(jpex.Patch))
                     jpex.Patch = GetPatchAsString(patchCount, sourceJson);
+                jpex.Version = version;
                 throw;
             }
 
