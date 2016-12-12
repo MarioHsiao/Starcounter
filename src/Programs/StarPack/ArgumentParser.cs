@@ -171,7 +171,7 @@ namespace StarPack {
                     continue;
                 }
 
-                // Resource
+                // Database
                 if (arg.ToLower().StartsWith("-d=") || arg.ToLower().StartsWith("--database=")) {
 
                     if (installOptions.Databasename != null) {
@@ -183,6 +183,20 @@ namespace StarPack {
                         throw new InvalidOperationException("Invalid databasename parameter value");
                     }
 
+                    continue;
+                }
+
+                // Overwrite/uninstall existing app
+                if (arg.ToLower().StartsWith("-f") || arg.ToLower().StartsWith("--force")) {
+
+                    installOptions.Overwrite = true;
+                    continue;
+                }
+
+                // Upgrade existing app
+                if (arg.ToLower().StartsWith("-u") || arg.ToLower().StartsWith("--upgrade")) {
+
+                    installOptions.Upgrade = true;
                     continue;
                 }
 
@@ -216,6 +230,8 @@ namespace StarPack {
             Console.WriteLine(" Install Options (--install):");
             Console.WriteLine("   -s=, --server        Server, ip[:port]");
             Console.WriteLine("   -d=, --database      Database name");
+            Console.WriteLine("   -f=, --force         Overwrite exist app");
+            Console.WriteLine("   -u=, --upgrade       Upgrade app");
             Console.WriteLine();
         }
 
@@ -251,5 +267,8 @@ namespace StarPack {
         public string Host;         // Ip
         public ushort Port;            // Port, -1 = unset
         public string Databasename; // Dabasename
+        public bool Overwrite;  // Overwrite/Uninstall existing app if it exists
+        public bool Upgrade; // Upgrade existing app if it exists
+
     }
 }
