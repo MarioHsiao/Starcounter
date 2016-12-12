@@ -177,8 +177,12 @@ namespace Starcounter.Administrator.Server.Handlers {
                 }
 
                 #region Uninstall existing version.
+                bool bStartApplication = false;
 
                 DatabaseApplication dataBaseApplication = task.Database.GetLatestApplication(config.Namespace, config.Channel);
+
+                bStartApplication = dataBaseApplication != null && dataBaseApplication.IsRunning;
+
                 if (dataBaseApplication != null && task.OverWrite) {
                     // Uninstall app if it already exist
                     dataBaseApplication.DeleteApplication(true, (application) => {
@@ -193,7 +197,24 @@ namespace Starcounter.Administrator.Server.Handlers {
                             newDeployedApplication.IsDeployed = true;
                             task.Database.Applications.Add(newDeployedApplication);
 
-                            completionCallback?.Invoke(newDeployedApplication);
+                            #region start application
+                            if (bStartApplication) {
+
+                                newDeployedApplication.StartApplication((databaseApplication) => {
+                                    // Success
+                                    completionCallback?.Invoke(databaseApplication);
+
+                                }, (app, wasCancelled, title, message, helpLink) => {
+
+                                    // Failed to start
+                                    errorCallback.Invoke(message);
+                                });
+                            }
+                            else {
+                                completionCallback?.Invoke(newDeployedApplication);
+                            }
+                            #endregion
+
                         }
                         catch (Exception e) {
                             errorCallback.Invoke(e.ToString());
@@ -214,7 +235,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                 task.Database.Applications.Add(deployedApplication);
 
                 #region Upgrade
-                if (task.Upgrade) {
+                if (dataBaseApplication != null && task.Upgrade) {
 
                     dataBaseApplication.UpgradeApplication(deployedApplication, (application) => {
 
