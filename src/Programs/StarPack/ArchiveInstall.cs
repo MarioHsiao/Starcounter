@@ -29,7 +29,7 @@ namespace StarPack {
             Console.WriteLine(" Database: {0}", options.Databasename);
             Console.WriteLine();
 
-            Archive.Install(options.Host, options.Port, options.Databasename, options.File);
+            Archive.Install(options.Host, options.Port, options.Databasename, options.File, options.Overwrite, options.Upgrade);
 
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.WriteLine(" {0} -> {1}", System.IO.Path.GetFileName(options.File), options.Databasename);
