@@ -114,7 +114,7 @@ namespace Starcounter {
         }
 
         internal void CheckAndAddArrayVersionLog(ChangeLog clog) {
-            if (clog.Version != null && this.IsArray) {
+            if (clog?.Version != null && this.IsArray) {
                 if (this.versionLog == null)
                     this.versionLog = new List<ArrayVersionLog>();
                 this.versionLog.Add(
