@@ -30,7 +30,7 @@ namespace Starcounter.Apps.Package {
         //}
 
 
-        public static void Install(string host, ushort port, string databaseName, string file) {
+        public static void Install(string host, ushort port, string databaseName, string file, bool overwrite, bool upgrade) {
 
             if (host == null) throw new ArgumentNullException("host");
             if (databaseName == null) throw new ArgumentNullException("databaseName");
@@ -48,7 +48,7 @@ namespace Starcounter.Apps.Package {
             long fileSize = new FileInfo(file).Length;
 
             try {
-                string uri = string.Format("ws://{0}:{1}/api/admin/databases/{2}/applicationuploadws", host, port, databaseName);
+                string uri = string.Format("ws://{0}:{1}/api/admin/databases/{2}/applicationuploadws?overwrite={3}&upgrade={4}", host, port, databaseName, overwrite, upgrade);
                 UploadFile(uri, file).Wait();
             }
             catch (Exception e) {
@@ -93,15 +93,10 @@ namespace Starcounter.Apps.Package {
                     await webSocket.SendAsync(segment, WebSocketMessageType.Binary, true, CancellationToken.None);
                 }
 
-                //byte[] inputBuffer = new byte[1024]; // Packet size
-                //ArraySegment<byte> inputSegment = new ArraySegment<byte>(inputBuffer, 0, inputBuffer.Length);
-                //await webSocket.ReceiveAsync(inputSegment, CancellationToken.None);
-
                 await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "close text", CancellationToken.None);
             }
             finally {
                 if (webSocket != null) {
-
 
                     WebSocketCloseStatus? s = webSocket.CloseStatus;
                     string t = webSocket.CloseStatusDescription;
@@ -110,20 +105,5 @@ namespace Starcounter.Apps.Package {
                 }
             }
         }
-
-        //await Task.WhenAll(Receive(webSocket));
-
-        //private static async Task Receive(ClientWebSocket webSocket) {
-        //    byte[] buffer = new byte[1024];
-        //    while (webSocket.State == WebSocketState.Open) {
-        //        var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-        //        if (result.MessageType == WebSocketMessageType.Close) {
-        //            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
-        //        }
-        //        else {
-        //            //LogStatus(true, buffer, result.Count);
-        //        }
-        //    }
-        //}
     }
 }
