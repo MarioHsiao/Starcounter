@@ -19,6 +19,7 @@
     <DisableWeaverCache Condition="( '$(DisableWeaverCache)' == '' )">false</DisableWeaverCache>
     <RunCompileTimeWeaver Condition="( '$(SelfHosted)' == 'true' )">true</RunCompileTimeWeaver>
     <RunCompileTimeWeaver Condition="( '$(RunCompileTimeWeaver)' == '' )">true</RunCompileTimeWeaver>
+    <RunCompileTimeWeaver Condition="( '$(OutputType)' == 'Library' )">false</RunCompileTimeWeaver>
   </PropertyGroup>
 
   <ItemGroup>
