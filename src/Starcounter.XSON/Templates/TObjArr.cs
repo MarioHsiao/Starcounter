@@ -162,8 +162,6 @@ namespace Starcounter.Templates {
                 foreach (Json item in list) {
                     item.SetBoundValuesInTuple();
                 }
-
-                arr.CheckAndAddArrayVersionLog(arr.ChangeLog);
             }
         }
 
