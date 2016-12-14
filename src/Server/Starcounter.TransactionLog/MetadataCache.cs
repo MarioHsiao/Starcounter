@@ -26,11 +26,6 @@ namespace Starcounter.TransactionLog
                 {
                     name = Marshal.PtrToStringUni(ptr);
                     names[ptr.ToInt64()] = name;
-
-                    if (name.Where(c => c > 255).Any())
-                    {
-                        System.Diagnostics.Debugger.Launch();
-                    }
                 }
 
                 return name;
