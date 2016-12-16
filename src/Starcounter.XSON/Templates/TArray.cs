@@ -13,12 +13,12 @@ namespace Starcounter.Templates {
         // this one is set as UnboundSetter (and maybe Setter)
         private Action<Json, Arr<OT>> customSetter;
 
-		public new Action<Json, Arr<OT>> Setter;
-		public new Func<Json, Arr<OT>> Getter;
-		internal new Action<Json, Arr<OT>> UnboundSetter;
-		internal new Func<Json, Arr<OT>> UnboundGetter;
+		public new Action<Json, Arr<OT>> Setter { get; private set; }
+        public new Func<Json, Arr<OT>> Getter { get; private set; }
+        internal new Action<Json, Arr<OT>> UnboundSetter { get; set; }
+        internal new Func<Json, Arr<OT>> UnboundGetter { get; set; }
 
-		public TArray() {
+        public TArray() {
 			Getter = BoundOrUnboundGet;
 			Setter = BoundOrUnboundSet;
 		}
