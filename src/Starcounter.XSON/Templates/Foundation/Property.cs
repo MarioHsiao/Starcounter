@@ -1,10 +1,4 @@
-﻿// ***********************************************************************
-// <copyright file="ValueTemplate.cs" company="Starcounter AB">
-//     Copyright (c) Starcounter AB.  All rights reserved.
-// </copyright>
-// ***********************************************************************
-
-using System;
+﻿using System;
 using System.Diagnostics;
 using Starcounter.XSON;
 using Starcounter.Internal;
@@ -15,14 +9,15 @@ namespace Starcounter.Templates {
     /// </summary>
     /// <typeparam name="T">The primitive system type of this property.</typeparam>
     public abstract class Property<T> : TValue {
-		public Action<Json, T> Setter;
-		public Func<Json, T> Getter;
-		internal Action<Json, T> BoundSetter;
-		internal Func<Json, T> BoundGetter;
-		internal Action<Json, T> UnboundSetter;
-		internal Func<Json, T>  UnboundGetter;  
         private Func<Json, Property<T>, T, Input<T>> _inputEventCreator;
         private Action<Json, Input<T>> _inputHandler;
+
+        public Action<Json, T> Setter { get; private set; }
+		public Func<Json, T> Getter { get; private set; }
+		internal Action<Json, T> BoundSetter { get; set; }
+        internal Func<Json, T> BoundGetter { get; set; }
+        internal Action<Json, T> UnboundSetter { get; set; }
+        internal Func<Json, T>  UnboundGetter { get; set; }
         
 		public Property() {
 			Getter = BoundOrUnboundGet;

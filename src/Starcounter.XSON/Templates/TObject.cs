@@ -20,14 +20,14 @@ namespace Starcounter.Templates {
         // this one is set as UnboundSetter (and maybe Setter)
         private Action<Json, Json> customSetter;
 
-		public Action<Json, Json> Setter;
-		public Func<Json, Json> Getter;
-		internal Action<Json, object> BoundSetter;
-		internal Func<Json, object> BoundGetter;
-		internal Action<Json, Json> UnboundSetter;
-		internal Func<Json, Json> UnboundGetter;
+		public Action<Json, Json> Setter { get; private set; }
+        public Func<Json, Json> Getter { get; private set; }
+        internal Action<Json, object> BoundSetter { get; set; }
+        internal Func<Json, object> BoundGetter { get; set; }
+        internal Action<Json, Json> UnboundSetter { get; set; }
+        internal Func<Json, Json> UnboundGetter { get; set; }
 
-		private PropertyList _PropertyTemplates;
+        private PropertyList _PropertyTemplates;
 
 		private BindingStrategy bindChildren = BindingStrategy.Auto;
 		public bool HasAtLeastOneBoundProperty = true; // TODO!

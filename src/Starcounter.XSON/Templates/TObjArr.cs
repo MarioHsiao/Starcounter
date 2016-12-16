@@ -20,16 +20,16 @@ namespace Starcounter.Templates {
         // The original setter is saved here, and the setter with added code (which uses)
         // this one is set as UnboundSetter (and maybe Setter)
         private Action<Json, Json> customSetter;
-
-		public Action<Json, Json> Setter;
-		public Func<Json, Json> Getter;
-		internal Action<Json, IEnumerable> BoundSetter;
-		internal Func<Json, IEnumerable> BoundGetter;
-		internal Action<Json, Json> UnboundSetter;
-		internal Func<Json, Json> UnboundGetter;
         private Func<TObjArr, TValue> getElementType = null;
-		private TValue[] single = new TValue[0];
-      
+        private TValue[] single = new TValue[0];
+        
+        public Action<Json, Json> Setter { get; private set; }
+        public Func<Json, Json> Getter { get; private set; }
+        internal Action<Json, IEnumerable> BoundSetter { get; set; }
+        internal Func<Json, IEnumerable> BoundGetter { get; set; }
+        internal Action<Json, Json> UnboundSetter { get; set; }
+        internal Func<Json, Json> UnboundGetter { get; set; }
+        
 		/// <summary>
 		/// 
 		/// </summary>
