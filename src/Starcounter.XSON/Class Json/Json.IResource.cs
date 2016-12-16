@@ -14,15 +14,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// The way to get a URL for HTML partial if any.
-        /// </summary>
-        /// <returns></returns>
-        [System.Obsolete("This method will be removed in a later version.")]
-        public virtual string GetHtmlPartialUrl() {
-            return null;
-        }
-
-        /// <summary>
         /// Override this method to provide a custom conversion when a request
         /// is made to some other mime type than "application/json".
         /// </summary>
