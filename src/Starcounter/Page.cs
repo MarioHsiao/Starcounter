@@ -60,10 +60,5 @@ namespace Starcounter {
             }
             return base.AsMimeType(mimeType);
         }
-
-        [Obsolete("This method will be removed in a later version.")]
-        public override string GetHtmlPartialUrl() {
-            return Html;
-        }
     }
 }
