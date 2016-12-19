@@ -24,7 +24,7 @@
 - Fixed a bug in codegen for TypedJSON where a loop was terminated instead of current item skipped, which lead to using IExplicitBound<> sometimes added compile-time checks for properties that should not be bound [#262](https://github.com/Starcounter/Starcounter/issues/262)
 - Fixed a bug in PuppetJs when a new HTTP request from the client aborted the previous request [#3981](https://github.com/Starcounter/Starcounter/issues/3981)
 - Changed delegates for templates in Starcounter.XSON from fields to properties to allow setting access modifiers to avoid changing the wrong delegates [#3979](https://github.com/Starcounter/Starcounter/issues/3979)
-- Fixed observing changes to `select` element in Safari [PuppetJs/PuppetJs#106](https://github.com/PuppetJs/PuppetJs/issues/106)
+- Fixed observing changes to `select` element in Chrome [PuppetJs/PuppetJs#106](https://github.com/PuppetJs/PuppetJs/issues/106)
 
 ### Improved
 - Improved the message coming from exceptions when applying jsonpatches [#3987](https://github.com/Starcounter/Starcounter/issues/3987)
