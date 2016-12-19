@@ -23,6 +23,7 @@
 - Fixed workaround for webcomponents polyfill bug that result in erasing `starcounter-composition`s in some cases [StarcounterSamples/People#49](https://github.com/StarcounterSamples/People/issues/49)
 - Fixed a bug in codegen for TypedJSON where a loop was terminated instead of current item skipped, which lead to using IExplicitBound<> sometimes added compile-time checks for properties that should not be bound [#262](https://github.com/Starcounter/Starcounter/issues/262)
 - Fixed a bug in PuppetJs when a new HTTP request from the client aborted the previous request [#3981](https://github.com/Starcounter/Starcounter/issues/3981)
+- Changed delegates for templates in Starcounter.XSON from fields to properties to allow setting access modifiers to avoid changing the wrong delegates [#3979](https://github.com/Starcounter/Starcounter/issues/3979)
 
 ### Improved
 - Improved the message coming from exceptions when applying jsonpatches [#3987](https://github.com/Starcounter/Starcounter/issues/3987)
@@ -43,6 +44,7 @@
 - Including location of session in the response for the standalone html from the `PartialToStandaloneHtmlProvider` middleware to solve problems with mixed up sessions when several tabs are used [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
 - Rewrote serializer for TypedJSON and changed public API. `TypedJsonSerializer` class and methods are marked obsolete. Interface `ITypedJsonSerializer` should be used instead. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
 - Rewrote how json was parsed and generated in TypedJSON jsonpatch implementation and obsoleted public methods that took `IntPtr` as input-parameter. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
+- Removed obsoleted method `IResource.GetHtmlPartialUrl` from interface and implementations. [#3541](https://github.com/Starcounter/Starcounter/issues/3541)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 

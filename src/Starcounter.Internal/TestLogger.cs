@@ -9,7 +9,7 @@ namespace Starcounter.TestFramework
 {
     public class TestLogger
     {
-        public const String MappedBuildServerFTPDrive = "Z:"; // Resembles a mapped drive to \\scbuildserver\ftp.
+        public const String MappedBuildServerFTPDrive = @"\\scbuildserver\ftp";
 
         static Boolean _turnOffStatistics = false;
 
