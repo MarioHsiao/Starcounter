@@ -62,7 +62,7 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(object data, TValue template, bool updateParentBinding) {
+        private void InternalSetData(object data, TValue template, bool updateParentBinding) {
             TObject tobj;
             TValue child;
 

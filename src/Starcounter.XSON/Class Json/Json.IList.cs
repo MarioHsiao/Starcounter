@@ -369,7 +369,6 @@ namespace Starcounter {
             if (indexesToRemove >= 0) {
                 for (int i = indexesToRemove; i >= 0; i--) {
                     ((Json)this.valueList[i]).SetParent(null);
-                    app.ChildArrayHasRemovedAnElement(property, i);
                 }
             
                 if (this.arrayAddsAndDeletes == null)
