@@ -156,7 +156,7 @@ namespace Starcounter.Weaver
                 ExecuteVerifyCommand(host, inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
             } else if (cmd.Equals(ProgramCommands.ShowSchema, caseInsensitive)) {
-                ExecuteSchemaCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
+                ExecuteSchemaCommand(host, inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
             } else if (cmd.Equals(ProgramCommands.Test, caseInsensitive)) {
                 ExecuteTestCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
@@ -236,14 +236,29 @@ namespace Starcounter.Weaver
         }
 
         static void ExecuteSchemaCommand(
+            IWeaverHost host,
             string inputDirectory,
             string outputDirectory,
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
 
-            var schemaFiles = ApplicationDirectory.GetApplicationSchemaFilesFromDirectory(outputDirectory);
-            var schema = DatabaseSchema.DeserializeFrom(schemaFiles);
+            var exe = Path.Combine(inputDirectory, fileName);
+            var appAssembly = Assembly.LoadFrom(exe);
+
+            var stream = appAssembly.GetManifestResourceStream(DatabaseSchema.EmbeddedResourceName);
+            if (stream == null)
+            {
+                host.WriteError(
+                    Error.SCERRCODENOTENHANCED,
+                    "Assembly {0} contain no schema information. Is it really weaved? (no embedded resource \"{1}\").",
+                    exe, DatabaseSchema.EmbeddedResourceName
+                    );
+                return;
+            }
+
+            stream.Seek(0, SeekOrigin.Begin);
+            var schema = DatabaseSchema.DeserializeFrom(stream);
             schema.DebugOutput(new IndentedTextWriter(Console.Out));
         }
 
