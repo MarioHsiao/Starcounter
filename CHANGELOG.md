@@ -24,6 +24,7 @@
 - Fixed a bug in codegen for TypedJSON where a loop was terminated instead of current item skipped, which lead to using IExplicitBound<> sometimes added compile-time checks for properties that should not be bound [#262](https://github.com/Starcounter/Starcounter/issues/262)
 - Fixed a bug in PuppetJs when a new HTTP request from the client aborted the previous request [#3981](https://github.com/Starcounter/Starcounter/issues/3981)
 - Changed delegates for templates in Starcounter.XSON from fields to properties to allow setting access modifiers to avoid changing the wrong delegates [#3979](https://github.com/Starcounter/Starcounter/issues/3979)
+- Fixed observing changes to `select` element in Safari [PuppetJs/PuppetJs#106](https://github.com/PuppetJs/PuppetJs/issues/106)
 
 ### Improved
 - Improved the message coming from exceptions when applying jsonpatches [#3987](https://github.com/Starcounter/Starcounter/issues/3987)
@@ -39,7 +40,7 @@
 - Upgraded Juicy/juicy-composition from 0.0.5 to 0.0.7 (https://github.com/Juicy/juicy-composition/releases)
 - Upgraded puppetjs/puppetjs from 2.2.1 to 2.4.0 [#3981](https://github.com/Starcounter/Starcounter/issues/3981),  [#3798](https://github.com/Starcounter/Starcounter/issues/3798)  (https://github.com/PuppetJs/PuppetJs/releases)
 - Upgraded puppetjs/puppet-polymer-client from 3.2.0 to 3.2.2 (https://github.com/PuppetJs/puppet-polymer-client/releases)
-- Upgraded fast-json-patch from 1.1.0 to 1.1.2 (https://github.com/Starcounter-Jack/JSON-Patch/releases)
+- Upgraded fast-json-patch from 1.1.0 to 1.1.3 (https://github.com/Starcounter-Jack/JSON-Patch/releases)
 - Removed automatic adding of `Set-Cookie: Location=x` and `Set-Cookie: ScSessionCookie=x` headers for outgoing responses with new session, and instead added `X-Location` header with the location of the session. This header can be changed or disabled by setting `session.UseSessionHeader` and `session.SessionHeaderName` [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
 - Including location of session in the response for the standalone html from the `PartialToStandaloneHtmlProvider` middleware to solve problems with mixed up sessions when several tabs are used [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
 - Rewrote serializer for TypedJSON and changed public API. `TypedJsonSerializer` class and methods are marked obsolete. Interface `ITypedJsonSerializer` should be used instead. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
