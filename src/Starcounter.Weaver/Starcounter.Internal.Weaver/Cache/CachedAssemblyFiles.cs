@@ -97,10 +97,10 @@ namespace Starcounter.Internal.Weaver.Cache
 
             foreach (var schema in schemaFiles)
             {
-                var assembly = Path.ChangeExtension(schema, ".dll");
+                var assembly = Path.ChangeExtension(schema, ".dll-cached");
                 if (!File.Exists(assembly))
                 {
-                    assembly = Path.ChangeExtension(schema, ".exe");
+                    assembly = Path.ChangeExtension(schema, ".exe-cached");
                     if (!File.Exists(assembly))
                     {
                         // It's a schema-only assembly
@@ -152,6 +152,10 @@ namespace Starcounter.Internal.Weaver.Cache
                 {
                     var fileName = Path.GetFileName(artifact);
                     var targetName = Path.Combine(targetDirectory, fileName);
+                    if (Path.GetExtension(fileName).EndsWith("-cached"))
+                    {
+                        targetName =  targetName.Remove(targetName.Length - "-cached".Length);
+                    }
 
                     File.Copy(artifact, targetName, overwriteExistingArtifacts);
                 }
@@ -182,8 +186,8 @@ namespace Starcounter.Internal.Weaver.Cache
 
         bool IsAssemblyFile(string filePath)
         {
-            return Path.GetExtension(filePath).Equals(".dll", StringComparison.InvariantCultureIgnoreCase) ||
-                Path.GetExtension(filePath).Equals(".exe", StringComparison.InvariantCultureIgnoreCase);
+            return Path.GetExtension(filePath).Equals(".dll-cached", StringComparison.InvariantCultureIgnoreCase) ||
+                Path.GetExtension(filePath).Equals(".exe-cached", StringComparison.InvariantCultureIgnoreCase);
         }
 
         bool IsSymbolFile(string filePath)

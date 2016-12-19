@@ -152,9 +152,9 @@ namespace Starcounter.Internal.Weaver.Cache
                 // Check if we can find the cached assembly file.
                 // If not, we can not use the cached result.
 
-                assemblyFile = Path.Combine(this.CacheDirectory, string.Concat(assemblyName, ".dll"));
+                assemblyFile = Path.Combine(this.CacheDirectory, string.Concat(assemblyName, ".dll-cached"));
                 if (!File.Exists(assemblyFile)) {
-                    assemblyFile = Path.Combine(this.CacheDirectory, string.Concat(assemblyName, ".exe"));
+                    assemblyFile = Path.Combine(this.CacheDirectory, string.Concat(assemblyName, ".exe-cached"));
                     if (!File.Exists(assemblyFile)) {
                         result.TransformationNotFound = true;
                         return result;

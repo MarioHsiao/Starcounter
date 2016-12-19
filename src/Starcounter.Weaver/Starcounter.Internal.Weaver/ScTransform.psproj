@@ -65,7 +65,7 @@
     the cache. Compiling is done using a standard PostSharp task.
     -->
     <Compile 
-      TargetFile="{$ScCacheDirectory}\{$AssemblyName}{$AssemblyExtension}"
+      TargetFile="{$ScCacheDirectory}\{$AssemblyName}{$AssemblyExtension}-cached"
       IntermediateDirectory="{$TempDirectory}\{$AssemblyName}"
       CleanIntermediate="false"
       SignAssembly="false"
@@ -76,7 +76,7 @@
     share the same time last written to.
     -->
     <ScTouch
-      Files="{$ScCacheDirectory}\{$AssemblyName}{$AssemblyExtension};{$ScCacheDirectory}\{$AssemblyName}.pdb"
+      Files="{$ScCacheDirectory}\{$AssemblyName}{$AssemblyExtension}-cached;{$ScCacheDirectory}\{$AssemblyName}.pdb"
       Timestamp="{$CacheTimestamp}"
       />
     
@@ -87,7 +87,7 @@
     -->
     <ScCopy 
       Disabled="{$DontCopyToOutput}"
-      InputFiles="{$ScCacheDirectory}\{$AssemblyName}{$AssemblyExtension};{$ScCacheDirectory}\{$AssemblyName}.pdb;{$ScCacheDirectory}\{$AssemblyName}.schema"
+      InputFiles="{$ScCacheDirectory}\{$AssemblyName}{$AssemblyExtension}-cached;{$ScCacheDirectory}\{$AssemblyName}.pdb;{$ScCacheDirectory}\{$AssemblyName}.schema"
       OutputFiles="{$ScOutputDirectory}\{$AssemblyName}{$AssemblyExtension};{$ScOutputDirectory}\{$AssemblyName}.pdb;{$ScOutputDirectory}\{$AssemblyName}.schema"
       />
     
