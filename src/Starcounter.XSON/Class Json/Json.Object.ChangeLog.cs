@@ -187,54 +187,62 @@ namespace Starcounter {
 			dirty = false;
 		}
 
-		/// <summary>
-		/// Logs all property changes made to this object or its bound data object
-		/// </summary>
-		/// <param name="changeLog">Log of changes</param>
-		internal void CollectChanges(ChangeLog changeLog, bool callStepSiblings = true) {
-            if (!this.trackChanges)
-                return;
-            this.Scope<Json, ChangeLog, bool>(CollectChangesInScope, this, changeLog, callStepSiblings);
-		}
-
         /// <summary>
         /// Dirty checks each value of the object and adds any changes
         /// to the changelog.
         /// </summary>
-        /// <remarks>This method assumes that the correct transaction is used.</remarks>
+        /// <param name="changeLog">Log of changes</param>
+        internal void CollectChanges(ChangeLog changeLog, bool callStepSiblings = true) {
+            if (!this.trackChanges)
+                return;
+            
+            this.Scope(
+                (thisJson, clog, callSiblings) => {
+                    thisJson.CollectChanges(clog);
+
+                    if (callSiblings == true && thisJson.siblings != null) {
+                        for (int i = 0; i < thisJson.siblings.Count; i++) {
+                            var sibling = thisJson.siblings[i];
+
+                            if (sibling == thisJson)
+                                continue;
+
+                            if (thisJson.siblings.HasBeenSent(i)) {
+                                sibling.CollectChanges(changeLog, false);
+                            } else {
+                                changeLog.Add(Change.Update(sibling, null, true));
+
+                                // TODO:
+                                // Same questions as above. Why do we reset these flags here and not in checkpoint?
+                                thisJson.siblings.MarkAsSent(i);
+                                sibling.dirty = false;
+                            }
+                        }
+                    }
+                }, 
+                this, 
+                changeLog, 
+                callStepSiblings);
+		}
+        
+        /// <summary>
+        /// Collects the changes for this json. Possible to override to add custom
+        /// logic for handling the checks.
+        /// </summary>
+        /// <remarks>This method assumes that the correct long-running transaction is already scoped.</remarks>
         /// <param name="changeLog">The log of changes</param>
-        private static void CollectChangesInScope(Json parent, ChangeLog changeLog, bool callStepSiblings = true) {
-            var template = (TValue)parent.Template;
+        public virtual void CollectChanges(ChangeLog changeLog) {
+            var template = (TValue)Template;
             if (template != null) {
                 if (template.TemplateTypeId == TemplateTypeEnum.Object) {
                     var exposed = ((TObject)template).Properties.ExposedProperties;
                     for (int t = 0; t < exposed.Count; t++) {
-                        CheckOneTemplate(parent, (TValue)exposed[t], changeLog);
+                        CheckOneTemplate(this, (TValue)exposed[t], changeLog);
                     }
                 } else if (template.TemplateTypeId != TemplateTypeEnum.Array) {
-                    CheckOneTemplate(parent, template, changeLog);
+                    CheckOneTemplate(this, template, changeLog);
                 } else {
-                    CollectChangesForArray(parent, changeLog);
-                }
-            }
-
-            if (callStepSiblings == true && parent.siblings != null) {
-                for (int i = 0; i < parent.siblings.Count; i++) {
-                    var sibling = parent.siblings[i];
-
-                    if (sibling == parent)
-                        continue;
-
-                    if (parent.siblings.HasBeenSent(i)) {
-                        sibling.CollectChanges(changeLog, false);
-                    } else {
-                        changeLog.Add(Change.Update(sibling, null, true));
-
-                        // TODO:
-                        // Same questions as above. Why do we reset these flags here and not in checkpoint?
-                        parent.siblings.MarkAsSent(i);
-                        sibling.dirty = false;
-                    }
+                    CollectChangesForArray(this, changeLog);
                 }
             }
         }
