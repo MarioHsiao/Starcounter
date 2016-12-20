@@ -93,7 +93,7 @@ namespace Starcounter.XSON {
                 if (brandNew) {
                     changes.Add(Change.Add(employer));
                 } else {
-                    employer.CollectChanges(this, true);
+                    employer.ScopeAndCollectChanges(this, true);
                 }
 
                 changeArr = changes.ToArray();

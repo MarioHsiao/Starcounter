@@ -192,7 +192,7 @@ namespace Starcounter {
         /// to the changelog.
         /// </summary>
         /// <param name="changeLog">Log of changes</param>
-        internal void CollectChanges(ChangeLog changeLog, bool callStepSiblings = true) {
+        internal void ScopeAndCollectChanges(ChangeLog changeLog, bool callStepSiblings) {
             if (!this.trackChanges)
                 return;
             
@@ -208,7 +208,7 @@ namespace Starcounter {
                                 continue;
 
                             if (thisJson.siblings.HasBeenSent(i)) {
-                                sibling.CollectChanges(changeLog, false);
+                                sibling.ScopeAndCollectChanges(changeLog, false);
                             } else {
                                 changeLog.Add(Change.Update(sibling, null, true));
 
@@ -291,7 +291,7 @@ namespace Starcounter {
                     }
 
                     if (logChanges) {
-                        ((Json)arr.valueList[i]).CollectChanges(changeLog);
+                        ((Json)arr.valueList[i]).ScopeAndCollectChanges(changeLog, true);
                     }
                 }
 
@@ -304,7 +304,7 @@ namespace Starcounter {
                         changeLog.Add(Change.Update(arr.Parent, (TValue)arr.Template, t, arrItem));
                         arr.MarkAsNonDirty(t);
                     } else {
-                        arrItem.CollectChanges(changeLog);
+                        arrItem.ScopeAndCollectChanges(changeLog, true);
                     }
                 }
             }
@@ -336,7 +336,7 @@ namespace Starcounter {
                 if (template is TContainer) {
                     var c = ((TContainer)template).GetValue(parent);
                     if (c != null)
-                        c.CollectChanges(changeLog, true);
+                        c.ScopeAndCollectChanges(changeLog, true);
                 } else {
                     template.CheckAndSetBoundValue(parent, true);
 
