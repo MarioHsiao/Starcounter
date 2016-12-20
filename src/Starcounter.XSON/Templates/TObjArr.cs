@@ -141,7 +141,7 @@ namespace Starcounter.Templates {
 
 			for (int i = 0; i < ((IList)arr).Count; i++) {
 				var row = (Json)arr._GetAt(i);
-				row.CheckpointChangeLog();
+				row.ScopeAndCheckpoint();
 				arr.CheckpointAt(i);
 			}
 			arr.arrayAddsAndDeletes = null;
