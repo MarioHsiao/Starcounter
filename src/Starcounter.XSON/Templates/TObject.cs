@@ -99,7 +99,7 @@ namespace Starcounter.Templates {
         internal override void Checkpoint(Json parent) {
 			var json = UnboundGetter(parent);
 			if (json != null)
-				json.CheckpointChangeLog();
+				json.ScopeAndCheckpoint();
 			base.Checkpoint(parent);
 		}
 

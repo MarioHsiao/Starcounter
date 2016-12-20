@@ -247,16 +247,7 @@ namespace Starcounter {
                 return this.template;
             }
         }
-
-        protected virtual void ChildArrayHasAddedAnElement(TObjArr property, int elementIndex) {
-        }
-
-        protected virtual void ChildArrayHasRemovedAnElement(TObjArr property, int elementIndex) {
-        }
-
-        protected virtual void ChildArrayHasReplacedAnElement(TObjArr property, int elementIndex) {
-        }
-
+        
         /// <summary>
         /// Returns True if current Obj is within the given tree.
         /// </summary>
