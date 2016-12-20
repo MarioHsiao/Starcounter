@@ -46,6 +46,9 @@
 - Rewrote serializer for TypedJSON and changed public API. `TypedJsonSerializer` class and methods are marked obsolete. Interface `ITypedJsonSerializer` should be used instead. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
 - Rewrote how json was parsed and generated in TypedJSON jsonpatch implementation and obsoleted public methods that took `IntPtr` as input-parameter. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
 - Removed obsoleted method `IResource.GetHtmlPartialUrl` from interface and implementations. [#3541](https://github.com/Starcounter/Starcounter/issues/3541)
+- Made several methods in class `JsonExtension` obsolete as a step to avoid duplication of code and to improve overall code structure in Starcounter.XSON
+- Removed virtual methods from class `Json` that shouldn't be used, and that never worked correctly (`ChildArrayHasAddedAnElement`, `ChildArrayHasRemovedAnElement`, `ChildArrayHasReplacedAnElement`) 
+- Refactored parts of the dirtycheck in Starcounter.XSON to allow overriding methods `CollectChanges(ChangeLog)` and `Checkpoint()` to allow custom code to be run when collecting changes and when all changes are collected when generating jsonpatches. First step for issue to enhance callback system for TypedJSON [#3727](https://github.com/Starcounter/Starcounter/issues/3727)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 

@@ -239,10 +239,7 @@ namespace Starcounter {
 				this.arrayAddsAndDeletes.Add(Change.Add(this.Parent, tarr, index, item));
 				Dirtyfy();
                 item.SetBoundValuesInTuple();
-			}
-
-            if (Parent != null)
-			    Parent.ChildArrayHasAddedAnElement(tarr, index);
+			}            
 		}
 
         /// <summary>
@@ -260,9 +257,6 @@ namespace Starcounter {
                 Dirtyfy();
                 item.SetBoundValuesInTuple();
             }
-
-            if (Parent != null)
-                Parent.ChildArrayHasReplacedAnElement(tarr, index);
         }
 
         internal void CallHasMovedElement(int fromIndex, int toIndex, Json item) {
@@ -274,9 +268,6 @@ namespace Starcounter {
                 this.arrayAddsAndDeletes.Add(Change.Move(this.Parent, tarr, fromIndex, toIndex, item));
                 Dirtyfy();
             }
-
-            if (Parent != null)
-                Parent.ChildArrayHasReplacedAnElement(tarr, toIndex);
         }
 
 		/// <summary>
@@ -293,9 +284,6 @@ namespace Starcounter {
 				this.arrayAddsAndDeletes.Add(Change.Remove(this.Parent, tarr, index, item));
 				Dirtyfy();
 			}
-
-            if (Parent != null)
-			    Parent.ChildArrayHasRemovedAnElement(tarr, index);
 		}
 
 		/// <summary>
@@ -305,9 +293,6 @@ namespace Starcounter {
 		internal void CallHasChanged(TObjArr property, int index) {
             if (this.trackChanges)
                 this.Dirtyfy();
-
-            if (Parent != null)
-			    this.Parent.ChildArrayHasReplacedAnElement(property, index);
 		}
 
         /// <summary>

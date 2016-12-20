@@ -137,104 +137,118 @@ namespace Starcounter {
         /// <summary>
         /// Checkpoints this instance and all children and resets state and dirtyflags.
         /// </summary>
-        internal void CheckpointChangeLog(bool callStepSiblings = true) {
+        internal void ScopeAndCheckpoint(bool callStepSiblings = true) {
             if (!this.trackChanges)
+                return;
+
+            this.Scope(() => {
+                this.Checkpoint();
+
+                if (callStepSiblings == true && this.siblings != null) {
+                    for (int i = 0; i < this.siblings.Count; i++) {
+                        var sibling = siblings[i];
+                        this.siblings.MarkAsSent(i);
+
+                        if (sibling == this)
+                            continue;
+
+                        sibling.ScopeAndCheckpoint(false);
+                        if (sibling.Parent != null && sibling.Parent.IsTrackingChanges) {
+                            sibling.Parent.CheckpointAt(sibling.IndexInParent);
+                        }
+                    }
+                }
+            });
+			dirty = false;
+		}
+
+        /// <summary>
+        /// Checkpoints this instance and all children. Possible to override to
+        /// add custom behaviour.
+        /// </summary>
+        public virtual void Checkpoint() {
+            if (!trackChanges)
                 return;
 
             if (this.IsArray) {
                 this.arrayAddsAndDeletes = null;
                 for (int i = 0; i < ((IList)this).Count; i++) {
                     var row = (Json)this._GetAt(i);
-                    row.CheckpointChangeLog();
+                    row.ScopeAndCheckpoint();
                     this.CheckpointAt(i);
                 }
             } else {
                 if (Template != null) {
-                    this.Scope<Json, TValue>(
-                        (parent, tjson) => {
-                            if (parent.IsObject) {
-                                TObject tobj = (TObject)tjson;
-                                for (int i = 0; i < tobj.Properties.ExposedProperties.Count; i++) {
-                                    var property = tobj.Properties.ExposedProperties[i] as TValue;
-                                    if (property != null) {
-                                        property.Checkpoint(parent);
-                                    }
-                                }
-                            } else {
-                                tjson.Checkpoint(parent);
+                    if (this.IsObject) {
+                        TObject tobj = (TObject)Template;
+                        for (int i = 0; i < tobj.Properties.ExposedProperties.Count; i++) {
+                            var property = tobj.Properties.ExposedProperties[i] as TValue;
+                            if (property != null) {
+                                property.Checkpoint(this);
                             }
-                        },
-                        this,
-                        (TValue)Template);
-                }
-            }
-
-            if (callStepSiblings == true && this.siblings != null) {
-                for (int i = 0; i < this.siblings.Count; i++) {
-                    var sibling = siblings[i];
-                    this.siblings.MarkAsSent(i);
-
-                    if (sibling == this)
-                        continue;
-
-                    sibling.CheckpointChangeLog(false);
-                    if (sibling.Parent != null && sibling.Parent.IsTrackingChanges) {
-                        sibling.Parent.CheckpointAt(sibling.IndexInParent);
+                        }
+                    } else {
+                        ((TValue)Template).Checkpoint(this);
                     }
                 }
             }
-        
-			dirty = false;
-		}
-
-		/// <summary>
-		/// Logs all property changes made to this object or its bound data object
-		/// </summary>
-		/// <param name="changeLog">Log of changes</param>
-		internal void GatherChanges(ChangeLog changeLog, bool callStepSiblings = true) {
-            if (!this.trackChanges)
-                return;
-            this.Scope<Json, ChangeLog, bool>(GatherChangesInScope, this, changeLog, callStepSiblings);
-		}
+        }
 
         /// <summary>
         /// Dirty checks each value of the object and adds any changes
         /// to the changelog.
         /// </summary>
-        /// <remarks>This method assumes that the correct transaction is used.</remarks>
+        /// <param name="changeLog">Log of changes</param>
+        internal void ScopeAndCollectChanges(ChangeLog changeLog, bool callStepSiblings) {
+            if (!this.trackChanges)
+                return;
+
+            this.Scope(() => {
+                this.CollectChanges(changeLog);
+
+                if (callStepSiblings == true && this.siblings != null) {
+                    for (int i = 0; i < this.siblings.Count; i++) {
+                        var sibling = this.siblings[i];
+
+                        if (sibling == this)
+                            continue;
+
+                        if (this.siblings.HasBeenSent(i)) {
+                            sibling.ScopeAndCollectChanges(changeLog, false);
+                        } else {
+                            changeLog.Add(Change.Update(sibling, null, true));
+
+                            // TODO:
+                            // Same questions as above. Why do we reset these flags here and not in checkpoint?
+                            this.siblings.MarkAsSent(i);
+                            sibling.dirty = false;
+                        }
+                    }
+                }
+            });
+		}
+        
+        /// <summary>
+        /// Collects the changes for this json. Possible to override to add custom
+        /// logic for handling the checks.
+        /// </summary>
+        /// <remarks>This method assumes that the correct long-running transaction is already scoped.</remarks>
         /// <param name="changeLog">The log of changes</param>
-        private static void GatherChangesInScope(Json parent, ChangeLog changeLog, bool callStepSiblings = true) {
-            var template = (TValue)parent.Template;
+        public virtual void CollectChanges(ChangeLog changeLog) {
+            if (!trackChanges)
+                return;
+
+            var template = (TValue)Template;
             if (template != null) {
                 if (template.TemplateTypeId == TemplateTypeEnum.Object) {
                     var exposed = ((TObject)template).Properties.ExposedProperties;
                     for (int t = 0; t < exposed.Count; t++) {
-                        CheckOneTemplate(parent, (TValue)exposed[t], changeLog);
+                        CheckOneTemplate(this, (TValue)exposed[t], changeLog);
                     }
                 } else if (template.TemplateTypeId != TemplateTypeEnum.Array) {
-                    CheckOneTemplate(parent, template, changeLog);
+                    CheckOneTemplate(this, template, changeLog);
                 } else {
-                    GatherChangesForArray(parent, changeLog);
-                }
-            }
-
-            if (callStepSiblings == true && parent.siblings != null) {
-                for (int i = 0; i < parent.siblings.Count; i++) {
-                    var sibling = parent.siblings[i];
-
-                    if (sibling == parent)
-                        continue;
-
-                    if (parent.siblings.HasBeenSent(i)) {
-                        sibling.GatherChanges(changeLog, false);
-                    } else {
-                        changeLog.Add(Change.Update(sibling, null, true));
-
-                        // TODO:
-                        // Same questions as above. Why do we reset these flags here and not in checkpoint?
-                        parent.siblings.MarkAsSent(i);
-                        sibling.dirty = false;
-                    }
+                    CollectChangesForArray(this, changeLog);
                 }
             }
         }
@@ -243,7 +257,7 @@ namespace Starcounter {
         /// 
         /// </summary>
         /// <param name="changeLog"></param>
-        private static void GatherChangesForArray(Json arr, ChangeLog changeLog) {
+        private static void CollectChangesForArray(Json arr, ChangeLog changeLog) {
             bool logChanges;
             Json item;
 
@@ -283,7 +297,7 @@ namespace Starcounter {
                     }
 
                     if (logChanges) {
-                        ((Json)arr.valueList[i]).GatherChanges(changeLog);
+                        ((Json)arr.valueList[i]).ScopeAndCollectChanges(changeLog, true);
                     }
                 }
 
@@ -296,7 +310,7 @@ namespace Starcounter {
                         changeLog.Add(Change.Update(arr.Parent, (TValue)arr.Template, t, arrItem));
                         arr.MarkAsNonDirty(t);
                     } else {
-                        arrItem.GatherChanges(changeLog);
+                        arrItem.ScopeAndCollectChanges(changeLog, true);
                     }
                 }
             }
@@ -328,7 +342,7 @@ namespace Starcounter {
                 if (template is TContainer) {
                     var c = ((TContainer)template).GetValue(parent);
                     if (c != null)
-                        c.GatherChanges(changeLog, true);
+                        c.ScopeAndCollectChanges(changeLog, true);
                 } else {
                     template.CheckAndSetBoundValue(parent, true);
 
@@ -358,36 +372,35 @@ namespace Starcounter {
             if (!IsTrackingChanges)
                 return;
 
-            this.Scope<Json>((json) => {
-                if (json.IsArray) {
-                    foreach (Json row in ((IList)json)) {
+            this.Scope(() => {
+                if (this.IsArray) {
+                    foreach (Json row in ((IList)this)) {
                         row.SetBoundValuesInTuple();
                     }
                 } else {
-                    TValue tval = (TValue)json.Template;
+                    TValue tval = (TValue)this.Template;
                     if (tval != null) {
-                        if (json.IsObject) {
+                        if (this.IsObject) {
                             var tobj = (TObject)tval;
                             for (int i = 0; i < tobj.Properties.Count; i++) {
                                 var t = tobj.Properties[i] as TValue;
                                 if (t != null)
-                                    t.CheckAndSetBoundValue(json, false);
+                                    t.CheckAndSetBoundValue(this, false);
                             }
                         } else {
-                            tval.CheckAndSetBoundValue(json, false);
+                            tval.CheckAndSetBoundValue(this, false);
                         }
                     }
                 }
 
-                if (callStepSiblings == true && json.siblings != null) {
-                    foreach (var stepSibling in json.siblings) {
+                if (callStepSiblings == true && this.siblings != null) {
+                    foreach (var stepSibling in this.siblings) {
                         if (stepSibling == this)
                             continue;
                         stepSibling.SetBoundValuesInTuple(false);
                     }
                 }
-            },
-            this);
+            });
         }
 
         /// <summary>
