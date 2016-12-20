@@ -10,7 +10,7 @@ staradmin --database=%DBNAME% delete --force db
 IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 :: Starting server application.
-star.exe --sc-compilerefs="%installationDir%\Public Assemblies\Starcounter.Extensions.dll" --database=%DBNAME% "%installationDir%\s\ExtensionsTests\StarcounterExtensionsTests.exe"
+star.exe --database=%DBNAME% "%installationDir%\s\ExtensionsTests\StarcounterExtensionsTests.exe"
 IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 staradmin --database=%DBNAME% stop db
