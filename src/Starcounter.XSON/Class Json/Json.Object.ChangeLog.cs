@@ -142,28 +142,7 @@ namespace Starcounter {
                 return;
 
             this.Scope(() => {
-                if (this.IsArray) {
-                    this.arrayAddsAndDeletes = null;
-                    for (int i = 0; i < ((IList)this).Count; i++) {
-                        var row = (Json)this._GetAt(i);
-                        row.ScopeAndCheckpoint();
-                        this.CheckpointAt(i);
-                    }
-                } else {
-                    if (Template != null) {
-                        if (this.IsObject) {
-                            TObject tobj = (TObject)Template;
-                            for (int i = 0; i < tobj.Properties.ExposedProperties.Count; i++) {
-                                var property = tobj.Properties.ExposedProperties[i] as TValue;
-                                if (property != null) {
-                                    property.Checkpoint(this);
-                                }
-                            }
-                        } else {
-                            ((TValue)Template).Checkpoint(this);
-                        }
-                    }
-                }
+                this.Checkpoint();
 
                 if (callStepSiblings == true && this.siblings != null) {
                     for (int i = 0; i < this.siblings.Count; i++) {
@@ -182,6 +161,38 @@ namespace Starcounter {
             });
 			dirty = false;
 		}
+
+        /// <summary>
+        /// Checkpoints this instance and all children. Possible to override to
+        /// add custom behaviour.
+        /// </summary>
+        public virtual void Checkpoint() {
+            if (!trackChanges)
+                return;
+
+            if (this.IsArray) {
+                this.arrayAddsAndDeletes = null;
+                for (int i = 0; i < ((IList)this).Count; i++) {
+                    var row = (Json)this._GetAt(i);
+                    row.ScopeAndCheckpoint();
+                    this.CheckpointAt(i);
+                }
+            } else {
+                if (Template != null) {
+                    if (this.IsObject) {
+                        TObject tobj = (TObject)Template;
+                        for (int i = 0; i < tobj.Properties.ExposedProperties.Count; i++) {
+                            var property = tobj.Properties.ExposedProperties[i] as TValue;
+                            if (property != null) {
+                                property.Checkpoint(this);
+                            }
+                        }
+                    } else {
+                        ((TValue)Template).Checkpoint(this);
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Dirty checks each value of the object and adds any changes
@@ -224,6 +235,9 @@ namespace Starcounter {
         /// <remarks>This method assumes that the correct long-running transaction is already scoped.</remarks>
         /// <param name="changeLog">The log of changes</param>
         public virtual void CollectChanges(ChangeLog changeLog) {
+            if (!trackChanges)
+                return;
+
             var template = (TValue)Template;
             if (template != null) {
                 if (template.TemplateTypeId == TemplateTypeEnum.Object) {
