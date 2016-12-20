@@ -97,24 +97,28 @@ namespace Starcounter.XSON {
                 }
 
                 changeArr = changes.ToArray();
-                if (flushLog) 
-                    this.Checkpoint();
-                return true;
             } finally {
                 this.isGeneratingChanges = false;
             }
+
+            if (flushLog)
+                this.Checkpoint();
+            return true;
         }
         
         /// <summary>
         /// 
         /// </summary>
         public void Checkpoint() {
+            if (this.isGeneratingChanges)
+                throw new InvalidOperationException("Cannot checkpoint changelog while generating changes.");
+
             changes.Clear();
             employer.ScopeAndCheckpoint();
             brandNew = false;
         }
 
-        public bool BrandNew {
+        internal bool BrandNew {
             get { return brandNew; }
         }
 
