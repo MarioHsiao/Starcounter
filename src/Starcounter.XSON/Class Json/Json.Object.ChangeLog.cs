@@ -137,53 +137,49 @@ namespace Starcounter {
         /// <summary>
         /// Checkpoints this instance and all children and resets state and dirtyflags.
         /// </summary>
-        internal void CheckpointChangeLog(bool callStepSiblings = true) {
+        internal void ScopeAndCheckpoint(bool callStepSiblings = true) {
             if (!this.trackChanges)
                 return;
 
-            if (this.IsArray) {
-                this.arrayAddsAndDeletes = null;
-                for (int i = 0; i < ((IList)this).Count; i++) {
-                    var row = (Json)this._GetAt(i);
-                    row.CheckpointChangeLog();
-                    this.CheckpointAt(i);
-                }
-            } else {
-                if (Template != null) {
-                    this.Scope<Json, TValue>(
-                        (parent, tjson) => {
-                            if (parent.IsObject) {
-                                TObject tobj = (TObject)tjson;
-                                for (int i = 0; i < tobj.Properties.ExposedProperties.Count; i++) {
-                                    var property = tobj.Properties.ExposedProperties[i] as TValue;
-                                    if (property != null) {
-                                        property.Checkpoint(parent);
-                                    }
+            this.Scope(() => {
+                if (this.IsArray) {
+                    this.arrayAddsAndDeletes = null;
+                    for (int i = 0; i < ((IList)this).Count; i++) {
+                        var row = (Json)this._GetAt(i);
+                        row.ScopeAndCheckpoint();
+                        this.CheckpointAt(i);
+                    }
+                } else {
+                    if (Template != null) {
+                        if (this.IsObject) {
+                            TObject tobj = (TObject)Template;
+                            for (int i = 0; i < tobj.Properties.ExposedProperties.Count; i++) {
+                                var property = tobj.Properties.ExposedProperties[i] as TValue;
+                                if (property != null) {
+                                    property.Checkpoint(this);
                                 }
-                            } else {
-                                tjson.Checkpoint(parent);
                             }
-                        },
-                        this,
-                        (TValue)Template);
-                }
-            }
-
-            if (callStepSiblings == true && this.siblings != null) {
-                for (int i = 0; i < this.siblings.Count; i++) {
-                    var sibling = siblings[i];
-                    this.siblings.MarkAsSent(i);
-
-                    if (sibling == this)
-                        continue;
-
-                    sibling.CheckpointChangeLog(false);
-                    if (sibling.Parent != null && sibling.Parent.IsTrackingChanges) {
-                        sibling.Parent.CheckpointAt(sibling.IndexInParent);
+                        } else {
+                            ((TValue)Template).Checkpoint(this);
+                        }
                     }
                 }
-            }
-        
+
+                if (callStepSiblings == true && this.siblings != null) {
+                    for (int i = 0; i < this.siblings.Count; i++) {
+                        var sibling = siblings[i];
+                        this.siblings.MarkAsSent(i);
+
+                        if (sibling == this)
+                            continue;
+
+                        sibling.ScopeAndCheckpoint(false);
+                        if (sibling.Parent != null && sibling.Parent.IsTrackingChanges) {
+                            sibling.Parent.CheckpointAt(sibling.IndexInParent);
+                        }
+                    }
+                }
+            });
 			dirty = false;
 		}
 
@@ -195,34 +191,30 @@ namespace Starcounter {
         internal void ScopeAndCollectChanges(ChangeLog changeLog, bool callStepSiblings) {
             if (!this.trackChanges)
                 return;
-            
-            this.Scope(
-                (thisJson, clog, callSiblings) => {
-                    thisJson.CollectChanges(clog);
 
-                    if (callSiblings == true && thisJson.siblings != null) {
-                        for (int i = 0; i < thisJson.siblings.Count; i++) {
-                            var sibling = thisJson.siblings[i];
+            this.Scope(() => {
+                this.CollectChanges(changeLog);
 
-                            if (sibling == thisJson)
-                                continue;
+                if (callStepSiblings == true && this.siblings != null) {
+                    for (int i = 0; i < this.siblings.Count; i++) {
+                        var sibling = this.siblings[i];
 
-                            if (thisJson.siblings.HasBeenSent(i)) {
-                                sibling.ScopeAndCollectChanges(changeLog, false);
-                            } else {
-                                changeLog.Add(Change.Update(sibling, null, true));
+                        if (sibling == this)
+                            continue;
 
-                                // TODO:
-                                // Same questions as above. Why do we reset these flags here and not in checkpoint?
-                                thisJson.siblings.MarkAsSent(i);
-                                sibling.dirty = false;
-                            }
+                        if (this.siblings.HasBeenSent(i)) {
+                            sibling.ScopeAndCollectChanges(changeLog, false);
+                        } else {
+                            changeLog.Add(Change.Update(sibling, null, true));
+
+                            // TODO:
+                            // Same questions as above. Why do we reset these flags here and not in checkpoint?
+                            this.siblings.MarkAsSent(i);
+                            sibling.dirty = false;
                         }
                     }
-                }, 
-                this, 
-                changeLog, 
-                callStepSiblings);
+                }
+            });
 		}
         
         /// <summary>
@@ -366,36 +358,35 @@ namespace Starcounter {
             if (!IsTrackingChanges)
                 return;
 
-            this.Scope<Json>((json) => {
-                if (json.IsArray) {
-                    foreach (Json row in ((IList)json)) {
+            this.Scope(() => {
+                if (this.IsArray) {
+                    foreach (Json row in ((IList)this)) {
                         row.SetBoundValuesInTuple();
                     }
                 } else {
-                    TValue tval = (TValue)json.Template;
+                    TValue tval = (TValue)this.Template;
                     if (tval != null) {
-                        if (json.IsObject) {
+                        if (this.IsObject) {
                             var tobj = (TObject)tval;
                             for (int i = 0; i < tobj.Properties.Count; i++) {
                                 var t = tobj.Properties[i] as TValue;
                                 if (t != null)
-                                    t.CheckAndSetBoundValue(json, false);
+                                    t.CheckAndSetBoundValue(this, false);
                             }
                         } else {
-                            tval.CheckAndSetBoundValue(json, false);
+                            tval.CheckAndSetBoundValue(this, false);
                         }
                     }
                 }
 
-                if (callStepSiblings == true && json.siblings != null) {
-                    foreach (var stepSibling in json.siblings) {
+                if (callStepSiblings == true && this.siblings != null) {
+                    foreach (var stepSibling in this.siblings) {
                         if (stepSibling == this)
                             continue;
                         stepSibling.SetBoundValuesInTuple(false);
                     }
                 }
-            },
-            this);
+            });
         }
 
         /// <summary>

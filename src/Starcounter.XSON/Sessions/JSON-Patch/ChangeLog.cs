@@ -110,7 +110,7 @@ namespace Starcounter.XSON {
         /// </summary>
         public void Checkpoint() {
             changes.Clear();
-            employer.CheckpointChangeLog();
+            employer.ScopeAndCheckpoint();
             brandNew = false;
         }
 

@@ -35,20 +35,19 @@ namespace Starcounter {
                 return this.data;
             }
             set {
-                this.Scope<Json, object>((j, v) => {
-                    if (j.IsArray) {
+                this.Scope(() => {
+                    if (this.IsArray) {
                         ((IList)this).Clear(); // Clear any existing items since a new dataobject is set.
-                        j.pendingEnumeration = true;
-                        j.data = (IEnumerable)v;
-                        j.Array_InitializeAfterImplicitConversion((Json)j.Parent, (TObjArr)j.Template);
+                        this.pendingEnumeration = true;
+                        this.data = (IEnumerable)value;
+                        this.Array_InitializeAfterImplicitConversion((Json)this.Parent, (TObjArr)this.Template);
                     } else {
-                        if (j.Template == null) {
-                            j.CreateDynamicTemplate(v); // If there is no template, we'll create a template
+                        if (this.Template == null) {
+                            this.CreateDynamicTemplate(value); // If there is no template, we'll create a template
                         }
-                        j.InternalSetData(v, (TValue)j.Template, true);
+                        this.InternalSetData(value, (TValue)this.Template, true);
                     }
-                },
-                this, value);
+                });
             }
         }
 

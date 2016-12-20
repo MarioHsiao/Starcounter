@@ -8,6 +8,8 @@ namespace Starcounter.XSON {
     public class JsonProperty {
         private Json json;
         private object current;
+        private JsonPointer pointer;
+        private bool nextIsIndex;
 
         private JsonProperty() {
         }
@@ -56,7 +58,8 @@ namespace Starcounter.XSON {
         /// <returns></returns>
         public static JsonProperty Evaluate(JsonPointer pointer, Json root) {
             var property = new JsonProperty();
-            property.DoEvaluate(pointer, root);
+            property.pointer = pointer;
+            property.DoEvaluate(root);
 
             if (property.Property == null && (!root.IsObject)) {
                 property.current = (TValue)root.Template;
@@ -64,8 +67,7 @@ namespace Starcounter.XSON {
             return property;
         }
 
-        private void DoEvaluate(JsonPointer pointer, Json root) {
-            bool nextIsIndex = false;
+        private void DoEvaluate(Json root) {
             ViewModelVersion version = null;
 
             if (root.ChangeLog != null)
@@ -77,15 +79,9 @@ namespace Starcounter.XSON {
                     // TODO: 
                     // Check if this can be improved. Searching for transaction and execute every
                     // step in a new action is not the most efficient way.
-                    nextIsIndex = json.Scope<JsonProperty, JsonPointer, ViewModelVersion, bool, bool>(
-                        (prop, ptr, pv, isIndex) => {
-                            prop.EvalutateCurrent(ptr, pv, ref isIndex);
-                            return isIndex;
-                        },
-                        this,
-                        pointer,
-                        version,
-                        nextIsIndex);
+                    json.Scope(() => {
+                        this.EvalutateCurrent(version);
+                    });
                 }
             }catch (JsonPatchException jpex) {
                 jpex.CurrentProperty = pointer.Current;
@@ -97,14 +93,14 @@ namespace Starcounter.XSON {
             }
         }
 
-        private void EvalutateCurrent(JsonPointer ptr, ViewModelVersion version, ref bool nextIsIndex) {
+        private void EvalutateCurrent(ViewModelVersion version) {
             int index;
             
             if (nextIsIndex) {
                 // Previous object was a Set. This token should be an index
                 // to that Set. If not, it's an invalid patch.
                 nextIsIndex = false;
-                index = ptr.CurrentAsInt;
+                index = pointer.CurrentAsInt;
 
                 var tObjArr = current as TObjArr;
                 Json list = tObjArr.Getter(json);
@@ -138,15 +134,15 @@ namespace Starcounter.XSON {
                     // find the correct sibling.
                     bool found = false;
                     if (json.Siblings == null) {
-                        if (json.appName == ptr.Current) {
-                            ptr.MoveNext();
+                        if (json.appName == pointer.Current) {
+                            pointer.MoveNext();
                             found = true;
                         }
                     } else {
                         foreach (Json stepSibling in json.Siblings) {
-                            if (stepSibling.appName == ptr.Current) {
+                            if (stepSibling.appName == pointer.Current) {
                                 json = stepSibling;
-                                ptr.MoveNext();
+                                pointer.MoveNext();
                                 found = true;
                                 break;
                             }
@@ -163,7 +159,7 @@ namespace Starcounter.XSON {
 
                 // Here we have moved to a stepsibling or no stepsiblings exists and the current token 
                 // in the pointer points to a property.
-                Template t = ((TObject)json.Template).Properties.GetExposedTemplateByName(ptr.Current);
+                Template t = ((TObject)json.Template).Properties.GetExposedTemplateByName(pointer.Current);
                 if (t != null) {
                     current = t;
                 } else {
@@ -177,7 +173,7 @@ namespace Starcounter.XSON {
                 nextIsIndex = true;
             } else if (!(current is TObject)) {
                 // Current token points to a value or an action. No more tokens should exist. 
-                if (ptr.MoveNext()) {
+                if (pointer.MoveNext()) {
                     throw new JsonPatchException(1, "Invalid path in patch. Property was not expected.", null);
                 }
             }
