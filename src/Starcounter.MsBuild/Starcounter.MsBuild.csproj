@@ -81,7 +81,6 @@
     <Compile Include="JsonToCsMsBuildTask.cs" />
     <Compile Include="JsonToTypedJsonCsMsBuildTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="JsonToTypedJsonCsMsBuildTaskNoLocking.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">
@@ -103,7 +102,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Starcounter.MsBuild.Develop.targets" />
     <None Include="Starcounter.MsBuild.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
