@@ -101,7 +101,8 @@
                         <div class="form-group" ng-class="{'has-error': myForm.FirstObjectID.$invalid, 'has-feedback': myForm.FirstObjectID.$invalid}">
                             <label class="col-sm-2 control-label" for="FirstObjectID">First Object ID</label>
                             <div class="col-sm-10">
-                                <input class="form-control" type="number" min="1" integer name="FirstObjectID" id="FirstObjectID" placeholder="FirstObjectID" ng-model="settings.FirstObjectID" required>
+<!--                                <input class="form-control" type="number" min="1" integer name="FirstObjectID" id="FirstObjectID" placeholder="FirstObjectID" ng-model="settings.FirstObjectID" required>-->
+                                <input class="form-control" type="text" name="FirstObjectID" id="FirstObjectID" placeholder="FirstObjectID" ng-model="settings.FirstObjectID" required>
                                 <span class="help-block error" ng-show="myForm.FirstObjectID.$error.validationError">Invalid format</span>
                                 <span class="help-block error" ng-show="myForm.FirstObjectID.$error.required">Required</span>
                                 <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.FirstObjectID.$error.validationError||myForm.FirstObjectID.$error.required"></span>
@@ -113,7 +114,8 @@
                         <div class="form-group" ng-class="{'has-error': myForm.LastObjectID.$invalid, 'has-feedback': myForm.LastObjectID.$invalid}">
                             <label class="col-sm-2 control-label" for="LastObjectID">Last Object ID</label>
                             <div class="col-sm-10">
-                                <input class="form-control" type="number" min="1" integer name="LastObjectID" id="LastObjectID" placeholder="LastObjectID" ng-model="settings.LastObjectID" required>
+                                <!--<input class="form-control" type="number" min="1" integer name="LastObjectID" id="LastObjectID" placeholder="LastObjectID" ng-model="settings.LastObjectID" required>-->
+                                <input class="form-control" type="text" name="LastObjectID" id="LastObjectID" placeholder="LastObjectID" ng-model="settings.LastObjectID" required>
                                 <span class="help-block error" ng-show="myForm.LastObjectID.$error.validationError">Invalid format</span>
                                 <span class="help-block error" ng-show="myForm.LastObjectID.$error.required">Required</span>
                                 <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.LastObjectID.$error.validationError||myForm.LastObjectID.$error.required"></span>

@@ -31,6 +31,20 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                         ValidationErrors validationErrors = RestUtils.GetValidationErrors(settings);
 
+                        // First Object ID
+                        if (settings.FirstObjectID < 1) {
+                            var validationError = validationErrors.Items.Add();
+                            validationError.PropertyName = "FirstObjectID";
+                            validationError.Text = "invalid first object ID";
+                        }
+
+                        // Last Object ID
+                        if (settings.LastObjectID < settings.FirstObjectID) {
+                            var validationError = validationErrors.Items.Add();
+                            validationError.PropertyName = "LastObjectID";
+                            validationError.Text = "invalid last object ID";
+                        }
+
                         if (validationErrors.Items.Count > 0) {
                             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden, BodyBytes = validationErrors.ToJsonUtf8() };
                         }
@@ -43,8 +57,8 @@ namespace Starcounter.Administrator.Server.Handlers {
                         command.SetupProperties.Configuration.Runtime.SchedulerCount = (int)settings.SchedulerCount;
                         command.SetupProperties.Configuration.Runtime.ChunksNumber = (int)settings.ChunksNumber;
                         command.SetupProperties.StorageConfiguration.CollationFile = settings.CollationFile;
-                    command.SetupProperties.StorageConfiguration.FirstObjectID = settings.FirstObjectID;
-                    command.SetupProperties.StorageConfiguration.LastObjectID = settings.LastObjectID;
+                        command.SetupProperties.StorageConfiguration.FirstObjectID = settings.FirstObjectID;
+                        command.SetupProperties.StorageConfiguration.LastObjectID = settings.LastObjectID;
 
                         command.SetupProperties.Configuration.Runtime.DumpDirectory = settings.DumpDirectory;
                         command.SetupProperties.Configuration.Runtime.TempDirectory = settings.TempDirectory;

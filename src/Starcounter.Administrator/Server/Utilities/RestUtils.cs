@@ -170,22 +170,6 @@ namespace Starcounter.Administrator.Server.Utilities {
             //    validationError.Text = "invalid collation file";
             //}
 
-            // First Object ID
-            if (settings.FirstObjectID < 1)
-            {
-                var validationError = validationErrors.Items.Add();
-                validationError.PropertyName = "FirstObjectID";
-                validationError.Text = "invalid first object ID";
-            }
-
-            // Last Object ID
-            if (settings.LastObjectID < settings.FirstObjectID)
-            {
-                var validationError = validationErrors.Items.Add();
-                validationError.PropertyName = "LastObjectID";
-                validationError.Text = "invalid last object ID";
-            }
-
             return validationErrors;
         }
 

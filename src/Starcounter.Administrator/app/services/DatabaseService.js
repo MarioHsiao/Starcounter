@@ -15,7 +15,24 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
      */
     this.createDatabase = function (settings, successCallback, errorCallback) {
 
-        $http.post('/api/admin/databases', settings).then(function (response) {
+        var uri = "/api/admin/databases";
+        var self = this;
+
+        var req = {
+            method: 'POST',
+            url: uri,
+            transformRequest: [function (data) {
+
+                var jsonStr = angular.toJson(data);
+                var result = self.FixStringToNumber("FirstObjectID", jsonStr);
+                return self.FixStringToNumber("LastObjectID", result);
+            }],
+            data: settings
+        }
+
+        //        $http.post('/api/admin/databases', settings).then(function (response) {
+
+        $http(req).then(function (response) {
 
             // success handler
             if (successCallback != null) {
@@ -117,6 +134,46 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
         });
     }
 
+    this.FixStringToNumber = function (propertyName, data) {
+
+        var propertyIndex = data.indexOf("\"" + propertyName + "\"");
+        if (propertyIndex == -1) return data;
+
+        var colonIndex = data.indexOf(":", propertyIndex + propertyName.length + 2);
+        if (colonIndex == -1) return data;
+        colonIndex++;
+
+        var startIndex = data.indexOf("\"", colonIndex);
+        if (startIndex == -1) return data;
+
+        var output = [data.slice(0, startIndex), data.slice(startIndex + 1)].join('');
+
+        var endIndex = output.indexOf("\"", startIndex);
+        if (endIndex == -1) return data;
+
+        return [output.slice(0, endIndex), output.slice(endIndex + 1)].join('');
+    }
+    this.FixNumberToString = function (propertyName, data) {
+
+        var propertyIndex = data.indexOf("\"" + propertyName + "\"");
+        if (propertyIndex == -1) return data;
+
+        var colonIndex = data.indexOf(":", propertyIndex + propertyName.length + 2);
+        if (colonIndex == -1) return data;
+        colonIndex++;
+
+        var output = [data.slice(0, colonIndex), "\"", data.slice(colonIndex)].join('');
+
+        var endIndex = output.indexOf(",", colonIndex);
+        if (endIndex == -1) {
+            var endIndex = output.indexOf("}", colonIndex);
+        }
+
+        if (endIndex == -1) return data;
+
+        return [output.slice(0, endIndex), "\"", output.slice(endIndex)].join('');
+    }
+
     /**
      * Get Database default settings
      * @param {function} successCallback Success Callback function
@@ -126,9 +183,19 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
 
         var errorHeader = "Failed to retrieve the database default settings";
 
-        $http.get('/api/admin/settings/database').then(function (response) {
-            // success handler
+        var self = this;
+        var req = {
+            method: 'GET',
+            url: '/api/admin/settings/database',
+            transformResponse: [function (data) {
+                var result = self.FixNumberToString("FirstObjectID", data);
+                result = self.FixNumberToString("LastObjectID", result);
+                return JSON.parse(result);
+            }]
+        }
 
+        $http(req).then(function (response) {
+            // success handler
             $log.info("Default Databases settings successfully retrived");
             if (typeof (successCallback) == "function") {
                 successCallback(response.data);

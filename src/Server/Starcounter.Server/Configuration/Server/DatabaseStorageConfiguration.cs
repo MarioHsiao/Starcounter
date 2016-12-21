@@ -68,19 +68,17 @@ namespace Starcounter.Advanced.Configuration {
         /// <summary>
         /// Gets or sets the first object ID allowed.
         /// </summary>
-        public long FirstObjectID
-        {
+        public long FirstObjectID {
             get;
             set;
-        }
+        } = 1;
 
         /// <summary>
         /// Gets or sets the last object ID allowed.
         /// </summary>
-        public long LastObjectID
-        {
+        public long LastObjectID {
             get;
             set;
-        }
+        } = 4611686018427387903L;
     }
 }
