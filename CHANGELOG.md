@@ -25,6 +25,7 @@
 - Fixed a bug in PuppetJs when a new HTTP request from the client aborted the previous request [#3981](https://github.com/Starcounter/Starcounter/issues/3981)
 - Changed delegates for templates in Starcounter.XSON from fields to properties to allow setting access modifiers to avoid changing the wrong delegates [#3979](https://github.com/Starcounter/Starcounter/issues/3979)
 - Fixed observing changes to `select` element in Chrome [PuppetJs/PuppetJs#106](https://github.com/PuppetJs/PuppetJs/issues/106)
+- Fixed bug in VS extension, caused by VS Update 3, causing VS to hang when a project without a .suo file was opened from the shell, [#3781](https://github.com/Starcounter/Starcounter/issues/3781)
 
 ### Improved
 - Improved the message coming from exceptions when applying jsonpatches [#3987](https://github.com/Starcounter/Starcounter/issues/3987)
