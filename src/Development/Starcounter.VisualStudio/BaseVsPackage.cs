@@ -25,6 +25,7 @@ namespace Starcounter.VisualStudio {
         internal static readonly string Installed32BitComponponentsDirectory = Path.Combine(InstallationDirectory, StarcounterEnvironment.Directories.Bit32Components);
         
         static BaseVsPackage() {
+            // No logging here! See https://github.com/Starcounter/Starcounter/issues/3781
             AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
             TryExplicitlyLoadingHttpParserBinary();
         }
@@ -67,12 +68,13 @@ namespace Starcounter.VisualStudio {
             // on this interface. When logging is off, the implementation for each method
             // is a fast no-op.
             AssemblyName reference;
+
+            // No logging here! See https://github.com/Starcounter/Starcounter/issues/3781
             
-            TryWriteLogInformation(string.Format("Resolving assembly {0}", args.Name));
-            try {
+            try
+            {
                 reference = new AssemblyName(args.Name);
             } catch (FileLoadException) {
-                TryWriteLogInformation(string.Format("Failed to get AssemblyName instance of {0}", args.Name));
                 return null;
             }
 
@@ -88,31 +90,34 @@ namespace Starcounter.VisualStudio {
             // being resolved to the place from where this assembly (Starcounter.VisualStudio)
             // has been loaded from.
             string path = null;
-            try {
+            try
+            {
                 var installationDir = InstallationDirectory;
-                if (IntPtr.Size == 4) {
+                if (IntPtr.Size == 4)
+                {
                     var pathTo32Bit = Installed32BitComponponentsDirectory;
                     path = Path.Combine(pathTo32Bit, reference.Name + ".dll");
-                    if (File.Exists(path)) {
+                    if (File.Exists(path))
+                    {
                         var assemblyName = AssemblyName.GetAssemblyName(path);
                         return Assembly.Load(assemblyName);
                     }
                 }
 
                 path = Path.Combine(installationDir, reference.Name + ".dll");
-                if (File.Exists(path)) {
+                if (File.Exists(path))
+                {
                     var assemblyName = AssemblyName.GetAssemblyName(path);
                     return Assembly.Load(assemblyName);
                 }
-            } catch (Exception e) {
-                TryWriteLogInformation(string.Format("Failed to load {0} from path {1}. Error: {2}.", args.Name, path, e.Message));
             }
+            catch { }
 
             return null;
         }
 
-        protected BaseVsPackage()
-            : base() {
+        protected BaseVsPackage() : base() {
+            // No logging here! See https://github.com/Starcounter/Starcounter/issues/3781
             _logWriter = new ActivityLogWriter(this);
         }
 
