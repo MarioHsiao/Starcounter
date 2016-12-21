@@ -83,7 +83,6 @@ namespace Starcounter.VisualStudio {
 
             this.RegisterProjectFactory(new AppExeProjectFactory(this));
             this.uiShell = (IVsUIShell)this.GetService(typeof(SVsUIShell));
-            this.TaskList = (IVsTaskList)this.GetService(typeof(SVsTaskList));
             this.statusBar = (IVsStatusbar)GetService(typeof(SVsStatusbar));
             this.ErrorList = new StarcounterErrorListProvider(this);
             HWndDispatcher.Initialize();
@@ -107,11 +106,7 @@ namespace Starcounter.VisualStudio {
             base.Dispose(disposing);
             HWndDispatcher.Uninitialize();
         }
-
-        public new object GetService(Type type) {
-            return base.GetService(type);
-        }
-
+        
         #region Properties
 
         public IVsUIShell UiShell {
@@ -119,12 +114,7 @@ namespace Starcounter.VisualStudio {
                 return this.uiShell;
             }
         }
-
-        public IVsTaskList TaskList {
-            get;
-            private set;
-        }
-
+        
         public IVsOutputWindowPane DebugOutputPane {
             get {
                 IVsOutputWindow outWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;

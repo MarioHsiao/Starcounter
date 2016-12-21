@@ -25,6 +25,7 @@
 - Fixed a bug in PuppetJs when a new HTTP request from the client aborted the previous request [#3981](https://github.com/Starcounter/Starcounter/issues/3981)
 - Changed delegates for templates in Starcounter.XSON from fields to properties to allow setting access modifiers to avoid changing the wrong delegates [#3979](https://github.com/Starcounter/Starcounter/issues/3979)
 - Fixed observing changes to `select` element in Chrome [PuppetJs/PuppetJs#106](https://github.com/PuppetJs/PuppetJs/issues/106)
+- Fixed bug in VS extension, caused by VS Update 3, causing VS to hang when a project without a .suo file was opened from the shell, [#3781](https://github.com/Starcounter/Starcounter/issues/3781)
 
 ### Improved
 - Improved the message coming from exceptions when applying jsonpatches [#3987](https://github.com/Starcounter/Starcounter/issues/3987)
@@ -46,6 +47,9 @@
 - Rewrote serializer for TypedJSON and changed public API. `TypedJsonSerializer` class and methods are marked obsolete. Interface `ITypedJsonSerializer` should be used instead. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
 - Rewrote how json was parsed and generated in TypedJSON jsonpatch implementation and obsoleted public methods that took `IntPtr` as input-parameter. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
 - Removed obsoleted method `IResource.GetHtmlPartialUrl` from interface and implementations. [#3541](https://github.com/Starcounter/Starcounter/issues/3541)
+- Made several methods in class `JsonExtension` obsolete as a step to avoid duplication of code and to improve overall code structure in Starcounter.XSON
+- Removed virtual methods from class `Json` that shouldn't be used, and that never worked correctly (`ChildArrayHasAddedAnElement`, `ChildArrayHasRemovedAnElement`, `ChildArrayHasReplacedAnElement`) 
+- Refactored parts of the dirtycheck in Starcounter.XSON to allow overriding methods `CollectChanges(ChangeLog)` and `Checkpoint()` to allow custom code to be run when collecting changes and when all changes are collected when generating jsonpatches. First step for issue to enhance callback system for TypedJSON [#3727](https://github.com/Starcounter/Starcounter/issues/3727)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
 

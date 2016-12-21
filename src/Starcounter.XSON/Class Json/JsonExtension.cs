@@ -75,10 +75,35 @@ namespace Starcounter.Advanced.XSON {
         }
 
         /// <summary>
+        /// Executes the specifed Func either in the scope of a transaction
+        /// on the object or if no transaction is found, just executes the action.
+        /// </summary>
+        /// <param name="func">The delegate to execute</param>
+        public static TResult Scope<TResult>(this Json json, Func<TResult> func) {
+
+            // @chrhol please review and probably correct this workaround.
+            String origAppName = StarcounterEnvironment.AppName;
+
+            try {
+
+                StarcounterEnvironment.AppName = json.appName;
+
+                var handle = json.GetTransactionHandle(true);
+                if (handle != TransactionHandle.Invalid)
+                    return StarcounterBase.TransactionManager.Scope<TResult>(handle, func);
+                return func();
+
+            } finally {
+                StarcounterEnvironment.AppName = origAppName;
+            }
+        }
+
+        /// <summary>
         /// Executes the specifed Action either in the scope of a transaction
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="action">The delegate to execute</param>
+        [Obsolete("This extensionmethod is obsolete and will be removed in a later version.")]
         public static void Scope<T>(this Json json, Action<T> action, T arg) {
 
             // @chrhol please review and probably correct this workaround.
@@ -104,6 +129,7 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="action">The delegate to execute</param>
+        [Obsolete("This extensionmethod is obsolete and will be removed in a later version.")]
         public static void Scope<T1, T2>(this Json json, Action<T1, T2> action, T1 arg1, T2 arg2) {
 
             // @chrhol please review and probably correct this workaround.
@@ -129,8 +155,9 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="action">The delegate to execute</param>
+        [Obsolete("This extensionmethod is obsolete and will be removed in a later version.")]
         public static void Scope<T1, T2, T3>(this Json json, Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
-            
+
             // @chrhol please review and probably correct this workaround.
             String origAppName = StarcounterEnvironment.AppName;
 
@@ -148,41 +175,18 @@ namespace Starcounter.Advanced.XSON {
                 StarcounterEnvironment.AppName = origAppName;
             }
         }
-
+        
         /// <summary>
         /// Executes the specifed Func either in the scope of a transaction
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="func">The delegate to execute</param>
-        public static TResult Scope<TResult>(this Json json, Func<TResult> func) {
-
-            // @chrhol please review and probably correct this workaround.
-            String origAppName = StarcounterEnvironment.AppName;
-            
-            try {
-
-                StarcounterEnvironment.AppName = json.appName;
-
-                var handle = json.GetTransactionHandle(true);
-                if (handle != TransactionHandle.Invalid)
-                    return StarcounterBase.TransactionManager.Scope<TResult>(handle, func);
-                return func();
-
-            } finally {
-                StarcounterEnvironment.AppName = origAppName;
-            }
-        }
-
-        /// <summary>
-        /// Executes the specifed Func either in the scope of a transaction
-        /// on the object or if no transaction is found, just executes the action.
-        /// </summary>
-        /// <param name="func">The delegate to execute</param>
+        [Obsolete("This extensionmethod is obsolete and will be removed in a later version.")]
         public static TResult Scope<T, TResult>(this Json json, Func<T, TResult> func, T arg) {
 
             // @chrhol please review and probably correct this workaround.
             String origAppName = StarcounterEnvironment.AppName;
-            
+
             try {
 
                 StarcounterEnvironment.AppName = json.appName;
@@ -202,11 +206,12 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="func">The delegate to execute</param>
+        [Obsolete("This extensionmethod is obsolete and will be removed in a later version.")]
         public static TResult Scope<T1, T2, TResult>(this Json json, Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
 
             // @chrhol please review and probably correct this workaround.
             String origAppName = StarcounterEnvironment.AppName;
-            
+
             try {
 
                 StarcounterEnvironment.AppName = json.appName;
@@ -226,11 +231,12 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="func">The delegate to execute</param>
+        [Obsolete("This extensionmethod is obsolete and will be removed in a later version.")]
         public static TResult Scope<T1, T2, T3, TResult>(this Json json, Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
 
             // @chrhol please review and probably correct this workaround.
             String origAppName = StarcounterEnvironment.AppName;
-            
+
             try {
 
                 StarcounterEnvironment.AppName = json.appName;
@@ -250,11 +256,12 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the function.
         /// </summary>
         /// <param name="func">The delegate to execute</param>
+        [Obsolete("This extensionmethod is obsolete and will be removed in a later version.")]
         public static TResult Scope<T1, T2, T3, T4, TResult>(this Json json, Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
 
             // @chrhol please review and probably correct this workaround.
             String origAppName = StarcounterEnvironment.AppName;
-            
+
             try {
 
                 StarcounterEnvironment.AppName = json.appName;
@@ -268,17 +275,18 @@ namespace Starcounter.Advanced.XSON {
                 StarcounterEnvironment.AppName = origAppName;
             }
         }
-        
+
         /// <summary>
         /// Executes the specifed Func either in the scope of a transaction
         /// on the object or if no transaction is found, just executes the function.
         /// </summary>
         /// <param name="func">The delegate to execute</param>
+        [Obsolete("This extensionmethod is obsolete and will be removed in a later version.")]
         public static TResult Scope<T1, T2, T3, T4, T5, TResult>(this Json json, Func<T1, T2, T3, T4, T5, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5) {
 
             // @chrhol please review and probably correct this workaround.
             String origAppName = StarcounterEnvironment.AppName;
-            
+
             try {
 
                 StarcounterEnvironment.AppName = json.appName;
@@ -298,6 +306,7 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the function.
         /// </summary>
         /// <param name="func">The delegate to execute</param>
+        [Obsolete("This extensionmethod is obsolete and will be removed in a later version.")]
         public static TResult Scope<T1, T2, T3, T4, T5, T6, TResult>(this Json json, Func<T1, T2, T3, T4, T5, T6, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6) {
 
             // @chrhol please review and probably correct this workaround.
