@@ -68,6 +68,7 @@
     <Compile Include="ProgramCommands.cs" />
     <Compile Include="ProgramVerbosity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SchemaToConsoleWriter.cs" />
     <Compile Include="WeaverHost.cs" />
   </ItemGroup>
   <ItemGroup>

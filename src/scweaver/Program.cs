@@ -13,6 +13,8 @@ using System.Reflection;
 
 namespace Starcounter.Weaver
 {
+    using Diagnostics;
+    using System.Collections.Generic;
     using Error = Starcounter.Error;
 
     class Program {
@@ -236,30 +238,15 @@ namespace Starcounter.Weaver
         }
 
         static void ExecuteSchemaCommand(
-            IWeaverHost host,
+            WeaverHost host,
             string inputDirectory,
             string outputDirectory,
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
 
-            var exe = Path.Combine(inputDirectory, fileName);
-            var appAssembly = Assembly.LoadFrom(exe);
-
-            var stream = appAssembly.GetManifestResourceStream(DatabaseSchema.EmbeddedResourceName);
-            if (stream == null)
-            {
-                host.WriteError(
-                    Error.SCERRCODENOTENHANCED,
-                    "Assembly {0} contain no schema information. Is it really weaved? (no embedded resource \"{1}\").",
-                    exe, DatabaseSchema.EmbeddedResourceName
-                    );
-                return;
-            }
-
-            stream.Seek(0, SeekOrigin.Begin);
-            var schema = DatabaseSchema.DeserializeFrom(stream);
-            schema.DebugOutput(new IndentedTextWriter(Console.Out));
+            var writer = new SchemaToTextWriter(inputDirectory, fileName, host, new IndentedTextWriter(Console.Out));
+            writer.Write();
         }
 
         static void ExecuteTestCommand(
