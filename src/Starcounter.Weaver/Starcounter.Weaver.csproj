@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CallingDomainWeaverProxy.cs" />
+    <Compile Include="Diagnostics\AssemblyExtensions.cs" />
     <Compile Include="Diagnostics\AssemblyWalker.cs" />
     <Compile Include="InPlaceWeaver.cs" />
     <Compile Include="IWeaver.cs" />
