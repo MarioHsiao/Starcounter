@@ -43,6 +43,7 @@ PostSharp.NAntTasks.sln
 Obfuscator.sln
 gtest-md.sln
 gtest.sln
+Starcounter.Core.sln
 
 
 # Tests to skip running.
