@@ -469,6 +469,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Weaver", "Starc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Weaver.Test", "Starcounter.Weaver.Test\Starcounter.Weaver.Test.csproj", "{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbTransactTest", "Samples\DbTransactTest\DbTransactTest.csproj", "{C83379F9-71AB-4908-9109-D6F62E63566D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1703,6 +1705,18 @@ Global
 		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Release|x64.ActiveCfg = Release|Any CPU
 		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C}.Release|x64.Build.0 = Release|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Debug|x64.Build.0 = Debug|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Release|x64.ActiveCfg = Release|Any CPU
+		{C83379F9-71AB-4908-9109-D6F62E63566D}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1839,5 +1853,6 @@ Global
 		{40FF0D61-5978-464E-BB8B-83E635D9BEC2} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
 		{4E56FDE2-AC12-43B0-8C52-F0C80512DF83} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
 		{858ECEEF-2398-4A13-84BB-1E3103D6FB9C} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
+		{C83379F9-71AB-4908-9109-D6F62E63566D} = {9BB3B16F-0FEB-4955-9836-96F42FC953CB}
 	EndGlobalSection
 EndGlobal

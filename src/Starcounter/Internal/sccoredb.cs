@@ -285,6 +285,10 @@ namespace Starcounter.Internal
             uint flags, out ulong ptransaction_handle
             );
 
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern uint star_clone_transaction(
+            ulong source_transaction_handle, out ulong transaction_handle
+            );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal extern static uint star_context_commit_async(ulong handle, int free, int wait_for_io, ulong user_key);
@@ -304,6 +308,12 @@ namespace Starcounter.Internal
                 return star_transaction_free(handle);
             return Error.SCERRITERATORNOTOWNED;
         }
+
+        internal static uint star_transaction_free_unsafe(ulong handle)
+        {
+            return star_transaction_free(handle);
+        }
+
 
         /// <summary>
         /// Replaces the transaction with a new one with the same configuration.

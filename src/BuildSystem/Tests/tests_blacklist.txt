@@ -65,6 +65,7 @@ CountQueryInheritedOpt3447_test.bat
 Level1\src\Samples\TransactionLogTest\transactionlog_test.bat
 Level1\src\Samples\OptimizedLogTest\optimizedlog_test.bat
 Level1\src\Samples\CommitHooksTest\commithooks2_test.bat
+Level1\src\Samples\DbTransactTest\dbtransact_test.bat
 DropTableBug3387_test.bat
 OffsetkeyEmptyBug3502_test.bat
 

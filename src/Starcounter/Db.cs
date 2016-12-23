@@ -254,7 +254,10 @@ namespace Starcounter {
 
                 for (;;)
                 {
-                    r = sccoredb.star_create_transaction(flags, out handle);
+                    r = opts.source_token == null ?
+                            sccoredb.star_create_transaction(flags, out handle) :
+                            opts.source_token.CloneTransaction(out handle);
+
                     if (r == 0)
                     {
                         var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
@@ -322,6 +325,10 @@ namespace Starcounter {
                 public bool applyHooks {
                     get; set;
                 } = true;
+                public Starcounter.TransactionToken source_token
+                {
+                    get; set;
+                } = null;
             }
             
             public static void Transact(TransactOptions opts, Action action) {
@@ -329,7 +336,7 @@ namespace Starcounter {
             }
         }
 
-        internal static void Transact(Action action, uint flags, Advanced.TransactOptions opts) {
+        public static void Transact(Action action, uint flags, Advanced.TransactOptions opts) {
             TransactAsync(action, flags, opts).GetAwaiter().GetResult();
         }
 
@@ -337,6 +344,16 @@ namespace Starcounter {
             TResult r = default(TResult);
             Transact(() => { r = func(); }, flags, opts);
             return r;
+        }
+
+
+        public static TransactionToken CurrentTransactionToken {
+            get {
+                ulong th;
+                sccoredb.star_context_get_transaction(ThreadData.ContextHandle, out th);
+
+                return new TransactionToken(th);
+            }
         }
 
         internal static void SystemTransact(Action action, int maxRetries = 100) {

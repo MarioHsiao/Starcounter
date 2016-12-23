@@ -181,6 +181,7 @@
     <Compile Include="SqlProcessor\NewSqlEnumerator.cs" />
     <Compile Include="SqlProcessor\SqlProcessor.cs" />
     <Compile Include="TransactionManager.cs" />
+    <Compile Include="TransactionToken.cs" />
     <Compile Include="TransientAttribute.cs" />
     <Compile Include="ObjectRef.cs" />
     <Compile Include="Internal\DbState.cs" />
