@@ -1,5 +1,8 @@
 # Folders should end with backslash
 
+# Stardump tool
+stardump\
+
 #Licenses
 Licenses\
 
