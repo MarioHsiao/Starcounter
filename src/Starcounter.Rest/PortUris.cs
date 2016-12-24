@@ -86,7 +86,7 @@ namespace Starcounter.Rest {
                 function_names_delimited,
                 null,
                 true,
-                null,
+                "-O3 -Wall -Wno-unused-variable", // predefined_clang_params (all except -mcmodel=large even -O3 needs to be supplied)
                 null,
                 out time_took_sec,
                 out_functions,
