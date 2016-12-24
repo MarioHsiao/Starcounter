@@ -2324,7 +2324,7 @@ uint32_t Gateway::Init()
 		"Func1", // Name of functions which pointers should be returned, delimited by semicolon.
 		nullptr, // ext_libraries_names_delimited
 		true, // delete_sources
-		nullptr, // predefined_clang_params
+		"-O3 -Wall -Wno-unused-variable", // predefined_clang_params (all except -mcmodel=large even -O3 needs to be supplied)
 		nullptr, // Generated hash.
 		&time_took_sec, // out_time_seconds
 		out_functions, // Output pointers to functions.
