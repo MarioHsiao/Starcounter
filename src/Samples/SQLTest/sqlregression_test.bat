@@ -27,13 +27,9 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: start servers
-::START scipcmonitor.exe PERSONAL .db.output
-START scdata.exe SQLTEST .db.output SqlTest .db
-START scdata.exe "{ \"eventloghost\": \"SQLTEST\", \"eventlogdir\": \".db.output\", \"databasename\": \"SqlTest\", \"databasedir\": \".db\" }"
-START 32bitComponents\scsqlparser.exe 8066
+powershell -ExecutionPolicy Unrestricted -File %~dp0\..\..\src\tests\start_scdata.ps1 %~dp0 SQLTEST .db .db.output def000db-dfdb-dfdb-dfdb-def0db0df0db
 
-:: Sleeping some time using ping.
-ping -n 5 127.0.0.1 > nul
+START 32bitComponents\scsqlparser.exe 8066
 
 :: start the program
 CALL sccode.exe "def000db-dfdb-dfdb-dfdb-def0db0df0db" SQLTEST --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --AutoStartExePath="s\SQLTest\.starcounter\SQLTest.exe" --FLAG:NoNetworkGateway

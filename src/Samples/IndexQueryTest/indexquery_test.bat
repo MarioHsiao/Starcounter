@@ -47,12 +47,10 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Starting database memory management process.
 START CMD /C "scdata.exe "{ \"eventloghost\": \"%DB_NAME%\", \"eventlogdir\": \"%DB_OUT_DIR%\", \"databasename\": \"%DB_NAME%\", \"databasedir\": \"%DB_DIR%\" }""
+powershell -ExecutionPolicy Unrestricted -File %~dp0\..\..\src\tests\start_scdata.ps1 %~dp0 %DB_NAME% %DB_DIR% %DB_OUT_DIR% def000db-dfdb-dfdb-dfdb-def0db0df0db
 
 :: Starting Prolog process.
 START CMD /C "32bitComponents\scsqlparser.exe 8066"
-
-:: Sleeping some time using ping.
-ping -n 3 127.0.0.1 > nul
 
 :: Starting database with some delay.
 CALL sccode.exe "def000db-dfdb-dfdb-dfdb-def0db0df0db" %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
