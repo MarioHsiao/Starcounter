@@ -12,7 +12,7 @@ call %~dp0\..\..\kill_all.bat
 
 if not "%1"=="noclean" (
 	rem populate data
-	powershell -command "Invoke-RestMethod http://localhost:8080/populate -timeoutsec 500" || exit /b 1
+	powershell -command "Invoke-RestMethod http://localhost:8080/populate -timeoutsec 1800" || exit /b 1
 )
 
 rem execute transactions

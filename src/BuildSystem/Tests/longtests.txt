@@ -7,3 +7,4 @@ retaildemo_test.bat 900
 pokerdemo_test.bat 900
 websockets_test.bat 900
 HttpStreams_test.exe 900
+SimpleIndependentTests_hosted_test.exe 900 3600
