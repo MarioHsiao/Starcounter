@@ -34,13 +34,14 @@
 - Changed the parser for Json-by-example from F# parser to NewtonSoft (nuget) [#3811](https://github.com/Starcounter/Starcounter/issues/3811)
 - Removed code for creating codegenerated jsonserializers for TypedJSON [#3832](https://github.com/Starcounter/Starcounter/issues/3832)
 - Redesigned weaver and app compiler as host-agnostic libraries [#3684](https://github.com/Starcounter/Starcounter/issues/3684)
-- Upgraded Polymer to 1.7.0 [#3888](https://github.com/Starcounter/Starcounter/issues/3888)
+- Upgraded Polymer to 1.7.1 [#3888](https://github.com/Starcounter/Starcounter/issues/3888), (https://github.com/Polymer/polymer/releases)
 - Upgraded webcomponents.js to 0.7.23 [#3925](https://github.com/Starcounter/Starcounter/issues/3925)
 - Upgraded Starcounter/starcounter-include from 2.0.0 to 2.0.1 (https://github.com/Starcounter/starcounter-include/releases)
 - Upgraded Juicy/imported-template from 1.4.3 to 1.4.4 (https://github.com/Juicy/imported-template/releases)
 - Upgraded Juicy/juicy-composition from 0.0.5 to 0.0.7 (https://github.com/Juicy/juicy-composition/releases)
 - Upgraded puppetjs/puppetjs from 2.2.1 to 2.4.0 [#3981](https://github.com/Starcounter/Starcounter/issues/3981),  [#3798](https://github.com/Starcounter/Starcounter/issues/3798)  (https://github.com/PuppetJs/PuppetJs/releases)
 - Upgraded puppetjs/puppet-polymer-client from 3.2.0 to 3.2.2 (https://github.com/PuppetJs/puppet-polymer-client/releases)
+- Upgraded starcounter-debug-aid from 2.0.7 to 2.0.9 (https://github.com/Starcounter/starcounter-debug-aid/releases)
 - Upgraded fast-json-patch from 1.1.0 to 1.1.3 (https://github.com/Starcounter-Jack/JSON-Patch/releases)
 - Removed automatic adding of `Set-Cookie: Location=x` and `Set-Cookie: ScSessionCookie=x` headers for outgoing responses with new session, and instead added `X-Location` header with the location of the session. This header can be changed or disabled by setting `session.UseSessionHeader` and `session.SessionHeaderName` [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
 - Including location of session in the response for the standalone html from the `PartialToStandaloneHtmlProvider` middleware to solve problems with mixed up sessions when several tabs are used [#3798](https://github.com/Starcounter/Starcounter/issues/3798)
@@ -48,7 +49,7 @@
 - Rewrote how json was parsed and generated in TypedJSON jsonpatch implementation and obsoleted public methods that took `IntPtr` as input-parameter. This doesn't affect existing apps though since most of this is only used internally [#3887](https://github.com/Starcounter/Starcounter/issues/3887)
 - Removed obsoleted method `IResource.GetHtmlPartialUrl` from interface and implementations. [#3541](https://github.com/Starcounter/Starcounter/issues/3541)
 - Made several methods in class `JsonExtension` obsolete as a step to avoid duplication of code and to improve overall code structure in Starcounter.XSON
-- Removed virtual methods from class `Json` that shouldn't be used, and that never worked correctly (`ChildArrayHasAddedAnElement`, `ChildArrayHasRemovedAnElement`, `ChildArrayHasReplacedAnElement`) 
+- Removed virtual methods from class `Json` that shouldn't be used, and that never worked correctly (`ChildArrayHasAddedAnElement`, `ChildArrayHasRemovedAnElement`, `ChildArrayHasReplacedAnElement`)
 - Refactored parts of the dirtycheck in Starcounter.XSON to allow overriding methods `CollectChanges(ChangeLog)` and `Checkpoint()` to allow custom code to be run when collecting changes and when all changes are collected when generating jsonpatches. First step for issue to enhance callback system for TypedJSON [#3727](https://github.com/Starcounter/Starcounter/issues/3727)
 
 ## [2.2.1.3234] - 2016-09-19 Built / 2016-09-28 Public
