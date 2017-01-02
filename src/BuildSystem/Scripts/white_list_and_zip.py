@@ -11,12 +11,14 @@ parser = argparse.ArgumentParser(description="Clean given directory based on whi
 parser.add_argument("--whitelist", required=True, help="Path to white list file.")
 parser.add_argument("--zipname", required=True, help="Name of the produced ZIP file.")
 parser.add_argument("--inputdir", required=True, help="Path to input directory.")
+parser.add_argument("--producezip", required=True, help="Should the ZIP file be produced.")
 my_args = parser.parse_args()
 
 # Assigning local variables.
 white_list_file_path = my_args.whitelist
 zip_archive_name = my_args.zipname
 input_dir = my_args.inputdir
+producezip = my_args.producezip
 
 print("-- Cleaning directory \"{0}\" according to white list \"{1}\" into ZIP file \"{2}\"".format(input_dir, white_list_file_path, zip_archive_name))
 
@@ -62,12 +64,15 @@ for root, dirnames, filenames in os.walk(input_dir, False):
     os.rmdir(root)
     print("-- Removed empty dir: {0}".format(root))
 
-print("-- Whitelisting finished, ZIPing directory: {0}".format(input_dir))
-path_to_zip = os.path.join(input_dir, "..", zip_archive_name)
-shutil.make_archive(path_to_zip, "zip", input_dir)
-print("-- Created ZIP file: {0}".format(path_to_zip + ".zip"))
+# Checking if ZIP should be produced.
+if producezip.lower() == "true":
 
-# Publishing as TeamCity artifact.
-print("##teamcity[publishArtifacts '{0}']".format(path_to_zip + ".zip"))
+  print("-- Whitelisting finished, ZIPing directory: {0}".format(input_dir))
+  path_to_zip = os.path.join(input_dir, "..", zip_archive_name)
+  shutil.make_archive(path_to_zip, "zip", input_dir)
+  print("-- Created ZIP file: {0}".format(path_to_zip + ".zip"))
+
+  # Publishing ZIP as TeamCity artifact.
+  print("##teamcity[publishArtifacts '{0}']".format(path_to_zip + ".zip"))
 
 sys.exit(0)
